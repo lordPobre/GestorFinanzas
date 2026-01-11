@@ -1,0 +1,306 @@
+{% extends 'finanzas/base.html' %}
+{% load humanize %}
+
+{% block content %}
+    <header class="flex justify-between items-center mb-8">
+        <div>
+            <h1 class="text-3xl font-bold text-gray-800">Hola, {{ user.username }}</h1>
+            <p class="text-gray-500">Resumen financiero (Corte día 5)</p>
+        </div>
+        <div class="relative">
+            <input type="text" placeholder="Buscar..." class="pl-4 pr-10 py-2 rounded-full border border-gray-200 focus:outline-none focus:border-indigo-500">
+            <i class="fas fa-search absolute right-3 top-3 text-gray-400"></i>
+        </div>
+    </header>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
+
+        <div class="col-span-1 md:col-span-1 bg-white p-6 rounded-3xl card-shadow relative">
+            
+            <a href="{% url 'registrar_ingreso' %}" 
+               class="absolute top-5 right-5 bg-green-100 text-green-600 w-8 h-8 flex items-center justify-center rounded-full hover:bg-green-200 transition shadow-sm hover:scale-110"
+               title="Registrar nuevo ingreso">
+                <i class="fas fa-plus text-xs"></i>
+            </a>
+
+            <div class="mb-6">
+                <p class="text-gray-400 text-sm">Ingresos Totales</p>
+                <h2 class="text-3xl font-bold text-indigo-600">↑ ${{ total_ingresos|intcomma|default:"0" }}</h2>
+            </div>
+
+            <div>
+                <p class="text-gray-400 text-sm">Gastos Totales</p>
+                
+                <h2 class="text-3xl font-bold text-orange-500">↓ ${{ total_egresos|intcomma|default:"0" }}</h2>
+                
+                {% if por_pagar > 0 %}
+                    <p class="text-xs text-red-500 font-medium mt-1 animate-pulse">
+                        <i class="fas fa-exclamation-circle"></i> Por pagar: ${{ por_pagar|intcomma }}
+                    </p>
+                {% else %}
+                    <p class="text-xs text-green-500 font-medium mt-1">
+                        <i class="fas fa-check-circle"></i> Todo pagado
+                    </p>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="col-span-1 md:col-span-2 bg-white p-6 rounded-3xl card-shadow relative">
+            
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-lg font-bold text-gray-700">Calendario</h3>
+                
+                <div class="flex items-center bg-indigo-50 rounded-full px-2 py-1">
+                    
+                    <a href="?month={{ prev_month }}&year={{ prev_year }}" class="w-8 h-8 flex items-center justify-center rounded-full text-indigo-600 hover:bg-white hover:shadow-sm transition">
+                        <i class="fas fa-chevron-left text-xs"></i>
+                    </a>
+                    
+                    <span class="text-sm font-bold text-indigo-700 mx-3 min-w-[100px] text-center capitalize">
+                        {{ nombre_mes }}
+                    </span>
+                    
+                    <a href="?month={{ next_month }}&year={{ next_year }}" class="w-8 h-8 flex items-center justify-center rounded-full text-indigo-600 hover:bg-white hover:shadow-sm transition">
+                        <i class="fas fa-chevron-right text-xs"></i>
+                    </a>
+                    
+                </div>
+            </div>
+
+            <div class="w-full select-none">
+                <div class="grid grid-cols-7 mb-2">
+                    {% for dia in dias_semana %}
+                        <div class="text-center text-xs text-gray-400 font-medium py-1">{{ dia }}</div>
+                    {% endfor %}
+                </div>
+
+                <div class="flex flex-col gap-1">
+                    {% for semana in calendario %}
+                    <div class="grid grid-cols-7 gap-1">
+                        {% for dia in semana %}
+                            {% if dia %}
+                                <div onclick="abrirModal('modal-{{ dia.numero }}')"
+                                     class="relative h-14 rounded-xl flex flex-col items-center justify-center transition-all border border-transparent cursor-pointer
+                                            {% if dia.es_hoy %} bg-indigo-600 text-white shadow-md z-10
+                                            {% else %} hover:bg-indigo-50 text-gray-700 bg-white border-gray-100 border
+                                            {% endif %}">
+                                    
+                                    <span class="text-sm font-semibold">{{ dia.numero }}</span>
+                                    
+                                    {% if dia.eventos %}
+                                        <div class="flex gap-0.5 mt-1">
+                                            {% for evento in dia.eventos %}
+                                                <div class="w-1.5 h-1.5 rounded-full 
+                                                    {% if evento.estado == 'pagado' %} bg-green-400 
+                                                    {% else %} bg-red-500 animate-pulse {% endif %}"
+                                                    title="{{ evento.deuda.acreedor }}: ${{ evento.monto|intcomma }}">
+                                                </div>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+
+                                {% if dia.eventos %}
+                                <div id="modal-{{ dia.numero }}" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm" onclick="event.stopPropagation()">
+                                    <div class="bg-white rounded-2xl shadow-2xl p-6 w-96 max-w-full transform transition-all scale-100 mx-4">
+                                        
+                                        <div class="flex justify-between items-center mb-4">
+                                            <h4 class="text-xl font-bold text-gray-800">Vencimientos día {{ dia.numero }}</h4>
+                                            <button type="button" onclick="cerrarModal('modal-{{ dia.numero }}')" class="text-gray-400 hover:text-gray-600">
+                                                <i class="fas fa-times"></i>
+                                            </button>
+                                        </div>
+
+                                        <div class="space-y-3">
+                                            {% for evento in dia.eventos %}
+                                            <div class="flex justify-between items-center p-3 rounded-xl bg-gray-50 border border-gray-100">
+                                                <div>
+                                                    <p class="font-bold text-gray-700">{{ evento.deuda.acreedor }}</p>
+                                                    <p class="text-xs text-gray-500">Cuota: ${{ evento.monto|intcomma }}</p>
+                                                </div>
+
+                                                {% if evento.estado == 'pendiente' %}
+                                                    <form action="{% url 'pagar_cuota' evento.deuda.id %}" method="POST">
+                                                        {% csrf_token %}
+                                                        <button type="submit" class="bg-indigo-600 text-white text-xs px-3 py-2 rounded-lg font-bold hover:bg-indigo-700 transition shadow-md flex items-center gap-1">
+                                                            Pagar <i class="fas fa-arrow-right"></i>
+                                                        </button>
+                                                    </form>
+                                                {% else %}
+                                                    <span class="text-green-600 text-xs font-bold bg-green-100 px-2 py-1 rounded-md">
+                                                        <i class="fas fa-check"></i> Pagado
+                                                    </span>
+                                                {% endif %}
+                                            </div>
+                                            {% endfor %}
+                                        </div>
+
+                                        <div class="mt-4 text-center">
+                                            <button type="button" onclick="cerrarModal('modal-{{ dia.numero }}')" class="text-sm text-gray-500 hover:text-indigo-600 font-medium">
+                                                Cerrar
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endif %}
+
+                            {% else %}
+                                <div class="h-14"></div> {% endif %}
+                        {% endfor %}
+                    </div>
+                    {% endfor %}
+                </div>
+                
+                <div class="mt-4 flex gap-4 text-[10px] text-gray-400 justify-center">
+                    <div class="flex items-center gap-1"><div class="w-2 h-2 rounded-full bg-red-500"></div> Pendiente</div>
+                    <div class="flex items-center gap-1"><div class="w-2 h-2 rounded-full bg-green-400"></div> Pagado</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-span-1 bg-white p-6 rounded-3xl card-shadow flex flex-col h-full">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-lg font-bold text-gray-700">Mis Deudas</h3>
+                <a href="{% url 'crear_deuda' %}" class="text-xs bg-indigo-100 text-indigo-600 px-3 py-1 rounded-full hover:bg-indigo-200 transition decoration-transparent">
+                    + Nueva
+                </a>
+            </div>
+
+            <div class="flex-1 overflow-y-auto pr-2 space-y-6">
+                {% for deuda in deudas %}
+                <div class="group relative bg-gray-50 p-4 rounded-2xl mb-4 border border-transparent hover:border-indigo-100 transition-all">
+                    
+                    <div class="flex justify-between items-start mb-2">
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <h4 class="font-bold text-gray-800">{{ deuda.acreedor }}</h4>
+                                <a href="{% url 'eliminar_deuda' deuda.id %}" 
+                                   onclick="return confirm('¿Estás seguro de eliminar esta deuda?');"
+                                   class="text-gray-300 hover:text-red-500 transition-colors"
+                                   title="Eliminar">
+                                    <i class="fas fa-trash-alt text-xs"></i>
+                                </a>
+                            </div>
+                            
+                            <p class="text-xs text-gray-500 font-medium mt-1">
+                                Restan: <span class="text-red-500 font-bold">${{ deuda.monto_restante|intcomma }}</span>
+                                <span class="text-[10px] text-gray-400"> / ${{ deuda.monto_total|intcomma }}</span>
+                            </p>
+                        </div>
+
+                        {% if deuda.cuotas_pagadas < deuda.cuotas_totales %}
+                            <form action="{% url 'pagar_cuota' deuda.id %}" method="POST">
+                                {% csrf_token %}
+                                <button type="submit" 
+                                        title="Pagar cuota" 
+                                        class="flex items-center gap-2 bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-3 py-1.5 rounded-full text-xs font-semibold shadow-md hover:shadow-lg hover:scale-105 transform transition duration-200">
+                                    <i class="fas fa-check"></i> Pagar
+                                </button>
+                            </form>
+                        {% else %}
+                            <span class="bg-green-100 text-green-600 px-3 py-1 rounded-full text-xs font-bold">
+                                <i class="fas fa-check-circle"></i> Listo
+                            </span>
+                        {% endif %}
+                    </div>
+
+                    <div class="mt-3">
+                        <div class="flex justify-between text-xs mb-1 text-gray-500">
+                            <span>Progreso</span>
+                            <span>{{ deuda.cuotas_pagadas }}/{{ deuda.cuotas_totales }}</span>
+                        </div>
+                        <div class="relative w-full h-2 bg-gray-200 rounded-full overflow-hidden">
+                            <div class="absolute top-0 left-0 h-full bg-indigo-500 rounded-full transition-all duration-700" 
+                                 style="width: {{ deuda.porcentaje }}%"></div>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="text-center py-10 opacity-50">
+                    <i class="fas fa-smile-beam text-4xl text-indigo-200 mb-2"></i>
+                    <p class="text-gray-400 text-sm">No hay deudas registradas.</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="col-span-1 md:col-span-2 lg:col-span-3 bg-white p-6 rounded-3xl card-shadow">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-bold text-gray-700">Evolución de Gastos</h3>
+                <select id="tipoGrafico" class="text-xs border border-gray-300 rounded-lg p-1 text-gray-500">
+                    <option value="bar">Barras</option>
+                    <option value="line">Línea</option>
+                </select>
+            </div>
+            <div class="relative h-64 w-full">
+                <canvas id="chartGastos"></canvas>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // --- FUNCIONES MODAL ---
+        function abrirModal(id) {
+            const modal = document.getElementById(id);
+            if (modal) {
+                modal.classList.remove('hidden');
+            }
+        }
+
+        function cerrarModal(id) {
+            const modal = document.getElementById(id);
+            if (modal) {
+                modal.classList.add('hidden');
+            }
+        }
+        
+        // Cerrar modal al hacer clic fuera
+        window.onclick = function(event) {
+            if (event.target.classList.contains('fixed')) {
+                event.target.classList.add('hidden');
+            }
+        }
+
+        // --- GRÁFICO 2: EVOLUCIÓN GASTOS ---
+        const labelsMeses = {{ meses_json|safe }};
+        const dataMontos = {{ montos_json|safe }};
+
+        const ctxGastos = document.getElementById('chartGastos').getContext('2d');
+        let gradient = ctxGastos.createLinearGradient(0, 0, 0, 400);
+        gradient.addColorStop(0, 'rgba(249, 115, 22, 0.8)'); 
+        gradient.addColorStop(1, 'rgba(249, 115, 22, 0.1)'); 
+
+        const chartGastos = new Chart(ctxGastos, {
+            type: 'bar',
+            data: {
+                labels: labelsMeses,
+                datasets: [{
+                    label: 'Gastos ($)',
+                    data: dataMontos,
+                    backgroundColor: gradient,
+                    borderColor: '#F97316',
+                    borderWidth: 2,
+                    borderRadius: 8,
+                    barThickness: 30,
+                    tension: 0.4,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { beginAtZero: true, grid: { borderDash: [5, 5] } },
+                    x: { grid: { display: false } }
+                }
+            }
+        });
+
+        document.getElementById('tipoGrafico').addEventListener('change', function() {
+            chartGastos.config.type = this.value;
+            chartGastos.update();
+        });
+    </script>
+{% endblock %}

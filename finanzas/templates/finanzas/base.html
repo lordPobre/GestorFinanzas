@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Finanzas App</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <style>
+        /* Tus estilos personalizados intactos */
+        .bg-sidebar { background-color: #4F46E5; }
+        .text-accent { color: #F59E0B; }
+        .card-shadow { box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05); }
+    </style>
+</head>
+<body class="bg-gray-50 font-sans antialiased flex h-screen">
+
+    <aside class="w-24 bg-sidebar flex flex-col items-center py-8 text-white rounded-r-3xl shadow-2xl">
+        <div class="mb-8 p-3 bg-white/20 rounded-full">
+            <i class="fas fa-user text-xl"></i>
+        </div>
+        
+        <nav class="flex flex-col gap-8 text-xl">
+            <a href="{% url 'dashboard' %}" class="opacity-100 hover:opacity-80 transition"><i class="fas fa-home"></i></a>
+            <a href="#" class="opacity-60 hover:opacity-100 transition"><i class="fas fa-wallet"></i></a>
+            <a href="{% url 'estadisticas' %}" class="opacity-60 hover:opacity-100 transition" title="Estadísticas de Deuda"><i class="fas fa-chart-pie"></i></a>
+            <a href="#" class="opacity-60 hover:opacity-100 transition"><i class="fas fa-cog"></i></a>
+        </nav>
+        
+        <div class="mt-auto">
+            <form action="{% url 'logout' %}" method="post">
+                {% csrf_token %}
+                <button type="submit" class="opacity-60 hover:opacity-100 text-white transition" title="Cerrar Sesión">
+                    <i class="fas fa-sign-out-alt"></i>
+                </button>
+            </form>
+        </div>
+    </aside>
+
+    <main class="flex-1 p-8 overflow-y-auto">
+        
+        {% block content %}
+        {% endblock %}
+
+    </main>
+
+</body>
+</html>
