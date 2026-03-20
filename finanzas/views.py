@@ -30,7 +30,6 @@ def get_fecha_corte(fecha_referencia=None):
         
     return inicio
 
-@login_required
 @login_required(login_url='/admin/login/')
 def dashboard(request):
     # 1. RECIBIR FECHA DE LA URL (Navegación entre meses)
@@ -55,7 +54,7 @@ def dashboard(request):
     else:
         next_month, next_year = month + 1, year
 
-    # 3. TOTALES REALES (Lo que ya salió del banco)
+    # 3. FECHAS DE CORTE
     referencia_fiscal = date(year, month, 15) 
     fecha_inicio = get_fecha_corte(referencia_fiscal)
     
@@ -64,17 +63,18 @@ def dashboard(request):
     else:
         fecha_fin = date(fecha_inicio.year, fecha_inicio.month + 1, 4)
 
+    # 4. TOTALES REALES (Lo que ya ingresó/salió del banco)
     total_ingresos = Transaccion.objects.filter(
-        usuario=request.user, tipo='INGRESO',
+        usuario=request.user, tipo='INGRESO', # Asegúrate que el tipo sea 'INGRESO' en tu BD
         fecha__gte=fecha_inicio, fecha__lte=fecha_fin
     ).aggregate(Sum('monto'))['monto__sum'] or 0 
 
-    total_egresos_reales = Transaccion.objects.filter(
-        usuario=request.user, tipo='EGRESO',
+    pagado_este_mes = Transaccion.objects.filter(
+        usuario=request.user, tipo='EGRESO', # Asegúrate que el tipo sea 'EGRESO' en tu BD
         fecha__gte=fecha_inicio, fecha__lte=fecha_fin
     ).aggregate(Sum('monto'))['monto__sum'] or 0
 
-    # 4. LÓGICA DEL CALENDARIO Y DEUDA PENDIENTE
+    # 5. LÓGICA DEL CALENDARIO Y DEUDA PENDIENTE
     deudas = Deuda.objects.filter(usuario=request.user)
     _, num_days = calendar.monthrange(year, month)
     cal = calendar.monthcalendar(year, month)
@@ -93,19 +93,20 @@ def dashboard(request):
             if dia_vencimiento not in eventos_mes:
                 eventos_mes[dia_vencimiento] = []
 
-            # Estado
+            # Estado de la cuota en el mes actual
             if fecha_cobro_este_mes < hoy and (year < hoy.year or (year == hoy.year and month < hoy.month)):
                  estado = 'pagado'
             elif fecha_cobro_este_mes > hoy:
                  estado = 'pendiente'
             else:
                  if d.proximo_vencimiento and d.proximo_vencimiento > fecha_cobro_este_mes:
-                     estado = 'pagado'
+                      estado = 'pagado'
                  elif d.cuotas_pagadas >= d.cuotas_totales:
-                     estado = 'pagado'
+                      estado = 'pagado'
                  else:
-                     estado = 'pendiente'
+                      estado = 'pendiente'
 
+            # Si está pendiente en ESTE mes, lo sumamos a lo que falta por pagar
             if estado == 'pendiente':
                 monto_por_pagar_mes += float(d.monto_cuota)
 
@@ -115,10 +116,11 @@ def dashboard(request):
                 'monto': d.monto_cuota
             })
 
-    # 5. CÁLCULO FINAL DE PROYECCIÓN
-    total_egresos_proyectado = int(total_egresos_reales) + int(monto_por_pagar_mes)
-    balance = int(total_ingresos) - total_egresos_proyectado
+    # 6. CÁLCULOS DE COMPROMISOS (NUEVA LÓGICA)
+    total_comprometido = int(pagado_este_mes) + int(monto_por_pagar_mes)
+    balance = int(total_ingresos) - total_comprometido
 
+    # Preparar datos del calendario
     calendario_datos = []
     for semana in cal:
         semana_datos = []
@@ -134,43 +136,27 @@ def dashboard(request):
                 })
         calendario_datos.append(semana_datos)
 
-    # =========================================================================
-    # 6. GRÁFICOS COMBINADOS (REAL + PROYECCIÓN DE DEUDAS) <-- AQUÍ CAMBIAMOS
-    # =========================================================================
-    
-    # A. Obtenemos Gastos Reales Históricos
+    # 7. GRÁFICOS COMBINADOS (REAL + PROYECCIÓN DE DEUDAS)
     gastos_reales = Transaccion.objects.filter(tipo='EGRESO', usuario=request.user)
-    
-    # Usamos un diccionario para sumar por mes: {'2024-01': 50000, ...}
     data_grafico = defaultdict(float)
 
     for g in gastos_reales:
-        clave = g.fecha.strftime('%Y-%m') # Agrupamos por Año-Mes
+        clave = g.fecha.strftime('%Y-%m')
         data_grafico[clave] += float(g.monto)
 
-    # B. Sumamos las Deudas Pendientes (Proyección a Futuro)
     for d in deudas:
-        # Calculamos cuántas cuotas le faltan
         cuotas_restantes = d.cuotas_totales - d.cuotas_pagadas
-        
         if cuotas_restantes > 0:
-            # Empezamos a proyectar desde el próximo vencimiento
             inicio_proyeccion = d.proximo_vencimiento or d.fecha_inicio
-            
-            # Sumamos el valor de la cuota a los meses futuros en el gráfico
             for i in range(cuotas_restantes):
                 fecha_cuota = inicio_proyeccion + relativedelta(months=i)
                 clave = fecha_cuota.strftime('%Y-%m')
                 data_grafico[clave] += float(d.monto_cuota)
 
-    # C. Preparamos los datos para Chart.js
-    # Ordenamos cronológicamente
+    # Preparar datos para Chart.js
     claves_ordenadas = sorted(data_grafico.keys())
-    
     meses_label = []
     montos_data = []
-    
-    # Diccionario para traducir mes a español
     nombres_meses_esp = {
         '01': 'Ene', '02': 'Feb', '03': 'Mar', '04': 'Abr', '05': 'May', '06': 'Jun',
         '07': 'Jul', '08': 'Ago', '09': 'Sep', '10': 'Oct', '11': 'Nov', '12': 'Dic'
@@ -178,20 +164,24 @@ def dashboard(request):
 
     for clave in claves_ordenadas:
         anio, mes_num = clave.split('-')
-        # Creamos la etiqueta, ej: "Ene 2024"
         nombre_bonito = f"{nombres_meses_esp[mes_num]} {anio}"
-        
         meses_label.append(nombre_bonito)
         montos_data.append(data_grafico[clave])
 
     nombres_dias = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom']
 
-    # =========================================================================
+    # --- AGREGA ESTA LÍNEA AQUÍ ---
+    # Sumamos el monto restante de todas tus deudas activas
+    deuda_total_restante = sum(float(d.monto_restante) for d in deudas)
+    # ------------------------------
 
+    # 8. CONTEXTO A ENVIAR AL TEMPLATE
     context = {
         'total_ingresos': total_ingresos,
-        'total_egresos': total_egresos_proyectado,
-        'por_pagar': int(monto_por_pagar_mes),
+        'pagado_este_mes': int(pagado_este_mes),           # Lo que ya gastaste
+        'por_pagar': int(monto_por_pagar_mes),             # Lo que falta por pagar
+        'total_comprometido': total_comprometido,          # La suma de ambos
+        'deuda_total_restante': int(deuda_total_restante),
         'balance': balance,
         'deudas': deudas,
         'fecha_corte': fecha_inicio,
