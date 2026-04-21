@@ -6,6 +6,8 @@ from django.contrib.auth.decorators import login_required
 from django.db.models import Sum
 from django.db.models.functions import TruncMonth
 from dateutil.relativedelta import relativedelta
+from django.db.models import F
+from django.http import HttpResponse
 from collections import defaultdict
 from django.utils import timezone
 from datetime import date
@@ -14,7 +16,7 @@ from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import login
 from .models import Transaccion, Deuda, Presupuesto, MetaAhorro
 from .forms import DeudaForm, IngresoForm, MetaAhorroForm
-from django.http import HttpResponse
+
 
 
 # --- FUNCIÓN AUXILIAR: FECHA DE CORTE ---
@@ -77,15 +79,18 @@ def dashboard(request):
         fecha__gte=fecha_inicio, fecha__lte=fecha_fin
     ).aggregate(Sum('monto'))['monto__sum'] or 0
 
+   
     # 5. LÓGICA DEL CALENDARIO Y DEUDA PENDIENTE
-    deudas = Deuda.objects.filter(usuario=request.user)
+    todas_las_deudas = Deuda.objects.filter(usuario=request.user)
+    deudas_activas = todas_las_deudas.filter(cuotas_pagadas__lt=F('cuotas_totales'))
     _, num_days = calendar.monthrange(year, month)
     cal = calendar.monthcalendar(year, month)
     eventos_mes = {}
     
     monto_por_pagar_mes = 0 
 
-    for d in deudas:
+    # === AQUÍ ESTABA EL ERROR: Cambiamos "deudas" por "todas_las_deudas" ===
+    for d in todas_las_deudas:
         dia_vencimiento = d.fecha_inicio.day
         if dia_vencimiento > num_days: dia_vencimiento = num_days
         
