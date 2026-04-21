@@ -70,32 +70,42 @@ def dashboard(request):
 
     # 4. TOTALES REALES (Lo que ya ingresó/salió del banco)
     total_ingresos = Transaccion.objects.filter(
-        usuario=request.user, tipo='INGRESO', # Asegúrate que el tipo sea 'INGRESO' en tu BD
+        usuario=request.user, tipo='INGRESO', 
         fecha__gte=fecha_inicio, fecha__lte=fecha_fin
     ).aggregate(Sum('monto'))['monto__sum'] or 0 
 
     pagado_este_mes = Transaccion.objects.filter(
-        usuario=request.user, tipo='EGRESO', # Asegúrate que el tipo sea 'EGRESO' en tu BD
+        usuario=request.user, tipo='EGRESO', 
         fecha__gte=fecha_inicio, fecha__lte=fecha_fin
     ).aggregate(Sum('monto'))['monto__sum'] or 0
 
-   
-    # 5. LÓGICA DEL CALENDARIO Y DEUDA PENDIENTE
+    # =====================================================================
+    # 5. LÓGICA DEL CALENDARIO Y DEUDAS DEL MES VISUALIZADO
+    # =====================================================================
     todas_las_deudas = Deuda.objects.filter(usuario=request.user)
-    deudas_activas = todas_las_deudas.filter(cuotas_pagadas__lt=F('cuotas_totales'))
-    _, num_days = calendar.monthrange(year, month)
+    
+    # Definimos el rango exacto del mes que se está viendo
+    _, ultimo_dia_mes = calendar.monthrange(year, month)
+    inicio_mes_vis = date(year, month, 1)
+    fin_mes_vis = date(year, month, ultimo_dia_mes)
+
+    # Filtramos solo las deudas que estaban/estarán vigentes en este mes
+    deudas_del_mes = todas_las_deudas.filter(
+        fecha_inicio__lte=fin_mes_vis,
+        fecha_fin_estimada__gte=inicio_mes_vis
+    )
+
     cal = calendar.monthcalendar(year, month)
     eventos_mes = {}
-    
     monto_por_pagar_mes = 0 
 
-    # === AQUÍ ESTABA EL ERROR: Cambiamos "deudas" por "todas_las_deudas" ===
-    for d in todas_las_deudas:
+    for d in deudas_del_mes:
         dia_vencimiento = d.fecha_inicio.day
-        if dia_vencimiento > num_days: dia_vencimiento = num_days
+        if dia_vencimiento > ultimo_dia_mes: dia_vencimiento = ultimo_dia_mes
         
         fecha_cobro_este_mes = date(year, month, dia_vencimiento)
         
+        # Asegurarse de que el día de cobro cae dentro del periodo de la deuda
         if d.fecha_inicio <= fecha_cobro_este_mes <= d.fecha_fin_estimada:
             
             if dia_vencimiento not in eventos_mes:
@@ -144,11 +154,11 @@ def dashboard(request):
                 })
         calendario_datos.append(semana_datos)
 
-   # 7. GRÁFICOS COMBINADOS (APILADOS: REAL VS PROYECCIÓN)
+    # =====================================================================
+    # 7. GRÁFICOS COMBINADOS (APILADOS: REAL VS PROYECCIÓN)
     # =====================================================================
     gastos_reales = Transaccion.objects.filter(tipo='EGRESO', usuario=request.user)
     
-    # Creamos dos diccionarios separados
     data_reales = defaultdict(float)
     data_deudas = defaultdict(float)
 
@@ -157,7 +167,7 @@ def dashboard(request):
         clave = g.fecha.strftime('%Y-%m')
         data_reales[clave] += float(g.monto)
 
-    # B. Sumamos la proyección de deudas (Futuro)
+    # B. Sumamos la proyección de deudas (Futuro) usando TODAS para no romper el histórico
     for d in todas_las_deudas:
         cuotas_restantes = d.cuotas_totales - d.cuotas_pagadas
         if cuotas_restantes > 0:
@@ -184,78 +194,74 @@ def dashboard(request):
         anio, mes_num = clave.split('-')
         nombre_bonito = f"{nombres_meses_esp[mes_num]} {anio}"
         meses_label.append(nombre_bonito)
-        # Si no hay gastos en un mes, agrega 0 para que no falle el gráfico
         montos_reales_data.append(data_reales.get(clave, 0))
         montos_deudas_data.append(data_deudas.get(clave, 0))
 
     nombres_dias = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom']
 
-    # Sumamos el monto restante de todas tus deudas activas
-    deuda_total_restante = sum(float(d.monto_restante) for d in deudas_activas)
+    # Sumamos el monto restante SOLO de tus deudas activas globales (para el texto gris general)
+    deudas_activas_global = todas_las_deudas.filter(cuotas_pagadas__lt=F('cuotas_totales'))
+    deuda_total_restante = sum(float(d.monto_restante) for d in deudas_activas_global)
 
-    # NUEVO: 9. DATOS PARA GRÁFICO DE DONA (CATEGORÍAS)
     # =====================================================================
-    # Usamos los gastos del mes actual (pagado_este_mes)
+    # 9. DATOS PARA GRÁFICO DE DONA (CATEGORÍAS)
+    # =====================================================================
     gastos_del_mes = Transaccion.objects.filter(
         usuario=request.user, tipo='EGRESO',
         fecha__gte=fecha_inicio, fecha__lte=fecha_fin
     )
     
-    # Agrupamos por categoría y sumamos
     agrupado_categorias = gastos_del_mes.values('categoria').annotate(total=Sum('monto')).order_by('-total')
     
     categorias_label = [item['categoria'] or 'Otros' for item in agrupado_categorias]
     categorias_data = [float(item['total']) for item in agrupado_categorias]
 
     # =====================================================================
-    # NUEVO: 10. ÚLTIMOS MOVIMIENTOS
+    # 10. ÚLTIMOS MOVIMIENTOS
     # =====================================================================
-    # Traemos las últimas 5 transacciones (sin importar si es ingreso o egreso)
     ultimas_transacciones = Transaccion.objects.filter(usuario=request.user).order_by('-fecha', '-id')[:5]
 
     # =====================================================================
-    # NUEVO: 11. GAMIFICACIÓN (PRESUPUESTO Y ALCANCÍAS)
+    # 11. GAMIFICACIÓN (PRESUPUESTO Y ALCANCÍAS)
     # =====================================================================
-    
-    # 1. Lógica del Presupuesto
     presupuesto, created = Presupuesto.objects.get_or_create(usuario=request.user, defaults={'limite_mensual': 500000})
     limite_presupuesto = float(presupuesto.limite_mensual)
-    gastado = float(pagado_este_mes) # Usa la variable que ya tienes calculada de egresos
+    gastado = float(pagado_este_mes)
     
     porcentaje_presupuesto = (gastado / limite_presupuesto * 100) if limite_presupuesto > 0 else 0
-    porcentaje_presupuesto = min(porcentaje_presupuesto, 100) # Para que la barra no se salga del contenedor
+    porcentaje_presupuesto = min(porcentaje_presupuesto, 100) 
 
-    # Sistema de semáforo para el color
     if porcentaje_presupuesto < 60:
-        color_presupuesto = 'bg-green-500'     # Vas súper bien
+        color_presupuesto = 'bg-green-500' 
     elif porcentaje_presupuesto < 90:
-        color_presupuesto = 'bg-yellow-400'    # Cuidado
+        color_presupuesto = 'bg-yellow-400'
     else:
-        color_presupuesto = 'bg-red-500'       # ¡Alerta roja!
+        color_presupuesto = 'bg-red-500' 
 
-    # 2. Lógica de las Alcancías
     metas = MetaAhorro.objects.filter(usuario=request.user)
 
-    # 8. CONTEXTO A ENVIAR AL TEMPLATE
+    # =====================================================================
+    # 12. CONTEXTO FINAL A ENVIAR AL TEMPLATE
+    # =====================================================================
     context = {
         'total_ingresos': total_ingresos,
         'pagado_este_mes': int(pagado_este_mes),           
         'por_pagar': int(monto_por_pagar_mes),             
         'total_comprometido': total_comprometido,          
-        'deuda_total_restante': int(deuda_total_restante),
         'balance': balance,
         'deuda_total_restante': int(deuda_total_restante),
-        'deudas': deudas_activas,
+        
+        # AQUÍ PASAMOS SOLO LAS DEUDAS CORRESPONDIENTES AL MES QUE SE ESTÁ MIRANDO
+        'deudas': deudas_del_mes,
+        
         'fecha_corte': fecha_inicio,
         'calendario': calendario_datos,
         'nombre_mes': fecha_visualizada.strftime('%B %Y').capitalize(),
         'dias_semana': nombres_dias,
         
-        # --- AQUÍ CAMBIAMOS LAS VARIABLES DEL JSON ---
         'meses_json': json.dumps(meses_label),
         'montos_reales_json': json.dumps(montos_reales_data), 
         'montos_deudas_json': json.dumps(montos_deudas_data),
-        # ---------------------------------------------
         
         'prev_month': prev_month, 'prev_year': prev_year,
         'next_month': next_month, 'next_year': next_year,
