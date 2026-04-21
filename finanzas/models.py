@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
 from dateutil.relativedelta import relativedelta 
+from datetime import date
 
 # --- MODELO CATEGORIA ---
 class Categoria(models.Model):
@@ -24,6 +25,16 @@ class Transaccion(models.Model):
     fecha = models.DateField(default=timezone.now)
     descripcion = models.CharField(max_length=200, blank=True)
 
+    CATEGORIAS = (
+        ('Comida', 'Comida y Supermercado'),
+        ('Transporte', 'Transporte y Gasolina'),
+        ('Servicios', 'Luz, Agua, Internet'),
+        ('Ocio', 'Entretenimiento y Salidas'),
+        ('Salud', 'Salud y Farmacia'),
+        ('Otros', 'Otros Gastos'),
+    )
+    categoria = models.CharField(max_length=50, choices=CATEGORIAS, default='Otros')
+
     def __str__(self):
         return f"{self.tipo} - {self.monto}"
 
@@ -40,6 +51,16 @@ class Deuda(models.Model):
     
     # Fechas
     fecha_inicio = models.DateField(default=timezone.now, help_text="Fecha del primer pago")
+
+    CATEGORIAS = (
+        ('Comida', 'Comida y Supermercado'),
+        ('Transporte', 'Transporte y Gasolina'),
+        ('Servicios', 'Luz, Agua, Internet'),
+        ('Ocio', 'Entretenimiento y Salidas'),
+        ('Salud', 'Salud y Farmacia'),
+        ('Otros', 'Otros Gastos'),
+    )
+    categoria = models.CharField(max_length=50, choices=CATEGORIAS, default='Otros')
     
     # --- PROPIEDADES ---
     @property
@@ -71,3 +92,33 @@ class Deuda(models.Model):
         if self.cuotas_totales > 0:
             return self.monto_total / self.cuotas_totales
         return 0
+    
+    @property
+    def dias_para_vencer(self):
+        fecha_evaluar = self.proximo_vencimiento or self.fecha_inicio
+        if fecha_evaluar:
+            delta = fecha_evaluar - date.today()
+            return delta.days
+        return 999
+
+class Presupuesto(models.Model):
+    usuario = models.OneToOneField(User, on_delete=models.CASCADE)
+    limite_mensual = models.DecimalField(max_digits=12, decimal_places=2, default=500000) # Por defecto 500k
+
+    def __str__(self):
+        return f"Presupuesto de {self.usuario.username}: ${self.limite_mensual}"
+
+class MetaAhorro(models.Model):
+    usuario = models.ForeignKey(User, on_delete=models.CASCADE)
+    nombre = models.CharField(max_length=100) # Ej: Viaje a la playa, PC Gamer...
+    monto_meta = models.DecimalField(max_digits=12, decimal_places=2)
+    monto_actual = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+
+    @property
+    def porcentaje(self):
+        if self.monto_meta > 0:
+            return min((self.monto_actual / self.monto_meta) * 100, 100)
+        return 0
+
+    def __str__(self):
+        return self.nombre
