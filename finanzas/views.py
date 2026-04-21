@@ -158,7 +158,7 @@ def dashboard(request):
         data_reales[clave] += float(g.monto)
 
     # B. Sumamos la proyección de deudas (Futuro)
-    for d in deudas:
+    for d in todas_las_deudas:
         cuotas_restantes = d.cuotas_totales - d.cuotas_pagadas
         if cuotas_restantes > 0:
             inicio_proyeccion = d.proximo_vencimiento or d.fecha_inicio
@@ -191,7 +191,7 @@ def dashboard(request):
     nombres_dias = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom']
 
     # Sumamos el monto restante de todas tus deudas activas
-    deuda_total_restante = sum(float(d.monto_restante) for d in deudas)
+    deuda_total_restante = sum(float(d.monto_restante) for d in deudas_activas)
 
     # NUEVO: 9. DATOS PARA GRÁFICO DE DONA (CATEGORÍAS)
     # =====================================================================
@@ -244,7 +244,8 @@ def dashboard(request):
         'total_comprometido': total_comprometido,          
         'deuda_total_restante': int(deuda_total_restante),
         'balance': balance,
-        'deudas': deudas,
+        'deuda_total_restante': int(deuda_total_restante),
+        'deudas': deudas_activas,
         'fecha_corte': fecha_inicio,
         'calendario': calendario_datos,
         'nombre_mes': fecha_visualizada.strftime('%B %Y').capitalize(),
