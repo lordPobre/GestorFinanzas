@@ -2,524 +2,462 @@
 {% load humanize %}
 
 {% block content %}
-   <header class="flex justify-between items-center mb-8">
-        <div>
-            <h1 class="text-3xl font-bold text-gray-800">Hola, {{ user.username }}</h1>
-            <p class="text-gray-500">Resumen financiero</p>
-        </div>
-        <div class="flex items-center gap-4">
-            <a href="{% url 'exportar_excel' %}" class="flex items-center gap-2 bg-green-50 text-green-600 px-4 py-2 rounded-xl text-sm font-bold hover:bg-green-100 transition shadow-sm">
-                <i class="fas fa-file-excel"></i> Exportar Excel
-            </a>
-            
-            <div class="relative">
-                <input type="text" placeholder="Buscar..." class="pl-4 pr-10 py-2 rounded-full border border-gray-200 focus:outline-none focus:border-indigo-500">
-                <i class="fas fa-search absolute right-3 top-3 text-gray-400"></i>
-            </div>
-        </div>
-    </header>
+<header class="flex justify-between items-center mb-8">
+    <div>
+        <h1 class="text-3xl font-bold text-gray-800 dark:text-white">Hola, {{ user.username }} 👋</h1>
+        <p class="text-gray-500">Resumen financiero · {{ nombre_mes }}</p>
+    </div>
+    <div class="flex items-center gap-3">
+        <a href="{% url 'registrar_transaccion' %}?tipo=EGRESO" class="flex items-center gap-2 bg-red-50 text-red-600 px-4 py-2 rounded-xl text-sm font-bold hover:bg-red-100 transition shadow-sm">
+            <i class="fas fa-minus"></i> Gasto
+        </a>
+        <a href="{% url 'registrar_transaccion' %}?tipo=INGRESO" class="flex items-center gap-2 bg-green-50 text-green-600 px-4 py-2 rounded-xl text-sm font-bold hover:bg-green-100 transition shadow-sm">
+            <i class="fas fa-plus"></i> Ingreso
+        </a>
+        <a href="{% url 'exportar_excel' %}" class="flex items-center gap-2 bg-gray-50 text-gray-600 px-4 py-2 rounded-xl text-sm font-bold hover:bg-gray-100 transition shadow-sm">
+            <i class="fas fa-file-excel"></i> Exportar
+        </a>
+    </div>
+</header>
 
-    <div class="bg-white p-6 rounded-3xl card-shadow mb-6">
-        <div class="flex justify-between items-end mb-2">
-            <div>
-                <h3 class="text-sm font-bold text-gray-400 uppercase tracking-wider">Presupuesto Mensual</h3>
-                <div class="text-2xl font-bold text-gray-800">
-                    ${{ pagado_este_mes|floatformat:"0"|intcomma }} <span class="text-lg text-gray-400 font-medium">/ ${{ limite_presupuesto|floatformat:"0"|intcomma }}</span>
-                </div>
+<!-- BARRA DE PRESUPUESTO (incluye cuotas pendientes) -->
+<div class="bg-white dark:bg-gray-800 p-6 rounded-3xl card-shadow mb-6">
+    <div class="flex justify-between items-end mb-2">
+        <div>
+            <h3 class="text-sm font-bold text-gray-400 uppercase tracking-wider">Presupuesto Mensual</h3>
+            <div class="text-2xl font-bold text-gray-800 dark:text-white">
+                ${{ total_comprometido|floatformat:"0"|intcomma }}
+                <span class="text-lg text-gray-400 font-medium">/ ${{ limite_presupuesto|floatformat:"0"|intcomma }}</span>
             </div>
-            <div class="text-sm font-bold {% if porcentaje_presupuesto > 90 %}text-red-500{% elif porcentaje_presupuesto > 60 %}text-yellow-500{% else %}text-green-500{% endif %}">
-                {{ porcentaje_presupuesto|floatformat:"0" }}% gastado
+            <p class="text-xs text-gray-400 mt-1">Incluye ${{ pagado_este_mes|floatformat:"0"|intcomma }} pagados + ${{ por_pagar|floatformat:"0"|intcomma }} en cuotas pendientes</p>
+        </div>
+        <div class="text-sm font-bold {% if porcentaje_presupuesto > 90 %}text-red-500{% elif porcentaje_presupuesto > 60 %}text-yellow-500{% else %}text-green-500{% endif %}">
+            {{ porcentaje_presupuesto|floatformat:"1" }}% comprometido
+        </div>
+    </div>
+    <div class="relative w-full h-3 bg-gray-100 rounded-full overflow-hidden">
+        <div class="absolute top-0 left-0 h-full {{ color_presupuesto }} rounded-full transition-all duration-1000" style="width: {{ porcentaje_presupuesto }}%"></div>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
+
+    <!-- PANEL IZQUIERDO: RESUMEN -->
+    <div class="col-span-1 bg-white dark:bg-gray-800 p-6 rounded-3xl card-shadow flex flex-col gap-6">
+
+        <div>
+            <span class="text-xs font-bold text-gray-400 uppercase tracking-wider">Ingresos del período</span>
+            <div class="text-3xl font-bold text-green-500 flex items-center gap-2 mt-1">
+                <i class="fas fa-arrow-up text-xl"></i> ${{ total_ingresos|floatformat:"0"|intcomma }}
             </div>
         </div>
-        <div class="relative w-full h-3 bg-gray-100 rounded-full overflow-hidden">
-            <div class="absolute top-0 left-0 h-full {{ color_presupuesto }} rounded-full transition-all duration-1000" style="width: {{ porcentaje_presupuesto }}%"></div>
+
+        <div>
+            <span class="text-xs font-bold text-gray-400 uppercase tracking-wider">Gastos manuales</span>
+            <div class="text-3xl font-bold text-blue-500 flex items-center gap-2 mt-1">
+                <i class="fas fa-arrow-down text-xl"></i> ${{ pagado_este_mes|floatformat:"0"|intcomma }}
+            </div>
+        </div>
+
+        <div>
+            <span class="text-xs font-bold text-gray-400 uppercase tracking-wider">Cuotas pendientes</span>
+            <div class="text-3xl font-bold text-orange-500 flex items-center gap-2 mt-1">
+                <i class="fas fa-clock text-xl"></i> ${{ por_pagar|floatformat:"0"|intcomma }}
+            </div>
+        </div>
+
+        <div class="border-t pt-4">
+            <span class="text-xs font-bold text-gray-400 uppercase tracking-wider">Balance disponible</span>
+            <div class="text-2xl font-bold mt-1 {% if balance >= 0 %}text-indigo-600{% else %}text-red-500{% endif %}">
+                {% if balance >= 0 %}+{% endif %}${{ balance|floatformat:"0"|intcomma }}
+            </div>
+        </div>
+
+        <div class="text-xs text-gray-400 border-t pt-3">
+            Deuda total restante: <span class="font-bold text-gray-600">${{ deuda_total_restante|floatformat:"0"|intcomma }}</span>
         </div>
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
-        
-        <div class="col-span-1 bg-white p-6 rounded-3xl card-shadow flex flex-col">
-            
-            <div class="mb-8">
-                <div class="flex justify-between items-center mb-2">
-                    <span class="text-sm font-medium text-gray-400">Ingresos Totales</span>
-                    <a href="{% url 'registrar_ingreso' %}" class="w-6 h-6 bg-green-100 text-green-600 rounded-full flex items-center justify-center hover:bg-green-200 transition decoration-transparent">
-                        <i class="fas fa-plus text-xs"></i>
-                    </a>
-                </div>
-                <div class="text-3xl font-bold text-indigo-600 flex items-center gap-2">
-                    <i class="fas fa-arrow-up text-xl"></i> ${{ total_ingresos|intcomma }}
-                </div>
-            </div>
-
-            <div>
-                <div class="flex justify-between items-center mb-2">
-                    <span class="text-sm font-medium text-gray-400">Cuotas del Mes</span>
-                </div>
-                
-                <div class="text-3xl font-bold text-orange-500 flex items-center gap-2 mb-2">
-                    <i class="fas fa-clock text-xl"></i> ${{ por_pagar|intcomma }}
-                </div>
-                
-                <div class="text-sm font-medium text-green-500 flex items-center gap-1">
-                    <i class="fas fa-check-circle"></i> Ya pagado: ${{ pagado_este_mes|intcomma }}
-                </div>
-
-                <div class="text-xs font-medium text-gray-400 mt-4 border-t border-gray-50 pt-3">
-                    Deuda Total Restante: <span class="font-bold text-gray-500">${{ deuda_total_restante|intcomma }}</span>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-span-1 md:col-span-2 bg-white p-6 rounded-3xl card-shadow relative">
-            <div class="flex justify-between items-center mb-6">
-                <h3 class="text-lg font-bold text-gray-700">Calendario</h3>
-                
-                <div class="flex items-center bg-indigo-50 rounded-full px-2 py-1">
-                    <a href="?month={{ prev_month }}&year={{ prev_year }}" class="w-8 h-8 flex items-center justify-center rounded-full text-indigo-600 hover:bg-white hover:shadow-sm transition">
-                        <i class="fas fa-chevron-left text-xs"></i>
-                    </a>
-                    <span class="text-sm font-bold text-indigo-700 mx-3 min-w-[100px] text-center capitalize">
-                        {{ nombre_mes }}
-                    </span>
-                    <a href="?month={{ next_month }}&year={{ next_year }}" class="w-8 h-8 flex items-center justify-center rounded-full text-indigo-600 hover:bg-white hover:shadow-sm transition">
-                        <i class="fas fa-chevron-right text-xs"></i>
-                    </a>
-                </div>
-            </div>
-
-            <div class="w-full select-none">
-                <div class="grid grid-cols-7 mb-2">
-                    {% for dia in dias_semana %}
-                        <div class="text-center text-xs text-gray-400 font-medium py-1">{{ dia }}</div>
-                    {% endfor %}
-                </div>
-
-                <div class="flex flex-col gap-1">
-                    {% for semana in calendario %}
-                    <div class="grid grid-cols-7 gap-1">
-                        {% for dia in semana %}
-                            {% if dia %}
-                                <div onclick="abrirModal('modal-{{ dia.numero }}')"
-                                     class="relative h-14 rounded-xl flex flex-col items-center justify-center transition-all border border-transparent cursor-pointer
-                                            {% if dia.es_hoy %} bg-indigo-600 text-white shadow-md z-10
-                                            {% else %} hover:bg-indigo-50 text-gray-700 bg-white border-gray-100 border
-                                            {% endif %}">
-                                    
-                                    <span class="text-sm font-semibold">{{ dia.numero }}</span>
-                                    
-                                    {% if dia.eventos %}
-                                        <div class="flex gap-0.5 mt-1">
-                                            {% for evento in dia.eventos %}
-                                                <div class="w-1.5 h-1.5 rounded-full 
-                                                    {% if evento.estado == 'pagado' %} bg-green-400 
-                                                    {% else %} bg-red-500 animate-pulse {% endif %}"
-                                                    title="{{ evento.deuda.acreedor }}: ${{ evento.monto|intcomma }}">
-                                                </div>
-                                            {% endfor %}
-                                        </div>
-                                    {% endif %}
-                                </div>
-
-                                {% if dia.eventos %}
-                                <div id="modal-{{ dia.numero }}" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm" onclick="event.stopPropagation()">
-                                    <div class="bg-white rounded-2xl shadow-2xl p-6 w-96 max-w-full transform transition-all scale-100 mx-4">
-                                        
-                                        <div class="flex justify-between items-center mb-4">
-                                            <h4 class="text-xl font-bold text-gray-800">Vencimientos día {{ dia.numero }}</h4>
-                                            <button type="button" onclick="cerrarModal('modal-{{ dia.numero }}')" class="text-gray-400 hover:text-gray-600">
-                                                <i class="fas fa-times"></i>
-                                            </button>
-                                        </div>
-
-                                        <div class="space-y-3">
-                                            {% for evento in dia.eventos %}
-                                            <div class="flex justify-between items-center p-3 rounded-xl bg-gray-50 border border-gray-100">
-                                                <div>
-                                                    <p class="font-bold text-gray-700">{{ evento.deuda.acreedor }}</p>
-                                                    <p class="text-xs text-gray-500">Cuota: ${{ evento.monto|intcomma }}</p>
-                                                </div>
-
-                                                {% if evento.estado == 'pendiente' %}
-                                                    <form action="{% url 'pagar_cuota' evento.deuda.id %}" method="POST">
-                                                        {% csrf_token %}
-                                                        <button type="submit" class="bg-indigo-600 text-white text-xs px-3 py-2 rounded-lg font-bold hover:bg-indigo-700 transition shadow-md flex items-center gap-1">
-                                                            Pagar <i class="fas fa-arrow-right"></i>
-                                                        </button>
-                                                    </form>
-                                                {% else %}
-                                                    <span class="text-green-600 text-xs font-bold bg-green-100 px-2 py-1 rounded-md">
-                                                        <i class="fas fa-check"></i> Pagado
-                                                    </span>
-                                                {% endif %}
-                                            </div>
-                                            {% endfor %}
-                                        </div>
-
-                                        <div class="mt-4 text-center">
-                                            <button type="button" onclick="cerrarModal('modal-{{ dia.numero }}')" class="text-sm text-gray-500 hover:text-indigo-600 font-medium">
-                                                Cerrar
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                                {% endif %}
-
-                            {% else %}
-                                <div class="h-14"></div> 
-                            {% endif %}
-                        {% endfor %}
-                    </div>
-                    {% endfor %}
-                </div>
-                
-                <div class="mt-4 flex gap-4 text-[10px] text-gray-400 justify-center">
-                    <div class="flex items-center gap-1"><div class="w-2 h-2 rounded-full bg-red-500"></div> Pendiente</div>
-                    <div class="flex items-center gap-1"><div class="w-2 h-2 rounded-full bg-green-400"></div> Pagado</div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-span-1 bg-white p-6 rounded-3xl card-shadow flex flex-col h-full">
-            <div class="flex justify-between items-center mb-6">
-                <h3 class="text-lg font-bold text-gray-700">Mis Deudas</h3>
-                <a href="{% url 'crear_deuda' %}" class="text-xs bg-indigo-100 text-indigo-600 px-3 py-1 rounded-full hover:bg-indigo-200 transition decoration-transparent">
-                    + Nueva
+    <!-- CALENDARIO -->
+    <div class="col-span-1 md:col-span-2 bg-white dark:bg-gray-800 p-6 rounded-3xl card-shadow relative">
+        <div class="flex justify-between items-center mb-6">
+            <h3 class="text-lg font-bold text-gray-700 dark:text-white">Calendario de Pagos</h3>
+            <div class="flex items-center bg-indigo-50 rounded-full px-2 py-1">
+                <a href="?month={{ prev_month }}&year={{ prev_year }}" class="w-8 h-8 flex items-center justify-center rounded-full text-indigo-600 hover:bg-white hover:shadow-sm transition">
+                    <i class="fas fa-chevron-left text-xs"></i>
+                </a>
+                <span class="text-sm font-bold text-indigo-700 mx-3 min-w-[120px] text-center capitalize">{{ nombre_mes }}</span>
+                <a href="?month={{ next_month }}&year={{ next_year }}" class="w-8 h-8 flex items-center justify-center rounded-full text-indigo-600 hover:bg-white hover:shadow-sm transition">
+                    <i class="fas fa-chevron-right text-xs"></i>
                 </a>
             </div>
+        </div>
 
-            <div class="flex-1 overflow-y-auto pr-2 space-y-6">
-                {% for deuda in deudas %}
-                <div class="group relative bg-gray-50 p-4 rounded-2xl mb-4 border border-transparent hover:border-indigo-100 transition-all">
-                    
-                    <div class="flex justify-between items-start mb-2">
-                        <div>
-                            <div class="flex items-center flex-wrap gap-2">
-                                <h4 class="font-bold text-gray-800">{{ deuda.acreedor }}</h4>
-                                
-                                {% if deuda.dias_para_vencer <= 3 and deuda.dias_para_vencer >= 0 and deuda.cuotas_pagadas < deuda.cuotas_totales %}
-                                    <span class="animate-pulse bg-red-100 text-red-600 text-[10px] px-2 py-0.5 rounded-full font-bold flex items-center gap-1">
-                                        <i class="fas fa-exclamation-circle"></i> 
-                                        {% if deuda.dias_para_vencer == 0 %}
-                                            Vence hoy
-                                        {% else %}
-                                            Vence en {{ deuda.dias_para_vencer }} d
-                                        {% endif %}
-                                    </span>
-                                {% elif deuda.dias_para_vencer < 0 and deuda.cuotas_pagadas < deuda.cuotas_totales %}
-                                    <span class="bg-red-500 text-white text-[10px] px-2 py-0.5 rounded-full font-bold flex items-center gap-1 shadow-sm">
-                                        <i class="fas fa-times-circle"></i> Atrasado
-                                    </span>
+        <div class="w-full select-none">
+            <div class="grid grid-cols-7 mb-2">
+                {% for dia in dias_semana %}
+                <div class="text-center text-xs text-gray-400 font-medium py-1">{{ dia }}</div>
+                {% endfor %}
+            </div>
+            <div class="flex flex-col gap-1">
+                {% for semana in calendario %}
+                <div class="grid grid-cols-7 gap-1">
+                    {% for dia in semana %}
+                        {% if dia %}
+                            <div onclick="abrirModal('modal-{{ dia.numero }}')"
+                                 class="relative h-14 rounded-xl flex flex-col items-center justify-center transition-all border border-transparent cursor-pointer
+                                        {% if dia.es_hoy %}bg-indigo-600 text-white shadow-md z-10
+                                        {% else %}hover:bg-indigo-50 text-gray-700 bg-white border-gray-100 border{% endif %}">
+                                <span class="text-sm font-semibold">{{ dia.numero }}</span>
+                                {% if dia.eventos %}
+                                <div class="flex gap-0.5 mt-1">
+                                    {% for evento in dia.eventos %}
+                                    <div class="w-1.5 h-1.5 rounded-full
+                                        {% if evento.estado == 'pagado' %}bg-green-400{% else %}bg-red-500 animate-pulse{% endif %}"
+                                        title="{{ evento.deuda.acreedor }}: ${{ evento.monto|floatformat:'0'|intcomma }}">
+                                    </div>
+                                    {% endfor %}
+                                </div>
                                 {% endif %}
-                                <a href="{% url 'eliminar_deuda' deuda.id %}" 
-                                onclick="return confirm('¿Estás seguro de eliminar esta deuda?');"
-                                class="text-gray-300 hover:text-red-500 transition-colors"
-                                title="Eliminar">
-                                    <i class="fas fa-trash-alt text-xs"></i>
-                                </a>
-                            </div>
-                            
-                            <div class="mt-1">
-                                <p class="text-xs text-gray-500 font-medium">
-                                    Cuota: <span class="text-indigo-600 font-bold">${{ deuda.monto_cuota|floatformat:"0"|intcomma }}</span>
-                                </p>
-                                <p class="text-[10px] text-gray-400 mt-0.5">
-                                    Total restante: <span class="text-red-400 font-semibold">${{ deuda.monto_restante|floatformat:"0"|intcomma }}</span>
-                                </p>
-                            </div>
                             </div>
 
-                        {% if deuda.cuotas_pagadas < deuda.cuotas_totales %}
-                            <form action="{% url 'pagar_cuota' deuda.id %}" method="POST">
-                                {% csrf_token %}
-                                <button type="submit" 
-                                        title="Pagar cuota" 
-                                        class="flex items-center gap-2 bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-3 py-1.5 rounded-full text-xs font-semibold shadow-md hover:shadow-lg hover:scale-105 transform transition duration-200">
-                                    <i class="fas fa-check"></i> Pagar
-                                </button>
-                            </form>
+                            {% if dia.eventos %}
+                            <div id="modal-{{ dia.numero }}" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm">
+                                <div class="bg-white rounded-2xl shadow-2xl p-6 w-96 max-w-full mx-4">
+                                    <div class="flex justify-between items-center mb-4">
+                                        <h4 class="text-xl font-bold text-gray-800">Pagos del día {{ dia.numero }}</h4>
+                                        <button type="button" onclick="cerrarModal('modal-{{ dia.numero }}')" class="text-gray-400 hover:text-gray-600">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    </div>
+                                    <div class="space-y-3">
+                                        {% for evento in dia.eventos %}
+                                        <div class="flex justify-between items-center p-3 rounded-xl bg-gray-50 border border-gray-100">
+                                            <div>
+                                                <p class="font-bold text-gray-700">{{ evento.deuda.acreedor }}</p>
+                                                <p class="text-xs text-gray-500">Cuota: ${{ evento.monto|floatformat:"0"|intcomma }}</p>
+                                                <p class="text-xs text-gray-400">{{ evento.deuda.cuotas_pagadas }}/{{ evento.deuda.cuotas_totales }} pagadas</p>
+                                            </div>
+                                            {% if evento.estado == 'pendiente' %}
+                                            <form action="{% url 'pagar_cuota' evento.deuda.id %}" method="POST">
+                                                {% csrf_token %}
+                                                <button type="submit" class="bg-indigo-600 text-white text-xs px-3 py-2 rounded-lg font-bold hover:bg-indigo-700 transition shadow-md flex items-center gap-1">
+                                                    Pagar <i class="fas fa-check"></i>
+                                                </button>
+                                            </form>
+                                            {% else %}
+                                            <span class="text-green-600 text-xs font-bold bg-green-100 px-2 py-1 rounded-md">
+                                                <i class="fas fa-check"></i> Pagado
+                                            </span>
+                                            {% endif %}
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                    <div class="mt-4 text-center">
+                                        <button type="button" onclick="cerrarModal('modal-{{ dia.numero }}')" class="text-sm text-gray-500 hover:text-indigo-600 font-medium">Cerrar</button>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+
                         {% else %}
-                            <span class="bg-green-100 text-green-600 px-3 py-1 rounded-full text-xs font-bold">
-                                <i class="fas fa-check-circle"></i> Listo
-                            </span>
+                            <div class="h-14"></div>
                         {% endif %}
-                    </div>
-
-                    <div class="mt-3">
-                        <div class="flex justify-between text-xs mb-1 text-gray-500">
-                            <span>Progreso</span>
-                            <span>{{ deuda.cuotas_pagadas }}/{{ deuda.cuotas_totales }}</span>
-                        </div>
-                        <div class="relative w-full h-2 bg-gray-200 rounded-full overflow-hidden">
-                            <div class="absolute top-0 left-0 h-full bg-indigo-500 rounded-full transition-all duration-700" 
-                                 style="width: {{ deuda.porcentaje }}%"></div>
-                        </div>
-                    </div>
-                </div>
-                {% empty %}
-                <div class="text-center py-10 opacity-50">
-                    <i class="fas fa-smile-beam text-4xl text-indigo-200 mb-2"></i>
-                    <p class="text-gray-400 text-sm">No hay deudas registradas.</p>
+                    {% endfor %}
                 </div>
                 {% endfor %}
             </div>
-        </div>
-
-        <div class="col-span-1 md:col-span-2 lg:col-span-3 bg-white p-6 rounded-3xl card-shadow">
-            <div class="flex justify-between items-center mb-4">
-                <h3 class="text-lg font-bold text-gray-700">Evolución de Gastos</h3>
-                <select id="tipoGrafico" class="text-xs border border-gray-300 rounded-lg p-1 text-gray-500">
-                    <option value="bar">Barras</option>
-                    <option value="line">Línea</option>
-                </select>
-            </div>
-            <div class="relative h-64 w-full">
-                <canvas id="chartGastos"></canvas>
-            </div>
-        </div>
-
-    </div>
-
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
-        
-        <div class="col-span-1 bg-white p-6 rounded-3xl card-shadow">
-            <h3 class="text-lg font-bold text-gray-700 mb-4">Gastos por Categoría</h3>
-            {% if categorias_pie_json != '[]' %}
-                <div class="relative h-48 w-full flex justify-center items-center">
-                    <canvas id="chartCategorias"></canvas>
-                </div>
-            {% else %}
-                <div class="text-center py-10 opacity-50">
-                    <i class="fas fa-chart-pie text-4xl text-gray-200 mb-2"></i>
-                    <p class="text-gray-400 text-sm">Aún no hay gastos este mes.</p>
-                </div>
-            {% endif %}
-        </div>
-
-        <div class="col-span-1 lg:col-span-2 bg-white p-6 rounded-3xl card-shadow">
-            <div class="flex justify-between items-center mb-4">
-                <h3 class="text-lg font-bold text-gray-700">Últimos Movimientos</h3>
-                <a href="#" class="text-xs text-indigo-500 hover:text-indigo-700 font-medium">Ver todos</a>
-            </div>
-            
-            <div class="overflow-x-auto">
-                <table class="w-full text-left border-collapse">
-                    <thead>
-                        <tr class="text-gray-400 text-xs border-b border-gray-100">
-                            <th class="pb-2 font-medium">Descripción</th>
-                            <th class="pb-2 font-medium">Categoría</th>
-                            <th class="pb-2 font-medium">Fecha</th>
-                            <th class="pb-2 font-medium text-right">Monto</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for t in ultimas_transacciones %}
-                        <tr class="border-b border-gray-50 hover:bg-gray-50 transition">
-                            <td class="py-3 text-sm font-bold text-gray-700 flex items-center gap-2">
-                                {% if t.tipo == 'INGRESO' %}
-                                    <div class="w-8 h-8 rounded-full bg-green-100 text-green-500 flex items-center justify-center"><i class="fas fa-arrow-up text-xs"></i></div>
-                                {% else %}
-                                    <div class="w-8 h-8 rounded-full bg-red-100 text-red-500 flex items-center justify-center"><i class="fas fa-arrow-down text-xs"></i></div>
-                                {% endif %}
-                                {{ t.descripcion }}
-                            </td>
-                            <td class="py-3 text-xs text-gray-500">
-                                <span class="bg-gray-100 px-2 py-1 rounded-md">{{ t.categoria|default:"N/A" }}</span>
-                            </td>
-                            <td class="py-3 text-xs text-gray-500">{{ t.fecha|date:"d M Y" }}</td>
-                            <td class="py-3 text-sm font-bold text-right {% if t.tipo == 'INGRESO' %}text-green-500{% else %}text-gray-800{% endif %}">
-                                {% if t.tipo == 'INGRESO' %}+{% else %}-{% endif %}${{ t.monto|floatformat:"0"|intcomma }}
-                            </td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="4" class="text-center py-6 text-gray-400 text-sm">No hay movimientos recientes.</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+            <div class="mt-4 flex gap-4 text-[10px] text-gray-400 justify-center">
+                <div class="flex items-center gap-1"><div class="w-2 h-2 rounded-full bg-red-500"></div> Pendiente</div>
+                <div class="flex items-center gap-1"><div class="w-2 h-2 rounded-full bg-green-400"></div> Pagado</div>
             </div>
         </div>
     </div>
 
-    <div class="bg-white p-6 rounded-3xl card-shadow mt-6">
+    <!-- PANEL DEUDAS -->
+    <div class="col-span-1 bg-white dark:bg-gray-800 p-6 rounded-3xl card-shadow flex flex-col">
         <div class="flex justify-between items-center mb-6">
-            <h3 class="text-lg font-bold text-gray-700 flex items-center gap-2">
-                <i class="fas fa-piggy-bank text-pink-500"></i> Mis Metas (Alcancías)
-            </h3>
-            <a href="{% url 'crear_meta' %}" class="text-xs bg-pink-50 text-pink-600 px-3 py-1 rounded-full hover:bg-pink-100 transition decoration-transparent">+ Nueva Meta</a>
+            <h3 class="text-lg font-bold text-gray-700 dark:text-white">Mis Deudas</h3>
+            <a href="{% url 'crear_deuda' %}" class="text-xs bg-indigo-100 text-indigo-600 px-3 py-1 rounded-full hover:bg-indigo-200 transition">+ Nueva</a>
         </div>
-        
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {% for meta in metas %}
-            <div class="border border-gray-100 p-4 rounded-2xl hover:shadow-md transition bg-gray-50">
+
+        <div class="flex-1 overflow-y-auto pr-1 space-y-4">
+            {% for deuda in deudas %}
+            <div class="bg-gray-50 p-4 rounded-2xl border border-transparent hover:border-indigo-100 transition-all">
+
                 <div class="flex justify-between items-start mb-2">
-                    <h4 class="font-bold text-gray-700">{{ meta.nombre }}</h4>
-                    <i class="fas fa-bullseye text-gray-300"></i>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center flex-wrap gap-1 mb-1">
+                            <h4 class="font-bold text-gray-800 truncate">{{ deuda.acreedor }}</h4>
+                            {% if deuda.dias_para_vencer <= 3 and deuda.dias_para_vencer >= 0 and deuda.cuotas_pagadas < deuda.cuotas_totales %}
+                            <span class="animate-pulse bg-red-100 text-red-600 text-[9px] px-2 py-0.5 rounded-full font-bold">
+                                {% if deuda.dias_para_vencer == 0 %}Vence hoy{% else %}{{ deuda.dias_para_vencer }}d{% endif %}
+                            </span>
+                            {% elif deuda.dias_para_vencer < 0 and deuda.cuotas_pagadas < deuda.cuotas_totales %}
+                            <span class="bg-red-500 text-white text-[9px] px-2 py-0.5 rounded-full font-bold">Atrasado</span>
+                            {% endif %}
+                        </div>
+                        <p class="text-xs text-gray-500">Cuota: <span class="text-indigo-600 font-bold">${{ deuda.monto_cuota|floatformat:"0"|intcomma }}</span></p>
+                        <p class="text-[10px] text-gray-400">Restante: <span class="text-red-400 font-semibold">${{ deuda.monto_restante|floatformat:"0"|intcomma }}</span></p>
+                    </div>
+
+                    <div class="flex flex-col gap-1 ml-2 items-end">
+                        {% if deuda.cuotas_pagadas < deuda.cuotas_totales %}
+                        <form action="{% url 'pagar_cuota' deuda.id %}" method="POST">
+                            {% csrf_token %}
+                            <button type="submit" title="Pagar cuota"
+                                class="bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-3 py-1 rounded-full text-xs font-semibold shadow-md hover:shadow-lg transition">
+                                <i class="fas fa-check"></i> Pagar
+                            </button>
+                        </form>
+                        {% else %}
+                        <span class="bg-green-100 text-green-600 px-2 py-1 rounded-full text-xs font-bold"><i class="fas fa-check-circle"></i> Listo</span>
+                        {% endif %}
+
+                        <div class="flex gap-2 mt-1">
+                            <a href="{% url 'editar_deuda' deuda.id %}" class="text-gray-300 hover:text-indigo-500 transition" title="Editar">
+                                <i class="fas fa-edit text-xs"></i>
+                            </a>
+                            <form action="{% url 'eliminar_deuda' deuda.id %}" method="POST" onsubmit="return confirm('¿Eliminar deuda de {{ deuda.acreedor }}?')">
+                                {% csrf_token %}
+                                <button type="submit" class="text-gray-300 hover:text-red-500 transition" title="Eliminar">
+                                    <i class="fas fa-trash-alt text-xs"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
                 </div>
-                <div class="mb-3">
-                    <span class="text-lg font-bold text-pink-500">${{ meta.monto_actual|floatformat:"0"|intcomma }}</span>
-                    <span class="text-xs text-gray-400">/ ${{ meta.monto_meta|floatformat:"0"|intcomma }}</span>
-                </div>
-                <div class="relative w-full h-2 bg-gray-200 rounded-full overflow-hidden">
-                    <div class="absolute top-0 left-0 h-full bg-pink-500 rounded-full transition-all duration-700" style="width: {{ meta.porcentaje }}%"></div>
+
+                <div class="mt-2">
+                    <div class="flex justify-between text-xs mb-1 text-gray-400">
+                        <span>Progreso</span>
+                        <span>{{ deuda.cuotas_pagadas }}/{{ deuda.cuotas_totales }}</span>
+                    </div>
+                    <div class="relative w-full h-2 bg-gray-200 rounded-full overflow-hidden">
+                        <div class="absolute top-0 left-0 h-full bg-indigo-500 rounded-full transition-all duration-700" style="width: {{ deuda.porcentaje }}%"></div>
+                    </div>
                 </div>
             </div>
             {% empty %}
-            <div class="col-span-full text-center py-8 opacity-50">
-                <i class="fas fa-rocket text-4xl text-gray-300 mb-3"></i>
-                <p class="text-gray-500 text-sm font-medium">Aún no tienes metas de ahorro.</p>
-                <p class="text-gray-400 text-xs mt-1">Crea tu primera alcancía (ej: "Fondo de Emergencia" o "PS5") para motivarte.</p>
+            <div class="text-center py-10 opacity-50">
+                <i class="fas fa-smile-beam text-4xl text-indigo-200 mb-2"></i>
+                <p class="text-gray-400 text-sm">Sin deudas registradas.</p>
             </div>
             {% endfor %}
         </div>
     </div>
 
-    <script>
-        // --- FUNCIONES MODAL ---
-        function abrirModal(id) {
-            const modal = document.getElementById(id);
-            if (modal) {
-                modal.classList.remove('hidden');
-            }
+    <!-- GRÁFICO EVOLUCIÓN -->
+    <div class="col-span-1 md:col-span-2 lg:col-span-3 bg-white dark:bg-gray-800 p-6 rounded-3xl card-shadow">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-lg font-bold text-gray-700 dark:text-white">Evolución de Gastos</h3>
+            <select id="tipoGrafico" class="text-xs border border-gray-300 rounded-lg p-1 text-gray-500">
+                <option value="bar">Barras</option>
+                <option value="line">Línea</option>
+            </select>
+        </div>
+        <div class="relative h-64 w-full">
+            <canvas id="chartGastos"></canvas>
+        </div>
+    </div>
+
+</div>
+
+<!-- FILA INFERIOR -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
+
+    <!-- DONA CATEGORÍAS -->
+    <div class="col-span-1 bg-white dark:bg-gray-800 p-6 rounded-3xl card-shadow">
+        <h3 class="text-lg font-bold text-gray-700 dark:text-white mb-4">Gastos por Categoría</h3>
+        {% if categorias_pie_json != '[]' %}
+        <div class="relative h-48 w-full flex justify-center items-center">
+            <canvas id="chartCategorias"></canvas>
+        </div>
+        {% else %}
+        <div class="text-center py-10 opacity-50">
+            <i class="fas fa-chart-pie text-4xl text-gray-200 mb-2"></i>
+            <p class="text-gray-400 text-sm">Sin gastos este período.</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- ÚLTIMOS MOVIMIENTOS -->
+    <div class="col-span-1 lg:col-span-2 bg-white dark:bg-gray-800 p-6 rounded-3xl card-shadow">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-lg font-bold text-gray-700 dark:text-white">Últimos Movimientos</h3>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="text-gray-400 text-xs border-b border-gray-100">
+                        <th class="pb-2 font-medium">Descripción</th>
+                        <th class="pb-2 font-medium">Categoría</th>
+                        <th class="pb-2 font-medium">Fecha</th>
+                        <th class="pb-2 font-medium text-right">Monto</th>
+                        <th class="pb-2 font-medium text-right">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for t in ultimas_transacciones %}
+                    <tr class="border-b border-gray-50 hover:bg-gray-50 transition">
+                        <td class="py-3 text-sm font-bold text-gray-700 flex items-center gap-2">
+                            {% if t.tipo == 'INGRESO' %}
+                            <div class="w-8 h-8 rounded-full bg-green-100 text-green-500 flex items-center justify-center"><i class="fas fa-arrow-up text-xs"></i></div>
+                            {% else %}
+                            <div class="w-8 h-8 rounded-full bg-red-100 text-red-500 flex items-center justify-center"><i class="fas fa-arrow-down text-xs"></i></div>
+                            {% endif %}
+                            <span class="truncate max-w-[120px]">{{ t.descripcion|default:"Sin descripción" }}</span>
+                        </td>
+                        <td class="py-3 text-xs text-gray-500">
+                            <span class="bg-gray-100 px-2 py-1 rounded-md">{{ t.categoria|default:"N/A" }}</span>
+                        </td>
+                        <td class="py-3 text-xs text-gray-500">{{ t.fecha|date:"d M Y" }}</td>
+                        <td class="py-3 text-sm font-bold text-right {% if t.tipo == 'INGRESO' %}text-green-500{% else %}text-gray-800{% endif %}">
+                            {% if t.tipo == 'INGRESO' %}+{% else %}-{% endif %}${{ t.monto|floatformat:"0"|intcomma }}
+                        </td>
+                        <td class="py-3 text-right">
+                            <div class="flex gap-2 justify-end">
+                                <a href="{% url 'editar_transaccion' t.id %}" class="text-gray-300 hover:text-indigo-500 transition" title="Editar">
+                                    <i class="fas fa-edit text-xs"></i>
+                                </a>
+                                <form action="{% url 'eliminar_transaccion' t.id %}" method="POST" onsubmit="return confirm('¿Eliminar este movimiento?')">
+                                    {% csrf_token %}
+                                    <button type="submit" class="text-gray-300 hover:text-red-500 transition" title="Eliminar">
+                                        <i class="fas fa-trash-alt text-xs"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="5" class="text-center py-6 text-gray-400 text-sm">Sin movimientos registrados.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- METAS DE AHORRO -->
+<div class="bg-white dark:bg-gray-800 p-6 rounded-3xl card-shadow mt-6">
+    <div class="flex justify-between items-center mb-6">
+        <h3 class="text-lg font-bold text-gray-700 dark:text-white flex items-center gap-2">
+            <i class="fas fa-piggy-bank text-pink-500"></i> Mis Metas de Ahorro
+        </h3>
+        <a href="{% url 'crear_meta' %}" class="text-xs bg-pink-50 text-pink-600 px-3 py-1 rounded-full hover:bg-pink-100 transition">+ Nueva Meta</a>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {% for meta in metas %}
+        <div class="border border-gray-100 p-4 rounded-2xl hover:shadow-md transition bg-gray-50">
+            <div class="flex justify-between items-start mb-2">
+                <h4 class="font-bold text-gray-700">{{ meta.nombre }}</h4>
+                <div class="flex gap-2">
+                    <a href="{% url 'editar_meta' meta.id %}" class="text-gray-300 hover:text-pink-500 transition" title="Editar">
+                        <i class="fas fa-edit text-xs"></i>
+                    </a>
+                    <form action="{% url 'eliminar_meta' meta.id %}" method="POST" onsubmit="return confirm('¿Eliminar meta {{ meta.nombre }}?')">
+                        {% csrf_token %}
+                        <button type="submit" class="text-gray-300 hover:text-red-500 transition" title="Eliminar">
+                            <i class="fas fa-trash-alt text-xs"></i>
+                        </button>
+                    </form>
+                </div>
+            </div>
+            <div class="mb-3">
+                <span class="text-lg font-bold text-pink-500">${{ meta.monto_actual|floatformat:"0"|intcomma }}</span>
+                <span class="text-xs text-gray-400"> / ${{ meta.monto_meta|floatformat:"0"|intcomma }}</span>
+            </div>
+            <div class="relative w-full h-2 bg-gray-200 rounded-full overflow-hidden mb-2">
+                <div class="absolute top-0 left-0 h-full bg-pink-500 rounded-full transition-all duration-700" style="width: {{ meta.porcentaje|floatformat:'0' }}%"></div>
+            </div>
+            <div class="text-xs text-gray-400 flex justify-between">
+                <span>{{ meta.porcentaje|floatformat:"0" }}% logrado</span>
+                {% if meta.ahorro_mensual_sugerido %}
+                <span class="text-pink-400 font-semibold">~${{ meta.ahorro_mensual_sugerido|floatformat:"0"|intcomma }}/mes</span>
+                {% elif meta.fecha_limite %}
+                <span class="text-gray-400">Sin fecha definida</span>
+                {% endif %}
+            </div>
+            {% if meta.ahorro_mensual_sugerido %}
+            <p class="text-[10px] text-gray-400 mt-1">Para llegar antes de {{ meta.fecha_limite|date:"M Y" }}</p>
+            {% endif %}
+        </div>
+        {% empty %}
+        <div class="col-span-full text-center py-8 opacity-50">
+            <i class="fas fa-rocket text-4xl text-gray-300 mb-3"></i>
+            <p class="text-gray-500 text-sm font-medium">Aún no tienes metas de ahorro.</p>
+            <p class="text-gray-400 text-xs mt-1">Crea tu primera alcancía para motivarte.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<script>
+    function abrirModal(id) {
+        const modal = document.getElementById(id);
+        if (modal) modal.classList.remove('hidden');
+    }
+    function cerrarModal(id) {
+        const modal = document.getElementById(id);
+        if (modal) modal.classList.add('hidden');
+    }
+    window.onclick = function(event) {
+        if (event.target.classList.contains('fixed')) event.target.classList.add('hidden');
+    }
+
+    // GRÁFICO EVOLUCIÓN
+    const labelsMeses = {{ meses_json|safe }};
+    const dataReales = {{ montos_reales_json|safe }};
+    const dataDeudas = {{ montos_deudas_json|safe }};
+    const ctxGastos = document.getElementById('chartGastos').getContext('2d');
+    let gradAzul = ctxGastos.createLinearGradient(0, 0, 0, 300);
+    gradAzul.addColorStop(0, 'rgba(59,130,246,0.8)');
+    gradAzul.addColorStop(1, 'rgba(59,130,246,0.1)');
+    let gradRojo = ctxGastos.createLinearGradient(0, 0, 0, 300);
+    gradRojo.addColorStop(0, 'rgba(239,68,68,0.8)');
+    gradRojo.addColorStop(1, 'rgba(239,68,68,0.1)');
+
+    const chartGastos = new Chart(ctxGastos, {
+        type: 'bar',
+        data: {
+            labels: labelsMeses,
+            datasets: [
+                { label: 'Egresos manuales $', data: dataReales, backgroundColor: gradAzul, borderColor: '#3b82f6', borderWidth: 2, borderRadius: 4, barThickness: 28, tension: 0.4, fill: true },
+                { label: 'Cuotas de deudas $', data: dataDeudas, backgroundColor: gradRojo, borderColor: '#ef4444', borderWidth: 2, borderRadius: 4, barThickness: 28, tension: 0.4, fill: true }
+            ]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { display: true, position: 'top', labels: { usePointStyle: true, boxWidth: 10, padding: 20 } } },
+            scales: { y: { stacked: true, beginAtZero: true, grid: { borderDash: [5,5] } }, x: { stacked: true, grid: { display: false } } }
         }
+    });
 
-        function cerrarModal(id) {
-            const modal = document.getElementById(id);
-            if (modal) {
-                modal.classList.add('hidden');
-            }
-        }
-        
-        // Cerrar modal al hacer clic fuera
-        window.onclick = function(event) {
-            if (event.target.classList.contains('fixed')) {
-                event.target.classList.add('hidden');
-            }
-        }
+    document.getElementById('tipoGrafico').addEventListener('change', function () {
+        chartGastos.config.type = this.value;
+        const stacked = this.value !== 'line';
+        chartGastos.options.scales.x.stacked = stacked;
+        chartGastos.options.scales.y.stacked = stacked;
+        chartGastos.update();
+    });
 
-       // --- GRÁFICO 2: EVOLUCIÓN GASTOS (APILADO) ---
-        const labelsMeses = {{ meses_json|safe }};
-        const dataReales = {{ montos_reales_json|safe }};
-        const dataDeudas = {{ montos_deudas_json|safe }};
-
-        const ctxGastos = document.getElementById('chartGastos').getContext('2d');
-        
-        // Gradiente Azul para Gastos Normales
-        let gradienteAzul = ctxGastos.createLinearGradient(0, 0, 0, 400);
-        gradienteAzul.addColorStop(0, 'rgba(59, 130, 246, 0.8)'); // Azul vibrante
-        gradienteAzul.addColorStop(1, 'rgba(59, 130, 246, 0.1)'); 
-
-        // Gradiente Rojo para Deudas
-        let gradienteRojo = ctxGastos.createLinearGradient(0, 0, 0, 400);
-        gradienteRojo.addColorStop(0, 'rgba(239, 68, 68, 0.8)'); // Rojo suave
-        gradienteRojo.addColorStop(1, 'rgba(239, 68, 68, 0.1)'); 
-
-        const chartGastos = new Chart(ctxGastos, {
-            type: 'bar',
+    // GRÁFICO DONA CATEGORÍAS
+    const labelsCat = {{ categorias_pie_json|safe }};
+    const dataCat = {{ datos_pie_json|safe }};
+    if (labelsCat.length > 0) {
+        const ctxCat = document.getElementById('chartCategorias').getContext('2d');
+        new Chart(ctxCat, {
+            type: 'doughnut',
             data: {
-                labels: labelsMeses,
-                datasets: [
-                    {
-                        label: 'Egresos (Súper, luz, etc) $',
-                        data: dataReales,
-                        backgroundColor: gradienteAzul,
-                        borderColor: '#3b82f6',
-                        borderWidth: 2,
-                        borderRadius: 4,
-                        barThickness: 30,
-                        tension: 0.4,
-                        fill: true
-                    },
-                    {
-                        label: 'Cuotas de Deudas $',
-                        data: dataDeudas,
-                        backgroundColor: gradienteRojo,
-                        borderColor: '#ef4444',
-                        borderWidth: 2,
-                        borderRadius: 4,
-                        barThickness: 30,
-                        tension: 0.4,
-                        fill: true
-                    }
-                ]
+                labels: labelsCat,
+                datasets: [{ data: dataCat, backgroundColor: ['#3b82f6','#ef4444','#10b981','#f59e0b','#8b5cf6','#ec4899','#64748b'], borderWidth: 2, borderColor: '#ffffff', hoverOffset: 4 }]
             },
             options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: { 
-                    legend: { 
-                        display: true, // Activamos la leyenda para ver qué es cada color
-                        position: 'top',
-                        labels: { usePointStyle: true, boxWidth: 10, padding: 20 }
-                    } 
-                },
-                scales: {
-                    y: { 
-                        stacked: true, // <--- La magia del apilado
-                        beginAtZero: true, 
-                        grid: { borderDash: [5, 5] } 
-                    },
-                    x: { 
-                        stacked: true, // <--- La magia del apilado
-                        grid: { display: false } 
-                    }
-                }
+                responsive: true, maintainAspectRatio: false, cutout: '70%',
+                plugins: { legend: { position: 'right', labels: { usePointStyle: true, boxWidth: 8, font: { size: 10 } } } }
             }
         });
-
-        // Configuración para el botón que cambia de Barras a Líneas
-        document.getElementById('tipoGrafico').addEventListener('change', function() {
-            chartGastos.config.type = this.value;
-            
-            // Si el usuario elige "Línea", quitamos el apilado para que las líneas no se monten raro
-            if (this.value === 'line') {
-                chartGastos.options.scales.x.stacked = false;
-                chartGastos.options.scales.y.stacked = false;
-            } else {
-                chartGastos.options.scales.x.stacked = true;
-                chartGastos.options.scales.y.stacked = true;
-            }
-            chartGastos.update();
-        });
-
-        // --- GRÁFICO 3: DONA DE CATEGORÍAS ---
-        const labelsCategorias = {{ categorias_pie_json|safe }};
-        const dataCategorias = {{ datos_pie_json|safe }};
-
-        // Verificamos que haya datos antes de dibujar
-        if (labelsCategorias.length > 0) {
-            const ctxCategorias = document.getElementById('chartCategorias').getContext('2d');
-            
-            // Paleta de colores atractiva
-            const coloresDona = [
-                '#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#64748b'
-            ];
-
-            new Chart(ctxCategorias, {
-                type: 'doughnut',
-                data: {
-                    labels: labelsCategorias,
-                    datasets: [{
-                        data: dataCategorias,
-                        backgroundColor: coloresDona,
-                        borderWidth: 2,
-                        borderColor: '#ffffff',
-                        hoverOffset: 4
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    cutout: '70%', // Qué tan gruesa es la dona
-                    plugins: {
-                        legend: {
-                            position: 'right',
-                            labels: { usePointStyle: true, boxWidth: 8, font: {size: 10} }
-                        }
-                    }
-                }
-            });
-        }
-    </script>
+    }
+</script>
 {% endblock %}

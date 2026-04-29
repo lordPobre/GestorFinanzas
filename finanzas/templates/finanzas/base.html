@@ -2,44 +2,46 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Finanzas App</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    
     <script>
-        tailwind.config = {
-            darkMode: 'class',
-        }
+        tailwind.config = { darkMode: 'class' }
     </script>
-
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    
     <style>
-        /* Tus estilos personalizados intactos */
         .bg-sidebar { background-color: #4F46E5; }
         .text-accent { color: #F59E0B; }
-        .card-shadow { box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05); }
+        .card-shadow { box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05); }
     </style>
 </head>
 <body class="bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 font-sans antialiased flex h-screen transition-colors duration-300">
 
     <aside class="w-24 bg-sidebar flex flex-col items-center py-8 text-white rounded-r-3xl shadow-2xl z-20">
-        <div class="mb-8 p-3 bg-white/20 rounded-full">
+        <div class="mb-8 p-3 bg-white/20 rounded-full" title="{{ user.username }}">
             <i class="fas fa-user text-xl"></i>
         </div>
-        
+
         <nav class="flex flex-col gap-8 text-xl">
-            <a href="{% url 'dashboard' %}" class="opacity-100 hover:opacity-80 transition"><i class="fas fa-home"></i></a>
-            <a href="#" class="opacity-60 hover:opacity-100 transition"><i class="fas fa-wallet"></i></a>
-            <a href="{% url 'estadisticas' %}" class="opacity-60 hover:opacity-100 transition" title="Estadísticas de Deuda"><i class="fas fa-chart-pie"></i></a>
-            <a href="#" class="opacity-60 hover:opacity-100 transition"><i class="fas fa-cog"></i></a>
+            <a href="{% url 'dashboard' %}" title="Inicio" class="opacity-100 hover:opacity-80 transition"><i class="fas fa-home"></i></a>
+            <a href="{% url 'registrar_transaccion' %}?tipo=EGRESO" title="Nuevo Gasto" class="opacity-60 hover:opacity-100 transition"><i class="fas fa-minus-circle"></i></a>
+            <a href="{% url 'registrar_transaccion' %}?tipo=INGRESO" title="Nuevo Ingreso" class="opacity-60 hover:opacity-100 transition"><i class="fas fa-plus-circle"></i></a>
+            <a href="{% url 'estadisticas' %}" title="Estadísticas" class="opacity-60 hover:opacity-100 transition"><i class="fas fa-chart-pie"></i></a>
         </nav>
-        
+
         <div class="mt-auto flex flex-col gap-6">
+            {% if messages %}
+            <span class="relative opacity-60 text-xl" title="Notificaciones">
+                <i class="fas fa-bell"></i>
+                <span class="absolute -top-1 -right-1 bg-red-500 text-white text-[8px] w-4 h-4 rounded-full flex items-center justify-center">!</span>
+            </span>
+            {% endif %}
+
             <button id="theme-toggle" class="opacity-60 hover:opacity-100 text-white transition text-xl" title="Cambiar tema">
                 <i id="theme-icon" class="fas fa-moon"></i>
             </button>
-            
+
             <form action="{% url 'logout' %}" method="post">
                 {% csrf_token %}
                 <button type="submit" class="opacity-60 hover:opacity-100 text-white transition text-xl" title="Cerrar Sesión">
@@ -50,6 +52,22 @@
     </aside>
 
     <main class="flex-1 p-8 overflow-y-auto relative">
+
+        <!-- Mensajes del sistema -->
+        {% if messages %}
+        <div class="fixed top-4 right-4 z-50 flex flex-col gap-2">
+            {% for message in messages %}
+            <div class="px-4 py-3 rounded-xl shadow-lg text-sm font-medium flex items-center gap-2
+                {% if message.tags == 'success' %}bg-green-500 text-white
+                {% elif message.tags == 'warning' %}bg-yellow-400 text-gray-800
+                {% else %}bg-red-500 text-white{% endif %}">
+                <i class="fas {% if message.tags == 'success' %}fa-check-circle{% elif message.tags == 'warning' %}fa-exclamation-triangle{% else %}fa-times-circle{% endif %}"></i>
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
         {% block content %}
         {% endblock %}
     </main>
@@ -57,34 +75,34 @@
     <script>
         const themeToggleBtn = document.getElementById('theme-toggle');
         const themeIcon = document.getElementById('theme-icon');
-        
-        // 1. Revisar qué tema prefiere el usuario la primera vez que carga
+
         if (localStorage.getItem('color-theme') === 'dark' || (!('color-theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
             document.documentElement.classList.add('dark');
             themeIcon.classList.replace('fa-moon', 'fa-sun');
-        } else {
-            document.documentElement.classList.remove('dark');
-            themeIcon.classList.replace('fa-sun', 'fa-moon');
         }
 
-        // 2. Lógica del botón al hacer clic
-        themeToggleBtn.addEventListener('click', function() {
-            // Animación pequeña para el botón
+        themeToggleBtn.addEventListener('click', function () {
             themeIcon.classList.add('animate-spin');
             setTimeout(() => themeIcon.classList.remove('animate-spin'), 300);
-
             if (document.documentElement.classList.contains('dark')) {
-                // Pasar a modo Claro
                 document.documentElement.classList.remove('dark');
                 localStorage.setItem('color-theme', 'light');
                 themeIcon.classList.replace('fa-sun', 'fa-moon');
             } else {
-                // Pasar a modo Oscuro
                 document.documentElement.classList.add('dark');
                 localStorage.setItem('color-theme', 'dark');
                 themeIcon.classList.replace('fa-moon', 'fa-sun');
             }
         });
+
+        // Auto-ocultar mensajes tras 4 segundos
+        setTimeout(() => {
+            document.querySelectorAll('.fixed.top-4 > div').forEach(el => {
+                el.style.transition = 'opacity 0.5s';
+                el.style.opacity = '0';
+                setTimeout(() => el.remove(), 500);
+            });
+        }, 4000);
     </script>
 </body>
 </html>

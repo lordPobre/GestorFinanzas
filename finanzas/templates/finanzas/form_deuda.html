@@ -1,10 +1,9 @@
 {% extends 'finanzas/base.html' %}
 
 {% block content %}
-<div class="min-h-full flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-    
-    <div class="max-w-md w-full space-y-8 bg-white p-10 rounded-3xl card-shadow relative overflow-hidden">
-        
+<div class="min-h-full flex items-center justify-center py-12 px-4">
+    <div class="max-w-md w-full space-y-8 bg-white dark:bg-gray-800 p-10 rounded-3xl card-shadow relative overflow-hidden">
+
         <div class="absolute -top-10 -right-10 w-32 h-32 bg-indigo-50 rounded-full z-0"></div>
 
         <div class="relative z-10">
@@ -12,49 +11,61 @@
                 <div class="mx-auto h-12 w-12 bg-indigo-100 rounded-full flex items-center justify-center mb-4">
                     <i class="fas fa-file-invoice-dollar text-indigo-600 text-xl"></i>
                 </div>
-                <h2 class="text-3xl font-bold text-gray-900">Nueva Deuda</h2>
-                <p class="mt-2 text-sm text-gray-500">Agrega un compromiso para darle seguimiento</p>
+                <h2 class="text-3xl font-bold text-gray-900 dark:text-white">
+                    {% if editar %}Editar Deuda{% else %}Nueva Deuda{% endif %}
+                </h2>
+                <p class="mt-2 text-sm text-gray-500">
+                    {% if editar %}Modifica los datos de "{{ deuda.acreedor }}"{% else %}Agrega un compromiso para darle seguimiento{% endif %}
+                </p>
             </div>
 
             <form class="space-y-6" method="POST">
                 {% csrf_token %}
-                
+
                 <div class="space-y-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">¿A quién le debes?</label>
                         {{ form.acreedor }}
+                        {% if form.acreedor.errors %}<p class="text-xs text-red-500 mt-1">{{ form.acreedor.errors.0 }}</p>{% endif %}
                     </div>
-                    
+
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Monto Total</label>
-                        <div class="relative">
-                            <span class="absolute left-3 top-2 text-gray-400">$</span>
-                            {{ form.monto_total }} 
-                        </div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Monto Total ($)</label>
+                        {{ form.monto_total }}
+                        {% if form.monto_total.errors %}<p class="text-xs text-red-500 mt-1">{{ form.monto_total.errors.0 }}</p>{% endif %}
                     </div>
 
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Categoría</label>
                         {{ form.categoria }}
                     </div>
+
                     <div class="grid grid-cols-2 gap-4">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Cuotas</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Cuotas totales</label>
                             {{ form.cuotas_totales }}
+                            {% if form.cuotas_totales.errors %}<p class="text-xs text-red-500 mt-1">{{ form.cuotas_totales.errors.0 }}</p>{% endif %}
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Inicio</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Fecha primer pago</label>
                             {{ form.fecha_inicio }}
                         </div>
                     </div>
+
+                    {% if editar %}
+                    <div class="bg-yellow-50 border border-yellow-200 rounded-xl p-3 text-xs text-yellow-700">
+                        <i class="fas fa-exclamation-triangle mr-1"></i>
+                        Cuotas pagadas hasta ahora: <strong>{{ deuda.cuotas_pagadas }}</strong>. Solo edita si necesitas corregir un error.
+                    </div>
+                    {% endif %}
                 </div>
 
                 <div class="flex gap-4 mt-8">
-                    <a href="{% url 'dashboard' %}" class="w-1/2 flex justify-center py-3 px-4 border border-gray-200 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-50 transition">
+                    <a href="{% url 'dashboard' %}" class="w-1/2 flex justify-center py-3 border border-gray-200 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-50 transition">
                         Cancelar
                     </a>
-                    <button type="submit" class="w-1/2 flex justify-center py-3 px-4 border border-transparent rounded-xl shadow-lg text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 transition transform hover:-translate-y-0.5">
-                        Guardar
+                    <button type="submit" class="w-1/2 flex justify-center py-3 border border-transparent rounded-xl shadow-lg text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 transition transform hover:-translate-y-0.5">
+                        {% if editar %}Guardar Cambios{% else %}Guardar{% endif %}
                     </button>
                 </div>
             </form>
