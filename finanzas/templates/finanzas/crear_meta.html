@@ -1,53 +1,32 @@
 {% extends 'finanzas/base.html' %}
 
 {% block content %}
-<div class="min-h-full flex items-center justify-center py-12 px-4">
-    <div class="max-w-md w-full space-y-8 bg-white dark:bg-gray-800 p-10 rounded-3xl card-shadow relative overflow-hidden">
-
-        <div class="absolute -top-10 -right-10 w-32 h-32 bg-pink-50 rounded-full z-0"></div>
-
-        <div class="relative z-10">
-            <div class="text-center mb-10">
-                <div class="mx-auto h-12 w-12 bg-pink-100 rounded-full flex items-center justify-center mb-4">
-                    <i class="fas fa-piggy-bank text-pink-500 text-xl"></i>
-                </div>
-                <h2 class="text-3xl font-bold text-gray-900 dark:text-white">
-                    {% if editar %}Editar Meta{% else %}Nueva Alcancía{% endif %}
+<div style="min-height:80vh;display:flex;align-items:center;justify-content:center">
+    <div style="width:100%;max-width:440px">
+        <div class="glass" style="padding:32px">
+            <div style="margin-bottom:28px">
+                <div class="label" style="margin-bottom:6px">Metas de ahorro</div>
+                <h2 style="font-size:22px;font-weight:600;color:var(--text-primary);margin:0">
+                    {% if editar %}Editar meta{% else %}Nueva meta{% endif %}
                 </h2>
-                <p class="mt-2 text-sm text-gray-500">Define un objetivo de ahorro para motivarte</p>
+                <p style="font-size:13px;color:var(--text-muted);margin-top:4px">PS5, viaje, fondo de emergencia...</p>
             </div>
 
-            <form class="space-y-5" method="POST">
+            <form method="POST" style="display:flex;flex-direction:column;gap:16px">
                 {% csrf_token %}
-
+                {% for field in form %}
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">¿Qué quieres lograr?</label>
-                    {{ form.nombre }}
+                    <label style="display:block;font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px;font-weight:500">{{ field.label }}</label>
+                    {% if field.help_text %}<p style="font-size:11px;color:var(--text-muted);opacity:0.7;margin-bottom:6px">{{ field.help_text }}</p>{% endif %}
+                    {{ field }}
+                    {% if field.errors %}<p style="font-size:11px;color:var(--red);margin-top:4px">{{ field.errors.0 }}</p>{% endif %}
                 </div>
+                {% endfor %}
 
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Monto Meta ($)</label>
-                    {{ form.monto_meta }}
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Ahorro Inicial ($)</label>
-                    <p class="text-[10px] text-gray-400 mb-1">Si ya tienes dinero guardado para esto, anótalo. Si no, pon 0.</p>
-                    {{ form.monto_actual }}
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Fecha límite <span class="text-gray-400 font-normal">(opcional)</span></label>
-                    <p class="text-[10px] text-gray-400 mb-1">Si defines una fecha, te calculamos cuánto ahorrar por mes.</p>
-                    {{ form.fecha_limite }}
-                </div>
-
-                <div class="flex gap-4 mt-8">
-                    <a href="{% url 'dashboard' %}" class="w-1/2 flex justify-center py-3 border border-gray-200 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-50 transition">
-                        Cancelar
-                    </a>
-                    <button type="submit" class="w-1/2 flex justify-center py-3 border border-transparent rounded-xl shadow-lg text-sm font-medium text-white bg-pink-500 hover:bg-pink-600 transition transform hover:-translate-y-0.5">
-                        {% if editar %}Guardar Cambios{% else %}Guardar Meta{% endif %}
+                <div style="display:flex;gap:12px;margin-top:8px">
+                    <a href="{% url 'dashboard' %}" class="btn btn-glass" style="flex:1;justify-content:center">Cancelar</a>
+                    <button type="submit" style="flex:1;justify-content:center;background:rgba(244,114,182,0.2);border:1px solid rgba(244,114,182,0.3);color:#f472b6;border-radius:12px;padding:10px 18px;font-size:13px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;display:flex;align-items:center;justify-content:center;gap:8px;transition:all 0.2s">
+                        {% if editar %}Guardar cambios{% else %}Guardar meta{% endif %}
                     </button>
                 </div>
             </form>

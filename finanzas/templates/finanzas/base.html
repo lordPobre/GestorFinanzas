@@ -3,106 +3,423 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Finanzas App</title>
+    <title>FinApp</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = { darkMode: 'class' }
-    </script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+
     <style>
-        .bg-sidebar { background-color: #4F46E5; }
-        .text-accent { color: #F59E0B; }
-        .card-shadow { box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05); }
+        :root {
+            --purple: #a78bfa;
+            --purple-dim: #7c3aed;
+            --purple-glow: rgba(167,139,250,0.15);
+            --purple-border: rgba(167,139,250,0.25);
+            --glass-bg: rgba(255,255,255,0.04);
+            --glass-border: rgba(255,255,255,0.08);
+            --glass-hover: rgba(255,255,255,0.07);
+            --text-primary: #f1f0ff;
+            --text-secondary: rgba(241,240,255,0.5);
+            --text-muted: rgba(241,240,255,0.3);
+            --surface: #0d0d1a;
+            --surface-2: #12121f;
+            --red: #f87171;
+            --green: #34d399;
+            --orange: #fb923c;
+        }
+
+        * { box-sizing: border-box; }
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--surface);
+            color: var(--text-primary);
+            margin: 0;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Fondo animado con puntos */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background:
+                radial-gradient(ellipse 80% 50% at 20% 10%, rgba(124,58,237,0.12) 0%, transparent 60%),
+                radial-gradient(ellipse 60% 40% at 80% 80%, rgba(167,139,250,0.07) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .layout {
+            display: flex;
+            min-height: 100vh;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* SIDEBAR */
+        .sidebar {
+            width: 72px;
+            background: rgba(13,13,26,0.8);
+            border-right: 1px solid var(--glass-border);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 24px 0;
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            z-index: 50;
+            backdrop-filter: blur(20px);
+        }
+
+        .sidebar-logo {
+            width: 40px;
+            height: 40px;
+            background: var(--purple-glow);
+            border: 1px solid var(--purple-border);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 32px;
+            font-size: 16px;
+            color: var(--purple);
+        }
+
+        .sidebar-nav {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            flex: 1;
+        }
+
+        .nav-item {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-muted);
+            font-size: 16px;
+            text-decoration: none;
+            transition: all 0.2s;
+            border: 1px solid transparent;
+            position: relative;
+        }
+
+        .nav-item:hover {
+            color: var(--purple);
+            background: var(--purple-glow);
+            border-color: var(--purple-border);
+        }
+
+        .nav-item.active {
+            color: var(--purple);
+            background: var(--purple-glow);
+            border-color: var(--purple-border);
+        }
+
+        .sidebar-bottom {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+
+        /* MAIN */
+        .main {
+            margin-left: 72px;
+            flex: 1;
+            padding: 32px;
+            min-height: 100vh;
+        }
+
+        /* GLASS CARD */
+        .glass {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            transition: border-color 0.2s;
+        }
+
+        .glass:hover {
+            border-color: rgba(255,255,255,0.12);
+        }
+
+        .glass-purple {
+            background: rgba(124,58,237,0.1);
+            border: 1px solid rgba(167,139,250,0.2);
+            border-radius: 20px;
+            backdrop-filter: blur(20px);
+        }
+
+        /* NÚMEROS */
+        .mono { font-family: 'DM Mono', monospace; }
+
+        /* BADGES */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 11px;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-weight: 500;
+        }
+
+        .badge-green { background: rgba(52,211,153,0.12); color: var(--green); border: 1px solid rgba(52,211,153,0.2); }
+        .badge-red { background: rgba(248,113,113,0.12); color: var(--red); border: 1px solid rgba(248,113,113,0.2); }
+        .badge-orange { background: rgba(251,146,60,0.12); color: var(--orange); border: 1px solid rgba(251,146,60,0.2); }
+        .badge-purple { background: var(--purple-glow); color: var(--purple); border: 1px solid var(--purple-border); }
+
+        /* BOTONES */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 18px;
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: 500;
+            text-decoration: none;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s;
+            font-family: 'DM Sans', sans-serif;
+        }
+
+        .btn-purple {
+            background: var(--purple-dim);
+            color: #fff;
+        }
+        .btn-purple:hover { background: #6d28d9; }
+
+        .btn-glass {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            color: var(--text-secondary);
+        }
+        .btn-glass:hover {
+            background: var(--glass-hover);
+            color: var(--text-primary);
+            border-color: var(--purple-border);
+        }
+
+        .btn-green { background: rgba(52,211,153,0.15); color: var(--green); border: 1px solid rgba(52,211,153,0.25); }
+        .btn-green:hover { background: rgba(52,211,153,0.25); }
+
+        .btn-red { background: rgba(248,113,113,0.15); color: var(--red); border: 1px solid rgba(248,113,113,0.25); }
+        .btn-red:hover { background: rgba(248,113,113,0.25); }
+
+        /* BARRA DE PROGRESO */
+        .progress-bar {
+            width: 100%;
+            height: 4px;
+            background: rgba(255,255,255,0.06);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            border-radius: 4px;
+            background: linear-gradient(90deg, var(--purple-dim), var(--purple));
+            transition: width 0.8s ease;
+        }
+        .progress-fill.green { background: linear-gradient(90deg, #059669, var(--green)); }
+        .progress-fill.red { background: linear-gradient(90deg, #dc2626, var(--red)); }
+        .progress-fill.orange { background: linear-gradient(90deg, #ea580c, var(--orange)); }
+        .progress-fill.pink { background: linear-gradient(90deg, #db2777, #f472b6); }
+
+        /* SEPARADOR */
+        .divider {
+            height: 1px;
+            background: var(--glass-border);
+            margin: 16px 0;
+        }
+
+        /* LABEL MUTED */
+        .label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; font-weight: 500; }
+
+        /* SCROLLBAR */
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--glass-border); border-radius: 4px; }
+
+        /* MENSAJES */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 999;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .toast {
+            padding: 12px 18px;
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            animation: slideIn 0.3s ease;
+            backdrop-filter: blur(20px);
+        }
+
+        .toast-success { background: rgba(52,211,153,0.15); border: 1px solid rgba(52,211,153,0.3); color: var(--green); }
+        .toast-warning { background: rgba(251,146,60,0.15); border: 1px solid rgba(251,146,60,0.3); color: var(--orange); }
+        .toast-error { background: rgba(248,113,113,0.15); border: 1px solid rgba(248,113,113,0.3); color: var(--red); }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        /* FORMS */
+        .form-input {
+            width: 100%;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 12px 16px;
+            color: var(--text-primary);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .form-input:focus {
+            border-color: var(--purple-border);
+            background: rgba(124,58,237,0.05);
+        }
+        .form-input option { background: #1a1a2e; color: var(--text-primary); }
+
+        /* Override Django widgets */
+        select, input[type="text"], input[type="number"], input[type="date"], input[type="password"] {
+            width: 100%;
+            background: rgba(255,255,255,0.04) !important;
+            border: 1px solid var(--glass-border) !important;
+            border-radius: 12px !important;
+            padding: 12px 16px !important;
+            color: var(--text-primary) !important;
+            font-family: 'DM Sans', sans-serif !important;
+            font-size: 14px !important;
+            outline: none !important;
+            transition: border-color 0.2s !important;
+            appearance: auto;
+        }
+        select:focus, input:focus {
+            border-color: var(--purple-border) !important;
+            background: rgba(124,58,237,0.05) !important;
+        }
+
+        /* MODAL */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(8px);
+            z-index: 100;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-overlay.open { display: flex; }
+
+        .modal-box {
+            background: #16162a;
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 28px;
+            width: 380px;
+            max-width: 90vw;
+            animation: popIn 0.2s ease;
+        }
+        @keyframes popIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        /* Chart.js override */
+        canvas { display: block; }
+
+        /* Tooltip personalizado para gráficos */
+        .chartjs-tooltip {
+            background: #1e1e35 !important;
+            border: 1px solid var(--glass-border) !important;
+            border-radius: 12px !important;
+            color: var(--text-primary) !important;
+        }
     </style>
 </head>
-<body class="bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 font-sans antialiased flex h-screen transition-colors duration-300">
+<body>
 
-    <aside class="w-24 bg-sidebar flex flex-col items-center py-8 text-white rounded-r-3xl shadow-2xl z-20">
-        <div class="mb-8 p-3 bg-white/20 rounded-full" title="{{ user.username }}">
-            <i class="fas fa-user text-xl"></i>
+{% if messages %}
+<div class="toast-container">
+    {% for message in messages %}
+    <div class="toast toast-{% if message.tags == 'success' %}success{% elif message.tags == 'warning' %}warning{% else %}error{% endif %}">
+        <i class="fas {% if message.tags == 'success' %}fa-check-circle{% elif message.tags == 'warning' %}fa-exclamation-triangle{% else %}fa-times-circle{% endif %}"></i>
+        {{ message }}
+    </div>
+    {% endfor %}
+</div>
+<script>
+    setTimeout(() => {
+        document.querySelectorAll('.toast').forEach(t => {
+            t.style.transition = 'opacity 0.4s, transform 0.4s';
+            t.style.opacity = '0';
+            t.style.transform = 'translateX(20px)';
+            setTimeout(() => t.remove(), 400);
+        });
+    }, 3500);
+</script>
+{% endif %}
+
+<div class="layout">
+    <aside class="sidebar">
+        <div class="sidebar-logo">
+            <i class="fas fa-chart-line"></i>
         </div>
 
-        <nav class="flex flex-col gap-8 text-xl">
-            <a href="{% url 'dashboard' %}" title="Inicio" class="opacity-100 hover:opacity-80 transition"><i class="fas fa-home"></i></a>
-            <a href="{% url 'registrar_transaccion' %}?tipo=EGRESO" title="Nuevo Gasto" class="opacity-60 hover:opacity-100 transition"><i class="fas fa-minus-circle"></i></a>
-            <a href="{% url 'registrar_transaccion' %}?tipo=INGRESO" title="Nuevo Ingreso" class="opacity-60 hover:opacity-100 transition"><i class="fas fa-plus-circle"></i></a>
-            <a href="{% url 'estadisticas' %}" title="Estadísticas" class="opacity-60 hover:opacity-100 transition"><i class="fas fa-chart-pie"></i></a>
+        <nav class="sidebar-nav">
+            <a href="{% url 'dashboard' %}" class="nav-item {% block nav_dashboard %}{% endblock %}" title="Dashboard">
+                <i class="fas fa-home"></i>
+            </a>
+            <a href="{% url 'registrar_transaccion' %}?tipo=INGRESO" class="nav-item {% block nav_ingreso %}{% endblock %}" title="Nuevo ingreso">
+                <i class="fas fa-plus-circle"></i>
+            </a>
+            <a href="{% url 'registrar_transaccion' %}?tipo=EGRESO" class="nav-item {% block nav_gasto %}{% endblock %}" title="Nuevo gasto">
+                <i class="fas fa-minus-circle"></i>
+            </a>
+            <a href="{% url 'estadisticas' %}" class="nav-item {% block nav_stats %}{% endblock %}" title="Estadísticas">
+                <i class="fas fa-chart-pie"></i>
+            </a>
         </nav>
 
-        <div class="mt-auto flex flex-col gap-6">
-            {% if messages %}
-            <span class="relative opacity-60 text-xl" title="Notificaciones">
-                <i class="fas fa-bell"></i>
-                <span class="absolute -top-1 -right-1 bg-red-500 text-white text-[8px] w-4 h-4 rounded-full flex items-center justify-center">!</span>
-            </span>
-            {% endif %}
-
-            <button id="theme-toggle" class="opacity-60 hover:opacity-100 text-white transition text-xl" title="Cambiar tema">
-                <i id="theme-icon" class="fas fa-moon"></i>
-            </button>
-
-            <form action="{% url 'logout' %}" method="post">
+        <div class="sidebar-bottom">
+            <a href="{% url 'exportar_excel' %}" class="nav-item" title="Exportar CSV">
+                <i class="fas fa-download"></i>
+            </a>
+            <form action="{% url 'logout' %}" method="post" style="margin:0">
                 {% csrf_token %}
-                <button type="submit" class="opacity-60 hover:opacity-100 text-white transition text-xl" title="Cerrar Sesión">
+                <button type="submit" class="nav-item" style="cursor:pointer;background:none" title="Cerrar sesión">
                     <i class="fas fa-sign-out-alt"></i>
                 </button>
             </form>
         </div>
     </aside>
 
-    <main class="flex-1 p-8 overflow-y-auto relative">
-
-        <!-- Mensajes del sistema -->
-        {% if messages %}
-        <div class="fixed top-4 right-4 z-50 flex flex-col gap-2">
-            {% for message in messages %}
-            <div class="px-4 py-3 rounded-xl shadow-lg text-sm font-medium flex items-center gap-2
-                {% if message.tags == 'success' %}bg-green-500 text-white
-                {% elif message.tags == 'warning' %}bg-yellow-400 text-gray-800
-                {% else %}bg-red-500 text-white{% endif %}">
-                <i class="fas {% if message.tags == 'success' %}fa-check-circle{% elif message.tags == 'warning' %}fa-exclamation-triangle{% else %}fa-times-circle{% endif %}"></i>
-                {{ message }}
-            </div>
-            {% endfor %}
-        </div>
-        {% endif %}
-
-        {% block content %}
-        {% endblock %}
+    <main class="main">
+        {% block content %}{% endblock %}
     </main>
+</div>
 
-    <script>
-        const themeToggleBtn = document.getElementById('theme-toggle');
-        const themeIcon = document.getElementById('theme-icon');
-
-        if (localStorage.getItem('color-theme') === 'dark' || (!('color-theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-            document.documentElement.classList.add('dark');
-            themeIcon.classList.replace('fa-moon', 'fa-sun');
-        }
-
-        themeToggleBtn.addEventListener('click', function () {
-            themeIcon.classList.add('animate-spin');
-            setTimeout(() => themeIcon.classList.remove('animate-spin'), 300);
-            if (document.documentElement.classList.contains('dark')) {
-                document.documentElement.classList.remove('dark');
-                localStorage.setItem('color-theme', 'light');
-                themeIcon.classList.replace('fa-sun', 'fa-moon');
-            } else {
-                document.documentElement.classList.add('dark');
-                localStorage.setItem('color-theme', 'dark');
-                themeIcon.classList.replace('fa-moon', 'fa-sun');
-            }
-        });
-
-        // Auto-ocultar mensajes tras 4 segundos
-        setTimeout(() => {
-            document.querySelectorAll('.fixed.top-4 > div').forEach(el => {
-                el.style.transition = 'opacity 0.5s';
-                el.style.opacity = '0';
-                setTimeout(() => el.remove(), 500);
-            });
-        }, 4000);
-    </script>
 </body>
 </html>
