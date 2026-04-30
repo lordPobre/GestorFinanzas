@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FinApp</title>
-    <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -19,26 +18,26 @@
             --glass-border: rgba(255,255,255,0.08);
             --glass-hover: rgba(255,255,255,0.07);
             --text-primary: #f1f0ff;
-            --text-secondary: rgba(241,240,255,0.5);
-            --text-muted: rgba(241,240,255,0.3);
+            --text-secondary: rgba(241,240,255,0.6);
+            --text-muted: rgba(241,240,255,0.35);
             --surface: #0d0d1a;
-            --surface-2: #12121f;
             --red: #f87171;
             --green: #34d399;
             --orange: #fb923c;
+            --sidebar-w: 72px;
+            --bottombar-h: 64px;
         }
 
-        * { box-sizing: border-box; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
         body {
             font-family: 'DM Sans', sans-serif;
             background: var(--surface);
             color: var(--text-primary);
-            margin: 0;
             min-height: 100vh;
             overflow-x: hidden;
         }
 
-        /* Fondo animado con puntos */
         body::before {
             content: '';
             position: fixed;
@@ -50,42 +49,31 @@
             z-index: 0;
         }
 
-        .layout {
-            display: flex;
-            min-height: 100vh;
-            position: relative;
-            z-index: 1;
-        }
-
-        /* SIDEBAR */
+        /* ===== SIDEBAR DESKTOP ===== */
         .sidebar {
-            width: 72px;
-            background: rgba(13,13,26,0.8);
+            width: var(--sidebar-w);
+            background: rgba(13,13,26,0.85);
             border-right: 1px solid var(--glass-border);
             display: flex;
             flex-direction: column;
             align-items: center;
             padding: 24px 0;
             position: fixed;
-            top: 0;
-            left: 0;
-            bottom: 0;
+            top: 0; left: 0; bottom: 0;
             z-index: 50;
             backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
         }
 
         .sidebar-logo {
-            width: 40px;
-            height: 40px;
+            width: 40px; height: 40px;
             background: var(--purple-glow);
             border: 1px solid var(--purple-border);
             border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 16px; color: var(--purple);
             margin-bottom: 32px;
-            font-size: 16px;
-            color: var(--purple);
+            flex-shrink: 0;
         }
 
         .sidebar-nav {
@@ -96,27 +84,19 @@
         }
 
         .nav-item {
-            width: 44px;
-            height: 44px;
+            width: 44px; height: 44px;
             border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            display: flex; align-items: center; justify-content: center;
             color: var(--text-muted);
             font-size: 16px;
             text-decoration: none;
             transition: all 0.2s;
             border: 1px solid transparent;
-            position: relative;
+            background: none;
+            cursor: pointer;
+            font-family: 'DM Sans', sans-serif;
         }
-
-        .nav-item:hover {
-            color: var(--purple);
-            background: var(--purple-glow);
-            border-color: var(--purple-border);
-        }
-
-        .nav-item.active {
+        .nav-item:hover, .nav-item.active {
             color: var(--purple);
             background: var(--purple-glow);
             border-color: var(--purple-border);
@@ -129,15 +109,51 @@
             gap: 4px;
         }
 
-        /* MAIN */
+        /* ===== BOTTOM NAV MÓVIL ===== */
+        .bottomnav {
+            display: none;
+            position: fixed;
+            bottom: 0; left: 0; right: 0;
+            height: var(--bottombar-h);
+            background: rgba(13,13,26,0.95);
+            border-top: 1px solid var(--glass-border);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            z-index: 50;
+            align-items: center;
+            justify-content: space-around;
+            padding: 0 8px;
+        }
+
+        .bottomnav .nav-item {
+            width: 48px; height: 44px;
+            border-radius: 12px;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .bottomnav .nav-label {
+            font-size: 9px;
+            font-weight: 500;
+            letter-spacing: 0.02em;
+        }
+
+        /* ===== LAYOUT PRINCIPAL ===== */
+        .layout {
+            display: flex;
+            min-height: 100vh;
+            position: relative;
+            z-index: 1;
+        }
+
         .main {
-            margin-left: 72px;
+            margin-left: var(--sidebar-w);
             flex: 1;
             padding: 32px;
             min-height: 100vh;
         }
 
-        /* GLASS CARD */
+        /* ===== GLASS CARDS ===== */
         .glass {
             background: var(--glass-bg);
             border: 1px solid var(--glass-border);
@@ -146,163 +162,90 @@
             -webkit-backdrop-filter: blur(20px);
             transition: border-color 0.2s;
         }
-
-        .glass:hover {
-            border-color: rgba(255,255,255,0.12);
-        }
+        .glass:hover { border-color: rgba(255,255,255,0.12); }
 
         .glass-purple {
-            background: rgba(124,58,237,0.1);
-            border: 1px solid rgba(167,139,250,0.2);
+            background: rgba(124,58,237,0.08);
+            border: 1px solid rgba(167,139,250,0.18);
             border-radius: 20px;
             backdrop-filter: blur(20px);
         }
 
-        /* NÚMEROS */
+        /* ===== TIPOGRAFÍA ===== */
         .mono { font-family: 'DM Mono', monospace; }
-
-        /* BADGES */
-        .badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
+        .label {
             font-size: 11px;
-            padding: 3px 10px;
-            border-radius: 20px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
             font-weight: 500;
         }
 
-        .badge-green { background: rgba(52,211,153,0.12); color: var(--green); border: 1px solid rgba(52,211,153,0.2); }
-        .badge-red { background: rgba(248,113,113,0.12); color: var(--red); border: 1px solid rgba(248,113,113,0.2); }
+        /* ===== BADGES ===== */
+        .badge {
+            display: inline-flex; align-items: center; gap: 4px;
+            font-size: 11px; padding: 3px 10px;
+            border-radius: 20px; font-weight: 500;
+        }
+        .badge-green  { background: rgba(52,211,153,0.12); color: var(--green); border: 1px solid rgba(52,211,153,0.2); }
+        .badge-red    { background: rgba(248,113,113,0.12); color: var(--red); border: 1px solid rgba(248,113,113,0.2); }
         .badge-orange { background: rgba(251,146,60,0.12); color: var(--orange); border: 1px solid rgba(251,146,60,0.2); }
         .badge-purple { background: var(--purple-glow); color: var(--purple); border: 1px solid var(--purple-border); }
 
-        /* BOTONES */
+        /* ===== BOTONES ===== */
         .btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 10px 18px;
-            border-radius: 12px;
-            font-size: 13px;
-            font-weight: 500;
-            text-decoration: none;
-            cursor: pointer;
-            border: none;
-            transition: all 0.2s;
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 10px 18px; border-radius: 12px;
+            font-size: 13px; font-weight: 500;
+            text-decoration: none; cursor: pointer;
+            border: none; transition: all 0.2s;
             font-family: 'DM Sans', sans-serif;
         }
-
-        .btn-purple {
-            background: var(--purple-dim);
-            color: #fff;
-        }
+        .btn-purple { background: var(--purple-dim); color: #fff; }
         .btn-purple:hover { background: #6d28d9; }
-
-        .btn-glass {
-            background: var(--glass-bg);
-            border: 1px solid var(--glass-border);
-            color: var(--text-secondary);
-        }
-        .btn-glass:hover {
-            background: var(--glass-hover);
-            color: var(--text-primary);
-            border-color: var(--purple-border);
-        }
-
-        .btn-green { background: rgba(52,211,153,0.15); color: var(--green); border: 1px solid rgba(52,211,153,0.25); }
+        .btn-glass  { background: var(--glass-bg); border: 1px solid var(--glass-border); color: var(--text-secondary); }
+        .btn-glass:hover { background: var(--glass-hover); color: var(--text-primary); border-color: var(--purple-border); }
+        .btn-green  { background: rgba(52,211,153,0.15); color: var(--green); border: 1px solid rgba(52,211,153,0.25); }
         .btn-green:hover { background: rgba(52,211,153,0.25); }
-
-        .btn-red { background: rgba(248,113,113,0.15); color: var(--red); border: 1px solid rgba(248,113,113,0.25); }
+        .btn-red    { background: rgba(248,113,113,0.15); color: var(--red); border: 1px solid rgba(248,113,113,0.25); }
         .btn-red:hover { background: rgba(248,113,113,0.25); }
 
-        /* BARRA DE PROGRESO */
-        .progress-bar {
-            width: 100%;
-            height: 4px;
-            background: rgba(255,255,255,0.06);
-            border-radius: 4px;
-            overflow: hidden;
+        /* ===== PROGRESS ===== */
+        .progress-bar { width:100%; height:4px; background:rgba(255,255,255,0.06); border-radius:4px; overflow:hidden; }
+        .progress-fill { height:100%; border-radius:4px; background:linear-gradient(90deg,var(--purple-dim),var(--purple)); transition:width 0.8s ease; }
+        .progress-fill.green  { background: linear-gradient(90deg,#059669,var(--green)); }
+        .progress-fill.red    { background: linear-gradient(90deg,#dc2626,var(--red)); }
+        .progress-fill.orange { background: linear-gradient(90deg,#ea580c,var(--orange)); }
+        .progress-fill.pink   { background: linear-gradient(90deg,#db2777,#f472b6); }
+
+        /* ===== GRIDS RESPONSIVOS ===== */
+        .grid-metrics { display: grid; grid-template-columns: repeat(4,1fr); gap: 16px; margin-bottom: 20px; }
+        .grid-chart   { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; margin-bottom: 20px; }
+        .grid-bottom  { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+        .grid-right   { display: flex; flex-direction: column; gap: 16px; }
+
+        /* ===== MODAL ===== */
+        .modal-overlay {
+            position: fixed; inset: 0;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(8px);
+            z-index: 100; display: none;
+            align-items: center; justify-content: center;
+            padding: 16px;
         }
-        .progress-fill {
-            height: 100%;
-            border-radius: 4px;
-            background: linear-gradient(90deg, var(--purple-dim), var(--purple));
-            transition: width 0.8s ease;
-        }
-        .progress-fill.green { background: linear-gradient(90deg, #059669, var(--green)); }
-        .progress-fill.red { background: linear-gradient(90deg, #dc2626, var(--red)); }
-        .progress-fill.orange { background: linear-gradient(90deg, #ea580c, var(--orange)); }
-        .progress-fill.pink { background: linear-gradient(90deg, #db2777, #f472b6); }
-
-        /* SEPARADOR */
-        .divider {
-            height: 1px;
-            background: var(--glass-border);
-            margin: 16px 0;
-        }
-
-        /* LABEL MUTED */
-        .label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; font-weight: 500; }
-
-        /* SCROLLBAR */
-        ::-webkit-scrollbar { width: 4px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: var(--glass-border); border-radius: 4px; }
-
-        /* MENSAJES */
-        .toast-container {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 999;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .toast {
-            padding: 12px 18px;
-            border-radius: 12px;
-            font-size: 13px;
-            font-weight: 500;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            animation: slideIn 0.3s ease;
-            backdrop-filter: blur(20px);
-        }
-
-        .toast-success { background: rgba(52,211,153,0.15); border: 1px solid rgba(52,211,153,0.3); color: var(--green); }
-        .toast-warning { background: rgba(251,146,60,0.15); border: 1px solid rgba(251,146,60,0.3); color: var(--orange); }
-        .toast-error { background: rgba(248,113,113,0.15); border: 1px solid rgba(248,113,113,0.3); color: var(--red); }
-
-        @keyframes slideIn {
-            from { opacity: 0; transform: translateX(20px); }
-            to { opacity: 1; transform: translateX(0); }
-        }
-
-        /* FORMS */
-        .form-input {
-            width: 100%;
-            background: rgba(255,255,255,0.04);
+        .modal-overlay.open { display: flex; }
+        .modal-box {
+            background: #16162a;
             border: 1px solid var(--glass-border);
-            border-radius: 12px;
-            padding: 12px 16px;
-            color: var(--text-primary);
-            font-family: 'DM Sans', sans-serif;
-            font-size: 14px;
-            outline: none;
-            transition: border-color 0.2s;
+            border-radius: 24px; padding: 28px;
+            width: 100%; max-width: 380px;
+            animation: popIn 0.2s ease;
         }
-        .form-input:focus {
-            border-color: var(--purple-border);
-            background: rgba(124,58,237,0.05);
-        }
-        .form-input option { background: #1a1a2e; color: var(--text-primary); }
+        @keyframes popIn { from{opacity:0;transform:scale(0.95)} to{opacity:1;transform:scale(1)} }
 
-        /* Override Django widgets */
-        select, input[type="text"], input[type="number"], input[type="date"], input[type="password"] {
+        /* ===== FORMS ===== */
+        select, input[type="text"], input[type="number"],
+        input[type="date"], input[type="password"] {
             width: 100%;
             background: rgba(255,255,255,0.04) !important;
             border: 1px solid var(--glass-border) !important;
@@ -313,49 +256,54 @@
             font-size: 14px !important;
             outline: none !important;
             transition: border-color 0.2s !important;
-            appearance: auto;
         }
         select:focus, input:focus {
             border-color: var(--purple-border) !important;
             background: rgba(124,58,237,0.05) !important;
         }
+        select option { background: #1a1a2e; color: var(--text-primary); }
 
-        /* MODAL */
-        .modal-overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.7);
-            backdrop-filter: blur(8px);
-            z-index: 100;
-            display: none;
-            align-items: center;
-            justify-content: center;
-        }
-        .modal-overlay.open { display: flex; }
+        /* ===== TOASTS ===== */
+        .toast-container { position:fixed; top:20px; right:20px; z-index:999; display:flex; flex-direction:column; gap:8px; max-width: calc(100vw - 40px); }
+        .toast { padding:12px 18px; border-radius:12px; font-size:13px; font-weight:500; display:flex; align-items:center; gap:10px; animation:slideIn 0.3s ease; backdrop-filter:blur(20px); }
+        .toast-success { background:rgba(52,211,153,0.15); border:1px solid rgba(52,211,153,0.3); color:var(--green); }
+        .toast-warning { background:rgba(251,146,60,0.15); border:1px solid rgba(251,146,60,0.3); color:var(--orange); }
+        .toast-error   { background:rgba(248,113,113,0.15); border:1px solid rgba(248,113,113,0.3); color:var(--red); }
+        @keyframes slideIn { from{opacity:0;transform:translateX(20px)} to{opacity:1;transform:translateX(0)} }
 
-        .modal-box {
-            background: #16162a;
-            border: 1px solid var(--glass-border);
-            border-radius: 24px;
-            padding: 28px;
-            width: 380px;
-            max-width: 90vw;
-            animation: popIn 0.2s ease;
-        }
-        @keyframes popIn {
-            from { opacity: 0; transform: scale(0.95); }
-            to { opacity: 1; transform: scale(1); }
+        /* ===== SCROLLBAR ===== */
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--glass-border); border-radius: 4px; }
+
+        /* ===== TABLET (≤900px) ===== */
+        @media (max-width: 900px) {
+            .grid-metrics { grid-template-columns: repeat(2,1fr); }
+            .grid-chart   { grid-template-columns: 1fr; }
+            .grid-bottom  { grid-template-columns: 1fr 1fr; }
         }
 
-        /* Chart.js override */
-        canvas { display: block; }
+        /* ===== MÓVIL (≤640px) ===== */
+        @media (max-width: 640px) {
+            .sidebar { display: none; }
+            .bottomnav { display: flex; }
 
-        /* Tooltip personalizado para gráficos */
-        .chartjs-tooltip {
-            background: #1e1e35 !important;
-            border: 1px solid var(--glass-border) !important;
-            border-radius: 12px !important;
-            color: var(--text-primary) !important;
+            .main {
+                margin-left: 0;
+                padding: 16px;
+                padding-bottom: calc(var(--bottombar-h) + 16px);
+            }
+
+            .grid-metrics { grid-template-columns: repeat(2,1fr); gap: 12px; }
+            .grid-chart   { grid-template-columns: 1fr; }
+            .grid-bottom  { grid-template-columns: 1fr; }
+            .grid-right   { flex-direction: column; }
+
+            .glass { border-radius: 16px; }
+            .modal-box { border-radius: 20px; padding: 20px; }
+
+            .hide-mobile { display: none !important; }
+            .btn { padding: 9px 14px; font-size: 12px; }
         }
     </style>
 </head>
@@ -374,8 +322,7 @@
     setTimeout(() => {
         document.querySelectorAll('.toast').forEach(t => {
             t.style.transition = 'opacity 0.4s, transform 0.4s';
-            t.style.opacity = '0';
-            t.style.transform = 'translateX(20px)';
+            t.style.opacity = '0'; t.style.transform = 'translateX(20px)';
             setTimeout(() => t.remove(), 400);
         });
     }, 3500);
@@ -383,38 +330,51 @@
 {% endif %}
 
 <div class="layout">
+
+    <!-- SIDEBAR DESKTOP -->
     <aside class="sidebar">
-        <div class="sidebar-logo">
-            <i class="fas fa-chart-line"></i>
-        </div>
-
+        <div class="sidebar-logo"><i class="fas fa-chart-line"></i></div>
         <nav class="sidebar-nav">
-            <a href="{% url 'dashboard' %}" class="nav-item {% block nav_dashboard %}{% endblock %}" title="Dashboard">
-                <i class="fas fa-home"></i>
-            </a>
-            <a href="{% url 'registrar_transaccion' %}?tipo=INGRESO" class="nav-item {% block nav_ingreso %}{% endblock %}" title="Nuevo ingreso">
-                <i class="fas fa-plus-circle"></i>
-            </a>
-            <a href="{% url 'registrar_transaccion' %}?tipo=EGRESO" class="nav-item {% block nav_gasto %}{% endblock %}" title="Nuevo gasto">
-                <i class="fas fa-minus-circle"></i>
-            </a>
-            <a href="{% url 'estadisticas' %}" class="nav-item {% block nav_stats %}{% endblock %}" title="Estadísticas">
-                <i class="fas fa-chart-pie"></i>
-            </a>
+            <a href="{% url 'dashboard' %}" class="nav-item {% block nav_dashboard %}{% endblock %}" title="Dashboard"><i class="fas fa-home"></i></a>
+            <a href="{% url 'registrar_transaccion' %}?tipo=INGRESO" class="nav-item {% block nav_ingreso %}{% endblock %}" title="Nuevo ingreso"><i class="fas fa-plus-circle"></i></a>
+            <a href="{% url 'registrar_transaccion' %}?tipo=EGRESO" class="nav-item {% block nav_gasto %}{% endblock %}" title="Nuevo gasto"><i class="fas fa-minus-circle"></i></a>
+            <a href="{% url 'estadisticas' %}" class="nav-item {% block nav_stats %}{% endblock %}" title="Estadísticas"><i class="fas fa-chart-pie"></i></a>
         </nav>
-
         <div class="sidebar-bottom">
-            <a href="{% url 'exportar_excel' %}" class="nav-item" title="Exportar CSV">
-                <i class="fas fa-download"></i>
-            </a>
+            <a href="{% url 'exportar_excel' %}" class="nav-item" title="Exportar CSV"><i class="fas fa-download"></i></a>
             <form action="{% url 'logout' %}" method="post" style="margin:0">
                 {% csrf_token %}
-                <button type="submit" class="nav-item" style="cursor:pointer;background:none" title="Cerrar sesión">
-                    <i class="fas fa-sign-out-alt"></i>
-                </button>
+                <button type="submit" class="nav-item" title="Cerrar sesión"><i class="fas fa-sign-out-alt"></i></button>
             </form>
         </div>
     </aside>
+
+    <!-- BOTTOM NAV MÓVIL -->
+    <nav class="bottomnav">
+        <a href="{% url 'dashboard' %}" class="nav-item {% block nav_dashboard_m %}{% endblock %}">
+            <i class="fas fa-home" style="font-size:18px"></i>
+            <span class="nav-label">Inicio</span>
+        </a>
+        <a href="{% url 'registrar_transaccion' %}?tipo=INGRESO" class="nav-item" style="color:var(--green)">
+            <i class="fas fa-plus-circle" style="font-size:18px"></i>
+            <span class="nav-label">Ingreso</span>
+        </a>
+        <a href="{% url 'registrar_transaccion' %}?tipo=EGRESO" class="nav-item" style="color:var(--red)">
+            <i class="fas fa-minus-circle" style="font-size:18px"></i>
+            <span class="nav-label">Gasto</span>
+        </a>
+        <a href="{% url 'estadisticas' %}" class="nav-item {% block nav_stats_m %}{% endblock %}">
+            <i class="fas fa-chart-pie" style="font-size:18px"></i>
+            <span class="nav-label">Stats</span>
+        </a>
+        <form action="{% url 'logout' %}" method="post" style="margin:0">
+            {% csrf_token %}
+            <button type="submit" class="nav-item">
+                <i class="fas fa-sign-out-alt" style="font-size:18px"></i>
+                <span class="nav-label">Salir</span>
+            </button>
+        </form>
+    </nav>
 
     <main class="main">
         {% block content %}{% endblock %}

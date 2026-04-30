@@ -1,33 +1,26 @@
 {% extends 'finanzas/base.html' %}
-
 {% block content %}
-<div style="min-height:80vh;display:flex;align-items:center;justify-content:center">
+<div style="min-height:70vh;display:flex;align-items:center;justify-content:center;padding:8px 0">
     <div style="width:100%;max-width:440px">
-        <div class="glass" style="padding:32px">
-            <div style="margin-bottom:28px">
-                <div class="label" style="margin-bottom:6px">Metas de ahorro</div>
-                <h2 style="font-size:22px;font-weight:600;color:var(--text-primary);margin:0">
-                    {% if editar %}Editar meta{% else %}Nueva meta{% endif %}
-                </h2>
-                <p style="font-size:13px;color:var(--text-muted);margin-top:4px">PS5, viaje, fondo de emergencia...</p>
+        <div class="glass" style="padding:28px">
+            <div style="margin-bottom:24px">
+                <div class="label" style="margin-bottom:5px">Metas de ahorro</div>
+                <h2 style="font-size:20px;font-weight:600;color:var(--text-primary);margin:0">{% if editar %}Editar meta{% else %}Nueva meta{% endif %}</h2>
+                <p style="font-size:12px;color:var(--text-muted);margin-top:4px">PS5, viaje, fondo de emergencia...</p>
             </div>
-
-            <form method="POST" style="display:flex;flex-direction:column;gap:16px">
+            <form method="POST" style="display:flex;flex-direction:column;gap:14px">
                 {% csrf_token %}
                 {% for field in form %}
                 <div>
-                    <label style="display:block;font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px;font-weight:500">{{ field.label }}</label>
-                    {% if field.help_text %}<p style="font-size:11px;color:var(--text-muted);opacity:0.7;margin-bottom:6px">{{ field.help_text }}</p>{% endif %}
+                    <label style="display:block;font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:7px;font-weight:500">{{ field.label }}</label>
+                    {% if field.help_text %}<p style="font-size:11px;color:var(--text-muted);opacity:0.7;margin-bottom:5px">{{ field.help_text }}</p>{% endif %}
                     {{ field }}
-                    {% if field.errors %}<p style="font-size:11px;color:var(--red);margin-top:4px">{{ field.errors.0 }}</p>{% endif %}
+                    {% if field.errors %}<p style="font-size:11px;color:var(--red);margin-top:3px">{{ field.errors.0 }}</p>{% endif %}
                 </div>
                 {% endfor %}
-
-                <div style="display:flex;gap:12px;margin-top:8px">
+                <div style="display:flex;gap:10px;margin-top:6px">
                     <a href="{% url 'dashboard' %}" class="btn btn-glass" style="flex:1;justify-content:center">Cancelar</a>
-                    <button type="submit" style="flex:1;justify-content:center;background:rgba(244,114,182,0.2);border:1px solid rgba(244,114,182,0.3);color:#f472b6;border-radius:12px;padding:10px 18px;font-size:13px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;display:flex;align-items:center;justify-content:center;gap:8px;transition:all 0.2s">
-                        {% if editar %}Guardar cambios{% else %}Guardar meta{% endif %}
-                    </button>
+                    <button type="submit" style="flex:1;justify-content:center;background:rgba(244,114,182,0.18);border:1px solid rgba(244,114,182,0.3);color:#f472b6;border-radius:12px;padding:10px 18px;font-size:13px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;display:flex;align-items:center;justify-content:center;transition:all 0.2s">{% if editar %}Guardar cambios{% else %}Guardar meta{% endif %}</button>
                 </div>
             </form>
         </div>
