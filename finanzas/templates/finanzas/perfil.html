@@ -1,0 +1,150 @@
+{% extends 'finanzas/base.html' %}
+{% load humanize %}
+{% block nav_perfil %}active{% endblock %}
+{% block nav_perfil_m %}active{% endblock %}
+
+{% block content %}
+<div style="max-width:700px;margin:0 auto">
+
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:28px;flex-wrap:wrap;gap:12px">
+        <div>
+            <div class="label" style="margin-bottom:4px">Configuración</div>
+            <h1 style="font-size:22px;font-weight:600;color:var(--text-primary);margin:0">Mi perfil</h1>
+        </div>
+        <a href="{% url 'dashboard' %}" class="btn btn-glass">
+            <i class="fas fa-arrow-left" style="font-size:12px"></i> Volver
+        </a>
+    </div>
+
+    <!-- Avatar + stats -->
+    <div class="glass" style="padding:24px;margin-bottom:20px;display:flex;align-items:center;gap:20px;flex-wrap:wrap">
+        <div style="width:72px;height:72px;border-radius:20px;background:linear-gradient(135deg,#7c3aed,#a78bfa);display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:700;color:#fff;flex-shrink:0">
+            {% if profile.nombre_completo %}{{ profile.nombre_completo|first|upper }}{% else %}{{ user.username|first|upper }}{% endif %}
+        </div>
+        <div style="flex:1;min-width:0">
+            <div style="font-size:18px;font-weight:600;color:var(--text-primary)">
+                {% if profile.nombre_completo %}{{ profile.nombre_completo }}{% else %}{{ user.username }}{% endif %}
+            </div>
+            <div style="font-size:13px;color:var(--text-muted);margin-top:2px">@{{ user.username }}</div>
+            {% if profile.ciudad or profile.pais %}
+            <div style="font-size:12px;color:var(--text-muted);margin-top:3px">
+                <i class="fas fa-map-marker-alt" style="font-size:10px;margin-right:4px;color:var(--purple)"></i>
+                {% if profile.ciudad %}{{ profile.ciudad }}{% endif %}{% if profile.ciudad and profile.pais %}, {% endif %}{% if profile.pais %}{{ profile.pais }}{% endif %}
+            </div>
+            {% endif %}
+        </div>
+        <div style="display:flex;gap:20px;flex-wrap:wrap">
+            <div style="text-align:center">
+                <div class="mono" style="font-size:20px;font-weight:600;color:var(--purple)">{{ total_trans }}</div>
+                <div style="font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.06em">Movimientos</div>
+            </div>
+            <div style="text-align:center">
+                <div class="mono" style="font-size:20px;font-weight:600;color:var(--orange)">{{ total_deudas }}</div>
+                <div style="font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.06em">Deudas</div>
+            </div>
+            <div style="text-align:center">
+                <div class="mono" style="font-size:20px;font-weight:600;color:var(--green)">{{ profile.moneda }}</div>
+                <div style="font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.06em">Moneda</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Formulario datos personales — inputs manuales para máximo control -->
+    <div class="glass" style="padding:28px;margin-bottom:20px">
+        <div style="font-size:15px;font-weight:600;color:var(--text-primary);margin-bottom:20px;display:flex;align-items:center;gap:8px">
+            <i class="fas fa-user" style="color:var(--purple);font-size:13px"></i> Datos personales
+        </div>
+
+        <form method="POST" style="display:flex;flex-direction:column;gap:16px">
+            {% csrf_token %}
+            <input type="hidden" name="accion" value="perfil">
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+
+                <div>
+                    <label style="display:block;font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:7px;font-weight:500">Nombre completo</label>
+                    <input type="text" name="nombre_completo"
+                           value="{{ profile.nombre_completo }}"
+                           placeholder="Ej: Juan Pérez"
+                           style="width:100%;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:12px 16px;color:#f1f0ff;font-family:'DM Sans',sans-serif;font-size:14px;outline:none;box-sizing:border-box">
+                </div>
+
+                <div>
+                    <label style="display:block;font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:7px;font-weight:500">Correo electrónico</label>
+                    <input type="email" name="email"
+                           value="{{ profile.email }}"
+                           placeholder="Ej: juan@email.com"
+                           style="width:100%;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:12px 16px;color:#f1f0ff;font-family:'DM Sans',sans-serif;font-size:14px;outline:none;box-sizing:border-box">
+                </div>
+
+                <div>
+                    <label style="display:block;font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:7px;font-weight:500">Teléfono</label>
+                    <input type="text" name="telefono"
+                           value="{{ profile.telefono }}"
+                           placeholder="Ej: +56 9 1234 5678"
+                           style="width:100%;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:12px 16px;color:#f1f0ff;font-family:'DM Sans',sans-serif;font-size:14px;outline:none;box-sizing:border-box">
+                </div>
+
+                <div>
+                    <label style="display:block;font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:7px;font-weight:500">Ciudad</label>
+                    <input type="text" name="ciudad"
+                           value="{{ profile.ciudad }}"
+                           placeholder="Ej: Santiago"
+                           style="width:100%;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:12px 16px;color:#f1f0ff;font-family:'DM Sans',sans-serif;font-size:14px;outline:none;box-sizing:border-box">
+                </div>
+
+                <div>
+                    <label style="display:block;font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:7px;font-weight:500">País</label>
+                    <input type="text" name="pais"
+                           value="{{ profile.pais }}"
+                           placeholder="Ej: Chile"
+                           style="width:100%;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:12px 16px;color:#f1f0ff;font-family:'DM Sans',sans-serif;font-size:14px;outline:none;box-sizing:border-box">
+                </div>
+
+                <div>
+                    <label style="display:block;font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:7px;font-weight:500">Moneda preferida</label>
+                    {{ perfil_form.moneda }}
+                </div>
+
+            </div>
+
+            <div style="display:flex;justify-content:flex-end;margin-top:4px">
+                <button type="submit" class="btn btn-purple" style="cursor:pointer;border:none;font-family:'DM Sans',sans-serif">
+                    <i class="fas fa-save" style="font-size:12px"></i> Guardar cambios
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Cambiar contraseña -->
+    <div class="glass" style="padding:28px">
+        <div style="font-size:15px;font-weight:600;color:var(--text-primary);margin-bottom:6px;display:flex;align-items:center;gap:8px">
+            <i class="fas fa-lock" style="color:var(--orange);font-size:13px"></i> Cambiar contraseña
+        </div>
+        <p style="font-size:12px;color:var(--text-muted);margin-bottom:20px">Elige una contraseña segura de al menos 8 caracteres.</p>
+
+        <form method="POST" style="display:flex;flex-direction:column;gap:14px">
+            {% csrf_token %}
+            <input type="hidden" name="accion" value="password">
+            {% for field in pw_form %}
+            <div>
+                <label style="display:block;font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:7px;font-weight:500">{{ field.label }}</label>
+                {{ field }}
+                {% for error in field.errors %}<p style="font-size:11px;color:var(--red);margin-top:3px">{{ error }}</p>{% endfor %}
+                {% if field.help_text %}<p style="font-size:10px;color:var(--text-muted);margin-top:4px;opacity:0.7">{{ field.help_text }}</p>{% endif %}
+            </div>
+            {% endfor %}
+            <div style="display:flex;justify-content:flex-end;margin-top:4px">
+                <button type="submit" style="display:inline-flex;align-items:center;gap:8px;background:rgba(251,146,60,0.15);border:1px solid rgba(251,146,60,0.25);color:var(--orange);padding:10px 18px;border-radius:12px;font-size:13px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif">
+                    <i class="fas fa-key" style="font-size:12px"></i> Cambiar contraseña
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <div style="text-align:center;margin-top:16px;font-size:11px;color:var(--text-muted)">
+        Miembro desde {{ miembro_desde }}
+    </div>
+
+</div>
+{% endblock %}

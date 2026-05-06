@@ -339,6 +339,7 @@
             <a href="{% url 'registrar_transaccion' %}?tipo=INGRESO" class="nav-item {% block nav_ingreso %}{% endblock %}" title="Nuevo ingreso"><i class="fas fa-plus-circle"></i></a>
             <a href="{% url 'registrar_transaccion' %}?tipo=EGRESO" class="nav-item {% block nav_gasto %}{% endblock %}" title="Nuevo gasto"><i class="fas fa-minus-circle"></i></a>
             <a href="{% url 'estadisticas' %}" class="nav-item {% block nav_stats %}{% endblock %}" title="Estadísticas"><i class="fas fa-chart-pie"></i></a>
+            <a href="{% url 'perfil' %}" class="nav-item {% block nav_perfil %}{% endblock %}" title="Mi perfil"><i class="fas fa-user-circle"></i></a>
         </nav>
         <div class="sidebar-bottom">
             <a href="{% url 'exportar_excel' %}" class="nav-item" title="Exportar CSV"><i class="fas fa-download"></i></a>
@@ -367,6 +368,10 @@
             <i class="fas fa-chart-pie" style="font-size:18px"></i>
             <span class="nav-label">Stats</span>
         </a>
+        <a href="{% url 'perfil' %}" class="nav-item {% block nav_perfil_m %}{% endblock %}">
+            <i class="fas fa-user-circle" style="font-size:18px"></i>
+            <span class="nav-label">Perfil</span>
+        </a>
         <form action="{% url 'logout' %}" method="post" style="margin:0">
             {% csrf_token %}
             <button type="submit" class="nav-item">
@@ -393,56 +398,60 @@
     </style>
 
     <!-- Badge flotante Perseus Technology -->
-    <a href="https://www.perseustechnology.dev" target="_blank" rel="noopener"
-       id="perseus-badge"
-       style="
-           position:fixed;
-           bottom:24px;
-           right:24px;
-           z-index:999;
-           display:flex;
-           align-items:center;
-           gap:10px;
-           background:rgba(13,13,26,0.85);
-           border:1px solid rgba(167,139,250,0.25);
-           border-radius:40px;
-           padding:10px 16px 10px 12px;
-           text-decoration:none;
-           backdrop-filter:blur(16px);
-           -webkit-backdrop-filter:blur(16px);
-           box-shadow:0 8px 32px rgba(0,0,0,0.4), 0 0 0 0 rgba(167,139,250,0.4);
-           transition:all 0.3s ease;
-           cursor:pointer;
-       "
-       onmouseover="
-           this.style.borderColor='rgba(167,139,250,0.5)';
-           this.style.background='rgba(124,58,237,0.2)';
-           this.style.transform='translateY(-2px)';
-           this.style.boxShadow='0 12px 40px rgba(0,0,0,0.5), 0 0 20px rgba(167,139,250,0.2)';
-       "
-       onmouseout="
-           this.style.borderColor='rgba(167,139,250,0.25)';
-           this.style.background='rgba(13,13,26,0.85)';
-           this.style.transform='translateY(0)';
-           this.style.boxShadow='0 8px 32px rgba(0,0,0,0.4)';
-       "
-    >
-        <!-- Ícono Perseus -->
-        <div style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#7c3aed,#a78bfa);display:flex;align-items:center;justify-content:center;flex-shrink:0">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+    <div id="perseus-wrapper" style="position:fixed;bottom:24px;right:24px;z-index:999">
+        <!-- Botón X -->
+        <button onclick="cerrarBadge()"
+                style="position:absolute;top:-7px;right:-7px;width:20px;height:20px;border-radius:50%;
+                       background:#1e1e35;border:1px solid rgba(167,139,250,0.35);
+                       color:rgba(241,240,255,0.6);cursor:pointer;
+                       display:flex;align-items:center;justify-content:center;
+                       font-size:9px;z-index:10;padding:0;transition:all 0.2s"
+                onmouseover="this.style.background='rgba(248,113,113,0.25)';this.style.color='#f87171';this.style.borderColor='rgba(248,113,113,0.5)'"
+                onmouseout="this.style.background='#1e1e35';this.style.color='rgba(241,240,255,0.6)';this.style.borderColor='rgba(167,139,250,0.35)'"
+                title="Cerrar">
+            <i class="fas fa-times"></i>
+        </button>
+        <!-- Link -->
+        <a href="https://www.perseustechnology.dev" target="_blank" rel="noopener"
+           id="perseus-badge"
+           style="display:flex;align-items:center;gap:10px;
+                  background:rgba(13,13,26,0.85);
+                  border:1px solid rgba(167,139,250,0.25);
+                  border-radius:40px;padding:10px 16px 10px 12px;
+                  text-decoration:none;
+                  backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+                  box-shadow:0 8px 32px rgba(0,0,0,0.4);
+                  transition:all 0.3s ease;cursor:pointer"
+           onmouseover="this.style.borderColor='rgba(167,139,250,0.5)';this.style.background='rgba(124,58,237,0.2)';this.style.transform='translateY(-2px)'"
+           onmouseout="this.style.borderColor='rgba(167,139,250,0.25)';this.style.background='rgba(13,13,26,0.85)';this.style.transform='translateY(0)'">
+            <div style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#7c3aed,#a78bfa);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+                </svg>
+            </div>
+            <div style="display:flex;flex-direction:column;line-height:1.2">
+                <span style="font-size:9px;color:rgba(167,139,250,0.7);font-family:'DM Sans',sans-serif;font-weight:500;letter-spacing:0.05em;text-transform:uppercase">Desarrollado por</span>
+                <span style="font-size:12px;color:#f1f0ff;font-family:'DM Sans',sans-serif;font-weight:600">Perseus Technology</span>
+            </div>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="rgba(167,139,250,0.6)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left:2px;flex-shrink:0">
+                <line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/>
             </svg>
-        </div>
-        <!-- Texto -->
-        <div style="display:flex;flex-direction:column;line-height:1.2">
-            <span style="font-size:9px;color:rgba(167,139,250,0.7);font-family:'DM Sans',sans-serif;font-weight:500;letter-spacing:0.05em;text-transform:uppercase">Desarrollado por</span>
-            <span style="font-size:12px;color:#f1f0ff;font-family:'DM Sans',sans-serif;font-weight:600;letter-spacing:-0.01em">Perseus Technology</span>
-        </div>
-        <!-- Flecha -->
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="rgba(167,139,250,0.6)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left:2px;flex-shrink:0">
-            <line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/>
-        </svg>
-    </a>
-
+        </a>
+    </div>
+    <script>
+    function cerrarBadge() {
+        const wrapper = document.getElementById('perseus-wrapper');
+        if (!wrapper) return;
+        wrapper.style.transition = 'opacity 0.3s, transform 0.3s';
+        wrapper.style.opacity = '0';
+        wrapper.style.transform = 'translateY(10px)';
+        setTimeout(() => wrapper.style.display = 'none', 300);
+        sessionStorage.setItem('perseus_badge_closed', '1');
+    }
+    if (sessionStorage.getItem('perseus_badge_closed')) {
+        const w = document.getElementById('perseus-wrapper');
+        if (w) w.style.display = 'none';
+    }
+    </script>
 </body>
 </html>

@@ -30,7 +30,25 @@
 </head>
 <body>
     <div class="card">
-        <div class="logo"><i class="fas fa-user-plus"></i></div>
+        <div style="display:flex;justify-content:center;margin-bottom:20px">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 90" style="width:180px;height:68px;display:block;overflow:visible">
+              <defs>
+                <linearGradient id="lg-reg" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#7c3aed"/>
+                  <stop offset="100%" stop-color="#a78bfa"/>
+                </linearGradient>
+              </defs>
+              <rect x="4" y="14" width="56" height="68" rx="12" fill="url(#lg-reg)" opacity="0.5"/>
+              <rect x="16" y="4" width="56" height="68" rx="12" fill="url(#lg-reg)"/>
+              <rect x="25" y="13" width="38" height="50" rx="7" fill="#0f172a"/>
+              <rect x="30" y="22" width="28" height="4" rx="2" fill="#a78bfa" opacity="0.9"/>
+              <rect x="30" y="32" width="20" height="3" rx="1.5" fill="#f1f0ff" opacity="0.45"/>
+              <rect x="30" y="40" width="24" height="3" rx="1.5" fill="#f1f0ff" opacity="0.3"/>
+              <rect x="30" y="48" width="16" height="3" rx="1.5" fill="#34d399" opacity="0.8"/>
+              <text x="84" y="46" font-family="DM Sans, Arial, sans-serif" font-size="34" font-weight="700" fill="#f1f0ff">Fin</text>
+              <text x="86" y="68" font-family="DM Sans, Arial, sans-serif" font-size="18" font-weight="500" fill="#a78bfa" letter-spacing="3">App</text>
+            </svg>
+        </div>
         <h1>Crear cuenta</h1>
         <p class="sub">Empieza a controlar tus finanzas</p>
 
@@ -44,6 +62,17 @@
                 {% for error in field.errors %}<p class="error">{{ error }}</p>{% endfor %}
             </div>
             {% endfor %}
+            <!-- Datos de perfil opcionales -->
+            <div style="height:1px;background:rgba(255,255,255,0.07);margin:8px 0"></div>
+            <p style="font-size:11px;color:rgba(241,240,255,0.35);margin-bottom:10px;font-style:italic">Datos opcionales — puedes completarlos después</p>
+            <div class="field">
+                <label>Nombre completo</label>
+                <input type="text" name="nombre_completo" placeholder="Ej: Juan Pérez">
+            </div>
+            <div class="field">
+                <label>Correo electrónico</label>
+                <input type="email" name="email_perfil" placeholder="Ej: juan@email.com">
+            </div>
             <button type="submit" class="btn">Registrarme</button>
         </form>
 

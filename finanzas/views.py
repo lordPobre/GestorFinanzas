@@ -1,6 +1,7 @@
 import csv
 import calendar
 import json
+from .models import Transaccion, Deuda
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.db.models import Sum
@@ -10,12 +11,14 @@ from django.http import HttpResponse
 from collections import defaultdict
 from django.utils import timezone
 from datetime import date
+from django.contrib.auth.forms import PasswordChangeForm
+from django.contrib.auth import update_session_auth_hash
 from django.contrib import messages
+from .models import UserProfile
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import login
 from .models import Transaccion, Deuda, Presupuesto, MetaAhorro
 from .forms import DeudaForm, TransaccionForm, MetaAhorroForm
-
 
 @login_required(login_url='/login/')
 def dashboard(request):
@@ -38,25 +41,21 @@ def dashboard(request):
     else:
         next_month, next_year = month + 1, year
 
-    # Rango del mes calendario simple (sin fecha de corte confusa)
     _, ultimo_dia = calendar.monthrange(year, month)
     fecha_inicio = date(year, month, 1)
     fecha_fin = date(year, month, ultimo_dia)
     nombre_mes = date(year, month, 1).strftime('%B %Y').capitalize()
 
-    # --- INGRESOS del mes ---
     total_ingresos = Transaccion.objects.filter(
         usuario=request.user, tipo='INGRESO',
         fecha__gte=fecha_inicio, fecha__lte=fecha_fin
     ).aggregate(total=Sum('monto'))['total'] or 0
 
-    # --- GASTOS del mes (supermercado, bencina, etc) ---
     total_gastos = Transaccion.objects.filter(
         usuario=request.user, tipo='EGRESO',
         fecha__gte=fecha_inicio, fecha__lte=fecha_fin
     ).aggregate(total=Sum('monto'))['total'] or 0
 
-    # --- CUOTAS DE DEUDAS del mes ---
     todas_las_deudas = Deuda.objects.filter(usuario=request.user)
     deudas_del_mes = []
     cuotas_pagadas_mes = 0.0
@@ -75,7 +74,6 @@ def dashboard(request):
 
         deudas_del_mes.append(d)
 
-        # Estado de la cuota
         if year < hoy.year or (year == hoy.year and month < hoy.month):
             estado = 'pagado'
         elif year > hoy.year or (year == hoy.year and month > hoy.month):
@@ -100,15 +98,10 @@ def dashboard(request):
 
     total_cuotas_mes = cuotas_pagadas_mes + cuotas_pendientes_mes
 
-    # --- RESUMEN CLARO ---
-    # Lo que ya salió: gastos + cuotas pagadas
     ya_gaste = float(total_gastos) + cuotas_pagadas_mes
-    # Lo que falta pagar este mes: cuotas pendientes
     por_pagar = cuotas_pendientes_mes
-    # Lo que me queda libre = ingresos - todo lo comprometido
     disponible = float(total_ingresos) - ya_gaste - por_pagar
 
-    # --- CALENDARIO ---
     cal = calendar.monthcalendar(year, month)
     calendario_datos = []
     for semana in cal:
@@ -124,7 +117,6 @@ def dashboard(request):
                 })
         calendario_datos.append(semana_datos)
 
-    # --- GRÁFICO: últimos 6 meses, barras apiladas claras ---
     meses_labels = []
     datos_ingresos = []
     datos_gastos = []
@@ -145,7 +137,6 @@ def dashboard(request):
             usuario=request.user, tipo='EGRESO', fecha__gte=fi, fecha__lte=ff
         ).aggregate(t=Sum('monto'))['t'] or 0)
 
-        # Cuotas de deudas en ese mes
         cuotas_m = 0.0
         for d in todas_las_deudas:
             dv = d.fecha_inicio.day
@@ -160,34 +151,26 @@ def dashboard(request):
         datos_gastos.append(gas)
         datos_cuotas.append(cuotas_m)
 
-    # --- DONA DE GASTOS por categoría ---
     gastos_categoria = Transaccion.objects.filter(
         usuario=request.user, tipo='EGRESO',
         fecha__gte=fecha_inicio, fecha__lte=fecha_fin
     ).values('categoria').annotate(total=Sum('monto')).order_by('-total')
 
-    # --- ÚLTIMAS TRANSACCIONES ---
     ultimas = Transaccion.objects.filter(usuario=request.user).order_by('-fecha', '-id')[:10]
 
-    # --- DEUDA TOTAL GLOBAL ---
     deuda_total = sum(float(d.monto_restante) for d in todas_las_deudas.filter(cuotas_pagadas__lt=F('cuotas_totales')))
 
-    # --- METAS ---
     metas = MetaAhorro.objects.filter(usuario=request.user)
 
-    # Flag para estados vacíos
     es_nuevo = (total_ingresos == 0 and total_gastos == 0 and not todas_las_deudas.exists())
 
     context = {
-        # Navegación
         'nombre_mes': nombre_mes,
         'es_nuevo': es_nuevo,
         'prev_month': prev_month, 'prev_year': prev_year,
         'next_month': next_month, 'next_year': next_year,
         'year': year, 'month': month,
         'dias_semana': ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'],
-
-        # Números principales
         'total_ingresos': round(float(total_ingresos), 0),
         'total_gastos': round(float(total_gastos), 0),
         'total_cuotas_mes': round(total_cuotas_mes, 0),
@@ -197,14 +180,10 @@ def dashboard(request):
         'por_pagar': round(por_pagar, 0),
         'disponible': round(disponible, 0),
         'deuda_total': round(deuda_total, 0),
-
-        # Listas
         'deudas': deudas_del_mes,
         'ultimas': ultimas,
         'metas': metas,
         'calendario': calendario_datos,
-
-        # Gráficos
         'meses_json': json.dumps(meses_labels),
         'ingresos_json': json.dumps(datos_ingresos),
         'gastos_json': json.dumps(datos_gastos),
@@ -218,8 +197,11 @@ def dashboard(request):
 
 @login_required(login_url='/login/')
 def pagar_cuota(request, deuda_id):
+    from django.http import JsonResponse
     if request.method == 'POST':
         deuda = get_object_or_404(Deuda, pk=deuda_id, usuario=request.user)
+        es_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
+
         if deuda.cuotas_pagadas < deuda.cuotas_totales:
             deuda.cuotas_pagadas += 1
             deuda.save()
@@ -231,11 +213,24 @@ def pagar_cuota(request, deuda_id):
                 descripcion=f'Cuota {deuda.cuotas_pagadas}/{deuda.cuotas_totales} — {deuda.acreedor}',
                 fecha=timezone.now(),
             )
+            if es_ajax:
+                terminada = deuda.cuotas_pagadas >= deuda.cuotas_totales
+                return JsonResponse({
+                    'ok': True,
+                    'acreedor': deuda.acreedor,
+                    'cuotas_pagadas': deuda.cuotas_pagadas,
+                    'cuotas_totales': deuda.cuotas_totales,
+                    'porcentaje': deuda.porcentaje,
+                    'terminada': terminada,
+                    'monto': str(deuda.monto_cuota),
+                })
             messages.success(request, f'Cuota de {deuda.acreedor} registrada.')
         else:
+            if es_ajax:
+                return JsonResponse({'ok': False, 'msg': 'Ya está pagada completamente.'})
             messages.warning(request, f'{deuda.acreedor} ya está pagada completamente.')
-    return redirect('dashboard')
 
+    return redirect('dashboard')
 
 @login_required(login_url='/login/')
 def crear_deuda(request):
@@ -251,7 +246,6 @@ def crear_deuda(request):
         form = DeudaForm()
     return render(request, 'finanzas/form_deuda.html', {'form': form})
 
-
 @login_required(login_url='/login/')
 def editar_deuda(request, deuda_id):
     deuda = get_object_or_404(Deuda, id=deuda_id, usuario=request.user)
@@ -265,7 +259,6 @@ def editar_deuda(request, deuda_id):
         form = DeudaForm(instance=deuda)
     return render(request, 'finanzas/form_deuda.html', {'form': form, 'editar': True, 'deuda': deuda})
 
-
 @login_required(login_url='/login/')
 def eliminar_deuda(request, deuda_id):
     deuda = get_object_or_404(Deuda, id=deuda_id, usuario=request.user)
@@ -274,7 +267,6 @@ def eliminar_deuda(request, deuda_id):
         deuda.delete()
         messages.success(request, f"Deuda '{nombre}' eliminada.")
     return redirect('dashboard')
-
 
 @login_required(login_url='/login/')
 def registrar_transaccion(request):
@@ -292,7 +284,6 @@ def registrar_transaccion(request):
         form = TransaccionForm(initial={'tipo': tipo_inicial})
     return render(request, 'finanzas/form_transaccion.html', {'form': form, 'tipo_inicial': tipo_inicial})
 
-
 @login_required(login_url='/login/')
 def editar_transaccion(request, transaccion_id):
     t = get_object_or_404(Transaccion, id=transaccion_id, usuario=request.user)
@@ -306,7 +297,6 @@ def editar_transaccion(request, transaccion_id):
         form = TransaccionForm(instance=t)
     return render(request, 'finanzas/form_transaccion.html', {'form': form, 'editar': True})
 
-
 @login_required(login_url='/login/')
 def eliminar_transaccion(request, transaccion_id):
     t = get_object_or_404(Transaccion, id=transaccion_id, usuario=request.user)
@@ -314,7 +304,6 @@ def eliminar_transaccion(request, transaccion_id):
         t.delete()
         messages.success(request, 'Movimiento eliminado.')
     return redirect('dashboard')
-
 
 @login_required(login_url='/login/')
 def estadisticas(request):
@@ -332,20 +321,23 @@ def estadisticas(request):
     }
     return render(request, 'finanzas/estadisticas.html', context)
 
-
 def registro(request):
     if request.method == 'POST':
         form = UserCreationForm(request.POST)
         if form.is_valid():
             user = form.save()
             login(request, user)
-            # Crear perfil y redirigir al onboarding
-            UserProfile.objects.create(usuario=user)
+            nombre   = request.POST.get('nombre_completo', '').strip()
+            email_p  = request.POST.get('email_perfil', '').strip()
+            UserProfile.objects.create(
+                usuario=user,
+                nombre_completo=nombre,
+                email=email_p,
+            )
             return redirect('onboarding')
     else:
         form = UserCreationForm()
     return render(request, 'registration/registro.html', {'form': form})
-
 
 @login_required(login_url='/login/')
 def crear_meta(request):
@@ -360,7 +352,6 @@ def crear_meta(request):
     else:
         form = MetaAhorroForm()
     return render(request, 'finanzas/crear_meta.html', {'form': form})
-
 
 @login_required(login_url='/login/')
 def editar_meta(request, meta_id):
@@ -395,20 +386,13 @@ def exportar_excel(request):
         writer.writerow([t.fecha.strftime('%d/%m/%Y'), t.get_tipo_display(), t.categoria, t.descripcion, int(t.monto)])
     return response
 
-
-# Compatibilidad con URL antigua
 @login_required(login_url='/login/')
 def registrar_ingreso(request):
     return redirect('/registrar/?tipo=INGRESO')
 
-
-# ===== ONBOARDING =====
-from .models import UserProfile
-
 def get_or_create_profile(user):
     profile, _ = UserProfile.objects.get_or_create(usuario=user)
     return profile
-
 
 @login_required(login_url='/login/')
 def onboarding(request):
@@ -417,11 +401,9 @@ def onboarding(request):
         return redirect('dashboard')
     return render(request, 'finanzas/onboarding.html')
 
-
 @login_required(login_url='/login/')
 def completar_onboarding(request):
     if request.method == 'POST':
-        # Guardar ingreso si vino
         ingreso_monto = request.POST.get('ingreso_monto')
         ingreso_desc  = request.POST.get('ingreso_desc') or 'Ingreso mensual'
         if ingreso_monto:
@@ -437,7 +419,6 @@ def completar_onboarding(request):
             except Exception:
                 pass
 
-        # Guardar deuda si vino
         deuda_acreedor = request.POST.get('deuda_acreedor')
         deuda_monto    = request.POST.get('deuda_monto')
         deuda_cuotas   = request.POST.get('deuda_cuotas')
@@ -453,10 +434,82 @@ def completar_onboarding(request):
             except Exception:
                 pass
 
-        # Marcar onboarding completo
+        presupuesto_val = request.POST.get('presupuesto')
+        if presupuesto_val:
+            try:
+                presupuesto, _ = Presupuesto.objects.get_or_create(
+                    usuario=request.user,
+                    defaults={'limite_mensual': 500000}
+                )
+                presupuesto.limite_mensual = float(presupuesto_val)
+                presupuesto.save()
+            except Exception:
+                pass
+
+        presupuesto_monto = request.POST.get('presupuesto')
+        if presupuesto_monto:
+            try:
+                presupuesto_obj, _ = Presupuesto.objects.get_or_create(usuario=request.user)
+                presupuesto_obj.limite_mensual = float(presupuesto_monto)
+                presupuesto_obj.save()
+            except Exception:
+                pass
+
         profile = get_or_create_profile(request.user)
         profile.onboarding_completado = True
         profile.save()
 
         messages.success(request, f'¡Bienvenido a FinApp, {request.user.username}! 🎉')
     return redirect('dashboard')
+
+@login_required(login_url='/login/')
+def perfil(request):
+    profile = get_or_create_profile(request.user)
+    from django import forms
+
+    class PerfilForm(forms.ModelForm):
+        class Meta:
+            from .models import UserProfile
+            model = UserProfile
+            fields = ['nombre_completo', 'email', 'telefono', 'ciudad', 'pais', 'moneda']
+            widgets = {
+                'nombre_completo': forms.TextInput(attrs={'placeholder': 'Ej: Juan Pérez'}),
+                'email':           forms.EmailInput(attrs={'placeholder': 'Ej: juan@email.com'}),
+                'telefono':        forms.TextInput(attrs={'placeholder': 'Ej: +56 9 1234 5678'}),
+                'ciudad':          forms.TextInput(attrs={'placeholder': 'Ej: Santiago'}),
+                'pais':            forms.TextInput(attrs={'placeholder': 'Ej: Chile'}),
+                'moneda':          forms.Select(),
+            }
+    pw_form      = PasswordChangeForm(request.user)
+    perfil_form  = PerfilForm(instance=profile)
+
+    if request.method == 'POST':
+        accion = request.POST.get('accion')
+        if accion == 'perfil':
+            perfil_form = PerfilForm(request.POST, instance=profile)
+            if perfil_form.is_valid():
+                perfil_form.save()
+                messages.success(request, 'Perfil actualizado correctamente.')
+                return redirect('perfil')
+
+        elif accion == 'password':
+            pw_form = PasswordChangeForm(request.user, request.POST)
+            if pw_form.is_valid():
+                user = pw_form.save()
+                update_session_auth_hash(request, user)
+                messages.success(request, 'Contraseña actualizada.')
+                return redirect('perfil')
+
+    total_trans  = Transaccion.objects.filter(usuario=request.user).count()
+    total_deudas = Deuda.objects.filter(usuario=request.user).count()
+    from datetime import date
+    miembro_desde = request.user.date_joined.strftime('%B %Y')
+
+    return render(request, 'finanzas/perfil.html', {
+        'perfil_form': perfil_form,
+        'pw_form':     pw_form,
+        'profile':     profile,
+        'total_trans': total_trans,
+        'total_deudas': total_deudas,
+        'miembro_desde': miembro_desde,
+    })

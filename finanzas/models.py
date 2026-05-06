@@ -146,10 +146,37 @@ class MetaAhorro(models.Model):
 
 
 class UserProfile(models.Model):
-    """Perfil extendido del usuario para controlar onboarding"""
-    usuario = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
+    MONEDAS = [
+        ('CLP', 'Peso Chileno ($)'),
+        ('USD', 'Dólar Americano (USD)'),
+        ('EUR', 'Euro (EUR)'),
+        ('ARS', 'Peso Argentino ($)'),
+        ('MXN', 'Peso Mexicano ($)'),
+        ('COP', 'Peso Colombiano ($)'),
+        ('PEN', 'Sol Peruano (S/)'),
+        ('BRL', 'Real Brasileño (R$)'),
+    ]
+
+    usuario               = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
     onboarding_completado = models.BooleanField(default=False)
-    paso_onboarding = models.IntegerField(default=1)  # 1=ingreso, 2=deuda, 3=listo
+    paso_onboarding       = models.IntegerField(default=1)
+
+    # Datos personales
+    nombre_completo = models.CharField(max_length=100, blank=True)
+    email           = models.EmailField(blank=True)
+    telefono        = models.CharField(max_length=20, blank=True)
+    pais            = models.CharField(max_length=60, blank=True)
+    ciudad          = models.CharField(max_length=60, blank=True)
+    moneda          = models.CharField(max_length=5, choices=MONEDAS, default='CLP')
 
     def __str__(self):
         return f"Perfil de {self.usuario.username}"
+
+    @property
+    def nombre_display(self):
+        return self.nombre_completo or self.usuario.username
+
+    @property
+    def ubicacion(self):
+        parts = [p for p in [self.ciudad, self.pais] if p]
+        return ', '.join(parts) if parts else None

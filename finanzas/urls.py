@@ -31,6 +31,9 @@ urlpatterns = [
     path('logout/', auth_views.LogoutView.as_view(next_page='/login/'), name='logout'),
     path('registro/', views.registro, name='registro'),
 
+    # Perfil
+    path('perfil/', views.perfil, name='perfil'),
+
     # Onboarding
     path('bienvenido/', views.onboarding, name='onboarding'),
     path('bienvenido/completar/', views.completar_onboarding, name='completar_onboarding'),
