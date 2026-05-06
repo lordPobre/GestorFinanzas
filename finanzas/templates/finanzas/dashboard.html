@@ -341,11 +341,23 @@
                             <i class="fas fa-check" style="font-size:9px"></i> Pagar
                         </button>
                         {% else %}<span class="badge badge-green" style="font-size:10px"><i class="fas fa-check" style="font-size:8px"></i> Listo</span>{% endif %}
-                        <div style="display:flex;gap:8px">
-                            <a href="{% url 'editar_deuda' d.id %}" style="color:var(--text-muted);font-size:11px;text-decoration:none;transition:color 0.2s" onmouseover="this.style.color='var(--purple)'" onmouseout="this.style.color='var(--text-muted)'"><i class="fas fa-edit"></i></a>
+                        <div style="display:flex;gap:4px">
+                            <a href="{% url 'editar_deuda' d.id %}"
+                               style="display:flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:8px;background:rgba(167,139,250,0.08);border:1px solid rgba(167,139,250,0.15);color:var(--purple);text-decoration:none;transition:all 0.2s;font-size:12px"
+                               title="Editar"
+                               onmouseover="this.style.background='rgba(167,139,250,0.18)'"
+                               onmouseout="this.style.background='rgba(167,139,250,0.08)'">
+                                <i class="fas fa-pen"></i>
+                            </a>
                             <form action="{% url 'eliminar_deuda' d.id %}" method="POST" style="margin:0" onsubmit="return confirm('¿Eliminar {{ d.acreedor }}?')">
                                 {% csrf_token %}
-                                <button style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:11px;padding:0;transition:color 0.2s" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--text-muted)'"><i class="fas fa-trash-alt"></i></button>
+                                <button type="submit"
+                                        style="display:flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:8px;background:rgba(248,113,113,0.08);border:1px solid rgba(248,113,113,0.15);color:var(--red);cursor:pointer;transition:all 0.2s;font-size:12px"
+                                        title="Eliminar"
+                                        onmouseover="this.style.background='rgba(248,113,113,0.2)'"
+                                        onmouseout="this.style.background='rgba(248,113,113,0.08)'">
+                                    <i class="fas fa-trash"></i>
+                                </button>
                             </form>
                         </div>
                     </div>
@@ -374,31 +386,49 @@
 
         <!-- Últimos movimientos -->
         <div class="glass" style="padding:20px">
-            <div style="font-size:13px;font-weight:500;color:var(--text-primary);margin-bottom:12px">Últimos movimientos</div>
-            <div style="display:flex;flex-direction:column;gap:7px;overflow-y:auto;max-height:200px">
+            <div style="font-size:13px;font-weight:500;color:var(--text-primary);margin-bottom:14px">Últimos movimientos</div>
+            <div style="display:flex;flex-direction:column;gap:0;overflow-y:auto;max-height:240px">
                 {% for t in ultimas %}
-                <div style="display:flex;align-items:center;justify-content:space-between;padding-bottom:7px;border-bottom:1px solid var(--glass-border)">
-                    <div style="display:flex;align-items:center;gap:9px;min-width:0">
-                        <div style="width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:10px;flex-shrink:0;
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--glass-border);gap:8px">
+
+                    <!-- Ícono + info -->
+                    <div style="display:flex;align-items:center;gap:10px;min-width:0;flex:1">
+                        <div style="width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;
                             {% if t.tipo == 'INGRESO' %}background:rgba(52,211,153,0.12);color:var(--green){% else %}background:rgba(248,113,113,0.12);color:var(--red){% endif %}">
                             <i class="fas {% if t.tipo == 'INGRESO' %}fa-arrow-up{% else %}fa-arrow-down{% endif %}"></i>
                         </div>
                         <div style="min-width:0">
-                            <div style="font-size:12px;font-weight:500;color:var(--text-primary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100px">{{ t.descripcion|default:"Sin desc." }}</div>
-                            <div style="font-size:10px;color:var(--text-muted)">{{ t.fecha|date:"d M" }} · {{ t.categoria }}</div>
+                            <div style="font-size:12px;font-weight:500;color:var(--text-primary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:110px">
+                                {{ t.descripcion|default:"Sin descripción" }}
+                            </div>
+                            <div style="font-size:10px;color:var(--text-muted);margin-top:1px">{{ t.fecha|date:"d M Y" }} · {{ t.categoria }}</div>
                         </div>
                     </div>
-                    <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
-                        <span class="mono" style="font-size:12px;font-weight:500;color:{% if t.tipo == 'INGRESO' %}var(--green){% else %}var(--text-secondary){% endif %}">
-                            {% if t.tipo == 'INGRESO' %}+{% else %}-{% endif %}${{ t.monto|floatformat:"0"|intcomma }}
-                        </span>
-                        <div style="display:flex;gap:5px">
-                            <a href="{% url 'editar_transaccion' t.id %}" style="color:var(--text-muted);font-size:10px;text-decoration:none;transition:color 0.2s" onmouseover="this.style.color='var(--purple)'" onmouseout="this.style.color='var(--text-muted)'"><i class="fas fa-edit"></i></a>
-                            <form action="{% url 'eliminar_transaccion' t.id %}" method="POST" style="margin:0" onsubmit="return confirm('¿Eliminar?')">
-                                {% csrf_token %}
-                                <button style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:10px;padding:0;transition:color 0.2s" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--text-muted)'"><i class="fas fa-trash-alt"></i></button>
-                            </form>
-                        </div>
+
+                    <!-- Monto -->
+                    <span class="mono" style="font-size:13px;font-weight:600;flex-shrink:0;color:{% if t.tipo == 'INGRESO' %}var(--green){% else %}var(--text-primary){% endif %}">
+                        {% if t.tipo == 'INGRESO' %}+{% else %}-{% endif %}${{ t.monto|floatformat:"0"|intcomma }}
+                    </span>
+
+                    <!-- Botones editar / borrar -->
+                    <div style="display:flex;gap:4px;flex-shrink:0;align-items:center">
+                        <a href="{% url 'editar_transaccion' t.id %}"
+                           style="display:flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:8px;background:rgba(167,139,250,0.08);border:1px solid rgba(167,139,250,0.15);color:var(--purple);text-decoration:none;transition:all 0.2s;font-size:12px"
+                           title="Editar"
+                           onmouseover="this.style.background='rgba(167,139,250,0.18)'"
+                           onmouseout="this.style.background='rgba(167,139,250,0.08)'">
+                            <i class="fas fa-pen"></i>
+                        </a>
+                        <form action="{% url 'eliminar_transaccion' t.id %}" method="POST" style="margin:0" onsubmit="return confirm('¿Eliminar este movimiento?')">
+                            {% csrf_token %}
+                            <button type="submit"
+                                    style="display:flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:8px;background:rgba(248,113,113,0.08);border:1px solid rgba(248,113,113,0.15);color:var(--red);cursor:pointer;transition:all 0.2s;font-size:12px"
+                                    title="Eliminar"
+                                    onmouseover="this.style.background='rgba(248,113,113,0.2)'"
+                                    onmouseout="this.style.background='rgba(248,113,113,0.08)'">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </form>
                     </div>
                 </div>
                 {% empty %}
@@ -428,11 +458,23 @@
                 <div style="background:var(--glass-bg);border:1px solid var(--glass-border);border-radius:12px;padding:11px">
                     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
                         <span style="font-size:12px;font-weight:500;color:var(--text-primary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:130px">{{ meta.nombre }}</span>
-                        <div style="display:flex;gap:7px;flex-shrink:0">
-                            <a href="{% url 'editar_meta' meta.id %}" style="color:var(--text-muted);font-size:10px;text-decoration:none;transition:color 0.2s" onmouseover="this.style.color='#f472b6'" onmouseout="this.style.color='var(--text-muted)'"><i class="fas fa-edit"></i></a>
+                        <div style="display:flex;gap:4px;flex-shrink:0">
+                            <a href="{% url 'editar_meta' meta.id %}"
+                               style="display:flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:8px;background:rgba(244,114,182,0.08);border:1px solid rgba(244,114,182,0.15);color:#f472b6;text-decoration:none;transition:all 0.2s;font-size:12px"
+                               title="Editar"
+                               onmouseover="this.style.background='rgba(244,114,182,0.2)'"
+                               onmouseout="this.style.background='rgba(244,114,182,0.08)'">
+                                <i class="fas fa-pen"></i>
+                            </a>
                             <form action="{% url 'eliminar_meta' meta.id %}" method="POST" style="margin:0" onsubmit="return confirm('¿Eliminar meta?')">
                                 {% csrf_token %}
-                                <button style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:10px;padding:0;transition:color 0.2s" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--text-muted)'"><i class="fas fa-trash-alt"></i></button>
+                                <button type="submit"
+                                        style="display:flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:8px;background:rgba(248,113,113,0.08);border:1px solid rgba(248,113,113,0.15);color:var(--red);cursor:pointer;transition:all 0.2s;font-size:12px"
+                                        title="Eliminar"
+                                        onmouseover="this.style.background='rgba(248,113,113,0.2)'"
+                                        onmouseout="this.style.background='rgba(248,113,113,0.08)'">
+                                    <i class="fas fa-trash"></i>
+                                </button>
                             </form>
                         </div>
                     </div>
