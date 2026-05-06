@@ -9,6 +9,7 @@ urlpatterns = [
     path('nueva-deuda/', views.crear_deuda, name='crear_deuda'),
     path('editar-deuda/<int:deuda_id>/', views.editar_deuda, name='editar_deuda'),
     path('pagar-cuota/<int:deuda_id>/', views.pagar_cuota, name='pagar_cuota'),
+    path('anular-cuota/<int:deuda_id>/', views.anular_cuota, name='anular_cuota'),
     path('eliminar-deuda/<int:deuda_id>/', views.eliminar_deuda, name='eliminar_deuda'),
 
     # Transacciones (ingreso + egreso unificados)

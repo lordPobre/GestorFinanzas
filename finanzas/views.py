@@ -259,6 +259,44 @@ def pagar_cuota(request, deuda_id):
 
 
 @login_required(login_url='/login/')
+def anular_cuota(request, deuda_id):
+    from django.http import JsonResponse
+    if request.method == 'POST':
+        deuda = get_object_or_404(Deuda, pk=deuda_id, usuario=request.user)
+        es_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
+
+        if deuda.cuotas_pagadas > 0:
+            deuda.cuotas_pagadas -= 1
+            deuda.save()
+
+            # Eliminar la última transacción automática de esta deuda
+            ultima = Transaccion.objects.filter(
+                usuario=request.user,
+                tipo='EGRESO',
+                descripcion__icontains=deuda.acreedor
+            ).order_by('-fecha', '-id').first()
+
+            if ultima:
+                ultima.delete()
+
+            if es_ajax:
+                return JsonResponse({
+                    'ok': True,
+                    'acreedor': deuda.acreedor,
+                    'cuotas_pagadas': deuda.cuotas_pagadas,
+                    'cuotas_totales': deuda.cuotas_totales,
+                    'porcentaje': deuda.porcentaje,
+                })
+            messages.success(request, f'Pago de {deuda.acreedor} anulado.')
+        else:
+            if es_ajax:
+                return JsonResponse({'ok': False, 'msg': 'No hay pagos que anular.'})
+            messages.warning(request, 'No hay pagos que anular.')
+
+    return redirect('dashboard')
+
+
+@login_required(login_url='/login/')
 def crear_deuda(request):
     if request.method == 'POST':
         form = DeudaForm(request.POST)
