@@ -58,7 +58,10 @@
         {% if editar %}Editando movimiento{% elif tipo_inicial == 'INGRESO' %}Nuevo ingreso{% else %}Nuevo gasto{% endif %}
       </div>
       <h2 style="font-size:20px;font-weight:600;color:var(--text-primary);margin:0">
-        {% if tipo_inicial == 'INGRESO' %}¿Cuánto entraste?{% else %}¿En qué gastaste?{% endif %}
+        {% if editar %}
+          {% if tipo_inicial == 'INGRESO' %}Editar ingreso{% else %}Editar gasto{% endif %}
+        {% elif tipo_inicial == 'INGRESO' %}¿Cuánto entraste?
+        {% else %}¿En qué gastaste?{% endif %}
       </h2>
     </div>
 
@@ -66,11 +69,14 @@
       {% csrf_token %}
       {{ form.tipo.as_hidden }}
 
-      <!-- Tipo (oculto, pero si editan lo mostramos) -->
+      <!-- Tipo cuando se edita -->
       {% if editar %}
       <div>
         <label style="display:block;font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:7px;font-weight:500">Tipo</label>
-        {{ form.tipo }}
+        <select name="tipo" style="width:100%;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:12px 16px;color:#f1f0ff;font-family:'DM Sans',sans-serif;font-size:14px;outline:none">
+          <option value="INGRESO" {% if tipo_inicial == 'INGRESO' %}selected{% endif %}>↑ Ingreso</option>
+          <option value="EGRESO"  {% if tipo_inicial == 'EGRESO' %}selected{% endif %}>↓ Gasto</option>
+        </select>
       </div>
       {% endif %}
 
@@ -93,22 +99,22 @@
         </label>
         {% if tipo_inicial == 'INGRESO' %}
         <select name="categoria" style="width:100%;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:12px 16px;color:#f1f0ff;font-family:'DM Sans',sans-serif;font-size:14px;outline:none">
-            <option value="Sueldo">💼 Sueldo o salario</option>
-            <option value="Freelance">💻 Trabajo freelance</option>
-            <option value="Negocio">🏪 Negocio o emprendimiento</option>
-            <option value="Venta">📦 Venta de algo</option>
-            <option value="Bono">🎁 Bono o aguinaldo</option>
-            <option value="Transferencia">💸 Transferencia recibida</option>
-            <option value="Otros_Ingresos">✨ Otros ingresos</option>
+            <option value="Sueldo"          {% if form.instance.categoria == 'Sueldo' %}selected{% endif %}>💼 Sueldo o salario</option>
+            <option value="Freelance"       {% if form.instance.categoria == 'Freelance' %}selected{% endif %}>💻 Trabajo freelance</option>
+            <option value="Negocio"         {% if form.instance.categoria == 'Negocio' %}selected{% endif %}>🏪 Negocio o emprendimiento</option>
+            <option value="Venta"           {% if form.instance.categoria == 'Venta' %}selected{% endif %}>📦 Venta de algo</option>
+            <option value="Bono"            {% if form.instance.categoria == 'Bono' %}selected{% endif %}>🎁 Bono o aguinaldo</option>
+            <option value="Transferencia"   {% if form.instance.categoria == 'Transferencia' %}selected{% endif %}>💸 Transferencia recibida</option>
+            <option value="Otros_Ingresos"  {% if form.instance.categoria == 'Otros_Ingresos' %}selected{% endif %}>✨ Otros ingresos</option>
         </select>
         {% else %}
         <select name="categoria" style="width:100%;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:12px 16px;color:#f1f0ff;font-family:'DM Sans',sans-serif;font-size:14px;outline:none">
-            <option value="Comida">🛒 Comida y Supermercado</option>
-            <option value="Transporte">🚗 Transporte y Gasolina</option>
-            <option value="Servicios">💡 Luz, Agua, Internet</option>
-            <option value="Ocio">🎬 Entretenimiento y Salidas</option>
-            <option value="Salud">💊 Salud y Farmacia</option>
-            <option value="Otros">📌 Otros Gastos</option>
+            <option value="Comida"      {% if form.instance.categoria == 'Comida' %}selected{% endif %}>🛒 Comida y Supermercado</option>
+            <option value="Transporte"  {% if form.instance.categoria == 'Transporte' %}selected{% endif %}>🚗 Transporte y Gasolina</option>
+            <option value="Servicios"   {% if form.instance.categoria == 'Servicios' %}selected{% endif %}>💡 Luz, Agua, Internet</option>
+            <option value="Ocio"        {% if form.instance.categoria == 'Ocio' %}selected{% endif %}>🎬 Entretenimiento y Salidas</option>
+            <option value="Salud"       {% if form.instance.categoria == 'Salud' %}selected{% endif %}>💊 Salud y Farmacia</option>
+            <option value="Otros"       {% if form.instance.categoria == 'Otros' or not form.instance.categoria %}selected{% endif %}>📌 Otros Gastos</option>
         </select>
         {% endif %}
         {% if form.categoria.errors %}<p style="font-size:11px;color:var(--red);margin-top:3px">{{ form.categoria.errors.0 }}</p>{% endif %}
