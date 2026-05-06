@@ -50,11 +50,17 @@ def dashboard(request):
         fecha__gte=fecha_inicio, fecha__lte=fecha_fin
     ).aggregate(total=Sum('monto'))['total'] or 0
 
-    # --- GASTOS del mes (supermercado, bencina, etc) ---
-    total_gastos = Transaccion.objects.filter(
+    # --- GASTOS del mes (excluye transacciones automáticas de cuotas) ---
+    # Las cuotas se cuentan aparte desde el modelo Deuda para evitar doble conteo
+    nombres_deudas = list(Deuda.objects.filter(usuario=request.user).values_list('acreedor', flat=True))
+    gastos_qs = Transaccion.objects.filter(
         usuario=request.user, tipo='EGRESO',
         fecha__gte=fecha_inicio, fecha__lte=fecha_fin
-    ).aggregate(total=Sum('monto'))['total'] or 0
+    )
+    # Excluir transacciones que son pagos automáticos de cuotas
+    for nombre in nombres_deudas:
+        gastos_qs = gastos_qs.exclude(descripcion__icontains=nombre)
+    total_gastos = gastos_qs.aggregate(total=Sum('monto'))['total'] or 0
 
     # --- CUOTAS DE DEUDAS del mes ---
     todas_las_deudas = Deuda.objects.filter(usuario=request.user)
@@ -141,9 +147,13 @@ def dashboard(request):
             usuario=request.user, tipo='INGRESO', fecha__gte=fi, fecha__lte=ff
         ).aggregate(t=Sum('monto'))['t'] or 0)
 
-        gas = float(Transaccion.objects.filter(
+        # Excluir transacciones automáticas de cuotas del gráfico también
+        gas_qs = Transaccion.objects.filter(
             usuario=request.user, tipo='EGRESO', fecha__gte=fi, fecha__lte=ff
-        ).aggregate(t=Sum('monto'))['t'] or 0)
+        )
+        for nombre in nombres_deudas:
+            gas_qs = gas_qs.exclude(descripcion__icontains=nombre)
+        gas = float(gas_qs.aggregate(t=Sum('monto'))['t'] or 0)
 
         # Cuotas de deudas en ese mes
         cuotas_m = 0.0
