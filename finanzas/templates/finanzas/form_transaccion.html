@@ -83,13 +83,34 @@
         {% if form.monto.errors %}<p style="font-size:11px;color:var(--red);margin-top:3px">{{ form.monto.errors.0 }}</p>{% endif %}
       </div>
 
-      <!-- Categoría con ayuda -->
+      <!-- Categoría dinámica según tipo -->
       <div>
         <label style="display:block;font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:7px;font-weight:500">
           Categoría
-          <span style="text-transform:none;letter-spacing:0;font-weight:400;opacity:0.6;margin-left:4px">— ¿A qué tipo de gasto pertenece?</span>
+          <span style="text-transform:none;letter-spacing:0;font-weight:400;opacity:0.6;margin-left:4px">
+            {% if tipo_inicial == 'INGRESO' %}— ¿De dónde viene este ingreso?{% else %}— ¿A qué tipo de gasto pertenece?{% endif %}
+          </span>
         </label>
-        {{ form.categoria }}
+        {% if tipo_inicial == 'INGRESO' %}
+        <select name="categoria" style="width:100%;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:12px 16px;color:#f1f0ff;font-family:'DM Sans',sans-serif;font-size:14px;outline:none">
+            <option value="Sueldo">💼 Sueldo o salario</option>
+            <option value="Freelance">💻 Trabajo freelance</option>
+            <option value="Negocio">🏪 Negocio o emprendimiento</option>
+            <option value="Venta">📦 Venta de algo</option>
+            <option value="Bono">🎁 Bono o aguinaldo</option>
+            <option value="Transferencia">💸 Transferencia recibida</option>
+            <option value="Otros_Ingresos">✨ Otros ingresos</option>
+        </select>
+        {% else %}
+        <select name="categoria" style="width:100%;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:12px 16px;color:#f1f0ff;font-family:'DM Sans',sans-serif;font-size:14px;outline:none">
+            <option value="Comida">🛒 Comida y Supermercado</option>
+            <option value="Transporte">🚗 Transporte y Gasolina</option>
+            <option value="Servicios">💡 Luz, Agua, Internet</option>
+            <option value="Ocio">🎬 Entretenimiento y Salidas</option>
+            <option value="Salud">💊 Salud y Farmacia</option>
+            <option value="Otros">📌 Otros Gastos</option>
+        </select>
+        {% endif %}
         {% if form.categoria.errors %}<p style="font-size:11px;color:var(--red);margin-top:3px">{{ form.categoria.errors.0 }}</p>{% endif %}
       </div>
 
