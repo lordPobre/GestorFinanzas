@@ -143,3 +143,13 @@ class MetaAhorro(models.Model):
 
     def __str__(self):
         return self.nombre
+
+
+class UserProfile(models.Model):
+    """Perfil extendido del usuario para controlar onboarding"""
+    usuario = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
+    onboarding_completado = models.BooleanField(default=False)
+    paso_onboarding = models.IntegerField(default=1)  # 1=ingreso, 2=deuda, 3=listo
+
+    def __str__(self):
+        return f"Perfil de {self.usuario.username}"

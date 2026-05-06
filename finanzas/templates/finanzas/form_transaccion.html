@@ -3,42 +3,129 @@
 {% block nav_gasto %}{% if tipo_inicial == 'EGRESO' %}active{% endif %}{% endblock %}
 
 {% block content %}
-<div style="min-height:70vh;display:flex;align-items:center;justify-content:center;padding:8px 0">
-    <div style="width:100%;max-width:440px">
-        <div style="display:flex;border-radius:14px;overflow:hidden;border:1px solid var(--glass-border);margin-bottom:24px">
-            <a href="?tipo=INGRESO" style="flex:1;text-align:center;padding:12px;font-size:13px;font-weight:500;text-decoration:none;display:flex;align-items:center;justify-content:center;gap:7px;transition:all 0.2s;
-                {% if tipo_inicial == 'INGRESO' %}background:rgba(52,211,153,0.15);color:var(--green){% else %}background:var(--glass-bg);color:var(--text-muted){% endif %}">
-                <i class="fas fa-arrow-up" style="font-size:11px"></i> Ingreso
-            </a>
-            <a href="?tipo=EGRESO" style="flex:1;text-align:center;padding:12px;font-size:13px;font-weight:500;text-decoration:none;display:flex;align-items:center;justify-content:center;gap:7px;transition:all 0.2s;
-                {% if tipo_inicial == 'EGRESO' %}background:rgba(248,113,113,0.15);color:var(--red){% else %}background:var(--glass-bg);color:var(--text-muted){% endif %}">
-                <i class="fas fa-arrow-down" style="font-size:11px"></i> Gasto
-            </a>
+<div style="min-height:70vh;display:flex;align-items:center;justify-content:center;padding:16px 0">
+<div style="width:100%;max-width:480px">
+
+  <!-- Selector Ingreso / Gasto -->
+  <div style="display:flex;border-radius:14px;overflow:hidden;border:1px solid var(--glass-border);margin-bottom:20px">
+    <a href="?tipo=INGRESO" style="flex:1;text-align:center;padding:13px;font-size:13px;font-weight:500;text-decoration:none;display:flex;align-items:center;justify-content:center;gap:7px;transition:all 0.2s;
+        {% if tipo_inicial == 'INGRESO' %}background:rgba(52,211,153,0.15);color:var(--green){% else %}background:var(--glass-bg);color:var(--text-muted){% endif %}">
+      <i class="fas fa-arrow-up" style="font-size:11px"></i> Ingreso
+    </a>
+    <a href="?tipo=EGRESO" style="flex:1;text-align:center;padding:13px;font-size:13px;font-weight:500;text-decoration:none;display:flex;align-items:center;justify-content:center;gap:7px;transition:all 0.2s;
+        {% if tipo_inicial == 'EGRESO' %}background:rgba(248,113,113,0.15);color:var(--red){% else %}background:var(--glass-bg);color:var(--text-muted){% endif %}">
+      <i class="fas fa-arrow-down" style="font-size:11px"></i> Gasto
+    </a>
+  </div>
+
+  <!-- EXPLICACIÓN: diferencia entre Gasto y Cuota -->
+  {% if tipo_inicial == 'EGRESO' and not editar %}
+  <div style="background:rgba(96,165,250,0.07);border:1px solid rgba(96,165,250,0.15);border-radius:16px;padding:16px 18px;margin-bottom:20px">
+    <div style="font-size:12px;font-weight:600;color:#60a5fa;margin-bottom:8px">💡 ¿Gasto o Cuota?</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <div style="background:rgba(96,165,250,0.08);border:1px solid rgba(96,165,250,0.12);border-radius:10px;padding:10px">
+        <div style="font-size:11px;font-weight:600;color:#60a5fa;margin-bottom:4px">✅ Usa Gasto para...</div>
+        <div style="font-size:11px;color:var(--text-muted);line-height:1.6">
+          Supermercado<br>Bencina<br>Salida a comer<br>Farmacia<br>Cualquier compra única
         </div>
-        <div class="glass" style="padding:28px">
-            <div style="margin-bottom:24px">
-                <div class="label" style="margin-bottom:5px">{% if editar %}Editando{% elif tipo_inicial == 'INGRESO' %}Nuevo ingreso{% else %}Nuevo gasto{% endif %}</div>
-                <h2 style="font-size:20px;font-weight:600;color:var(--text-primary);margin:0">
-                    {% if tipo_inicial == 'INGRESO' %}¿Cuánto entraste?{% else %}¿En qué gastaste?{% endif %}
-                </h2>
-                <p style="font-size:12px;color:var(--text-muted);margin-top:4px">{% if tipo_inicial == 'EGRESO' %}Supermercado, bencina, cuenta...{% else %}Sueldo, cliente, venta...{% endif %}</p>
-            </div>
-            <form method="POST" style="display:flex;flex-direction:column;gap:14px">
-                {% csrf_token %}
-                {{ form.tipo.as_hidden }}
-                {% for field in form %}{% if field.name != 'tipo' %}
-                <div>
-                    <label style="display:block;font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:7px;font-weight:500">{{ field.label }}</label>
-                    {{ field }}
-                    {% if field.errors %}<p style="font-size:11px;color:var(--red);margin-top:3px">{{ field.errors.0 }}</p>{% endif %}
-                </div>
-                {% endif %}{% endfor %}
-                <div style="display:flex;gap:10px;margin-top:6px">
-                    <a href="{% url 'dashboard' %}" class="btn btn-glass" style="flex:1;justify-content:center">Cancelar</a>
-                    <button type="submit" class="btn {% if tipo_inicial == 'EGRESO' %}btn-red{% else %}btn-green{% endif %}" style="flex:1;justify-content:center;cursor:pointer;font-family:'DM Sans',sans-serif;border:none">Guardar</button>
-                </div>
-            </form>
+      </div>
+      <div style="background:rgba(251,146,60,0.08);border:1px solid rgba(251,146,60,0.12);border-radius:10px;padding:10px">
+        <div style="font-size:11px;font-weight:600;color:var(--orange);margin-bottom:4px">💳 Usa Cuota para...</div>
+        <div style="font-size:11px;color:var(--text-muted);line-height:1.6">
+          Tarjeta de crédito<br>Préstamo del banco<br>Cuotas de un auto<br>Arriendo mensual<br>Pagos recurrentes fijos
         </div>
+      </div>
     </div>
+    <a href="{% url 'crear_deuda' %}" style="display:inline-flex;align-items:center;gap:5px;margin-top:10px;font-size:11px;color:var(--orange);text-decoration:none;font-weight:500">
+      Ir a registrar una cuota fija <i class="fas fa-arrow-right" style="font-size:9px"></i>
+    </a>
+  </div>
+  {% endif %}
+
+  {% if tipo_inicial == 'INGRESO' and not editar %}
+  <div style="background:rgba(52,211,153,0.07);border:1px solid rgba(52,211,153,0.15);border-radius:16px;padding:14px 18px;margin-bottom:20px">
+    <div style="font-size:12px;font-weight:600;color:var(--green);margin-bottom:4px">💰 ¿Qué registrar como Ingreso?</div>
+    <div style="font-size:11px;color:var(--text-muted);line-height:1.6">
+      Sueldo mensual, pago de cliente, venta de algo, bono, transferencia que recibiste, etc.<br>
+      <span style="opacity:0.7">Registra cada vez que te entra plata para saber cuánto tienes disponible.</span>
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="glass" style="padding:28px">
+    <div style="margin-bottom:22px">
+      <div class="label" style="margin-bottom:5px">
+        {% if editar %}Editando movimiento{% elif tipo_inicial == 'INGRESO' %}Nuevo ingreso{% else %}Nuevo gasto{% endif %}
+      </div>
+      <h2 style="font-size:20px;font-weight:600;color:var(--text-primary);margin:0">
+        {% if tipo_inicial == 'INGRESO' %}¿Cuánto entraste?{% else %}¿En qué gastaste?{% endif %}
+      </h2>
+    </div>
+
+    <form method="POST" style="display:flex;flex-direction:column;gap:16px">
+      {% csrf_token %}
+      {{ form.tipo.as_hidden }}
+
+      <!-- Tipo (oculto, pero si editan lo mostramos) -->
+      {% if editar %}
+      <div>
+        <label style="display:block;font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:7px;font-weight:500">Tipo</label>
+        {{ form.tipo }}
+      </div>
+      {% endif %}
+
+      <!-- Monto -->
+      <div>
+        <label style="display:block;font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:7px;font-weight:500">
+          Monto ($)
+        </label>
+        {{ form.monto }}
+        {% if form.monto.errors %}<p style="font-size:11px;color:var(--red);margin-top:3px">{{ form.monto.errors.0 }}</p>{% endif %}
+      </div>
+
+      <!-- Categoría con ayuda -->
+      <div>
+        <label style="display:block;font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:7px;font-weight:500">
+          Categoría
+          <span style="text-transform:none;letter-spacing:0;font-weight:400;opacity:0.6;margin-left:4px">— ¿A qué tipo de gasto pertenece?</span>
+        </label>
+        {{ form.categoria }}
+        {% if form.categoria.errors %}<p style="font-size:11px;color:var(--red);margin-top:3px">{{ form.categoria.errors.0 }}</p>{% endif %}
+      </div>
+
+      <!-- Descripción -->
+      <div>
+        <label style="display:block;font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:7px;font-weight:500">
+          Descripción <span style="text-transform:none;letter-spacing:0;font-weight:400;opacity:0.5">(opcional)</span>
+        </label>
+        {{ form.descripcion }}
+        <div style="font-size:11px;color:var(--text-muted);margin-top:5px;opacity:0.65">
+          {% if tipo_inicial == 'EGRESO' %}Ej: Jumbo sábado, Bencina Shell, Cena cumpleaños...{% else %}Ej: Sueldo enero, Cliente Juan, Bono anual...{% endif %}
+        </div>
+        {% if form.descripcion.errors %}<p style="font-size:11px;color:var(--red);margin-top:3px">{{ form.descripcion.errors.0 }}</p>{% endif %}
+      </div>
+
+      <!-- Fecha -->
+      <div>
+        <label style="display:block;font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:7px;font-weight:500">
+          Fecha
+        </label>
+        {{ form.fecha }}
+        <div style="font-size:11px;color:var(--text-muted);margin-top:5px;opacity:0.65">
+          Puedes registrar gastos de días anteriores cambiando la fecha
+        </div>
+        {% if form.fecha.errors %}<p style="font-size:11px;color:var(--red);margin-top:3px">{{ form.fecha.errors.0 }}</p>{% endif %}
+      </div>
+
+      <div style="display:flex;gap:10px;margin-top:4px">
+        <a href="{% url 'dashboard' %}" class="btn btn-glass" style="flex:1;justify-content:center">Cancelar</a>
+        <button type="submit" class="btn {% if tipo_inicial == 'EGRESO' %}btn-red{% else %}btn-green{% endif %}" style="flex:1;justify-content:center;cursor:pointer;font-family:'DM Sans',sans-serif;border:none">
+          Guardar
+        </button>
+      </div>
+    </form>
+  </div>
+
+</div>
 </div>
 {% endblock %}

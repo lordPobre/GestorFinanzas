@@ -175,9 +175,13 @@ def dashboard(request):
     # --- METAS ---
     metas = MetaAhorro.objects.filter(usuario=request.user)
 
+    # Flag para estados vacíos
+    es_nuevo = (total_ingresos == 0 and total_gastos == 0 and not todas_las_deudas.exists())
+
     context = {
         # Navegación
         'nombre_mes': nombre_mes,
+        'es_nuevo': es_nuevo,
         'prev_month': prev_month, 'prev_year': prev_year,
         'next_month': next_month, 'next_year': next_year,
         'year': year, 'month': month,
@@ -335,8 +339,9 @@ def registro(request):
         if form.is_valid():
             user = form.save()
             login(request, user)
-            messages.success(request, f'Bienvenido, {user.username}!')
-            return redirect('dashboard')
+            # Crear perfil y redirigir al onboarding
+            UserProfile.objects.create(usuario=user)
+            return redirect('onboarding')
     else:
         form = UserCreationForm()
     return render(request, 'registration/registro.html', {'form': form})
@@ -395,3 +400,63 @@ def exportar_excel(request):
 @login_required(login_url='/login/')
 def registrar_ingreso(request):
     return redirect('/registrar/?tipo=INGRESO')
+
+
+# ===== ONBOARDING =====
+from .models import UserProfile
+
+def get_or_create_profile(user):
+    profile, _ = UserProfile.objects.get_or_create(usuario=user)
+    return profile
+
+
+@login_required(login_url='/login/')
+def onboarding(request):
+    profile = get_or_create_profile(request.user)
+    if profile.onboarding_completado:
+        return redirect('dashboard')
+    return render(request, 'finanzas/onboarding.html')
+
+
+@login_required(login_url='/login/')
+def completar_onboarding(request):
+    if request.method == 'POST':
+        # Guardar ingreso si vino
+        ingreso_monto = request.POST.get('ingreso_monto')
+        ingreso_desc  = request.POST.get('ingreso_desc') or 'Ingreso mensual'
+        if ingreso_monto:
+            try:
+                Transaccion.objects.create(
+                    usuario=request.user,
+                    tipo='INGRESO',
+                    monto=float(ingreso_monto),
+                    categoria='Otros',
+                    descripcion=ingreso_desc,
+                    fecha=timezone.now(),
+                )
+            except Exception:
+                pass
+
+        # Guardar deuda si vino
+        deuda_acreedor = request.POST.get('deuda_acreedor')
+        deuda_monto    = request.POST.get('deuda_monto')
+        deuda_cuotas   = request.POST.get('deuda_cuotas')
+        if deuda_acreedor and deuda_monto and deuda_cuotas:
+            try:
+                Deuda.objects.create(
+                    usuario=request.user,
+                    acreedor=deuda_acreedor,
+                    monto_total=float(deuda_monto),
+                    cuotas_totales=int(deuda_cuotas),
+                    fecha_inicio=timezone.now().date(),
+                )
+            except Exception:
+                pass
+
+        # Marcar onboarding completo
+        profile = get_or_create_profile(request.user)
+        profile.onboarding_completado = True
+        profile.save()
+
+        messages.success(request, f'¡Bienvenido a FinApp, {request.user.username}! 🎉')
+    return redirect('dashboard')

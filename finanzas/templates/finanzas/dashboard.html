@@ -43,11 +43,84 @@
             </a>
         </div>
         <!-- Botones — ocultos en móvil (están en el bottom nav) -->
-        <a href="{% url 'registrar_transaccion' %}?tipo=INGRESO" class="btn btn-green hide-mobile" style="padding:8px 14px"><i class="fas fa-plus" style="font-size:11px"></i> Ingreso</a>
-        <a href="{% url 'registrar_transaccion' %}?tipo=EGRESO" class="btn btn-red hide-mobile" style="padding:8px 14px"><i class="fas fa-minus" style="font-size:11px"></i> Gasto</a>
+        <!-- Ingreso con tooltip -->
+        <div style="position:relative" class="hide-mobile" id="tip-ingreso-wrap">
+          <a href="{% url 'registrar_transaccion' %}?tipo=INGRESO" class="btn btn-green" style="padding:8px 14px"
+             onmouseenter="document.getElementById('tip-ingreso').style.display='block'"
+             onmouseleave="document.getElementById('tip-ingreso').style.display='none'">
+            <i class="fas fa-plus" style="font-size:11px"></i> Ingreso
+          </a>
+          <div id="tip-ingreso" style="display:none;position:absolute;top:calc(100% + 8px);right:0;background:#1e1e35;border:1px solid rgba(167,139,250,0.2);border-radius:10px;padding:10px 13px;white-space:nowrap;font-size:11px;color:var(--text-muted);z-index:99;line-height:1.7;pointer-events:none">
+            <span style="color:var(--green);font-weight:500">Ingreso:</span> Sueldo, pago de cliente, venta...<br>
+            Plata que <strong style="color:var(--text-primary)">entra</strong> a tu bolsillo
+          </div>
+        </div>
+        <!-- Gasto con tooltip -->
+        <div style="position:relative" class="hide-mobile" id="tip-gasto-wrap">
+          <a href="{% url 'registrar_transaccion' %}?tipo=EGRESO" class="btn btn-red" style="padding:8px 14px"
+             onmouseenter="document.getElementById('tip-gasto').style.display='block'"
+             onmouseleave="document.getElementById('tip-gasto').style.display='none'">
+            <i class="fas fa-minus" style="font-size:11px"></i> Gasto
+          </a>
+          <div id="tip-gasto" style="display:none;position:absolute;top:calc(100% + 8px);right:0;background:#1e1e35;border:1px solid rgba(167,139,250,0.2);border-radius:10px;padding:10px 13px;white-space:nowrap;font-size:11px;color:var(--text-muted);z-index:99;line-height:1.7;pointer-events:none">
+            <span style="color:var(--red);font-weight:500">Gasto:</span> Supermercado, bencina, salida...<br>
+            Compras <strong style="color:var(--text-primary)">puntuales</strong> del día a día<br>
+            <span style="color:var(--orange)">¿Pagas cuotas fijas?</span> Usa el botón <strong style="color:var(--text-primary)">"+ Nueva"</strong> en Cuotas
+          </div>
+        </div>
         <a href="{% url 'exportar_excel' %}" class="btn btn-glass hide-mobile" style="padding:8px 12px"><i class="fas fa-download" style="font-size:11px"></i></a>
     </div>
 </div>
+
+
+{% if es_nuevo %}
+<!-- BANNER ESTADO VACÍO: usuario nuevo -->
+<div style="background:linear-gradient(135deg,rgba(124,58,237,0.15),rgba(167,139,250,0.08));border:1px solid rgba(167,139,250,0.2);border-radius:20px;padding:24px 28px;margin-bottom:24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px">
+    <div style="display:flex;align-items:center;gap:16px">
+        <div style="width:48px;height:48px;background:rgba(167,139,250,0.15);border:1px solid rgba(167,139,250,0.25);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">🚀</div>
+        <div>
+            <div style="font-size:16px;font-weight:600;color:var(--text-primary);margin-bottom:3px">¡Hola {{ user.username }}, bienvenido a FinApp!</div>
+            <div style="font-size:13px;color:var(--text-muted)">Para empezar, registra tu ingreso mensual y tus cuotas fijas.</div>
+        </div>
+    </div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <a href="{% url 'registrar_transaccion' %}?tipo=INGRESO" style="display:inline-flex;align-items:center;gap:7px;background:rgba(52,211,153,0.15);border:1px solid rgba(52,211,153,0.25);color:var(--green);padding:9px 16px;border-radius:11px;font-size:13px;font-weight:500;text-decoration:none;transition:all 0.2s">
+            <i class="fas fa-plus" style="font-size:11px"></i> Registrar ingreso
+        </a>
+        <a href="{% url 'crear_deuda' %}" style="display:inline-flex;align-items:center;gap:7px;background:rgba(251,146,60,0.12);border:1px solid rgba(251,146,60,0.22);color:var(--orange);padding:9px 16px;border-radius:11px;font-size:13px;font-weight:500;text-decoration:none;transition:all 0.2s">
+            <i class="fas fa-credit-card" style="font-size:11px"></i> Agregar cuota
+        </a>
+    </div>
+</div>
+
+<!-- GUÍA DE 3 PASOS -->
+<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:24px">
+    <div style="background:var(--glass-bg);border:1px solid rgba(52,211,153,0.2);border-radius:16px;padding:18px">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+            <div style="width:28px;height:28px;background:rgba(52,211,153,0.15);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--green);font-weight:700">1</div>
+            <div style="font-size:13px;font-weight:600;color:var(--text-primary)">Registra tus ingresos</div>
+        </div>
+        <div style="font-size:12px;color:var(--text-muted);line-height:1.5">Anota tu sueldo o ingresos del mes para saber con cuánto cuentas.</div>
+        <a href="{% url 'registrar_transaccion' %}?tipo=INGRESO" style="display:inline-flex;align-items:center;gap:5px;margin-top:12px;font-size:11px;color:var(--green);text-decoration:none;font-weight:500">Agregar ingreso <i class="fas fa-arrow-right" style="font-size:9px"></i></a>
+    </div>
+    <div style="background:var(--glass-bg);border:1px solid rgba(251,146,60,0.2);border-radius:16px;padding:18px">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+            <div style="width:28px;height:28px;background:rgba(251,146,60,0.15);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--orange);font-weight:700">2</div>
+            <div style="font-size:13px;font-weight:600;color:var(--text-primary)">Agrega tus cuotas</div>
+        </div>
+        <div style="font-size:12px;color:var(--text-muted);line-height:1.5">Tarjeta, préstamo, arriendo — todo lo que pagas fijo cada mes.</div>
+        <a href="{% url 'crear_deuda' %}" style="display:inline-flex;align-items:center;gap:5px;margin-top:12px;font-size:11px;color:var(--orange);text-decoration:none;font-weight:500">Agregar cuota <i class="fas fa-arrow-right" style="font-size:9px"></i></a>
+    </div>
+    <div style="background:var(--glass-bg);border:1px solid rgba(96,165,250,0.2);border-radius:16px;padding:18px">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+            <div style="width:28px;height:28px;background:rgba(96,165,250,0.15);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:12px;color:#60a5fa;font-weight:700">3</div>
+            <div style="font-size:13px;font-weight:600;color:var(--text-primary)">Registra tus gastos</div>
+        </div>
+        <div style="font-size:12px;color:var(--text-muted);line-height:1.5">Supermercado, bencina, salidas — ve en qué se va tu plata día a día.</div>
+        <a href="{% url 'registrar_transaccion' %}?tipo=EGRESO" style="display:inline-flex;align-items:center;gap:5px;margin-top:12px;font-size:11px;color:#60a5fa;text-decoration:none;font-weight:500">Registrar gasto <i class="fas fa-arrow-right" style="font-size:9px"></i></a>
+    </div>
+</div>
+{% endif %}
 
 <!-- MÉTRICAS 4 col desktop / 2x2 tablet+móvil -->
 <div class="grid-metrics">
@@ -144,8 +217,11 @@
 
     <!-- CALENDARIO -->
     <div class="glass" style="padding:20px">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
-            <div style="font-size:13px;font-weight:500;color:var(--text-primary)">Calendario de pagos</div>
+        <div style="margin-bottom:14px">
+            <div style="font-size:13px;font-weight:500;color:var(--text-primary);margin-bottom:4px">Calendario de pagos</div>
+            <div style="font-size:11px;color:var(--text-muted);line-height:1.5">
+                Toca cualquier día marcado para ver y pagar tus cuotas
+            </div>
         </div>
         <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:3px">
             {% for d in dias_semana %}
@@ -195,10 +271,10 @@
                                             </div>
                                         </div>
                                         {% if ev.estado == 'pendiente' %}
-                                        <form action="{% url 'pagar_cuota' ev.deuda.id %}" method="POST" style="flex-shrink:0">
-                                            {% csrf_token %}
-                                            <button class="btn btn-purple" style="padding:7px 12px;font-size:12px;border:none"><i class="fas fa-check" style="font-size:10px"></i> Pagar</button>
-                                        </form>
+                                        <button class="btn btn-purple" style="padding:7px 12px;font-size:12px;border:none;flex-shrink:0;cursor:pointer"
+                                                onclick="pagarCuota(this, {{ ev.deuda.id }})">
+                                            <i class="fas fa-check" style="font-size:10px"></i> Pagar
+                                        </button>
                                         {% else %}
                                         <span class="badge badge-green"><i class="fas fa-check" style="font-size:9px"></i> Pagado</span>
                                         {% endif %}
@@ -216,9 +292,21 @@
             </div>
             {% endfor %}
         </div>
-        <div style="display:flex;gap:12px;justify-content:center;margin-top:10px">
-            <div style="display:flex;align-items:center;gap:4px;font-size:10px;color:var(--text-muted)"><div style="width:5px;height:5px;border-radius:50%;background:var(--red)"></div>Pendiente</div>
-            <div style="display:flex;align-items:center;gap:4px;font-size:10px;color:var(--text-muted)"><div style="width:5px;height:5px;border-radius:50%;background:var(--green)"></div>Pagado</div>
+        <div style="display:flex;gap:14px;justify-content:center;align-items:center;margin-top:12px;padding-top:10px;border-top:1px solid var(--glass-border)">
+            <div style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text-muted)">
+                <div style="width:8px;height:8px;border-radius:50%;background:var(--red);box-shadow:0 0 5px rgba(248,113,113,0.5)"></div>
+                <span>Cuota pendiente</span>
+            </div>
+            <div style="width:1px;height:12px;background:var(--glass-border)"></div>
+            <div style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text-muted)">
+                <div style="width:8px;height:8px;border-radius:50%;background:var(--green)"></div>
+                <span>Cuota pagada</span>
+            </div>
+            <div style="width:1px;height:12px;background:var(--glass-border)"></div>
+            <div style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text-muted)">
+                <div style="width:12px;height:12px;border-radius:4px;background:var(--purple-dim)"></div>
+                <span>Hoy</span>
+            </div>
         </div>
     </div>
 
@@ -248,10 +336,10 @@
                     </div>
                     <div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px;flex-shrink:0">
                         {% if d.cuotas_pagadas < d.cuotas_totales %}
-                        <form action="{% url 'pagar_cuota' d.id %}" method="POST" style="margin:0">
-                            {% csrf_token %}
-                            <button class="btn btn-purple" style="padding:5px 10px;font-size:11px;border:none"><i class="fas fa-check" style="font-size:9px"></i> Pagar</button>
-                        </form>
+                        <button class="btn btn-purple pagar-btn" style="padding:5px 10px;font-size:11px;border:none"
+                                onclick="pagarCuota(this, {{ d.id }})">
+                            <i class="fas fa-check" style="font-size:9px"></i> Pagar
+                        </button>
                         {% else %}<span class="badge badge-green" style="font-size:10px"><i class="fas fa-check" style="font-size:8px"></i> Listo</span>{% endif %}
                         <div style="display:flex;gap:8px">
                             <a href="{% url 'editar_deuda' d.id %}" style="color:var(--text-muted);font-size:11px;text-decoration:none;transition:color 0.2s" onmouseover="this.style.color='var(--purple)'" onmouseout="this.style.color='var(--text-muted)'"><i class="fas fa-edit"></i></a>
@@ -270,9 +358,12 @@
                 </div>
             </div>
             {% empty %}
-            <div style="text-align:center;padding:40px 0;opacity:0.3">
-                <i class="fas fa-smile-beam" style="font-size:26px;color:var(--purple);margin-bottom:6px;display:block"></i>
-                <p style="font-size:11px;color:var(--text-muted)">Sin cuotas este mes</p>
+            <div style="text-align:center;padding:32px 0;opacity:0.6">
+                <i class="fas fa-credit-card" style="font-size:24px;color:var(--orange);margin-bottom:8px;display:block;opacity:0.5"></i>
+                <p style="font-size:12px;color:var(--text-muted);margin-bottom:10px">Sin cuotas este mes</p>
+                <a href="{% url 'crear_deuda' %}" style="display:inline-flex;align-items:center;gap:5px;font-size:11px;color:var(--orange);text-decoration:none;font-weight:500;background:rgba(251,146,60,0.1);border:1px solid rgba(251,146,60,0.2);padding:6px 12px;border-radius:8px">
+                    <i class="fas fa-plus" style="font-size:9px"></i> Agregar cuota fija
+                </a>
             </div>
             {% endfor %}
         </div>
@@ -311,7 +402,11 @@
                     </div>
                 </div>
                 {% empty %}
-                <p style="font-size:11px;color:var(--text-muted);text-align:center;padding:20px 0;opacity:0.5">Sin movimientos aún</p>
+                <div style="text-align:center;padding:24px 0;opacity:0.5">
+                    <i class="fas fa-receipt" style="font-size:24px;color:var(--purple);margin-bottom:8px;display:block"></i>
+                    <p style="font-size:12px;color:var(--text-muted);margin-bottom:10px">Sin movimientos aún</p>
+                    <a href="{% url 'registrar_transaccion' %}?tipo=EGRESO" style="font-size:11px;color:var(--purple);text-decoration:none;font-weight:500">+ Registrar primer gasto</a>
+                </div>
                 {% endfor %}
             </div>
         </div>
@@ -319,8 +414,14 @@
         <!-- Metas -->
         <div class="glass" style="padding:20px">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-                <div style="font-size:13px;font-weight:500;color:var(--text-primary)"><i class="fas fa-piggy-bank" style="color:#f472b6;margin-right:5px;font-size:12px"></i>Metas</div>
-                <a href="{% url 'crear_meta' %}" class="btn btn-glass" style="padding:4px 9px;font-size:10px">+ Nueva</a>
+                <div style="font-size:13px;font-weight:500;color:var(--text-primary)">
+                    <i class="fas fa-piggy-bank" style="color:#f472b6;margin-right:5px;font-size:12px"></i>Metas de ahorro
+                </div>
+                <a href="{% url 'crear_meta' %}" style="display:inline-flex;align-items:center;gap:5px;background:rgba(244,114,182,0.12);border:1px solid rgba(244,114,182,0.25);color:#f472b6;padding:6px 12px;border-radius:9px;font-size:11px;font-weight:600;text-decoration:none;transition:all 0.2s"
+                   onmouseover="this.style.background='rgba(244,114,182,0.22)'"
+                   onmouseout="this.style.background='rgba(244,114,182,0.12)'">
+                    <i class="fas fa-plus" style="font-size:9px"></i> Nueva meta
+                </a>
             </div>
             <div style="display:flex;flex-direction:column;gap:8px;overflow-y:auto;max-height:180px">
                 {% for meta in metas %}
@@ -343,11 +444,45 @@
                     {% if meta.ahorro_mensual_sugerido %}<div style="font-size:10px;color:var(--text-muted);margin-top:4px">~${{ meta.ahorro_mensual_sugerido|floatformat:"0"|intcomma }}/mes para {{ meta.fecha_limite|date:"M Y" }}</div>{% endif %}
                 </div>
                 {% empty %}
-                <p style="font-size:11px;color:var(--text-muted);text-align:center;padding:14px 0;opacity:0.5">Sin metas definidas</p>
+                <div style="background:linear-gradient(135deg,rgba(244,114,182,0.08),rgba(167,139,250,0.05));border:1px dashed rgba(244,114,182,0.25);border-radius:14px;padding:20px 16px;text-align:center">
+                    <div style="font-size:28px;margin-bottom:8px">🐷</div>
+                    <div style="font-size:13px;font-weight:600;color:var(--text-primary);margin-bottom:4px">Sin metas de ahorro</div>
+                    <div style="font-size:11px;color:var(--text-muted);line-height:1.5;margin-bottom:14px">
+                        Define un objetivo — viaje, fondo de emergencia, gadget — y te decimos cuánto ahorrar por mes para lograrlo.
+                    </div>
+                    <a href="{% url 'crear_meta' %}" style="display:inline-flex;align-items:center;gap:7px;background:rgba(244,114,182,0.15);border:1px solid rgba(244,114,182,0.3);color:#f472b6;padding:9px 18px;border-radius:10px;font-size:12px;font-weight:600;text-decoration:none;transition:all 0.2s">
+                        <i class="fas fa-plus" style="font-size:10px"></i> Crear mi primera meta
+                    </a>
+                </div>
                 {% endfor %}
             </div>
         </div>
 
+    </div>
+</div>
+
+
+{% csrf_token %}
+<!-- OVERLAY DE CELEBRACIÓN -->
+<div id="celebracion-overlay" style="display:none;position:fixed;inset:0;z-index:200;pointer-events:none;overflow:hidden">
+    <!-- Confetti container -->
+    <div id="confetti-container" style="position:absolute;inset:0"></div>
+    <!-- Card central -->
+    <div id="celebracion-card" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) scale(0.8);opacity:0;
+         background:#16162a;border:1px solid rgba(167,139,250,0.3);border-radius:24px;
+         padding:32px 40px;text-align:center;min-width:280px;
+         box-shadow:0 24px 60px rgba(0,0,0,0.5);transition:all 0.3s cubic-bezier(0.34,1.56,0.64,1);pointer-events:all">
+        <div id="cel-emoji" style="font-size:48px;margin-bottom:12px">✅</div>
+        <div id="cel-titulo" style="font-size:18px;font-weight:700;color:#f1f0ff;margin-bottom:6px"></div>
+        <div id="cel-subtitulo" style="font-size:13px;color:rgba(241,240,255,0.5);margin-bottom:20px"></div>
+        <!-- Barra de progreso -->
+        <div style="background:rgba(255,255,255,0.06);border-radius:6px;height:6px;overflow:hidden;margin-bottom:8px">
+            <div id="cel-progress" style="height:100%;background:linear-gradient(90deg,#7c3aed,#a78bfa);border-radius:6px;transition:width 0.8s ease;width:0%"></div>
+        </div>
+        <div id="cel-progress-txt" style="font-size:11px;color:rgba(241,240,255,0.4);margin-bottom:16px;font-family:'DM Mono',monospace"></div>
+        <button onclick="cerrarCelebracion()" style="background:var(--purple-dim);border:none;color:#fff;padding:10px 24px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif">
+            ¡Genial! <i class="fas fa-arrow-right" style="font-size:11px;margin-left:4px"></i>
+        </button>
     </div>
 </div>
 
@@ -404,6 +539,242 @@ if (catL.length) {
         }
     });
 }
+
+// ===== CELEBRACIÓN AL PAGAR CUOTA =====
+function celebrar(nombre, monto) {
+    // Crear overlay
+    const overlay = document.createElement('div');
+    overlay.id = 'celebracion-overlay';
+    overlay.style.cssText = `
+        position:fixed;inset:0;z-index:9999;
+        display:flex;flex-direction:column;align-items:center;justify-content:center;
+        pointer-events:none;
+    `;
+    document.body.appendChild(overlay);
+
+    // Tarjeta central
+    const card = document.createElement('div');
+    card.style.cssText = `
+        background:#16162a;border:1px solid rgba(167,139,250,0.3);
+        border-radius:24px;padding:32px 40px;text-align:center;
+        animation:popIn 0.35s cubic-bezier(0.34,1.56,0.64,1);
+        box-shadow:0 0 60px rgba(124,58,237,0.3);
+        max-width:320px;width:90%;
+    `;
+    card.innerHTML = `
+        <div style="font-size:52px;margin-bottom:12px;animation:bounce 0.6s ease infinite alternate">🎉</div>
+        <div style="font-size:18px;font-weight:700;color:#f1f0ff;margin-bottom:6px">¡Cuota pagada!</div>
+        <div style="font-size:14px;color:rgba(241,240,255,0.6);margin-bottom:4px">${nombre}</div>
+        <div style="font-family:'DM Mono',monospace;font-size:22px;font-weight:600;color:#34d399;margin-top:8px">
+            $${Number(monto).toLocaleString('es-CL')}
+        </div>
+    `;
+    overlay.appendChild(card);
+
+    // Confetti de partículas
+    const colores = ['#a78bfa','#34d399','#f472b6','#fb923c','#60a5fa','#fbbf24'];
+    for (let i = 0; i < 60; i++) {
+        const p = document.createElement('div');
+        const size = Math.random() * 8 + 4;
+        const x = Math.random() * 100;
+        const delay = Math.random() * 0.6;
+        const dur = Math.random() * 1.5 + 1;
+        const color = colores[Math.floor(Math.random() * colores.length)];
+        const shape = Math.random() > 0.5 ? '50%' : '2px';
+        p.style.cssText = `
+            position:fixed;left:${x}%;top:-10px;
+            width:${size}px;height:${size}px;
+            background:${color};border-radius:${shape};
+            animation:caer ${dur}s ${delay}s linear forwards;
+            pointer-events:none;z-index:10000;
+        `;
+        document.body.appendChild(p);
+        setTimeout(() => p.remove(), (dur + delay) * 1000 + 200);
+    }
+
+    // Remover overlay después de 2.5s
+    setTimeout(() => {
+        card.style.transition = 'opacity 0.4s, transform 0.4s';
+        card.style.opacity = '0';
+        card.style.transform = 'scale(0.9)';
+        setTimeout(() => overlay.remove(), 400);
+    }, 2500);
+}
+
+// Inyectar keyframes si no existen
+if (!document.getElementById('celebracion-styles')) {
+    const style = document.createElement('style');
+    style.id = 'celebracion-styles';
+    style.textContent = `
+        @keyframes popIn {
+            from { opacity:0; transform:scale(0.6); }
+            to   { opacity:1; transform:scale(1); }
+        }
+        @keyframes bounce {
+            from { transform:translateY(0); }
+            to   { transform:translateY(-10px); }
+        }
+        @keyframes caer {
+            0%   { transform:translateY(0) rotate(0deg); opacity:1; }
+            100% { transform:translateY(110vh) rotate(720deg); opacity:0; }
+        }
+    `;
+    document.head.appendChild(style);
+}
+
+// Interceptar formularios de pagar cuota para mostrar celebración antes del submit
+document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('form[action*="pagar-cuota"]').forEach(form => {
+        form.addEventListener('submit', function(e) {
+            // Obtener nombre de la deuda desde el contexto cercano
+            const card = this.closest('[style*="border-radius:14px"]') || this.closest('.modal-box');
+            let nombre = 'Cuota';
+            let monto = 0;
+            if (card) {
+                const nombreEl = card.querySelector('[style*="font-weight:500"]');
+                if (nombreEl) nombre = nombreEl.textContent.trim();
+                const montoEl = card.querySelector('[style*="color:var(--purple)"]');
+                if (montoEl) {
+                    monto = montoEl.textContent.replace(/[^0-9]/g, '');
+                }
+            }
+            celebrar(nombre, monto);
+            // Dejar que el form haga submit normalmente (la celebración es visual)
+        });
+    });
+});
+
+
+// ===== PAGAR CUOTA AJAX + CELEBRACIÓN =====
+// Obtener CSRF token del input oculto de Django (más confiable que cookie)
+function getCsrf() {
+    const el = document.querySelector('[name=csrfmiddlewaretoken]');
+    if (el) return el.value;
+    // Fallback: desde cookie
+    const c = document.cookie.split('; ').find(r => r.startsWith('csrftoken='));
+    return c ? c.split('=')[1] : '';
+}
+
+async function pagarCuota(btn, deudaId) {
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin" style="font-size:9px"></i> Pagando...';
+
+    try {
+        const res = await fetch(`/pagar-cuota/${deudaId}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCsrf(),
+                'X-Requested-With': 'XMLHttpRequest',
+            }
+        });
+        const data = await res.json();
+
+        if (data.ok) {
+            mostrarCelebracion(data);
+            // Actualizar UI sin recargar
+            setTimeout(() => location.reload(), 2200);
+        } else {
+            btn.innerHTML = data.msg || 'Error';
+            btn.disabled = false;
+        }
+    } catch (e) {
+        // Fallback: submit normal
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = `/pagar-cuota/${deudaId}/`;
+        const csrf = document.createElement('input');
+        csrf.type = 'hidden'; csrf.name = 'csrfmiddlewaretoken'; csrf.value = getCsrf();
+        form.appendChild(csrf);
+        document.body.appendChild(form);
+        form.submit();
+    }
+}
+
+function mostrarCelebracion(data) {
+    const overlay = document.getElementById('celebracion-overlay');
+    const card    = document.getElementById('celebracion-card');
+    const emoji   = document.getElementById('cel-emoji');
+    const titulo  = document.getElementById('cel-titulo');
+    const sub     = document.getElementById('cel-subtitulo');
+    const prog    = document.getElementById('cel-progress');
+    const progTxt = document.getElementById('cel-progress-txt');
+
+    // Contenido según si terminó la deuda
+    if (data.terminada) {
+        emoji.textContent   = '🎉';
+        titulo.textContent  = `¡Deuda de ${data.acreedor} terminada!`;
+        sub.textContent     = 'Pagaste todas las cuotas. ¡Excelente trabajo!';
+    } else {
+        emoji.textContent   = '✅';
+        titulo.textContent  = `Cuota de ${data.acreedor} pagada`;
+        sub.textContent     = `$${Math.round(data.monto).toLocaleString('es-CL')} registrado correctamente`;
+    }
+
+    prog.style.width   = data.porcentaje + '%';
+    progTxt.textContent = `${data.cuotas_pagadas} de ${data.cuotas_totales} cuotas · ${data.porcentaje}% completado`;
+
+    // Mostrar overlay
+    overlay.style.display = 'block';
+    overlay.style.pointerEvents = 'all';
+    setTimeout(() => {
+        card.style.transform = 'translate(-50%,-50%) scale(1)';
+        card.style.opacity   = '1';
+    }, 30);
+
+    // Confetti
+    lanzarConfetti(data.terminada ? 80 : 30);
+
+    // Auto-cerrar tras 2s
+    setTimeout(cerrarCelebracion, 2100);
+}
+
+function cerrarCelebracion() {
+    const overlay = document.getElementById('celebracion-overlay');
+    const card    = document.getElementById('celebracion-card');
+    card.style.transform = 'translate(-50%,-50%) scale(0.85)';
+    card.style.opacity   = '0';
+    setTimeout(() => {
+        overlay.style.display = 'none';
+        overlay.style.pointerEvents = 'none';
+        document.getElementById('confetti-container').innerHTML = '';
+    }, 300);
+}
+
+function lanzarConfetti(cantidad) {
+    const container = document.getElementById('confetti-container');
+    const colores   = ['#a78bfa','#7c3aed','#34d399','#fb923c','#f472b6','#60a5fa','#f1f0ff'];
+
+    for (let i = 0; i < cantidad; i++) {
+        const el = document.createElement('div');
+        const color  = colores[Math.floor(Math.random() * colores.length)];
+        const size   = Math.random() * 8 + 5;
+        const left   = Math.random() * 100;
+        const delay  = Math.random() * 0.6;
+        const dur    = Math.random() * 1.5 + 1.2;
+        const forma  = Math.random() > 0.5 ? '50%' : '2px';
+
+        el.style.cssText = `
+            position:absolute;
+            left:${left}%;top:-20px;
+            width:${size}px;height:${size}px;
+            background:${color};
+            border-radius:${forma};
+            opacity:0.9;
+            animation:confettiFall ${dur}s ${delay}s ease-in forwards;
+        `;
+        container.appendChild(el);
+    }
+}
+
+// CSS de animación confetti
+const styleTag = document.createElement('style');
+styleTag.textContent = `
+@keyframes confettiFall {
+    0%   { transform:translateY(0) rotate(0deg); opacity:0.9; }
+    100% { transform:translateY(110vh) rotate(${Math.random()*720}deg); opacity:0; }
+}`;
+document.head.appendChild(styleTag);
+
 </script>
 
 {% endblock %}
