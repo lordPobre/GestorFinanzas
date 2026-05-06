@@ -11,7 +11,7 @@ class Transaccion(models.Model):
         ('EGRESO', 'Egreso'),
     ]
 
-    CATEGORIAS = (
+    CATEGORIAS_EGRESO = (
         ('Comida', 'Comida y Supermercado'),
         ('Transporte', 'Transporte y Gasolina'),
         ('Servicios', 'Luz, Agua, Internet'),
@@ -19,6 +19,19 @@ class Transaccion(models.Model):
         ('Salud', 'Salud y Farmacia'),
         ('Otros', 'Otros Gastos'),
     )
+
+    CATEGORIAS_INGRESO = (
+        ('Sueldo', 'Sueldo o salario'),
+        ('Freelance', 'Trabajo freelance'),
+        ('Negocio', 'Negocio o emprendimiento'),
+        ('Venta', 'Venta de algo'),
+        ('Bono', 'Bono o aguinaldo'),
+        ('Transferencia', 'Transferencia recibida'),
+        ('Otros_Ingresos', 'Otros ingresos'),
+    )
+
+    # Categorías combinadas para el campo del modelo
+    CATEGORIAS = CATEGORIAS_EGRESO + CATEGORIAS_INGRESO
 
     usuario = models.ForeignKey(User, on_delete=models.CASCADE)
     tipo = models.CharField(max_length=10, choices=TIPO_CHOICES)
@@ -34,7 +47,7 @@ class Transaccion(models.Model):
 
 # --- MODELO DEUDA ---
 class Deuda(models.Model):
-    CATEGORIAS = (
+    CATEGORIAS_EGRESO = (
         ('Comida', 'Comida y Supermercado'),
         ('Transporte', 'Transporte y Gasolina'),
         ('Servicios', 'Luz, Agua, Internet'),
@@ -42,6 +55,19 @@ class Deuda(models.Model):
         ('Salud', 'Salud y Farmacia'),
         ('Otros', 'Otros Gastos'),
     )
+
+    CATEGORIAS_INGRESO = (
+        ('Sueldo', 'Sueldo o salario'),
+        ('Freelance', 'Trabajo freelance'),
+        ('Negocio', 'Negocio o emprendimiento'),
+        ('Venta', 'Venta de algo'),
+        ('Bono', 'Bono o aguinaldo'),
+        ('Transferencia', 'Transferencia recibida'),
+        ('Otros_Ingresos', 'Otros ingresos'),
+    )
+
+    # Categorías combinadas para el campo del modelo
+    CATEGORIAS = CATEGORIAS_EGRESO + CATEGORIAS_INGRESO
 
     usuario = models.ForeignKey(User, on_delete=models.CASCADE)
     acreedor = models.CharField(max_length=100)
