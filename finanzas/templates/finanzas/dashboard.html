@@ -134,45 +134,22 @@
         <div style="font-size:11px;color:var(--text-muted);margin-top:6px">Registrados este mes</div>
     </div>
 
-    <!-- Total Gastado (Gastos + Cuotas unificados) -->
+    <!-- Gastos manuales del día a día -->
     <div class="glass" style="padding:20px;position:relative;overflow:hidden">
-        <div style="position:absolute;top:-16px;right:-16px;width:64px;height:64px;background:rgba(248,113,113,0.06);border-radius:50%"></div>
-        <div class="label" style="margin-bottom:8px">Total gastado</div>
-        <div class="mono" style="font-size:22px;font-weight:500;color:var(--red);margin-bottom:6px">
+        <div style="position:absolute;top:-16px;right:-16px;width:64px;height:64px;background:rgba(96,165,250,0.06);border-radius:50%"></div>
+        <div class="label" style="margin-bottom:8px">Gastos del mes</div>
+        <div class="mono" style="font-size:22px;font-weight:500;color:#60a5fa;margin-bottom:6px">
             ${{ ya_gaste|floatformat:"0"|intcomma }}
         </div>
-        <!-- Desglose -->
-        <div style="display:flex;flex-direction:column;gap:4px;margin-bottom:8px">
-            <div style="display:flex;justify-content:space-between;align-items:center">
-                <div style="display:flex;align-items:center;gap:5px">
-                    <div style="width:6px;height:6px;border-radius:50%;background:#60a5fa;flex-shrink:0"></div>
-                    <span style="font-size:10px;color:var(--text-muted)">Gastos</span>
-                </div>
-                <span class="mono" style="font-size:10px;color:#60a5fa">${{ total_gastos|floatformat:"0"|intcomma }}</span>
-            </div>
-            <div style="display:flex;justify-content:space-between;align-items:center">
-                <div style="display:flex;align-items:center;gap:5px">
-                    <div style="width:6px;height:6px;border-radius:50%;background:var(--orange);flex-shrink:0"></div>
-                    <span style="font-size:10px;color:var(--text-muted)">Cuotas pagadas</span>
-                </div>
-                <span class="mono" style="font-size:10px;color:var(--orange)">${{ cuotas_pagadas_mes|floatformat:"0"|intcomma }}</span>
-            </div>
-            {% if cuotas_pendientes_mes > 0 %}
-            <div style="display:flex;justify-content:space-between;align-items:center">
-                <div style="display:flex;align-items:center;gap:5px">
-                    <div style="width:6px;height:6px;border-radius:50%;background:var(--red);flex-shrink:0;animation:pulse 1.5s infinite"></div>
-                    <span style="font-size:10px;color:var(--text-muted)">Cuotas pendientes</span>
-                </div>
-                <span class="mono" style="font-size:10px;color:var(--red)">${{ cuotas_pendientes_mes|floatformat:"0"|intcomma }}</span>
-            </div>
-            {% endif %}
+        <div style="font-size:11px;color:var(--text-muted);margin-bottom:8px">
+            Supermercado, bencina, salidas...
         </div>
         {% if total_ingresos > 0 %}
-        {% widthratio ya_gaste total_ingresos 100 as pct_total %}
-        <div class="progress-bar"><div class="progress-fill red" style="width:{{ pct_total }}%"></div></div>
-        <div style="font-size:10px;color:var(--text-muted);margin-top:5px">{{ pct_total }}% de tus ingresos</div>
+        {% widthratio ya_gaste total_ingresos 100 as pct_gastos %}
+        <div class="progress-bar"><div class="progress-fill" style="width:{{ pct_gastos }}%;background:linear-gradient(90deg,#1d4ed8,#60a5fa)"></div></div>
+        <div style="font-size:10px;color:var(--text-muted);margin-top:5px">{{ pct_gastos }}% de tus ingresos</div>
         {% else %}
-        <div class="progress-bar"><div class="progress-fill red" style="width:0%"></div></div>
+        <div class="progress-bar"><div class="progress-fill" style="width:0%;background:linear-gradient(90deg,#1d4ed8,#60a5fa)"></div></div>
         {% endif %}
     </div>
 
@@ -213,7 +190,7 @@
         <div class="mono" style="font-size:22px;font-weight:500;color:{% if disponible >= 0 %}var(--purple){% else %}var(--red){% endif %};margin-bottom:6px">
             ${{ disponible|floatformat:"0"|intcomma }}
         </div>
-        <div style="font-size:11px;color:var(--text-muted)">{% if disponible >= 0 %}Libre después de todo{% else %}⚠ Gastos superan ingresos{% endif %}</div>
+        <div style="font-size:11px;color:var(--text-muted)">{% if disponible >= 0 %}Ingresos − Gastos − Cuotas{% else %}⚠ Compromisos superan ingresos{% endif %}</div>
         <div style="height:1px;background:var(--glass-border);margin:10px 0"></div>
         <div style="font-size:11px;color:var(--text-muted)">Deuda total: <span class="mono" style="color:var(--red)">${{ deuda_total|floatformat:"0"|intcomma }}</span></div>
     </div>

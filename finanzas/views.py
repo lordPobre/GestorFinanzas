@@ -50,17 +50,13 @@ def dashboard(request):
         fecha__gte=fecha_inicio, fecha__lte=fecha_fin
     ).aggregate(total=Sum('monto'))['total'] or 0
 
-    # --- GASTOS del mes (excluye transacciones automáticas de cuotas) ---
-    # Las cuotas se cuentan aparte desde el modelo Deuda para evitar doble conteo
+    # --- GASTOS del mes (excluye pagos automáticos de cuotas) ---
     nombres_deudas = list(Deuda.objects.filter(usuario=request.user).values_list('acreedor', flat=True))
-    gastos_qs = Transaccion.objects.filter(
+    total_gastos = Transaccion.objects.filter(
         usuario=request.user, tipo='EGRESO',
-        fecha__gte=fecha_inicio, fecha__lte=fecha_fin
-    )
-    # Excluir transacciones que son pagos automáticos de cuotas
-    for nombre in nombres_deudas:
-        gastos_qs = gastos_qs.exclude(descripcion__icontains=nombre)
-    total_gastos = gastos_qs.aggregate(total=Sum('monto'))['total'] or 0
+        fecha__gte=fecha_inicio, fecha__lte=fecha_fin,
+        es_cuota=False,
+    ).aggregate(total=Sum('monto'))['total'] or 0
 
     # --- CUOTAS DE DEUDAS del mes ---
     todas_las_deudas = Deuda.objects.filter(usuario=request.user)
@@ -107,12 +103,10 @@ def dashboard(request):
     total_cuotas_mes = cuotas_pagadas_mes + cuotas_pendientes_mes
 
     # --- RESUMEN CLARO ---
-    # Lo que ya salió: gastos + cuotas pagadas
-    ya_gaste = float(total_gastos) + cuotas_pagadas_mes
-    # Lo que falta pagar este mes: cuotas pendientes
-    por_pagar = cuotas_pendientes_mes
-    # Lo que me queda libre = ingresos - todo lo comprometido
-    disponible = float(total_ingresos) - ya_gaste - por_pagar
+    # Gastos manuales del día a día (supermercado, bencina, etc)
+    ya_gaste = float(total_gastos)
+    por_pagar = float(cuotas_pendientes_mes)
+    disponible = float(total_ingresos) - ya_gaste - total_cuotas_mes
 
     # --- CALENDARIO ---
     cal = calendar.monthcalendar(year, month)
@@ -147,13 +141,11 @@ def dashboard(request):
             usuario=request.user, tipo='INGRESO', fecha__gte=fi, fecha__lte=ff
         ).aggregate(t=Sum('monto'))['t'] or 0)
 
-        # Excluir transacciones automáticas de cuotas del gráfico también
-        gas_qs = Transaccion.objects.filter(
-            usuario=request.user, tipo='EGRESO', fecha__gte=fi, fecha__lte=ff
-        )
-        for nombre in nombres_deudas:
-            gas_qs = gas_qs.exclude(descripcion__icontains=nombre)
-        gas = float(gas_qs.aggregate(t=Sum('monto'))['t'] or 0)
+        gas = float(Transaccion.objects.filter(
+            usuario=request.user, tipo='EGRESO',
+            fecha__gte=fi, fecha__lte=ff,
+            es_cuota=False,
+        ).aggregate(t=Sum('monto'))['t'] or 0)
 
         # Cuotas de deudas en ese mes
         cuotas_m = 0.0
@@ -247,6 +239,7 @@ def pagar_cuota(request, deuda_id):
                 categoria=deuda.categoria,
                 descripcion=f'Cuota {deuda.cuotas_pagadas}/{deuda.cuotas_totales} — {deuda.acreedor}',
                 fecha=timezone.now(),
+                es_cuota=True,
             )
             if es_ajax:
                 terminada = deuda.cuotas_pagadas >= deuda.cuotas_totales
@@ -279,10 +272,10 @@ def anular_cuota(request, deuda_id):
             deuda.cuotas_pagadas -= 1
             deuda.save()
 
-            # Eliminar la última transacción automática de esta deuda
             ultima = Transaccion.objects.filter(
                 usuario=request.user,
                 tipo='EGRESO',
+                es_cuota=True,
                 descripcion__icontains=deuda.acreedor
             ).order_by('-fecha', '-id').first()
 

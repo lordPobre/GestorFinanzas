@@ -30,7 +30,6 @@ class DeudaForm(forms.ModelForm):
 
 
 class TransaccionForm(forms.ModelForm):
-    """Formulario unificado para ingresos Y egresos manuales"""
     fecha = forms.DateField(
         input_formats=['%Y-%m-%d', '%d/%m/%Y', '%d-%m-%Y'],
         widget=forms.DateInput(attrs={
@@ -61,8 +60,6 @@ class TransaccionForm(forms.ModelForm):
             }),
         }
 
-
-# Mantenemos IngresoForm por compatibilidad (redirige a TransaccionForm pre-seleccionado)
 class IngresoForm(forms.ModelForm):
     fecha = forms.DateField(
         input_formats=['%Y-%m-%d', '%d/%m/%Y', '%d-%m-%Y'],
