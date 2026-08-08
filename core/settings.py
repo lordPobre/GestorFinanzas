@@ -1,13 +1,36 @@
 from pathlib import Path
 import os
 import dj_database_url
+from dotenv import load_dotenv
 
 BASE_DIR = Path(__file__).resolve().parent.parent
-SECRET_KEY = 'django-insecure-k_erm0-^0g-a#+=3ux^u7wn6*tky*r%=hp7g9b8-^ph9a7*!^d'
-DEBUG = True
 
-ALLOWED_HOSTS = ['*']
+try:
+    load_dotenv(os.path.join(BASE_DIR, '.env'))
+except ImportError:
+    pass  
 
+# ==========================================================
+#  SEGURIDAD — valores sensibles vienen de variables de entorno
+# ==========================================================
+
+# SECRET_KEY: nunca hardcodeada. Se lee del entorno.
+# En local, si no existe, usa una de desarrollo (NO usar en producción).
+SECRET_KEY = os.environ.get(
+    'SECRET_KEY',
+    'django-insecure-solo-para-desarrollo-local-cambiar-en-produccion'
+)
+
+# DEBUG: False por defecto. Solo True si explícitamente se define en el entorno.
+DEBUG = os.environ.get('DEBUG', 'False').lower() == 'true'
+
+# ALLOWED_HOSTS: lista blanca de dominios permitidos.
+# En el entorno se define como "midominio.com,www.midominio.com"
+ALLOWED_HOSTS = os.environ.get(
+    'ALLOWED_HOSTS',
+    'localhost,127.0.0.1',
+    'finanzas.pythonanywhere.com','www.finanzas.pythonanywhere.com'
+).split(',')
 
 
 INSTALLED_APPS = [
@@ -37,8 +60,8 @@ ROOT_URLCONF = 'core.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [], 
-        'APP_DIRS': True, 
+        'DIRS': [],
+        'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
                 'django.template.context_processors.debug',
@@ -58,7 +81,6 @@ if database_url:
     DATABASES = {
         'default': dj_database_url.parse(database_url, conn_max_age=600)
     }
-
 else:
     DATABASES = {
         'default': {
@@ -68,37 +90,72 @@ else:
     }
 
 AUTH_PASSWORD_VALIDATORS = [
-    {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-    },
+    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+     'OPTIONS': {'min_length': 8}},
+    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
 
-
 LANGUAGE_CODE = 'es'
-
 TIME_ZONE = 'America/Santiago'
-
 USE_I18N = True
-
 USE_TZ = True
 
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATIC_URL = 'static/'
 
 if not DEBUG:
     STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
-STATIC_URL = 'static/'
-
-
 LOGIN_REDIRECT_URL = 'dashboard'
 LOGOUT_REDIRECT_URL = 'login'
 LOGIN_URL = 'login'
+
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# ==========================================================
+#  ESCUDOS DE SEGURIDAD — solo se activan en producción (DEBUG=False)
+# ==========================================================
+
+if not DEBUG:
+    # --- HTTPS / SSL ---
+    # Redirige todo el tráfico HTTP a HTTPS
+    SECURE_SSL_REDIRECT = True
+    # Necesario si estás detrás de un proxy (Railway, PythonAnywhere, Render)
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+    # --- Cookies seguras (solo viajan por HTTPS) ---
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+
+    # Las cookies no son accesibles vía JavaScript (protege de robo por XSS)
+    SESSION_COOKIE_HTTPONLY = True
+    CSRF_COOKIE_HTTPONLY = False  # Django necesita leerla para formularios AJAX
+
+    # Las cookies solo se envían a tu propio sitio (protección CSRF extra)
+    SESSION_COOKIE_SAMESITE = 'Lax'
+    CSRF_COOKIE_SAMESITE = 'Lax'
+
+    # --- HSTS: fuerza HTTPS en el navegador durante 1 año ---
+    SECURE_HSTS_SECONDS = 31536000  # 1 año
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+
+    # --- Headers anti-ataques ---
+    # Evita que el navegador "adivine" tipos de contenido (anti-MIME sniffing)
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+
+    # Evita que tu sitio sea embebido en iframes (anti-clickjacking)
+    X_FRAME_OPTIONS = 'DENY'
+
+    # No filtrar el referrer a sitios externos
+    SECURE_REFERRER_POLICY = 'same-origin'
+
+    # --- CSRF: dominios de confianza para formularios ---
+    # Define en el entorno como "https://midominio.com,https://www.midominio.com"
+    CSRF_TRUSTED_ORIGINS = [
+        origin.strip()
+        for origin in os.environ.get('CSRF_TRUSTED_ORIGINS', '').split(',')
+        if origin.strip()
+    ]

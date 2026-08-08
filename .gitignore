@@ -1,7 +1,29 @@
-# .gitignore
+# Entornos virtuales
 venv/
 env/
+.venv/
+
+# Python
 __pycache__/
 *.pyc
+*.pyo
+
+# Base de datos local
 db.sqlite3
+db.sqlite3-journal
+
+# Variables de entorno — CRÍTICO: nunca subir secretos
+.env
+.env.local
+.env.*.local
+
+# Archivos estáticos recolectados
+staticfiles/
+
+# Sistema
 .DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
