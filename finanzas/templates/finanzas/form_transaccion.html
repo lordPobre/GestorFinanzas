@@ -72,7 +72,7 @@
       <!-- Tipo cuando se edita -->
       {% if editar %}
       <div>
-        <label style="display:block;font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:7px;font-weight:500">Tipo</label>
+        <label class="field-label">Tipo</label>
         <select name="tipo" style="width:100%;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:12px 16px;color:#f1f0ff;font-family:'DM Sans',sans-serif;font-size:14px;outline:none">
           <option value="INGRESO" {% if tipo_inicial == 'INGRESO' %}selected{% endif %}>↑ Ingreso</option>
           <option value="EGRESO"  {% if tipo_inicial == 'EGRESO' %}selected{% endif %}>↓ Gasto</option>
@@ -82,7 +82,7 @@
 
       <!-- Monto -->
       <div>
-        <label style="display:block;font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:7px;font-weight:500">
+        <label class="field-label">
           Monto ($)
         </label>
         {{ form.monto }}
@@ -91,7 +91,7 @@
 
       <!-- Categoría dinámica según tipo -->
       <div>
-        <label style="display:block;font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:7px;font-weight:500">
+        <label class="field-label">
           Categoría
           <span style="text-transform:none;letter-spacing:0;font-weight:400;opacity:0.6;margin-left:4px">
             {% if tipo_inicial == 'INGRESO' %}— ¿De dónde viene este ingreso?{% else %}— ¿A qué tipo de gasto pertenece?{% endif %}
@@ -122,7 +122,7 @@
 
       <!-- Descripción -->
       <div>
-        <label style="display:block;font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:7px;font-weight:500">
+        <label class="field-label">
           Descripción <span style="text-transform:none;letter-spacing:0;font-weight:400;opacity:0.5">(opcional)</span>
         </label>
         {{ form.descripcion }}
@@ -134,7 +134,7 @@
 
       <!-- Fecha -->
       <div>
-        <label style="display:block;font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:7px;font-weight:500">
+        <label class="field-label">
           Fecha
         </label>
         {{ form.fecha }}

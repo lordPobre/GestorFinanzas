@@ -1,5 +1,6 @@
 {% extends 'finanzas/base.html' %}
 {% load humanize %}
+{% load moneda %}
 {% block nav_dashboard %}active{% endblock %}
 {% block nav_dashboard_m %}active{% endblock %}
 
@@ -55,7 +56,7 @@
         <a href="{% url 'crear_deuda' %}" style="display:inline-flex;align-items:center;gap:7px;background:rgba(251,146,60,0.12);border:1px solid rgba(251,146,60,0.22);color:var(--orange);padding:9px 16px;border-radius:11px;font-size:13px;font-weight:500;text-decoration:none"><i class="fas fa-credit-card" style="font-size:11px"></i> Agregar cuota</a>
     </div>
 </div>
-<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:24px">
+<div class="grid-steps" style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:24px">
     <div style="background:var(--glass-bg);border:1px solid rgba(52,211,153,0.2);border-radius:16px;padding:18px">
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px"><div style="width:28px;height:28px;background:rgba(52,211,153,0.15);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--green);font-weight:700">1</div><div style="font-size:13px;font-weight:600;color:var(--text-primary)">Registra tus ingresos</div></div>
         <div style="font-size:12px;color:var(--text-muted);line-height:1.5">Anota tu sueldo o ingresos del mes para saber con cuánto cuentas.</div>
@@ -74,6 +75,28 @@
 </div>
 {% endif %}
 
+<!-- INSIGHTS: alertas y proyecciones automáticas -->
+{% if insights and not es_nuevo %}
+<div style="display:flex;flex-direction:column;gap:8px;margin-bottom:20px">
+    {% for ins in insights %}
+    <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;border-radius:14px;
+        {% if ins.tipo == 'peligro' %}background:rgba(248,113,113,0.1);border:1px solid rgba(248,113,113,0.25)
+        {% elif ins.tipo == 'alerta' %}background:rgba(251,146,60,0.1);border:1px solid rgba(251,146,60,0.22)
+        {% elif ins.tipo == 'exito' %}background:rgba(52,211,153,0.1);border:1px solid rgba(52,211,153,0.22)
+        {% else %}background:rgba(167,139,250,0.08);border:1px solid rgba(167,139,250,0.2){% endif %}">
+        <div style="width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0;
+            {% if ins.tipo == 'peligro' %}background:rgba(248,113,113,0.15);color:var(--red)
+            {% elif ins.tipo == 'alerta' %}background:rgba(251,146,60,0.15);color:var(--orange)
+            {% elif ins.tipo == 'exito' %}background:rgba(52,211,153,0.15);color:var(--green)
+            {% else %}background:rgba(167,139,250,0.15);color:var(--purple){% endif %}">
+            <i class="fas {{ ins.icono }}" style="font-size:14px"></i>
+        </div>
+        <div style="font-size:13px;color:var(--text-primary);line-height:1.4">{{ ins.texto }}</div>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
 <!-- MÉTRICAS 4 col desktop / 2x2 tablet+móvil -->
 <div class="grid-metrics">
 
@@ -81,7 +104,7 @@
     <div class="glass" style="padding:20px;position:relative;overflow:hidden">
         <div style="position:absolute;top:-16px;right:-16px;width:64px;height:64px;background:rgba(52,211,153,0.06);border-radius:50%"></div>
         <div class="label" style="margin-bottom:8px">Ingresos</div>
-        <div class="mono" style="font-size:22px;font-weight:500;color:var(--green);margin-bottom:8px">${{ total_ingresos|floatformat:"0"|intcomma }}</div>
+        <div class="mono" style="font-size:22px;font-weight:500;color:var(--green);margin-bottom:8px">{{ total_ingresos|money:simbolo_moneda }}</div>
         <div class="progress-bar"><div class="progress-fill green" style="width:100%"></div></div>
         <div style="font-size:11px;color:var(--text-muted);margin-top:6px">Registrados este mes</div>
     </div>
@@ -90,7 +113,7 @@
     <div class="glass" style="padding:20px;position:relative;overflow:hidden">
         <div style="position:absolute;top:-16px;right:-16px;width:64px;height:64px;background:rgba(96,165,250,0.06);border-radius:50%"></div>
         <div class="label" style="margin-bottom:8px">Gastos del mes</div>
-        <div class="mono" style="font-size:22px;font-weight:500;color:#60a5fa;margin-bottom:8px">${{ ya_gaste|floatformat:"0"|intcomma }}</div>
+        <div class="mono" style="font-size:22px;font-weight:500;color:#60a5fa;margin-bottom:8px">{{ ya_gaste|money:simbolo_moneda }}</div>
         {% if total_ingresos > 0 %}
         {% widthratio ya_gaste total_ingresos 100 as pct_gastos %}
         <div class="progress-bar"><div class="progress-fill" style="width:{{ pct_gastos }}%;background:linear-gradient(90deg,#1d4ed8,#60a5fa)"></div></div>
@@ -106,10 +129,10 @@
     <div class="glass" style="padding:20px;position:relative;overflow:hidden;border-color:rgba(251,146,60,0.2)">
         <div style="position:absolute;top:-16px;right:-16px;width:64px;height:64px;background:rgba(251,146,60,0.06);border-radius:50%"></div>
         <div class="label" style="margin-bottom:8px;color:rgba(251,146,60,0.6)">Aún por pagar</div>
-        <div class="mono" style="font-size:22px;font-weight:500;color:var(--orange);margin-bottom:8px">${{ cuotas_pendientes_mes|floatformat:"0"|intcomma }}</div>
+        <div class="mono" style="font-size:22px;font-weight:500;color:var(--orange);margin-bottom:8px">{{ cuotas_pendientes_mes|money:simbolo_moneda }}</div>
         <div style="font-size:11px;color:var(--text-muted);margin-bottom:8px">{{ deudas|length }} cuota{% if deudas|length != 1 %}s{% endif %} pendiente{% if deudas|length != 1 %}s{% endif %}</div>
         <div class="progress-bar"><div class="progress-fill orange" style="width:{% if total_cuotas_mes > 0 %}{% widthratio cuotas_pagadas_mes total_cuotas_mes 100 %}{% else %}0{% endif %}%"></div></div>
-        <div style="font-size:10px;color:var(--text-muted);margin-top:5px">${{ cuotas_pagadas_mes|floatformat:"0"|intcomma }} de ${{ total_cuotas_mes|floatformat:"0"|intcomma }} pagado</div>
+        <div style="font-size:10px;color:var(--text-muted);margin-top:5px">{{ cuotas_pagadas_mes|money:simbolo_moneda }} de {{ total_cuotas_mes|money:simbolo_moneda }} pagado</div>
     </div>
     {% else %}
     <div class="glass" style="padding:20px;position:relative;overflow:hidden;border-color:rgba(52,211,153,0.2)">
@@ -117,16 +140,16 @@
         <div class="label" style="margin-bottom:8px;color:rgba(52,211,153,0.6)">Cuotas del mes</div>
         <div class="mono" style="font-size:22px;font-weight:500;color:var(--green);margin-bottom:8px">✓ Al día</div>
         <div style="font-size:11px;color:var(--text-muted)">Todas las cuotas pagadas</div>
-        <div style="font-size:11px;color:var(--text-muted);margin-top:8px">Total: <span class="mono" style="color:var(--green)">${{ total_cuotas_mes|floatformat:"0"|intcomma }}</span></div>
+        <div style="font-size:11px;color:var(--text-muted);margin-top:8px">Total: <span class="mono" style="color:var(--green)">{{ total_cuotas_mes|money:simbolo_moneda }}</span></div>
     </div>
     {% endif %}
 
     <!-- Total comprometido: Gastos + Cuotas del mes -->
-    <div class="glass" style="padding:20px;position:relative;overflow:hidden;{% if total_comprometido_mes > total_ingresos %}border-color:rgba(248,113,113,0.3){% else %}border-color:rgba(167,139,250,0.2){% endif %}">
+    <div class="glass metric-highlight" style="padding:20px;position:relative;overflow:hidden;{% if total_comprometido_mes > total_ingresos %}border-color:rgba(248,113,113,0.3){% else %}border-color:rgba(167,139,250,0.2){% endif %}">
         <div style="position:absolute;top:-16px;right:-16px;width:64px;height:64px;background:{% if total_comprometido_mes > total_ingresos %}rgba(248,113,113,0.08){% else %}rgba(167,139,250,0.08){% endif %};border-radius:50%"></div>
         <div class="label" style="margin-bottom:8px;color:{% if total_comprometido_mes > total_ingresos %}rgba(248,113,113,0.6){% else %}rgba(167,139,250,0.6){% endif %}">Total comprometido</div>
         <div class="mono" style="font-size:22px;font-weight:500;color:{% if total_comprometido_mes > total_ingresos %}var(--red){% else %}var(--purple){% endif %};margin-bottom:8px">
-            ${{ total_comprometido_mes|floatformat:"0"|intcomma }}
+            {{ total_comprometido_mes|money:simbolo_moneda }}
         </div>
         <div style="display:flex;flex-direction:column;gap:4px;margin-bottom:8px">
             <div style="display:flex;justify-content:space-between;align-items:center">
@@ -134,14 +157,14 @@
                     <div style="width:5px;height:5px;border-radius:50%;background:#60a5fa;flex-shrink:0"></div>
                     <span style="font-size:10px;color:var(--text-muted)">Gastos</span>
                 </div>
-                <span class="mono" style="font-size:10px;color:#60a5fa">${{ ya_gaste|floatformat:"0"|intcomma }}</span>
+                <span class="mono" style="font-size:10px;color:#60a5fa">{{ ya_gaste|money:simbolo_moneda }}</span>
             </div>
             <div style="display:flex;justify-content:space-between;align-items:center">
                 <div style="display:flex;align-items:center;gap:5px">
                     <div style="width:5px;height:5px;border-radius:50%;background:var(--orange);flex-shrink:0"></div>
                     <span style="font-size:10px;color:var(--text-muted)">Cuotas</span>
                 </div>
-                <span class="mono" style="font-size:10px;color:var(--orange)">${{ total_cuotas_mes|floatformat:"0"|intcomma }}</span>
+                <span class="mono" style="font-size:10px;color:var(--orange)">{{ total_cuotas_mes|money:simbolo_moneda }}</span>
             </div>
         </div>
         {% if total_ingresos > 0 %}
@@ -230,7 +253,7 @@
                                     <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
                                         <div style="min-width:0">
                                             <div style="font-weight:500;font-size:14px;color:var(--text-primary);margin-bottom:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ ev.deuda.acreedor }}</div>
-                                            <div style="font-size:12px;color:var(--text-muted)"><span class="mono" style="color:var(--purple)">${{ ev.monto|floatformat:"0"|intcomma }}</span> · {{ ev.deuda.cuotas_pagadas }}/{{ ev.deuda.cuotas_totales }}</div>
+                                            <div style="font-size:12px;color:var(--text-muted)"><span class="mono" style="color:var(--purple)">{{ ev.monto|money:simbolo_moneda }}</span> · {{ ev.deuda.cuotas_pagadas }}/{{ ev.deuda.cuotas_totales }}</div>
                                         </div>
                                         {% if ev.estado == 'pendiente' %}
                                         <button class="btn btn-purple" style="padding:7px 12px;font-size:12px;border:none;flex-shrink:0;cursor:pointer" onclick="pagarCuota(this, {{ ev.deuda.id }})"><i class="fas fa-check" style="font-size:10px"></i> Pagar</button>
@@ -274,7 +297,7 @@
                             {% elif d.dias_para_vencer > 0 and d.dias_para_vencer <= 3 and d.cuotas_pagadas < d.cuotas_totales %}<span class="badge badge-orange" style="font-size:9px;padding:2px 5px">{{ d.dias_para_vencer }}d</span>
                             {% elif d.dias_para_vencer < 0 and d.cuotas_pagadas < d.cuotas_totales %}<span class="badge badge-red" style="font-size:9px;padding:2px 5px">Atrasado</span>{% endif %}
                         </div>
-                        <div style="font-size:11px;color:var(--text-muted)"><span class="mono" style="color:var(--purple)">${{ d.monto_cuota|floatformat:"0"|intcomma }}</span>/mes · <span class="mono" style="color:var(--red)">${{ d.monto_restante|floatformat:"0"|intcomma }}</span></div>
+                        <div style="font-size:11px;color:var(--text-muted)"><span class="mono" style="color:var(--purple)">{{ d.monto_cuota|money:simbolo_moneda }}</span>/mes · <span class="mono" style="color:var(--red)">{{ d.monto_restante|money:simbolo_moneda }}</span></div>
                     </div>
                     <div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px;flex-shrink:0">
                         <div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end">
@@ -286,9 +309,9 @@
                             {% endif %}
                         </div>
                         <div style="display:flex;gap:4px">
-                            <a href="{% url 'editar_deuda' d.id %}" style="display:flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:8px;background:rgba(167,139,250,0.08);border:1px solid rgba(167,139,250,0.15);color:var(--purple);text-decoration:none;transition:all 0.2s;font-size:12px" title="Editar" onmouseover="this.style.background='rgba(167,139,250,0.18)'" onmouseout="this.style.background='rgba(167,139,250,0.08)'"><i class="fas fa-pen"></i></a>
-                            <form action="{% url 'eliminar_deuda' d.id %}" method="POST" style="margin:0" onsubmit="return confirm('¿Eliminar {{ d.acreedor }}?')">{% csrf_token %}
-                                <button type="submit" style="display:flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:8px;background:rgba(248,113,113,0.08);border:1px solid rgba(248,113,113,0.15);color:var(--red);cursor:pointer;transition:all 0.2s;font-size:12px" title="Eliminar" onmouseover="this.style.background='rgba(248,113,113,0.2)'" onmouseout="this.style.background='rgba(248,113,113,0.08)'"><i class="fas fa-trash"></i></button>
+                            <a href="{% url 'editar_deuda' d.id %}" class="action-btn edit" title="Editar" aria-label="Editar"><i class="fas fa-pen"></i></a>
+                            <form action="{% url 'eliminar_deuda' d.id %}" method="POST" style="margin:0" data-confirm="La deuda '{{ d.acreedor }}' y su historial se eliminarán." data-confirm-title="¿Eliminar deuda?">{% csrf_token %}
+                                <button type="submit" class="action-btn delete" title="Eliminar" aria-label="Eliminar"><i class="fas fa-trash"></i></button>
                             </form>
                         </div>
                     </div>
@@ -324,11 +347,11 @@
                             <div style="font-size:10px;color:var(--text-muted);margin-top:1px">{{ t.fecha|date:"d M Y" }} · {{ t.categoria }}</div>
                         </div>
                     </div>
-                    <span class="mono" style="font-size:13px;font-weight:600;flex-shrink:0;color:{% if t.tipo == 'INGRESO' %}var(--green){% else %}var(--text-primary){% endif %}">{% if t.tipo == 'INGRESO' %}+{% else %}-{% endif %}${{ t.monto|floatformat:"0"|intcomma }}</span>
+                    <span class="mono" style="font-size:13px;font-weight:600;flex-shrink:0;color:{% if t.tipo == 'INGRESO' %}var(--green){% else %}var(--text-primary){% endif %}">{% if t.tipo == 'INGRESO' %}+{% else %}-{% endif %}{{ t.monto|money:simbolo_moneda }}</span>
                     <div style="display:flex;gap:4px;flex-shrink:0;align-items:center">
-                        <a href="{% url 'editar_transaccion' t.id %}" style="display:flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:8px;background:rgba(167,139,250,0.08);border:1px solid rgba(167,139,250,0.15);color:var(--purple);text-decoration:none;transition:all 0.2s;font-size:12px" title="Editar" onmouseover="this.style.background='rgba(167,139,250,0.18)'" onmouseout="this.style.background='rgba(167,139,250,0.08)'"><i class="fas fa-pen"></i></a>
-                        <form action="{% url 'eliminar_transaccion' t.id %}" method="POST" style="margin:0" onsubmit="return confirm('¿Eliminar este movimiento?')">{% csrf_token %}
-                            <button type="submit" style="display:flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:8px;background:rgba(248,113,113,0.08);border:1px solid rgba(248,113,113,0.15);color:var(--red);cursor:pointer;transition:all 0.2s;font-size:12px" title="Eliminar" onmouseover="this.style.background='rgba(248,113,113,0.2)'" onmouseout="this.style.background='rgba(248,113,113,0.08)'"><i class="fas fa-trash"></i></button>
+                        <a href="{% url 'editar_transaccion' t.id %}" class="action-btn edit" title="Editar" aria-label="Editar"><i class="fas fa-pen"></i></a>
+                        <form action="{% url 'eliminar_transaccion' t.id %}" method="POST" style="margin:0" data-confirm="Este movimiento se eliminará de tu historial." data-confirm-title="¿Eliminar movimiento?">{% csrf_token %}
+                            <button type="submit" class="action-btn delete" title="Eliminar" aria-label="Eliminar"><i class="fas fa-trash"></i></button>
                         </form>
                     </div>
                 </div>
@@ -354,18 +377,21 @@
                     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
                         <span style="font-size:12px;font-weight:500;color:var(--text-primary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:130px">{{ meta.nombre }}</span>
                         <div style="display:flex;gap:4px;flex-shrink:0">
-                            <a href="{% url 'editar_meta' meta.id %}" style="display:flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:8px;background:rgba(244,114,182,0.08);border:1px solid rgba(244,114,182,0.15);color:#f472b6;text-decoration:none;transition:all 0.2s;font-size:12px" title="Editar" onmouseover="this.style.background='rgba(244,114,182,0.2)'" onmouseout="this.style.background='rgba(244,114,182,0.08)'"><i class="fas fa-pen"></i></a>
-                            <form action="{% url 'eliminar_meta' meta.id %}" method="POST" style="margin:0" onsubmit="return confirm('¿Eliminar meta?')">{% csrf_token %}
-                                <button type="submit" style="display:flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:8px;background:rgba(248,113,113,0.08);border:1px solid rgba(248,113,113,0.15);color:var(--red);cursor:pointer;transition:all 0.2s;font-size:12px" title="Eliminar" onmouseover="this.style.background='rgba(248,113,113,0.2)'" onmouseout="this.style.background='rgba(248,113,113,0.08)'"><i class="fas fa-trash"></i></button>
+                            {% if not meta.esta_completa %}
+                            <button onclick="abrirAporte({{ meta.id }}, '{{ meta.nombre|escapejs }}')" class="action-btn" title="Aportar" aria-label="Aportar a la meta" style="background:rgba(52,211,153,0.1);border:1px solid rgba(52,211,153,0.2);color:var(--green)"><i class="fas fa-plus"></i></button>
+                            {% endif %}
+                            <a href="{% url 'editar_meta' meta.id %}" class="action-btn edit" title="Editar" aria-label="Editar" style="background:rgba(244,114,182,0.08);border-color:rgba(244,114,182,0.15);color:#f472b6"><i class="fas fa-pen"></i></a>
+                            <form action="{% url 'eliminar_meta' meta.id %}" method="POST" style="margin:0" data-confirm="Esta meta de ahorro se eliminará." data-confirm-title="¿Eliminar meta?">{% csrf_token %}
+                                <button type="submit" class="action-btn delete" title="Eliminar" aria-label="Eliminar"><i class="fas fa-trash"></i></button>
                             </form>
                         </div>
                     </div>
                     <div style="display:flex;justify-content:space-between;margin-bottom:5px">
-                        <span class="mono" style="font-size:12px;color:#f472b6;font-weight:500">${{ meta.monto_actual|floatformat:"0"|intcomma }}</span>
-                        <span class="mono" style="font-size:10px;color:var(--text-muted)">/ ${{ meta.monto_meta|floatformat:"0"|intcomma }}</span>
+                        <span class="mono" style="font-size:12px;color:#f472b6;font-weight:500">{{ meta.monto_actual|money:simbolo_moneda }}</span>
+                        <span class="mono" style="font-size:10px;color:var(--text-muted)">/ {{ meta.monto_meta|money:simbolo_moneda }}</span>
                     </div>
                     <div class="progress-bar"><div class="progress-fill pink" style="width:{{ meta.porcentaje|floatformat:'0' }}%"></div></div>
-                    {% if meta.ahorro_mensual_sugerido %}<div style="font-size:10px;color:var(--text-muted);margin-top:4px">~${{ meta.ahorro_mensual_sugerido|floatformat:"0"|intcomma }}/mes para {{ meta.fecha_limite|date:"M Y" }}</div>{% endif %}
+                    {% if meta.ahorro_mensual_sugerido %}<div style="font-size:10px;color:var(--text-muted);margin-top:4px">~{{ meta.ahorro_mensual_sugerido|money:simbolo_moneda }}/mes para {{ meta.fecha_limite|date:"M Y" }}</div>{% endif %}
                 </div>
                 {% empty %}
                 <div style="background:linear-gradient(135deg,rgba(244,114,182,0.08),rgba(167,139,250,0.05));border:1px dashed rgba(244,114,182,0.25);border-radius:14px;padding:20px 16px;text-align:center">
@@ -405,20 +431,51 @@ Chart.defaults.font.family = "'DM Mono', monospace";
 Chart.defaults.font.size = 10;
 
 const ctx = document.getElementById('chartPrincipal').getContext('2d');
+
+// Gradientes verticales para las barras (marca FinApp)
+function grad(context, c1, c2) {
+    const {ctx, chartArea} = context.chart;
+    if (!chartArea) return c1;
+    const g = ctx.createLinearGradient(0, chartArea.bottom, 0, chartArea.top);
+    g.addColorStop(0, c1);
+    g.addColorStop(1, c2);
+    return g;
+}
+
 const chart = new Chart(ctx, {
     type: 'bar',
     data: {
         labels: {{ meses_json|safe }},
         datasets: [
-            { label:'Ingresos', data:{{ ingresos_json|safe }}, backgroundColor:'rgba(52,211,153,0.5)', borderColor:'#34d399', borderWidth:1.5, borderRadius:5, barThickness:14, order:1 },
-            { label:'Gastos',   data:{{ gastos_json|safe }},   backgroundColor:'rgba(96,165,250,0.5)',  borderColor:'#60a5fa', borderWidth:1.5, borderRadius:4, barThickness:14, stack:'e', order:2 },
-            { label:'Cuotas',   data:{{ cuotas_json|safe }},   backgroundColor:'rgba(251,146,60,0.5)',  borderColor:'#fb923c', borderWidth:1.5, borderRadius:4, barThickness:14, stack:'e', order:2 }
+            { label:'Ingresos', data:{{ ingresos_json|safe }},
+              backgroundColor: c => grad(c, 'rgba(16,185,129,0.25)', 'rgba(52,211,153,0.85)'),
+              borderColor:'#34d399', borderWidth:1.5, borderRadius:6, barThickness:14, order:1 },
+            { label:'Gastos', data:{{ gastos_json|safe }},
+              backgroundColor: c => grad(c, 'rgba(37,99,235,0.25)', 'rgba(96,165,250,0.85)'),
+              borderColor:'#60a5fa', borderWidth:1.5, borderRadius:5, barThickness:14, stack:'e', order:2 },
+            { label:'Cuotas', data:{{ cuotas_json|safe }},
+              backgroundColor: c => grad(c, 'rgba(234,88,12,0.25)', 'rgba(251,146,60,0.85)'),
+              borderColor:'#fb923c', borderWidth:1.5, borderRadius:5, barThickness:14, stack:'e', order:2 }
         ]
     },
     options: {
         responsive:true, maintainAspectRatio:false,
-        plugins: { legend:{display:false}, tooltip:{ backgroundColor:'#1e1e35', borderColor:'rgba(167,139,250,0.2)', borderWidth:1, padding:10, callbacks:{ label: c => ` ${c.dataset.label}: $${Math.round(c.parsed.y).toLocaleString('es-CL')}` } } },
-        scales: { x:{ grid:{display:false}, ticks:{font:{size:9}} }, y:{ beginAtZero:true, grid:{color:'rgba(255,255,255,0.04)'}, ticks:{ callback: v => '$'+(v>=1e6?(v/1e6).toFixed(1)+'M':v>=1e3?(v/1e3).toFixed(0)+'k':v), font:{size:9} } } }
+        animation: { duration: 900, easing: 'easeOutQuart', delay: (c) => c.dataIndex * 60 },
+        plugins: {
+            legend:{display:false},
+            tooltip:{
+                backgroundColor:'#1e1e35', borderColor:'rgba(167,139,250,0.25)', borderWidth:1,
+                padding:12, cornerRadius:10, titleColor:'#f1f0ff', bodyColor:'rgba(241,240,255,0.8)',
+                titleFont:{family:"'DM Sans'", weight:'600', size:12}, bodyFont:{family:"'DM Mono'", size:11},
+                displayColors:true, boxPadding:4,
+                callbacks:{ label: c => ` ${c.dataset.label}: $${Math.round(c.parsed.y).toLocaleString('es-CL')}` }
+            }
+        },
+        scales: {
+            x:{ grid:{display:false}, ticks:{font:{size:9}} },
+            y:{ beginAtZero:true, grid:{color:'rgba(255,255,255,0.04)'}, border:{display:false},
+                ticks:{ callback: v => '$'+(v>=1e6?(v/1e6).toFixed(1)+'M':v>=1e3?(v/1e3).toFixed(0)+'k':v), font:{size:9} } }
+        }
     }
 });
 
@@ -442,7 +499,14 @@ function getCsrf() {
 }
 
 async function anularCuota(btn, deudaId) {
-    if (!confirm('¿Anular el último pago registrado de esta deuda?')) return;
+    finConfirm({
+        titulo: '¿Anular último pago?',
+        mensaje: 'Se descontará la última cuota pagada de esta deuda.',
+        textoBoton: 'Anular pago',
+        callback: () => ejecutarAnular(btn, deudaId)
+    });
+}
+async function ejecutarAnular(btn, deudaId) {
     btn.disabled = true;
     btn.innerHTML = '<i class="fas fa-spinner fa-spin" style="font-size:9px"></i>';
     try {
@@ -511,6 +575,74 @@ function lanzarConfetti(cantidad) {
 const styleTag = document.createElement('style');
 styleTag.textContent = `@keyframes confettiFall { 0%{transform:translateY(0) rotate(0deg);opacity:0.9} 100%{transform:translateY(110vh) rotate(720deg);opacity:0} }`;
 document.head.appendChild(styleTag);
+// ===== APORTAR A META =====
+function abrirAporte(metaId, nombre) {
+    let overlay = document.getElementById('aporte-overlay');
+    if (!overlay) {
+        overlay = document.createElement('div');
+        overlay.id = 'aporte-overlay';
+        overlay.style.cssText = 'position:fixed;inset:0;z-index:1000;display:flex;align-items:center;justify-content:center;background:rgba(5,5,12,0.7);backdrop-filter:blur(6px);padding:20px';
+        overlay.innerHTML = `
+            <div style="background:#16162a;border:1px solid rgba(244,114,182,0.25);border-radius:20px;padding:28px;max-width:340px;width:100%;box-shadow:0 24px 60px rgba(0,0,0,0.5)">
+                <div style="width:48px;height:48px;border-radius:14px;background:rgba(244,114,182,0.12);color:#f472b6;display:flex;align-items:center;justify-content:center;font-size:20px;margin-bottom:16px">
+                    <i class="fas fa-piggy-bank"></i>
+                </div>
+                <div style="font-size:16px;font-weight:600;color:#f1f0ff;margin-bottom:4px">Aportar a <span id="aporte-nombre"></span></div>
+                <div style="font-size:12px;color:rgba(241,240,255,0.5);margin-bottom:18px">¿Cuánto quieres agregar a esta meta?</div>
+                <input type="number" id="aporte-monto" placeholder="Ej: 20000" min="1"
+                    style="width:100%;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:12px 16px;color:#f1f0ff;font-family:'DM Sans',sans-serif;font-size:15px;outline:none;box-sizing:border-box;margin-bottom:16px">
+                <div style="display:flex;gap:10px">
+                    <button onclick="cerrarAporte()" style="flex:1;padding:11px;border-radius:11px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.05);color:rgba(241,240,255,0.7);font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif">Cancelar</button>
+                    <button id="aporte-confirmar" style="flex:1;padding:11px;border-radius:11px;border:none;background:#f472b6;color:#fff;font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif">Aportar</button>
+                </div>
+            </div>`;
+        document.body.appendChild(overlay);
+        overlay.addEventListener('click', e => { if (e.target === overlay) cerrarAporte(); });
+    }
+    document.getElementById('aporte-nombre').textContent = nombre;
+    document.getElementById('aporte-monto').value = '';
+    document.getElementById('aporte-confirmar').onclick = () => confirmarAporte(metaId);
+    overlay.style.display = 'flex';
+    setTimeout(() => document.getElementById('aporte-monto').focus(), 100);
+    if (window.aplicarIconos) window.aplicarIconos();
+}
+
+function cerrarAporte() {
+    const o = document.getElementById('aporte-overlay');
+    if (o) o.style.display = 'none';
+}
+
+async function confirmarAporte(metaId) {
+    const monto = document.getElementById('aporte-monto').value;
+    if (!monto || monto <= 0) {
+        document.getElementById('aporte-monto').style.borderColor = 'rgba(248,113,113,0.5)';
+        return;
+    }
+    const btn = document.getElementById('aporte-confirmar');
+    btn.disabled = true;
+    btn.textContent = 'Guardando...';
+    try {
+        const fd = new FormData();
+        fd.append('monto', monto);
+        const res = await fetch(`/meta/aportar/${metaId}/`, {
+            method: 'POST',
+            headers: { 'X-CSRFToken': getCsrf(), 'X-Requested-With': 'XMLHttpRequest' },
+            body: fd
+        });
+        const data = await res.json();
+        if (data.ok) {
+            cerrarAporte();
+            location.reload();
+        } else {
+            btn.disabled = false;
+            btn.textContent = 'Aportar';
+            alert(data.msg || 'No se pudo registrar el aporte.');
+        }
+    } catch (e) {
+        location.reload();
+    }
+}
+
 </script>
 
 {% endblock %}

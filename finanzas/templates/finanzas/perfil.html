@@ -62,47 +62,47 @@
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
 
                 <div>
-                    <label style="display:block;font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:7px;font-weight:500">Nombre completo</label>
+                    <label class="field-label">Nombre completo</label>
                     <input type="text" name="nombre_completo"
                            value="{{ profile.nombre_completo }}"
                            placeholder="Ej: Juan Pérez"
-                           style="width:100%;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:12px 16px;color:#f1f0ff;font-family:'DM Sans',sans-serif;font-size:14px;outline:none;box-sizing:border-box">
+                           class="field-input">
                 </div>
 
                 <div>
-                    <label style="display:block;font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:7px;font-weight:500">Correo electrónico</label>
+                    <label class="field-label">Correo electrónico</label>
                     <input type="email" name="email"
                            value="{{ profile.email }}"
                            placeholder="Ej: juan@email.com"
-                           style="width:100%;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:12px 16px;color:#f1f0ff;font-family:'DM Sans',sans-serif;font-size:14px;outline:none;box-sizing:border-box">
+                           class="field-input">
                 </div>
 
                 <div>
-                    <label style="display:block;font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:7px;font-weight:500">Teléfono</label>
+                    <label class="field-label">Teléfono</label>
                     <input type="text" name="telefono"
                            value="{{ profile.telefono }}"
                            placeholder="Ej: +56 9 1234 5678"
-                           style="width:100%;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:12px 16px;color:#f1f0ff;font-family:'DM Sans',sans-serif;font-size:14px;outline:none;box-sizing:border-box">
+                           class="field-input">
                 </div>
 
                 <div>
-                    <label style="display:block;font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:7px;font-weight:500">Ciudad</label>
+                    <label class="field-label">Ciudad</label>
                     <input type="text" name="ciudad"
                            value="{{ profile.ciudad }}"
                            placeholder="Ej: Santiago"
-                           style="width:100%;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:12px 16px;color:#f1f0ff;font-family:'DM Sans',sans-serif;font-size:14px;outline:none;box-sizing:border-box">
+                           class="field-input">
                 </div>
 
                 <div>
-                    <label style="display:block;font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:7px;font-weight:500">País</label>
+                    <label class="field-label">País</label>
                     <input type="text" name="pais"
                            value="{{ profile.pais }}"
                            placeholder="Ej: Chile"
-                           style="width:100%;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:12px 16px;color:#f1f0ff;font-family:'DM Sans',sans-serif;font-size:14px;outline:none;box-sizing:border-box">
+                           class="field-input">
                 </div>
 
                 <div>
-                    <label style="display:block;font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:7px;font-weight:500">Moneda preferida</label>
+                    <label class="field-label">Moneda preferida</label>
                     {{ perfil_form.moneda }}
                 </div>
 
@@ -128,7 +128,7 @@
             <input type="hidden" name="accion" value="password">
             {% for field in pw_form %}
             <div>
-                <label style="display:block;font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:7px;font-weight:500">{{ field.label }}</label>
+                <label class="field-label">{{ field.label }}</label>
                 {{ field }}
                 {% for error in field.errors %}<p style="font-size:11px;color:var(--red);margin-top:3px">{{ error }}</p>{% endfor %}
                 {% if field.help_text %}<p style="font-size:10px;color:var(--text-muted);margin-top:4px;opacity:0.7">{{ field.help_text }}</p>{% endif %}

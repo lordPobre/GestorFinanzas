@@ -21,15 +21,11 @@ SECRET_KEY = os.environ.get(
     'django-insecure-solo-para-desarrollo-local-cambiar-en-produccion'
 )
 
-# DEBUG: False por defecto. Solo True si explícitamente se define en el entorno.
 DEBUG = os.environ.get('DEBUG', 'False').lower() == 'true'
 
-# ALLOWED_HOSTS: lista blanca de dominios permitidos.
-# En el entorno se define como "midominio.com,www.midominio.com"
 ALLOWED_HOSTS = os.environ.get(
     'ALLOWED_HOSTS',
-    'localhost,127.0.0.1',
-    'finanzas.pythonanywhere.com','www.finanzas.pythonanywhere.com'
+    'localhost,127.0.0.1,finanzas.pythonanywhere.com,www.finanzas.pythonanywhere.com'
 ).split(',')
 
 
@@ -68,11 +64,11 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'finanzas.context_processors.moneda_usuario',   # ← ESTA LÍNEA
             ],
         },
     },
 ]
-
 WSGI_APPLICATION = 'core.wsgi.application'
 
 database_url = os.environ.get("DATABASE_URL")
@@ -104,6 +100,7 @@ USE_TZ = True
 
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATIC_URL = 'static/'
+STATICFILES_DIRS = [ BASE_DIR / 'static' ]
 
 if not DEBUG:
     STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
@@ -119,41 +116,21 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # ==========================================================
 
 if not DEBUG:
-    # --- HTTPS / SSL ---
-    # Redirige todo el tráfico HTTP a HTTPS
     SECURE_SSL_REDIRECT = True
-    # Necesario si estás detrás de un proxy (Railway, PythonAnywhere, Render)
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-
-    # --- Cookies seguras (solo viajan por HTTPS) ---
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
-
-    # Las cookies no son accesibles vía JavaScript (protege de robo por XSS)
     SESSION_COOKIE_HTTPONLY = True
-    CSRF_COOKIE_HTTPONLY = False  # Django necesita leerla para formularios AJAX
-
-    # Las cookies solo se envían a tu propio sitio (protección CSRF extra)
+    CSRF_COOKIE_HTTPONLY = False  
     SESSION_COOKIE_SAMESITE = 'Lax'
     CSRF_COOKIE_SAMESITE = 'Lax'
-
-    # --- HSTS: fuerza HTTPS en el navegador durante 1 año ---
     SECURE_HSTS_SECONDS = 31536000  # 1 año
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     SECURE_HSTS_PRELOAD = True
-
-    # --- Headers anti-ataques ---
-    # Evita que el navegador "adivine" tipos de contenido (anti-MIME sniffing)
     SECURE_CONTENT_TYPE_NOSNIFF = True
-
-    # Evita que tu sitio sea embebido en iframes (anti-clickjacking)
     X_FRAME_OPTIONS = 'DENY'
-
-    # No filtrar el referrer a sitios externos
     SECURE_REFERRER_POLICY = 'same-origin'
 
-    # --- CSRF: dominios de confianza para formularios ---
-    # Define en el entorno como "https://midominio.com,https://www.midominio.com"
     CSRF_TRUSTED_ORIGINS = [
         origin.strip()
         for origin in os.environ.get('CSRF_TRUSTED_ORIGINS', '').split(',')

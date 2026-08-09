@@ -13,7 +13,7 @@ from datetime import date
 from django.contrib import messages
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import login
-from .models import Transaccion, Deuda, Presupuesto, MetaAhorro
+from .models import Transaccion, Deuda, Presupuesto, MetaAhorro, AporteMeta
 from .forms import DeudaForm, TransaccionForm, MetaAhorroForm
 
 
@@ -42,15 +42,12 @@ def dashboard(request):
         fecha__gte=fecha_inicio, fecha__lte=fecha_fin
     ).aggregate(total=Sum('monto'))['total'] or 0
 
-    # Gastos manuales (excluye transacciones automáticas de cuotas)
-    nombres_deudas = list(Deuda.objects.filter(usuario=request.user).values_list('acreedor', flat=True))
-    gastos_qs = Transaccion.objects.filter(
+    # Gastos manuales (excluye pagos automáticos de cuotas vía es_cuota)
+    total_gastos = Transaccion.objects.filter(
         usuario=request.user, tipo='EGRESO',
-        fecha__gte=fecha_inicio, fecha__lte=fecha_fin
-    )
-    for nombre in nombres_deudas:
-        gastos_qs = gastos_qs.exclude(descripcion__icontains=nombre)
-    total_gastos = gastos_qs.aggregate(total=Sum('monto'))['total'] or 0
+        fecha__gte=fecha_inicio, fecha__lte=fecha_fin,
+        es_cuota=False,
+    ).aggregate(total=Sum('monto'))['total'] or 0
 
     todas_las_deudas = Deuda.objects.filter(usuario=request.user)
     deudas_del_mes = []
@@ -115,10 +112,10 @@ def dashboard(request):
             usuario=request.user, tipo='INGRESO', fecha__gte=fi, fecha__lte=ff
         ).aggregate(t=Sum('monto'))['t'] or 0)
 
-        gas_qs = Transaccion.objects.filter(usuario=request.user, tipo='EGRESO', fecha__gte=fi, fecha__lte=ff)
-        for nombre in nombres_deudas:
-            gas_qs = gas_qs.exclude(descripcion__icontains=nombre)
-        gas = float(gas_qs.aggregate(t=Sum('monto'))['t'] or 0)
+        gas = float(Transaccion.objects.filter(
+            usuario=request.user, tipo='EGRESO',
+            fecha__gte=fi, fecha__lte=ff, es_cuota=False,
+        ).aggregate(t=Sum('monto'))['t'] or 0)
 
         cuotas_m = 0.0
         for d in todas_las_deudas:
@@ -144,6 +141,89 @@ def dashboard(request):
     es_nuevo = (total_ingresos == 0 and total_gastos == 0 and not todas_las_deudas.exists())
     profile = get_or_create_profile(request.user)
 
+    # ========== INSIGHTS Y PROYECCIONES ==========
+    insights = []
+
+    # --- 1. Presupuesto: alerta si el gasto se acerca o supera el límite ---
+    presupuesto = Presupuesto.objects.filter(usuario=request.user).first()
+    presupuesto_pct = None
+    if presupuesto and presupuesto.limite_mensual > 0:
+        gasto_vs_presupuesto = float(total_gastos)
+        limite = float(presupuesto.limite_mensual)
+        presupuesto_pct = round((gasto_vs_presupuesto / limite) * 100)
+        if presupuesto_pct >= 100:
+            insights.append({
+                'tipo': 'peligro', 'icono': 'fa-exclamation-triangle',
+                'texto': f'Superaste tu presupuesto mensual ({presupuesto_pct}%). Llevas gastado más de lo planeado.'
+            })
+        elif presupuesto_pct >= 80:
+            insights.append({
+                'tipo': 'alerta', 'icono': 'fa-exclamation-triangle',
+                'texto': f'Vas en el {presupuesto_pct}% de tu presupuesto. Cuida los gastos del resto del mes.'
+            })
+
+    # --- 2. Comparación con el mes anterior (gastos) ---
+    # datos_gastos tiene los últimos 6 meses; el penúltimo es el mes anterior
+    if len(datos_gastos) >= 2:
+        gasto_actual = datos_gastos[-1]
+        gasto_anterior = datos_gastos[-2]
+        if gasto_anterior > 0:
+            variacion = round(((gasto_actual - gasto_anterior) / gasto_anterior) * 100)
+            if variacion >= 20:
+                insights.append({
+                    'tipo': 'alerta', 'icono': 'fa-arrow-up',
+                    'texto': f'Gastaste {variacion}% más que el mes pasado.'
+                })
+            elif variacion <= -20:
+                insights.append({
+                    'tipo': 'exito', 'icono': 'fa-arrow-down',
+                    'texto': f'Gastaste {abs(variacion)}% menos que el mes pasado. ¡Bien!'
+                })
+
+    # --- 3. Deudas próximas a vencer (usa la property urgencia) ---
+    deudas_urgentes = []
+    for d in todas_las_deudas:
+        if d.cuotas_pagadas >= d.cuotas_totales:
+            continue
+        urgencia = d.urgencia
+        dias = d.dias_para_vencer
+        if urgencia in ('vencida', 'critica') and dias is not None:
+            deudas_urgentes.append({'deuda': d, 'dias': dias, 'urgencia': urgencia})
+    # Ordenar por más urgente primero
+    deudas_urgentes.sort(key=lambda x: x['dias'])
+    for du in deudas_urgentes[:2]:  # máximo 2 alertas
+        d, dias = du['deuda'], du['dias']
+        if dias < 0:
+            insights.append({
+                'tipo': 'peligro', 'icono': 'fa-credit-card',
+                'texto': f'La cuota de {d.acreedor} está vencida hace {abs(dias)} día{"s" if abs(dias) != 1 else ""}.'
+            })
+        else:
+            insights.append({
+                'tipo': 'alerta', 'icono': 'fa-credit-card',
+                'texto': f'La cuota de {d.acreedor} vence en {dias} día{"s" if dias != 1 else ""}.'
+            })
+
+    # --- 4. Proyección: cuándo se termina cada deuda ---
+    proyecciones_deuda = []
+    for d in todas_las_deudas.filter(cuotas_pagadas__lt=F('cuotas_totales')):
+        fecha_fin = d.fecha_fin_estimada
+        cuotas_restantes = d.cuotas_totales - d.cuotas_pagadas
+        proyecciones_deuda.append({
+            'acreedor': d.acreedor,
+            'fecha_fin': fecha_fin,
+            'cuotas_restantes': cuotas_restantes,
+            'mes_fin': nombres_meses[fecha_fin.month - 1] + ' ' + str(fecha_fin.year),
+        })
+    # La deuda que se termina primero
+    if proyecciones_deuda:
+        proyecciones_deuda.sort(key=lambda x: x['fecha_fin'])
+        prox = proyecciones_deuda[0]
+        insights.append({
+            'tipo': 'info', 'icono': 'fa-check-circle',
+            'texto': f'A este ritmo, terminas de pagar {prox["acreedor"]} en {prox["mes_fin"]}.'
+        })
+
     context = {
         'nombre_mes': nombre_mes,
         'profile': profile,
@@ -161,6 +241,10 @@ def dashboard(request):
         'total_comprometido_mes': round(total_comprometido_mes, 0),
         'disponible': round(disponible, 0),
         'deuda_total': round(deuda_total, 0),
+        'insights': insights,
+        'presupuesto': presupuesto,
+        'presupuesto_pct': presupuesto_pct,
+        'proyecciones_deuda': proyecciones_deuda,
         'deudas': deudas_del_mes,
         'ultimas': ultimas,
         'metas': metas,
@@ -189,6 +273,7 @@ def pagar_cuota(request, deuda_id):
                 monto=deuda.monto_cuota, categoria=deuda.categoria,
                 descripcion=f'Cuota {deuda.cuotas_pagadas}/{deuda.cuotas_totales} — {deuda.acreedor}',
                 fecha=timezone.now(),
+                es_cuota=True,
             )
             if es_ajax:
                 return JsonResponse({'ok': True, 'acreedor': deuda.acreedor,
@@ -213,7 +298,7 @@ def anular_cuota(request, deuda_id):
             deuda.save()
             ultima = Transaccion.objects.filter(
                 usuario=request.user, tipo='EGRESO',
-                descripcion__icontains=deuda.acreedor
+                es_cuota=True, descripcion__icontains=deuda.acreedor
             ).order_by('-fecha', '-id').first()
             if ultima: ultima.delete()
             if es_ajax:
@@ -335,6 +420,48 @@ def registro(request):
     else:
         form = UserCreationForm()
     return render(request, 'registration/registro.html', {'form': form})
+
+
+@login_required(login_url='/login/')
+def aportar_meta(request, meta_id):
+    """Registra un aporte a una meta y actualiza su monto acumulado."""
+    from django.http import JsonResponse
+    from decimal import Decimal, InvalidOperation
+
+    meta = get_object_or_404(MetaAhorro, id=meta_id, usuario=request.user)
+    es_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
+
+    if request.method == 'POST':
+        monto_raw = request.POST.get('monto', '0')
+        try:
+            monto = Decimal(str(monto_raw))
+        except (InvalidOperation, ValueError):
+            monto = Decimal('0')
+
+        if monto <= 0:
+            if es_ajax:
+                return JsonResponse({'ok': False, 'msg': 'Ingresa un monto válido.'})
+            messages.warning(request, 'Ingresa un monto válido.')
+            return redirect('dashboard')
+
+        # Registrar el aporte y sumar al acumulado
+        AporteMeta.objects.create(meta=meta, monto=monto, nota=request.POST.get('nota', ''))
+        meta.monto_actual = (meta.monto_actual or 0) + monto
+        meta.save()
+
+        completada = meta.monto_actual >= meta.monto_meta
+        if es_ajax:
+            return JsonResponse({
+                'ok': True,
+                'nombre': meta.nombre,
+                'monto_actual': float(meta.monto_actual),
+                'monto_meta': float(meta.monto_meta),
+                'porcentaje': round(float(meta.porcentaje), 1),
+                'completada': completada,
+            })
+        messages.success(request, f'Aporte a "{meta.nombre}" registrado.')
+
+    return redirect('dashboard')
 
 
 @login_required(login_url='/login/')

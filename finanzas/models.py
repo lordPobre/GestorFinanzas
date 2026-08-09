@@ -104,11 +104,28 @@ class Deuda(models.Model):
 
     @property
     def dias_para_vencer(self):
+        # Si la deuda ya está pagada por completo, no hay vencimiento
+        if self.cuotas_pagadas >= self.cuotas_totales:
+            return None
         fecha_evaluar = self.proximo_vencimiento or self.fecha_inicio
         if fecha_evaluar:
             delta = fecha_evaluar - date.today()
             return delta.days
-        return 999
+        return None
+
+    @property
+    def urgencia(self):
+        # Nivel de urgencia del próximo pago: para alertas visuales
+        d = self.dias_para_vencer
+        if d is None:
+            return None
+        if d < 0:
+            return 'vencida'      # ya pasó la fecha
+        if d <= 3:
+            return 'critica'      # vence en 3 días o menos
+        if d <= 7:
+            return 'proxima'      # vence esta semana
+        return 'normal'
 
     def __str__(self):
         return self.acreedor
@@ -154,6 +171,31 @@ class MetaAhorro(models.Model):
 
     def __str__(self):
         return self.nombre
+
+    @property
+    def esta_completa(self):
+        return self.monto_actual >= self.monto_meta
+
+    @property
+    def dias_restantes(self):
+        if not self.fecha_limite:
+            return None
+        return (self.fecha_limite - date.today()).days
+
+
+class AporteMeta(models.Model):
+    """Registro de cada aporte hecho a una meta de ahorro.
+    Permite historial y actualiza monto_actual automáticamente."""
+    meta = models.ForeignKey(MetaAhorro, on_delete=models.CASCADE, related_name='aportes')
+    monto = models.DecimalField(max_digits=12, decimal_places=2)
+    fecha = models.DateField(default=timezone.now)
+    nota = models.CharField(max_length=120, blank=True)
+
+    class Meta:
+        ordering = ['-fecha', '-id']
+
+    def __str__(self):
+        return f"Aporte {self.monto} a {self.meta.nombre}"
 
 
 class UserProfile(models.Model):
