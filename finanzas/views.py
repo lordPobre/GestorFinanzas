@@ -55,28 +55,37 @@ def dashboard(request):
     cuotas_pendientes_mes = 0.0
     eventos_mes = {}
 
+    cuotas_pagadas_mes = Transaccion.objects.filter(
+        usuario=request.user, tipo='EGRESO',
+        fecha__gte=fecha_inicio, fecha__lte=fecha_fin,
+        es_cuota=True,
+    ).aggregate(total=Sum('monto'))['total'] or 0
+
+    total_teorico_cuotas = 0.0
     for d in todas_las_deudas:
         dia_venc = d.fecha_inicio.day
         if dia_venc > ultimo_dia: dia_venc = ultimo_dia
         fecha_cobro = date(year, month, dia_venc)
         fecha_fin_deuda = d.fecha_inicio + relativedelta(months=int(d.cuotas_totales) - 1)
+        
         if not (d.fecha_inicio <= fecha_cobro <= fecha_fin_deuda): continue
+        
         deudas_del_mes.append(d)
-
-        if year < hoy.year or (year == hoy.year and month < hoy.month): estado = 'pagado'
-        elif year > hoy.year or (year == hoy.year and month > hoy.month): estado = 'pendiente'
-        else:
-            if d.proximo_vencimiento and d.proximo_vencimiento > fecha_cobro: estado = 'pagado'
-            elif d.cuotas_pagadas >= d.cuotas_totales: estado = 'pagado'
-            else: estado = 'pendiente'
-
         monto_cuota = float(d.monto_cuota)
-        if estado == 'pagado': cuotas_pagadas_mes += monto_cuota
-        else: cuotas_pendientes_mes += monto_cuota
-
+        total_teorico_cuotas += monto_cuota
+        
+        # Para el calendario (eventos_mes), podemos mantener una lógica visual simple
+        # Si la fecha de cobro ya pasó y la deuda total no está pagada, visualmente está "pendiente"
+        if d.cuotas_pagadas >= d.cuotas_totales: estado = 'pagado'
+        elif fecha_cobro < hoy: estado = 'pendiente' # Se atrasó
+        else: estado = 'pendiente'
+            
         if dia_venc not in eventos_mes: eventos_mes[dia_venc] = []
-        eventos_mes[dia_venc].append({'deuda': d, 'estado': estado, 'monto': d.monto_cuota})
+        eventos_mes[dia_venc].append({'deuda': d, 'estado': estado, 'monto': monto_cuota})
 
+    # 3. Calcular cuotas pendientes (el total que debería pagarse menos lo que ya se pagó en transacciones)
+    cuotas_pendientes_mes = max(0, total_teorico_cuotas - cuotas_pagadas_mes)
+    
     total_cuotas_mes = cuotas_pagadas_mes + cuotas_pendientes_mes
 
     # RESUMEN: gastos manuales del día a día solamente

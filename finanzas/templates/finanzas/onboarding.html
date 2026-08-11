@@ -202,7 +202,7 @@
             <div class="field">
                 <label>Monto de ingreso mensual ($)</label>
                 <input type="number" id="monto-ingreso" placeholder="Ej: 1.200.000" min="1" required>
-                <div class="hint">💡 Si recibes varios ingresos distintos, ingresa el total aproximado</div>
+                <div class="hint">Si recibes varios ingresos distintos, ingresa el total aproximado</div>
             </div>
             <div class="field">
                 <label>Descripción</label>
@@ -229,12 +229,12 @@
 
         <div class="quick-options" id="deuda-opts">
             <div class="quick-opt" onclick="selectDeudaOpt(this, 'si')">
-                <div class="opt-icon">💳</div>
+                <div class="opt-icon" style="color:var(--orange)"><i class="fas fa-credit-card" style="font-size:20px"></i></div>
                 <div class="opt-label">Sí, tengo cuotas</div>
                 <div class="opt-desc">Quiero registrarlas</div>
             </div>
             <div class="quick-opt" onclick="selectDeudaOpt(this, 'no')">
-                <div class="opt-icon">😊</div>
+                <div class="opt-icon" style="color:var(--green)"><i class="fas fa-smile" style="font-size:20px"></i></div>
                 <div class="opt-label">No por ahora</div>
                 <div class="opt-desc">Las agrego después</div>
             </div>
@@ -249,7 +249,7 @@
             <div class="field">
                 <label>Monto total de la deuda ($)</label>
                 <input type="number" id="deuda-monto" placeholder="Ej: 3.600.000">
-                <div class="hint">💡 Si no sabes el total exacto, pon el monto de la cuota mensual × número de cuotas</div>
+                <div class="hint">Si no sabes el total exacto, pon el monto de la cuota mensual × número de cuotas</div>
             </div>
             <div class="field">
                 <label>¿En cuántas cuotas? (cuotas que quedan)</label>
@@ -283,22 +283,22 @@
             <div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em;font-weight:500;margin-bottom:10px">Elige un punto de partida</div>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px" id="presupuesto-opciones">
                 <div class="quick-opt" onclick="seleccionarPresupuesto(this, 300000)">
-                    <div class="opt-icon">🧑‍🎓</div>
+                    <div class="opt-icon" style="color:#60a5fa"><i class="fas fa-user" style="font-size:20px"></i></div>
                     <div class="opt-label">$300.000</div>
                     <div class="opt-desc">Estudiante / ajustado</div>
                 </div>
                 <div class="quick-opt" onclick="seleccionarPresupuesto(this, 500000)">
-                    <div class="opt-icon">👔</div>
+                    <div class="opt-icon" style="color:var(--purple)"><i class="fas fa-briefcase" style="font-size:20px"></i></div>
                     <div class="opt-label">$500.000</div>
                     <div class="opt-desc">Trabajador promedio</div>
                 </div>
                 <div class="quick-opt" onclick="seleccionarPresupuesto(this, 800000)">
-                    <div class="opt-icon">🏠</div>
+                    <div class="opt-icon" style="color:var(--green)"><i class="fas fa-home" style="font-size:20px"></i></div>
                     <div class="opt-label">$800.000</div>
                     <div class="opt-desc">Con familia / arriendo</div>
                 </div>
                 <div class="quick-opt" onclick="seleccionarPresupuesto(this, 0)">
-                    <div class="opt-icon">✏️</div>
+                    <div class="opt-icon" style="color:var(--orange)"><i class="fas fa-pen" style="font-size:20px"></i></div>
                     <div class="opt-label">Personalizado</div>
                     <div class="opt-desc">Lo ingreso yo</div>
                 </div>
@@ -311,7 +311,7 @@
             <input type="number" id="presupuesto-input" placeholder="Ej: 650000" min="1"
                    oninput="presupuestoCustom = this.value">
             <div style="font-size:11px;color:var(--text-muted);margin-top:5px;opacity:0.7">
-                💡 Solo considera gastos del día a día, no tus cuotas fijas
+                Solo considera gastos del día a día, no tus cuotas fijas
             </div>
         </div>
 
@@ -335,7 +335,7 @@
             <i class="fas fa-rocket"></i>
         </div>
         <span class="label">Paso 4 de 4 · ¡Todo listo!</span>
-        <h2>Ya puedes empezar 🎉</h2>
+        <h2>Ya puedes empezar <i class="fas fa-party" style="font-size:20px;color:#a78bfa;margin-left:4px"></i></h2>
         <p class="desc">Tu cuenta está configurada. Aquí un resumen de lo que registraste:</p>
 
         <div class="check-list" id="resumen-lista"></div>
@@ -431,19 +431,19 @@ function mostrarResumen() {
     const items = [
         {
             done: !!datosIngreso,
-            icon: '💰',
+            icon: '<i class=\'fas fa-coins\' style=\'color:#34d399\'></i>',
             text: datosIngreso ? `Ingreso registrado: $${Number(datosIngreso.monto).toLocaleString('es-CL')}` : 'Sin ingreso registrado',
             sub: datosIngreso ? datosIngreso.desc : 'Puedes agregarlo desde el dashboard'
         },
         {
             done: !!datosDeuda,
-            icon: '💳',
+            icon: '<i class=\'fas fa-credit-card\' style=\'color:#fb923c\'></i>',
             text: datosDeuda ? `Deuda: ${datosDeuda.acreedor}` : 'Sin deudas registradas',
             sub: datosDeuda ? `$${Number(datosDeuda.monto).toLocaleString('es-CL')} en ${datosDeuda.cuotas} cuotas` : 'Puedes agregarlas desde el dashboard'
         },
         {
             done: true,
-            icon: '📊',
+            icon: '<i class=\'fas fa-chart-pie\' style=\'color:#60a5fa\'></i>',
             text: 'Dashboard listo para usar',
             sub: 'Registra gastos del día a día cuando quieras'
         }
@@ -524,25 +524,25 @@ function mostrarResumen() {
     const items = [
         {
             done: !!datosIngreso,
-            icon: '💰',
+            icon: '<i class=\'fas fa-coins\' style=\'color:#34d399\'></i>',
             text: datosIngreso ? 'Ingreso registrado: $' + Number(datosIngreso.monto).toLocaleString('es-CL') : 'Sin ingreso registrado',
             sub: datosIngreso ? datosIngreso.desc : 'Puedes agregarlo desde el dashboard'
         },
         {
             done: !!datosDeuda,
-            icon: '💳',
+            icon: '<i class=\'fas fa-credit-card\' style=\'color:#fb923c\'></i>',
             text: datosDeuda ? 'Cuota: ' + datosDeuda.acreedor : 'Sin cuotas registradas',
             sub: datosDeuda ? '$' + Number(datosDeuda.monto).toLocaleString('es-CL') + ' en ' + datosDeuda.cuotas + ' cuotas' : 'Puedes agregarlas desde el dashboard'
         },
         {
             done: !!presupuestoValor,
-            icon: '📊',
+            icon: '<i class=\'fas fa-chart-pie\' style=\'color:#60a5fa\'></i>',
             text: presupuestoValor ? 'Presupuesto: $' + presupuestoValor.toLocaleString('es-CL') + '/mes' : 'Presupuesto predeterminado: $500.000',
             sub: 'Te avisamos cuando te estés acercando al límite'
         },
         {
             done: true,
-            icon: '🚀',
+            icon: '<i class=\'fas fa-rocket\' style=\'color:#a78bfa\'></i>',
             text: 'Dashboard listo para usar',
             sub: 'Registra gastos del día a día cuando quieras'
         }

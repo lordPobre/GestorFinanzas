@@ -6,7 +6,7 @@
   <!-- EXPLICACIÓN CONTEXTUAL: ¿qué es una cuota? -->
   {% if not editar %}
   <div style="background:rgba(251,146,60,0.08);border:1px solid rgba(251,146,60,0.18);border-radius:16px;padding:16px 18px;margin-bottom:20px;display:flex;gap:12px;align-items:flex-start">
-    <div style="font-size:18px;flex-shrink:0;margin-top:1px">💳</div>
+    <div style="flex-shrink:0;margin-top:1px;color:var(--orange)"><i class="fas fa-credit-card" style="font-size:18px"></i></div>
     <div>
       <div style="font-size:13px;font-weight:600;color:var(--orange);margin-bottom:4px">¿Cuándo usar esto?</div>
       <div style="font-size:12px;color:var(--text-muted);line-height:1.6">
@@ -53,7 +53,7 @@
         </label>
         {{ form.monto_total }}
         <div style="font-size:11px;color:var(--text-muted);margin-top:5px;opacity:0.7">
-          💡 Si no sabes el total, multiplica tu cuota mensual × número de cuotas que quedan
+          Si no sabes el total, multiplica tu cuota mensual × número de cuotas que quedan
         </div>
         {% if form.monto_total.errors %}<p style="font-size:11px;color:var(--red);margin-top:3px">{{ form.monto_total.errors.0 }}</p>{% endif %}
       </div>
@@ -85,7 +85,7 @@
         </label>
         {{ form.fecha_inicio }}
         <div style="font-size:11px;color:var(--text-muted);margin-top:5px;opacity:0.7">
-          📅 Esta fecha nos permite calcular cuándo vencen las cuotas siguientes en el calendario.
+          Esta fecha nos permite calcular cuándo vencen las cuotas siguientes en el calendario.
           Si ya llevas varios meses pagando, pon la fecha del primer pago que hiciste.
         </div>
         {% if form.fecha_inicio.errors %}<p style="font-size:11px;color:var(--red);margin-top:3px">{{ form.fecha_inicio.errors.0 }}</p>{% endif %}
