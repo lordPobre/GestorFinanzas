@@ -13,7 +13,7 @@ from datetime import date
 from django.contrib import messages
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import login
-from .models import Transaccion, Deuda, Presupuesto, MetaAhorro, AporteMeta
+from .models import Transaccion, Deuda, Presupuesto, MetaAhorro, AporteMeta, Persona, Prestamo, AbonoPrestamo, GastoPendiente
 from .forms import DeudaForm, TransaccionForm, MetaAhorroForm
 
 
@@ -55,37 +55,28 @@ def dashboard(request):
     cuotas_pendientes_mes = 0.0
     eventos_mes = {}
 
-    cuotas_pagadas_mes = Transaccion.objects.filter(
-        usuario=request.user, tipo='EGRESO',
-        fecha__gte=fecha_inicio, fecha__lte=fecha_fin,
-        es_cuota=True,
-    ).aggregate(total=Sum('monto'))['total'] or 0
-
-    total_teorico_cuotas = 0.0
     for d in todas_las_deudas:
         dia_venc = d.fecha_inicio.day
         if dia_venc > ultimo_dia: dia_venc = ultimo_dia
         fecha_cobro = date(year, month, dia_venc)
         fecha_fin_deuda = d.fecha_inicio + relativedelta(months=int(d.cuotas_totales) - 1)
-        
         if not (d.fecha_inicio <= fecha_cobro <= fecha_fin_deuda): continue
-        
         deudas_del_mes.append(d)
-        monto_cuota = float(d.monto_cuota)
-        total_teorico_cuotas += monto_cuota
-        
-        # Para el calendario (eventos_mes), podemos mantener una lógica visual simple
-        # Si la fecha de cobro ya pasó y la deuda total no está pagada, visualmente está "pendiente"
-        if d.cuotas_pagadas >= d.cuotas_totales: estado = 'pagado'
-        elif fecha_cobro < hoy: estado = 'pendiente' # Se atrasó
-        else: estado = 'pendiente'
-            
-        if dia_venc not in eventos_mes: eventos_mes[dia_venc] = []
-        eventos_mes[dia_venc].append({'deuda': d, 'estado': estado, 'monto': monto_cuota})
 
-    # 3. Calcular cuotas pendientes (el total que debería pagarse menos lo que ya se pagó en transacciones)
-    cuotas_pendientes_mes = max(0, total_teorico_cuotas - cuotas_pagadas_mes)
-    
+        if year < hoy.year or (year == hoy.year and month < hoy.month): estado = 'pagado'
+        elif year > hoy.year or (year == hoy.year and month > hoy.month): estado = 'pendiente'
+        else:
+            if d.proximo_vencimiento and d.proximo_vencimiento > fecha_cobro: estado = 'pagado'
+            elif d.cuotas_pagadas >= d.cuotas_totales: estado = 'pagado'
+            else: estado = 'pendiente'
+
+        monto_cuota = float(d.monto_cuota)
+        if estado == 'pagado': cuotas_pagadas_mes += monto_cuota
+        else: cuotas_pendientes_mes += monto_cuota
+
+        if dia_venc not in eventos_mes: eventos_mes[dia_venc] = []
+        eventos_mes[dia_venc].append({'deuda': d, 'estado': estado, 'monto': d.monto_cuota})
+
     total_cuotas_mes = cuotas_pagadas_mes + cuotas_pendientes_mes
 
     # RESUMEN: gastos manuales del día a día solamente
@@ -255,6 +246,7 @@ def dashboard(request):
         'presupuesto_pct': presupuesto_pct,
         'proyecciones_deuda': proyecciones_deuda,
         'deudas': deudas_del_mes,
+        'gastos_pendientes': GastoPendiente.objects.filter(usuario=request.user).order_by('pagado', 'fecha_vencimiento'),
         'ultimas': ultimas,
         'metas': metas,
         'calendario': calendario_datos,
@@ -368,6 +360,28 @@ def registrar_transaccion(request):
         if form.is_valid():
             t = form.save(commit=False)
             t.usuario = request.user
+            # ¿Es un gasto marcado como "aún no lo pago"? → gasto pendiente
+            es_pendiente = request.POST.get('es_pendiente') == '1'
+            if es_pendiente and t.tipo == 'EGRESO':
+                # La fecha del formulario es el vencimiento.
+                # Creamos la transacción (para que cuente en su mes) y el
+                # GastoPendiente vinculado, sin pagar.
+                t.es_cuota = False
+                nombre_gasto = t.descripcion.strip() if t.descripcion else ''
+                if not nombre_gasto:
+                    nombre_gasto = t.categoria or 'Gasto pendiente'
+                    t.descripcion = f'Pendiente: {nombre_gasto}'
+                t.save()
+                GastoPendiente.objects.create(
+                    usuario=request.user,
+                    nombre=nombre_gasto,
+                    monto=t.monto,
+                    fecha_vencimiento=t.fecha,
+                    categoria=t.categoria or 'Cuentas',
+                    transaccion=t,
+                )
+                messages.success(request, 'Gasto pendiente agregado.')
+                return redirect('dashboard')
             t.save()
             messages.success(request, f'{"Ingreso" if t.tipo == "INGRESO" else "Gasto"} registrado.')
             return redirect('dashboard')
@@ -508,6 +522,276 @@ def eliminar_meta(request, meta_id):
     if request.method == 'POST':
         meta.delete()
         messages.success(request, 'Meta eliminada.')
+    return redirect('dashboard')
+
+
+@login_required(login_url='/login/')
+def prestamos(request):
+    """Lista de personas que me deben, con su total pendiente."""
+    personas = Persona.objects.filter(usuario=request.user)
+    # Totales generales
+    total_por_cobrar = sum(p.total_pendiente for p in personas)
+    total_prestado = sum(p.total_prestado for p in personas)
+    total_recuperado = sum(p.total_abonado for p in personas)
+    return render(request, 'finanzas/prestamos.html', {
+        'personas': personas,
+        'total_por_cobrar': round(total_por_cobrar, 0),
+        'total_prestado': round(total_prestado, 0),
+        'total_recuperado': round(total_recuperado, 0),
+    })
+
+
+@login_required(login_url='/login/')
+def detalle_persona(request, persona_id):
+    """Ver todos los préstamos de una persona y sus abonos."""
+    persona = get_object_or_404(Persona, id=persona_id, usuario=request.user)
+    prestamos_lista = persona.prestamos.all()
+    return render(request, 'finanzas/detalle_persona.html', {
+        'persona': persona,
+        'prestamos': prestamos_lista,
+    })
+
+
+@login_required(login_url='/login/')
+def crear_persona(request):
+    if request.method == 'POST':
+        nombre = request.POST.get('nombre', '').strip()
+        contacto = request.POST.get('contacto', '').strip()
+        if nombre:
+            persona = Persona.objects.create(usuario=request.user, nombre=nombre, contacto=contacto)
+            messages.success(request, f'{nombre} agregado.')
+            # Si vino con datos de préstamo, crearlo de una vez
+            monto = request.POST.get('monto')
+            if monto:
+                try:
+                    tipo = request.POST.get('tipo', 'UNICO')
+                    cuotas = int(request.POST.get('cuotas_totales', 1)) if tipo == 'CUOTAS' else 1
+                    Prestamo.objects.create(
+                        persona=persona,
+                        descripcion=request.POST.get('descripcion', 'Préstamo').strip() or 'Préstamo',
+                        monto=float(monto), tipo=tipo, cuotas_totales=max(1, cuotas),
+                    )
+                except (ValueError, TypeError):
+                    pass
+            return redirect('detalle_persona', persona_id=persona.id)
+        messages.warning(request, 'Ingresa un nombre.')
+    return render(request, 'finanzas/form_persona.html', {})
+
+
+@login_required(login_url='/login/')
+def crear_prestamo(request, persona_id):
+    persona = get_object_or_404(Persona, id=persona_id, usuario=request.user)
+    if request.method == 'POST':
+        descripcion = request.POST.get('descripcion', '').strip()
+        monto = request.POST.get('monto')
+        if descripcion and monto:
+            try:
+                tipo = request.POST.get('tipo', 'UNICO')
+                cuotas = int(request.POST.get('cuotas_totales', 1)) if tipo == 'CUOTAS' else 1
+                Prestamo.objects.create(
+                    persona=persona, descripcion=descripcion,
+                    monto=float(monto), tipo=tipo, cuotas_totales=max(1, cuotas),
+                )
+                messages.success(request, 'Préstamo agregado.')
+                return redirect('detalle_persona', persona_id=persona.id)
+            except (ValueError, TypeError):
+                messages.warning(request, 'Revisa el monto ingresado.')
+    return render(request, 'finanzas/form_prestamo.html', {'persona': persona})
+
+
+@login_required(login_url='/login/')
+def abonar_prestamo(request, prestamo_id):
+    """Registra un pago que me hacen. NO afecta el balance del dashboard."""
+    from django.http import JsonResponse
+    from decimal import Decimal, InvalidOperation
+
+    prestamo = get_object_or_404(Prestamo, id=prestamo_id, persona__usuario=request.user)
+    es_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
+
+    if request.method == 'POST':
+        try:
+            monto = Decimal(str(request.POST.get('monto', '0')))
+        except (InvalidOperation, ValueError):
+            monto = Decimal('0')
+
+        if monto <= 0:
+            if es_ajax:
+                return JsonResponse({'ok': False, 'msg': 'Ingresa un monto válido.'})
+            messages.warning(request, 'Ingresa un monto válido.')
+            return redirect('detalle_persona', persona_id=prestamo.persona.id)
+
+        AbonoPrestamo.objects.create(prestamo=prestamo, monto=monto, nota=request.POST.get('nota', ''))
+
+        if es_ajax:
+            return JsonResponse({
+                'ok': True,
+                'pendiente': prestamo.monto_pendiente,
+                'porcentaje': prestamo.porcentaje,
+                'pagado': prestamo.esta_pagado,
+            })
+        messages.success(request, 'Abono registrado.')
+    return redirect('detalle_persona', persona_id=prestamo.persona.id)
+
+
+@login_required(login_url='/login/')
+def eliminar_persona(request, persona_id):
+    persona = get_object_or_404(Persona, id=persona_id, usuario=request.user)
+    if request.method == 'POST':
+        nombre = persona.nombre
+        persona.delete()
+        messages.success(request, f'{nombre} y sus préstamos fueron eliminados.')
+        return redirect('prestamos')
+    return redirect('prestamos')
+
+
+@login_required(login_url='/login/')
+def eliminar_prestamo(request, prestamo_id):
+    prestamo = get_object_or_404(Prestamo, id=prestamo_id, persona__usuario=request.user)
+    persona_id = prestamo.persona.id
+    if request.method == 'POST':
+        prestamo.delete()
+        messages.success(request, 'Préstamo eliminado.')
+    return redirect('detalle_persona', persona_id=persona_id)
+
+
+@login_required(login_url='/login/')
+def analisis_predictivo(request):
+    """Análisis financiero: motor determinístico + interpretación IA opcional."""
+    from .analisis import analizar_finanzas
+    from .ia import interpretar_con_ia
+    from .context_processors import CONFIG_MONEDA
+
+    analisis = analizar_finanzas(request.user)
+
+    # Símbolo de moneda del usuario
+    try:
+        moneda_cod = request.user.profile.moneda
+        simbolo = CONFIG_MONEDA.get(moneda_cod, CONFIG_MONEDA['CLP'])['simbolo']
+    except Exception:
+        simbolo = '$'
+
+    # Cálculo del offset del círculo de riesgo (SVG): circunferencia = 2*pi*52 ≈ 327
+    circunferencia = 327
+    riesgo_offset = circunferencia - (circunferencia * analisis['riesgo_score'] / 100)
+
+    # Datos de proyección para el gráfico
+    import json as _json
+    proy_meses = [p['mes'] for p in analisis['proyeccion']]
+    proy_deuda = [p['deuda'] for p in analisis['proyeccion']]
+    proy_pago = [p['pago_mes'] for p in analisis['proyeccion']]
+
+    # La interpretación con IA se pide vía AJAX aparte (para no bloquear la carga)
+    return render(request, 'finanzas/analisis.html', {
+        'analisis': analisis,
+        'simbolo': simbolo,
+        'riesgo_offset': round(riesgo_offset, 1),
+        'proy_meses_json': _json.dumps(proy_meses),
+        'proy_deuda_json': _json.dumps(proy_deuda),
+        'proy_pago_json': _json.dumps(proy_pago),
+    })
+
+
+@login_required(login_url='/login/')
+def analisis_ia(request):
+    """Endpoint AJAX: genera la interpretación con IA (puede tardar unos segundos)."""
+    from django.http import JsonResponse
+    from .analisis import analizar_finanzas
+    from .ia import interpretar_con_ia
+    from .context_processors import CONFIG_MONEDA
+
+    analisis = analizar_finanzas(request.user)
+    try:
+        moneda_cod = request.user.profile.moneda
+        simbolo = CONFIG_MONEDA.get(moneda_cod, CONFIG_MONEDA['CLP'])['simbolo']
+    except Exception:
+        simbolo = '$'
+
+    interpretacion = interpretar_con_ia(analisis, simbolo)
+    if interpretacion:
+        return JsonResponse({'ok': True, 'ia': interpretacion})
+    return JsonResponse({'ok': False, 'msg': 'IA no disponible'})
+
+
+@login_required(login_url='/login/')
+def crear_gasto_pendiente(request):
+    """Crea un gasto pendiente. Genera de inmediato la transacción de gasto
+    con fecha = vencimiento, para que cuente en el mes que corresponde.
+    Marcarlo pagado luego NO vuelve a sumar (evita doble conteo)."""
+    from datetime import datetime
+    if request.method == 'POST':
+        nombre = request.POST.get('nombre', '').strip()
+        monto = request.POST.get('monto')
+        fecha_venc = request.POST.get('fecha_vencimiento')
+        categoria = request.POST.get('categoria', 'Cuentas').strip() or 'Cuentas'
+        if nombre and monto and fecha_venc:
+            try:
+                venc = datetime.strptime(fecha_venc, '%Y-%m-%d').date()
+                monto_f = float(monto)
+                # 1. Crear la transacción de gasto en el mes de vencimiento
+                tx = Transaccion.objects.create(
+                    usuario=request.user, tipo='EGRESO', monto=monto_f,
+                    categoria=categoria, descripcion=f'Pendiente: {nombre}',
+                    fecha=venc, es_cuota=False,
+                )
+                # 2. Crear el gasto pendiente vinculado a esa transacción
+                GastoPendiente.objects.create(
+                    usuario=request.user, nombre=nombre, monto=monto_f,
+                    fecha_vencimiento=venc, categoria=categoria, transaccion=tx,
+                )
+                messages.success(request, 'Gasto pendiente agregado y contabilizado.')
+            except (ValueError, TypeError):
+                messages.warning(request, 'Revisa los datos ingresados.')
+            return redirect('dashboard')
+        messages.warning(request, 'Completa nombre, monto y fecha.')
+    return render(request, 'finanzas/form_gasto_pendiente.html', {})
+
+
+@login_required(login_url='/login/')
+def pagar_gasto_pendiente(request, gasto_id):
+    """Marca un gasto pendiente como pagado. NO crea transacción:
+    ya se creó al crear el gasto, así que solo cambia el estado."""
+    from django.http import JsonResponse
+    gasto = get_object_or_404(GastoPendiente, id=gasto_id, usuario=request.user)
+    es_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
+
+    if request.method == 'POST' and not gasto.pagado:
+        gasto.pagado = True
+        gasto.fecha_pago = date.today()
+        gasto.save()
+        if es_ajax:
+            return JsonResponse({'ok': True})
+        messages.success(request, f'{gasto.nombre} marcado como pagado.')
+    return redirect('dashboard')
+
+
+@login_required(login_url='/login/')
+def anular_gasto_pendiente(request, gasto_id):
+    """Revierte el estado 'pagado' del gasto. La transacción NO se toca:
+    el gasto sigue contabilizado esté pagado o no."""
+    from django.http import JsonResponse
+    gasto = get_object_or_404(GastoPendiente, id=gasto_id, usuario=request.user)
+    es_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
+
+    if request.method == 'POST' and gasto.pagado:
+        gasto.pagado = False
+        gasto.fecha_pago = None
+        gasto.save()
+        if es_ajax:
+            return JsonResponse({'ok': True})
+        messages.success(request, 'Marcado como no pagado.')
+    return redirect('dashboard')
+
+
+@login_required(login_url='/login/')
+def eliminar_gasto_pendiente(request, gasto_id):
+    """Elimina el gasto pendiente Y su transacción asociada (deja de contar)."""
+    gasto = get_object_or_404(GastoPendiente, id=gasto_id, usuario=request.user)
+    if request.method == 'POST':
+        # Borrar la transacción vinculada para que deje de contar como gasto
+        if gasto.transaccion:
+            gasto.transaccion.delete()
+        gasto.delete()
+        messages.success(request, 'Gasto pendiente eliminado.')
     return redirect('dashboard')
 
 

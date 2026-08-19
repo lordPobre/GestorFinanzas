@@ -1,0 +1,72 @@
+{% extends 'finanzas/base.html' %}
+{% block nav_prestamos %}active{% endblock %}
+{% block nav_prestamos_m %}active{% endblock %}
+
+{% block content %}
+<div style="width:100%;max-width:480px;margin:0 auto">
+    <a href="{% url 'prestamos' %}" class="btn btn-glass" style="margin-bottom:24px;display:inline-flex">
+        <i class="fas fa-arrow-left" style="font-size:12px"></i> Volver
+    </a>
+
+    <div class="glass" style="padding:28px">
+        <h1 style="font-size:20px;font-weight:600;color:var(--text-primary);margin:0 0 6px">Agregar persona</h1>
+        <p style="font-size:13px;color:var(--text-muted);margin:0 0 24px">Registra a alguien que te debe dinero.</p>
+
+        <form method="POST">
+            {% csrf_token %}
+
+            <div class="field-group">
+                <label class="field-label">Nombre <span style="color:var(--red)">*</span></label>
+                <input type="text" name="nombre" class="field-input" placeholder="Ej: Juan Pérez" required autofocus>
+            </div>
+
+            <div class="field-group">
+                <label class="field-label">Contacto <span class="hint">(opcional)</span></label>
+                <input type="text" name="contacto" class="field-input" placeholder="Ej: +56 9 1234 5678">
+            </div>
+
+            <!-- Préstamo inicial opcional -->
+            <div style="margin:20px 0;padding:16px;background:rgba(167,139,250,0.05);border:1px solid rgba(167,139,250,0.12);border-radius:14px">
+                <div style="font-size:12px;font-weight:600;color:var(--purple);margin-bottom:4px;display:flex;align-items:center;gap:6px">
+                    <i class="fas fa-hand-holding-usd" style="font-size:12px"></i> Préstamo inicial <span style="font-weight:400;color:var(--text-muted)">(opcional)</span>
+                </div>
+                <div style="font-size:11px;color:var(--text-muted);margin-bottom:14px">Si quieres, registra ya lo que le prestaste. Puedes agregar más después.</div>
+
+                <div class="field-group">
+                    <label class="field-label">¿Qué le prestaste?</label>
+                    <input type="text" name="descripcion" class="field-input" placeholder="Ej: Préstamo efectivo, entrada concierto...">
+                </div>
+
+                <div class="field-group">
+                    <label class="field-label">Monto</label>
+                    <input type="number" name="monto" class="field-input" placeholder="Ej: 50000" min="1">
+                </div>
+
+                <div class="field-group">
+                    <label class="field-label">¿Cómo te lo pagará?</label>
+                    <select name="tipo" id="tipoPrestamo" class="field-input" onchange="toggleCuotas()">
+                        <option value="UNICO">De una vez (pago único)</option>
+                        <option value="CUOTAS">En cuotas</option>
+                    </select>
+                </div>
+
+                <div class="field-group" id="cuotasWrap" style="display:none">
+                    <label class="field-label">¿En cuántas cuotas?</label>
+                    <input type="number" name="cuotas_totales" class="field-input" placeholder="Ej: 3" min="2" value="2">
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-purple" style="width:100%;justify-content:center;padding:12px">
+                <i class="fas fa-user-plus" style="font-size:13px"></i> Guardar
+            </button>
+        </form>
+    </div>
+</div>
+
+<script>
+function toggleCuotas() {
+    const tipo = document.getElementById('tipoPrestamo').value;
+    document.getElementById('cuotasWrap').style.display = tipo === 'CUOTAS' ? 'block' : 'none';
+}
+</script>
+{% endblock %}

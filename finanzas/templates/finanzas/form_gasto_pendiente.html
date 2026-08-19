@@ -1,0 +1,44 @@
+{% extends 'finanzas/base.html' %}
+{% block content %}
+<div style="width:100%;max-width:480px;margin:0 auto">
+    <a href="{% url 'dashboard' %}" class="btn btn-glass" style="margin-bottom:24px;display:inline-flex">
+        <i class="fas fa-arrow-left" style="font-size:12px"></i> Volver
+    </a>
+
+    <div class="glass" style="padding:28px">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+            <div style="width:36px;height:36px;border-radius:10px;background:rgba(251,146,60,0.15);color:var(--orange);display:flex;align-items:center;justify-content:center"><i class="fas fa-tag" style="font-size:16px"></i></div>
+            <h1 style="font-size:20px;font-weight:600;color:var(--text-primary);margin:0">Gasto pendiente</h1>
+        </div>
+        <p style="font-size:13px;color:var(--text-muted);margin:0 0 24px">Una cuenta o gasto que aún no pagas. Cuenta como gasto en el mes de su vencimiento; márcalo pagado cuando lo pagues.</p>
+
+        <form method="POST">
+            {% csrf_token %}
+
+            <div class="field-group">
+                <label class="field-label">¿Qué debes pagar? <span style="color:var(--red)">*</span></label>
+                <input type="text" name="nombre" class="field-input" placeholder="Ej: Cuenta de luz, arriendo, Netflix..." required autofocus>
+            </div>
+
+            <div class="field-group">
+                <label class="field-label">Monto <span style="color:var(--red)">*</span></label>
+                <input type="number" name="monto" class="field-input" placeholder="Ej: 30000" min="1" required>
+            </div>
+
+            <div class="field-group">
+                <label class="field-label">Fecha de vencimiento <span style="color:var(--red)">*</span></label>
+                <input type="date" name="fecha_vencimiento" class="field-input" required>
+            </div>
+
+            <div class="field-group">
+                <label class="field-label">Categoría <span class="hint">(opcional)</span></label>
+                <input type="text" name="categoria" class="field-input" placeholder="Ej: Cuentas, Servicios..." value="Cuentas">
+            </div>
+
+            <button type="submit" class="btn btn-purple" style="width:100%;justify-content:center;padding:12px">
+                <i class="fas fa-plus" style="font-size:13px"></i> Agregar gasto pendiente
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -134,15 +134,26 @@
 
       <!-- Fecha -->
       <div>
-        <label class="field-label">
+        <label class="field-label" id="label-fecha">
           Fecha
         </label>
         {{ form.fecha }}
-        <div style="font-size:11px;color:var(--text-muted);margin-top:5px;opacity:0.65">
+        <div style="font-size:11px;color:var(--text-muted);margin-top:5px;opacity:0.65" id="hint-fecha">
           Puedes registrar gastos de días anteriores cambiando la fecha
         </div>
         {% if form.fecha.errors %}<p style="font-size:11px;color:var(--red);margin-top:3px">{{ form.fecha.errors.0 }}</p>{% endif %}
       </div>
+
+      {% if tipo_inicial == 'EGRESO' and not editar %}
+      <!-- Marcar como pendiente (solo para gastos) -->
+      <label id="wrap-pendiente" style="display:flex;align-items:flex-start;gap:10px;padding:14px;background:rgba(251,146,60,0.06);border:1px solid rgba(251,146,60,0.15);border-radius:12px;cursor:pointer;transition:all 0.2s">
+        <input type="checkbox" name="es_pendiente" id="chk-pendiente" value="1" style="width:18px;height:18px;margin-top:1px;accent-color:var(--orange);cursor:pointer;flex-shrink:0">
+        <div>
+          <div style="font-size:13px;font-weight:600;color:var(--orange);margin-bottom:2px">Aún no lo pago</div>
+          <div style="font-size:11px;color:var(--text-muted);line-height:1.5">Márcalo si es una cuenta pendiente (ej: luz, arriendo). Aparecerá en "Gastos pendientes" y la fecha de arriba será su vencimiento.</div>
+        </div>
+      </label>
+      {% endif %}
 
       <div style="display:flex;gap:10px;margin-top:4px">
         <a href="{% url 'dashboard' %}" class="btn btn-glass" style="flex:1;justify-content:center">Cancelar</a>
@@ -155,4 +166,26 @@
 
 </div>
 </div>
+<script>
+(function() {
+    const chk = document.getElementById('chk-pendiente');
+    if (!chk) return;
+    const labelFecha = document.getElementById('label-fecha');
+    const hintFecha = document.getElementById('hint-fecha');
+    const wrap = document.getElementById('wrap-pendiente');
+    chk.addEventListener('change', function() {
+        if (chk.checked) {
+            labelFecha.textContent = 'Fecha de vencimiento';
+            hintFecha.textContent = 'Cuándo hay que pagar esta cuenta. Contará como gasto en ese mes.';
+            wrap.style.background = 'rgba(251,146,60,0.14)';
+            wrap.style.borderColor = 'rgba(251,146,60,0.4)';
+        } else {
+            labelFecha.textContent = 'Fecha';
+            hintFecha.textContent = 'Puedes registrar gastos de días anteriores cambiando la fecha';
+            wrap.style.background = 'rgba(251,146,60,0.06)';
+            wrap.style.borderColor = 'rgba(251,146,60,0.15)';
+        }
+    });
+})();
+</script>
 {% endblock %}

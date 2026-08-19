@@ -1,0 +1,80 @@
+{% extends 'finanzas/base.html' %}
+{% load humanize %}
+{% load moneda %}
+{% block nav_prestamos %}active{% endblock %}
+{% block nav_prestamos_m %}active{% endblock %}
+
+{% block content %}
+<div style="margin-bottom:28px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px">
+    <div>
+        <div class="label" style="margin-bottom:6px">Por cobrar</div>
+        <h1 style="font-size:26px;font-weight:600;color:var(--text-primary);margin:0">Quién me debe</h1>
+    </div>
+    <a href="{% url 'crear_persona' %}" class="btn btn-purple">
+        <i class="fas fa-user-plus" style="font-size:13px"></i> Agregar persona
+    </a>
+</div>
+
+<!-- Resumen -->
+<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px" class="grid-resumen-prestamos">
+    <div class="glass metric-highlight" style="padding:20px">
+        <div class="label" style="margin-bottom:8px;color:rgba(52,211,153,0.7)">Total por cobrar</div>
+        <div class="mono" style="font-size:24px;font-weight:500;color:var(--green)">{{ total_por_cobrar|money:simbolo_moneda }}</div>
+    </div>
+    <div class="glass" style="padding:20px">
+        <div class="label" style="margin-bottom:8px">Total prestado</div>
+        <div class="mono" style="font-size:22px;font-weight:500;color:var(--text-primary)">{{ total_prestado|money:simbolo_moneda }}</div>
+    </div>
+    <div class="glass" style="padding:20px">
+        <div class="label" style="margin-bottom:8px">Ya recuperado</div>
+        <div class="mono" style="font-size:22px;font-weight:500;color:var(--purple)">{{ total_recuperado|money:simbolo_moneda }}</div>
+    </div>
+</div>
+
+{% if personas %}
+<div style="display:flex;flex-direction:column;gap:12px">
+    {% for persona in personas %}
+    <a href="{% url 'detalle_persona' persona.id %}" class="glass" style="padding:18px 20px;display:flex;align-items:center;gap:16px;text-decoration:none;transition:all 0.2s">
+        <!-- Avatar con inicial -->
+        <div style="width:46px;height:46px;border-radius:14px;background:linear-gradient(135deg,rgba(167,139,250,0.25),rgba(124,58,237,0.15));display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px;font-weight:600;color:var(--purple)">
+            {{ persona.nombre|first|upper }}
+        </div>
+        <div style="flex:1;min-width:0">
+            <div style="font-size:15px;font-weight:600;color:var(--text-primary);margin-bottom:3px">{{ persona.nombre }}</div>
+            <div style="font-size:12px;color:var(--text-muted)">
+                {{ persona.cantidad_prestamos }} préstamo{{ persona.cantidad_prestamos|pluralize }}
+                {% if persona.contacto %} · {{ persona.contacto }}{% endif %}
+            </div>
+        </div>
+        <div style="text-align:right;flex-shrink:0">
+            {% if persona.tiene_deuda %}
+            <div class="mono" style="font-size:17px;font-weight:600;color:var(--green)">{{ persona.total_pendiente|money:simbolo_moneda }}</div>
+            <div style="font-size:11px;color:var(--text-muted)">te debe</div>
+            {% else %}
+            <div style="font-size:13px;font-weight:600;color:var(--purple);display:flex;align-items:center;gap:5px"><i class="fas fa-check-circle" style="font-size:13px"></i> Al día</div>
+            {% endif %}
+        </div>
+        <i class="fas fa-chevron-right" style="font-size:14px;color:var(--text-muted);flex-shrink:0"></i>
+    </a>
+    {% endfor %}
+</div>
+{% else %}
+<!-- Estado vacío -->
+<div class="glass" style="padding:48px 24px;text-align:center">
+    <div style="margin-bottom:16px;color:var(--purple);display:flex;justify-content:center"><i class="fas fa-hand-holding-usd" style="font-size:40px"></i></div>
+    <div style="font-size:16px;font-weight:600;color:var(--text-primary);margin-bottom:8px">Aún no registras préstamos</div>
+    <div style="font-size:13px;color:var(--text-muted);margin-bottom:20px;max-width:340px;margin-left:auto;margin-right:auto;line-height:1.6">
+        Lleva la cuenta de quién te debe dinero. Agrega una persona y registra lo que le prestaste, en pago único o en cuotas.
+    </div>
+    <a href="{% url 'crear_persona' %}" class="btn btn-purple">
+        <i class="fas fa-user-plus" style="font-size:13px"></i> Agregar primera persona
+    </a>
+</div>
+{% endif %}
+
+<style>
+@media (max-width: 640px) {
+    .grid-resumen-prestamos { grid-template-columns: 1fr !important; }
+}
+</style>
+{% endblock %}

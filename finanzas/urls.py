@@ -23,6 +23,21 @@ urlpatterns = [
     path('meta/eliminar/<int:meta_id>/', views.eliminar_meta, name='eliminar_meta'),
 
     path('estadisticas/', views.estadisticas, name='estadisticas'),
+    # Préstamos por cobrar (quién me debe)
+    path('prestamos/', views.prestamos, name='prestamos'),
+    path('prestamos/persona/nueva/', views.crear_persona, name='crear_persona'),
+    path('prestamos/persona/<int:persona_id>/', views.detalle_persona, name='detalle_persona'),
+    path('prestamos/persona/<int:persona_id>/eliminar/', views.eliminar_persona, name='eliminar_persona'),
+    path('prestamos/persona/<int:persona_id>/nuevo/', views.crear_prestamo, name='crear_prestamo'),
+    path('prestamos/abonar/<int:prestamo_id>/', views.abonar_prestamo, name='abonar_prestamo'),
+    path('prestamos/eliminar/<int:prestamo_id>/', views.eliminar_prestamo, name='eliminar_prestamo'),
+    path('analisis/', views.analisis_predictivo, name='analisis_predictivo'),
+    path('analisis/ia/', views.analisis_ia, name='analisis_ia'),
+    # Gastos pendientes de pagar
+    path('gasto-pendiente/nuevo/', views.crear_gasto_pendiente, name='crear_gasto_pendiente'),
+    path('gasto-pendiente/pagar/<int:gasto_id>/', views.pagar_gasto_pendiente, name='pagar_gasto_pendiente'),
+    path('gasto-pendiente/anular/<int:gasto_id>/', views.anular_gasto_pendiente, name='anular_gasto_pendiente'),
+    path('gasto-pendiente/eliminar/<int:gasto_id>/', views.eliminar_gasto_pendiente, name='eliminar_gasto_pendiente'),
     path('exportar/', views.exportar_excel, name='exportar_excel'),
 
     path('login/', auth_views.LoginView.as_view(template_name='registration/login.html'), name='login'),

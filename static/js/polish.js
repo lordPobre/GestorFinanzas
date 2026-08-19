@@ -51,8 +51,10 @@
         const deleteBtn = overlay.querySelector('.confirm-delete');
         cancelBtn.onclick = cerrar;
         deleteBtn.onclick = () => {
+            // Guardar el callback ANTES de cerrar (cerrar lo pone en null)
+            const cb = onConfirmCallback;
             cerrar();
-            if (typeof onConfirmCallback === 'function') onConfirmCallback();
+            if (typeof cb === 'function') cb();
         };
     }
 

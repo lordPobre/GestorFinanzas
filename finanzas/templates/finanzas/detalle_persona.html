@@ -1,0 +1,209 @@
+{% extends 'finanzas/base.html' %}
+{% load humanize %}
+{% load moneda %}
+{% block nav_prestamos %}active{% endblock %}
+{% block nav_prestamos_m %}active{% endblock %}
+
+{% block content %}
+<div style="margin-bottom:24px">
+    <a href="{% url 'prestamos' %}" class="btn btn-glass" style="margin-bottom:20px;display:inline-flex">
+        <i class="fas fa-arrow-left" style="font-size:12px"></i> Volver
+    </a>
+    <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+        <div style="width:56px;height:56px;border-radius:16px;background:linear-gradient(135deg,rgba(167,139,250,0.25),rgba(124,58,237,0.15));display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:22px;font-weight:600;color:var(--purple)">
+            {{ persona.nombre|first|upper }}
+        </div>
+        <div style="flex:1">
+            <h1 style="font-size:24px;font-weight:600;color:var(--text-primary);margin:0 0 4px">{{ persona.nombre }}</h1>
+            {% if persona.contacto %}<div style="font-size:13px;color:var(--text-muted)">{{ persona.contacto }}</div>{% endif %}
+        </div>
+        <form action="{% url 'eliminar_persona' persona.id %}" method="POST" data-confirm="Se eliminará {{ persona.nombre|escapejs }} y todos sus préstamos." data-confirm-title="¿Eliminar persona?" style="margin:0">{% csrf_token %}
+            <button type="submit" class="action-btn delete" title="Eliminar persona" aria-label="Eliminar persona"><i class="fas fa-trash"></i></button>
+        </form>
+    </div>
+</div>
+
+<!-- Resumen de la persona -->
+<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:24px" class="grid-resumen-persona">
+    <div class="glass" style="padding:18px">
+        <div class="label" style="margin-bottom:6px">Te debe</div>
+        <div class="mono" style="font-size:20px;font-weight:600;color:var(--green)">{{ persona.total_pendiente|money:simbolo_moneda }}</div>
+    </div>
+    <div class="glass" style="padding:18px">
+        <div class="label" style="margin-bottom:6px">Prestado</div>
+        <div class="mono" style="font-size:18px;color:var(--text-primary)">{{ persona.total_prestado|money:simbolo_moneda }}</div>
+    </div>
+    <div class="glass" style="padding:18px">
+        <div class="label" style="margin-bottom:6px">Pagado</div>
+        <div class="mono" style="font-size:18px;color:var(--purple)">{{ persona.total_abonado|money:simbolo_moneda }}</div>
+    </div>
+</div>
+
+{% if persona.cuotas_del_mes or persona.unicos_pendientes %}
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:24px" class="grid-mensual-persona">
+    <div class="glass" style="padding:18px;border-color:rgba(96,165,250,0.2)">
+        <div class="label" style="margin-bottom:6px;display:flex;align-items:center;gap:6px;color:rgba(96,165,250,0.75)"><i class="fas fa-calendar" style="font-size:12px"></i> Cuotas del mes</div>
+        <div class="mono" style="font-size:20px;font-weight:600;color:#60a5fa">{{ persona.cuotas_del_mes|money:simbolo_moneda }}</div>
+        <div style="font-size:10px;color:var(--text-muted);margin-top:4px">te debe pagar al mes</div>
+    </div>
+    <div class="glass" style="padding:18px;border-color:rgba(251,146,60,0.2)">
+        <div class="label" style="margin-bottom:6px;display:flex;align-items:center;gap:6px;color:rgba(251,146,60,0.75)"><i class="fas fa-tag" style="font-size:12px"></i> Pagos únicos pendientes</div>
+        <div class="mono" style="font-size:20px;font-weight:600;color:var(--orange)">{{ persona.unicos_pendientes|money:simbolo_moneda }}</div>
+        <div style="font-size:10px;color:var(--text-muted);margin-top:4px">sin plazo, hasta que pague</div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Botón agregar préstamo -->
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+    <div style="font-size:15px;font-weight:600;color:var(--text-primary)">Préstamos</div>
+    <a href="{% url 'crear_prestamo' persona.id %}" class="btn btn-purple" style="padding:8px 14px;font-size:13px">
+        <i class="fas fa-plus" style="font-size:12px"></i> Nuevo préstamo
+    </a>
+</div>
+
+{% if prestamos %}
+<div style="display:flex;flex-direction:column;gap:12px">
+    {% for p in prestamos %}
+    <div class="glass" style="padding:18px 20px">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:12px">
+            <div style="flex:1;min-width:0">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+                    <span style="font-size:14px;font-weight:600;color:var(--text-primary)">{{ p.descripcion }}</span>
+                    {% if p.tipo == 'CUOTAS' %}
+                    <span style="font-size:10px;padding:2px 8px;border-radius:6px;background:rgba(96,165,250,0.15);color:#60a5fa;font-weight:500">{{ p.cuotas_totales }} cuotas</span>
+                    {% else %}
+                    <span style="font-size:10px;padding:2px 8px;border-radius:6px;background:rgba(167,139,250,0.15);color:var(--purple);font-weight:500">Pago único</span>
+                    {% endif %}
+                </div>
+                <div style="font-size:12px;color:var(--text-muted)">{{ p.fecha|date:"d M Y" }}</div>
+            </div>
+            <div style="display:flex;gap:6px;flex-shrink:0">
+                {% if not p.esta_pagado %}
+                <button onclick="abrirAbono({{ p.id }}, '{{ p.descripcion|escapejs }}', {{ p.monto_pendiente }})" class="action-btn" title="Registrar abono" aria-label="Registrar abono" style="background:rgba(52,211,153,0.1);border:1px solid rgba(52,211,153,0.2);color:var(--green);width:auto;padding:0 10px;gap:5px;font-size:11px;font-weight:600"><i class="fas fa-plus" style="font-size:11px"></i> Abono</button>
+                {% endif %}
+                <form action="{% url 'eliminar_prestamo' p.id %}" method="POST" data-confirm="Se eliminará este préstamo y sus abonos." data-confirm-title="¿Eliminar préstamo?" style="margin:0">{% csrf_token %}
+                    <button type="submit" class="action-btn delete" title="Eliminar" aria-label="Eliminar"><i class="fas fa-trash"></i></button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Progreso -->
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+            <div>
+                <span class="mono" style="font-size:18px;font-weight:600;color:{% if p.esta_pagado %}var(--purple){% else %}var(--green){% endif %}">{{ p.monto_pendiente|money:simbolo_moneda }}</span>
+                <span style="font-size:12px;color:var(--text-muted)"> de {{ p.monto|money:simbolo_moneda }}</span>
+            </div>
+            {% if p.esta_pagado %}
+            <span style="font-size:12px;font-weight:600;color:var(--purple);display:flex;align-items:center;gap:5px"><i class="fas fa-check-circle" style="font-size:13px"></i> Pagado</span>
+            {% else %}
+            <span style="font-size:12px;color:var(--text-muted)">{{ p.porcentaje }}%</span>
+            {% endif %}
+        </div>
+        <div class="progress-bar">
+            <div class="progress-fill {% if p.esta_pagado %}purple{% else %}green{% endif %}" style="width:{{ p.porcentaje }}%"></div>
+        </div>
+
+        {% if p.tipo == 'CUOTAS' %}
+        <div style="font-size:11px;color:var(--text-muted);margin-top:8px">
+            Cuota: {{ p.monto_cuota|money:simbolo_moneda }} · {{ p.cuotas_abonadas }}/{{ p.cuotas_totales }} cuotas cubiertas
+        </div>
+        {% endif %}
+
+        <!-- Historial de abonos -->
+        {% if p.abonos.all %}
+        <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--glass-border)">
+            <div style="font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px">Abonos</div>
+            {% for abono in p.abonos.all %}
+            <div style="display:flex;justify-content:space-between;font-size:12px;padding:3px 0">
+                <span style="color:var(--text-muted)">{{ abono.fecha|date:"d M Y" }}{% if abono.nota %} · {{ abono.nota }}{% endif %}</span>
+                <span class="mono" style="color:var(--green)">+{{ abono.monto|money:simbolo_moneda }}</span>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="glass" style="padding:40px 24px;text-align:center">
+    <div style="font-size:14px;color:var(--text-muted);margin-bottom:16px">{{ persona.nombre }} no tiene préstamos registrados.</div>
+    <a href="{% url 'crear_prestamo' persona.id %}" class="btn btn-purple"><i class="fas fa-plus" style="font-size:12px"></i> Registrar préstamo</a>
+</div>
+{% endif %}
+
+<!-- Modal de abono -->
+<script>
+function abrirAbono(prestamoId, desc, pendiente) {
+    let overlay = document.getElementById('abono-overlay');
+    if (!overlay) {
+        overlay = document.createElement('div');
+        overlay.id = 'abono-overlay';
+        overlay.style.cssText = 'position:fixed;inset:0;z-index:1000;display:flex;align-items:center;justify-content:center;background:rgba(5,5,12,0.7);backdrop-filter:blur(6px);padding:20px';
+        overlay.innerHTML = `
+            <div style="background:#16162a;border:1px solid rgba(52,211,153,0.25);border-radius:20px;padding:28px;max-width:340px;width:100%;box-shadow:0 24px 60px rgba(0,0,0,0.5)">
+                <div style="width:48px;height:48px;border-radius:14px;background:rgba(52,211,153,0.12);color:var(--green);display:flex;align-items:center;justify-content:center;margin-bottom:16px"><i class="fas fa-hand-holding-usd" style="font-size:20px"></i></div>
+                <div style="font-size:16px;font-weight:600;color:#f1f0ff;margin-bottom:4px">Registrar abono</div>
+                <div id="abono-desc" style="font-size:12px;color:rgba(241,240,255,0.5);margin-bottom:4px"></div>
+                <div id="abono-pendiente" style="font-size:12px;color:var(--green);margin-bottom:16px"></div>
+                <input type="number" id="abono-monto" placeholder="Monto del abono" min="1"
+                    style="width:100%;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:12px 16px;color:#f1f0ff;font-family:'DM Sans',sans-serif;font-size:15px;outline:none;box-sizing:border-box;margin-bottom:16px">
+                <div style="display:flex;gap:10px">
+                    <button onclick="cerrarAbono()" style="flex:1;padding:11px;border-radius:11px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.05);color:rgba(241,240,255,0.7);font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif">Cancelar</button>
+                    <button id="abono-confirmar" style="flex:1;padding:11px;border-radius:11px;border:none;background:var(--green);color:#0d0d1a;font-size:13px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif">Registrar</button>
+                </div>
+            </div>`;
+        document.body.appendChild(overlay);
+        overlay.addEventListener('click', e => { if (e.target === overlay) cerrarAbono(); });
+    }
+    document.getElementById('abono-desc').textContent = desc;
+    document.getElementById('abono-pendiente').textContent = 'Pendiente: {{ simbolo_moneda }}' + Math.round(pendiente).toLocaleString('es-CL');
+    document.getElementById('abono-monto').value = '';
+    document.getElementById('abono-confirmar').onclick = () => confirmarAbono(prestamoId);
+    overlay.style.display = 'flex';
+    setTimeout(() => document.getElementById('abono-monto').focus(), 100);
+    if (window.aplicarIconos) window.aplicarIconos();
+}
+function cerrarAbono() {
+    const o = document.getElementById('abono-overlay');
+    if (o) o.style.display = 'none';
+}
+async function confirmarAbono(prestamoId) {
+    const monto = document.getElementById('abono-monto').value;
+    if (!monto || monto <= 0) {
+        document.getElementById('abono-monto').style.borderColor = 'rgba(248,113,113,0.5)';
+        return;
+    }
+    const btn = document.getElementById('abono-confirmar');
+    btn.disabled = true; btn.textContent = 'Guardando...';
+    try {
+        const fd = new FormData();
+        fd.append('monto', monto);
+        const res = await fetch(`/prestamos/abonar/${prestamoId}/`, {
+            method: 'POST',
+            headers: { 'X-CSRFToken': getCsrfAbono(), 'X-Requested-With': 'XMLHttpRequest' },
+            body: fd
+        });
+        const data = await res.json();
+        if (data.ok) { cerrarAbono(); location.reload(); }
+        else { btn.disabled = false; btn.textContent = 'Registrar'; alert(data.msg || 'Error'); }
+    } catch (e) { location.reload(); }
+}
+function getCsrfAbono() {
+    const el = document.querySelector('[name=csrfmiddlewaretoken]');
+    if (el) return el.value;
+    const c = document.cookie.split('; ').find(r => r.startsWith('csrftoken='));
+    return c ? c.split('=')[1] : '';
+}
+</script>
+
+<!-- token csrf para el modal -->
+<form style="display:none">{% csrf_token %}</form>
+
+<style>
+@media (max-width: 640px) {
+    .grid-resumen-persona { grid-template-columns: 1fr !important; }
+    .grid-mensual-persona { grid-template-columns: 1fr !important; }
+}
+</style>
+{% endblock %}
