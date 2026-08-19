@@ -40,6 +40,12 @@ urlpatterns = [
     path('gasto-pendiente/eliminar/<int:gasto_id>/', views.eliminar_gasto_pendiente, name='eliminar_gasto_pendiente'),
     path('exportar/', views.exportar_excel, name='exportar_excel'),
 
+    path('suscripciones/', views.suscripciones, name='suscripciones'),
+    path('suscripciones/nueva/', views.crear_suscripcion, name='crear_suscripcion'),
+    path('suscripciones/cancelar/<int:sub_id>/', views.cancelar_suscripcion, name='cancelar_suscripcion'),
+    path('suscripciones/eliminar/<int:sub_id>/', views.eliminar_suscripcion, name='eliminar_suscripcion'),
+
+
     path('login/', auth_views.LoginView.as_view(template_name='registration/login.html'), name='login'),
     path('logout/', auth_views.LogoutView.as_view(next_page='/login/'), name='logout'),
     path('registro/', views.registro, name='registro'),

@@ -1,0 +1,82 @@
+{% extends 'finanzas/base.html' %}
+{% load humanize %}
+{% load moneda %}
+{% block nav_suscripciones %}active{% endblock %}
+{% block nav_suscripciones_m %}active{% endblock %}
+
+{% block content %}
+<div style="margin-bottom:28px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px">
+    <div>
+        <div class="label" style="margin-bottom:6px;display:flex;align-items:center;gap:6px"><i class="fas fa-repeat" style="font-size:12px;color:var(--purple)"></i> Recurrentes</div>
+        <h1 style="font-size:26px;font-weight:600;color:var(--text-primary);margin:0">Suscripciones</h1>
+    </div>
+    <a href="{% url 'crear_suscripcion' %}" class="btn btn-purple">
+        <i class="fas fa-plus" style="font-size:13px"></i> Nueva suscripción
+    </a>
+</div>
+
+<!-- Resumen -->
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px" class="grid-resumen-subs">
+    <div class="glass metric-highlight" style="padding:20px">
+        <div class="label" style="margin-bottom:8px;color:rgba(167,139,250,0.7)">Gasto mensual total</div>
+        <div class="mono" style="font-size:24px;font-weight:600;color:var(--purple)">{{ total_mensual|money:simbolo_moneda }}</div>
+        <div style="font-size:10px;color:var(--text-muted);margin-top:4px">al mes en suscripciones</div>
+    </div>
+    <div class="glass" style="padding:20px">
+        <div class="label" style="margin-bottom:8px">Activas</div>
+        <div class="mono" style="font-size:22px;font-weight:500;color:var(--green)">{{ cantidad_activas }}</div>
+        <div style="font-size:10px;color:var(--text-muted);margin-top:4px">suscripciones activas</div>
+    </div>
+</div>
+
+{% if suscripciones %}
+<div style="display:flex;flex-direction:column;gap:12px">
+    {% for s in suscripciones %}
+    <div class="glass" style="padding:18px 20px{% if not s.activa %};opacity:0.5{% endif %}">
+        <div style="display:flex;align-items:center;gap:14px">
+            <div style="width:44px;height:44px;border-radius:12px;background:{% if s.activa %}rgba(167,139,250,0.15){% else %}rgba(150,150,150,0.1){% endif %};display:flex;align-items:center;justify-content:center;flex-shrink:0;color:{% if s.activa %}var(--purple){% else %}var(--text-muted){% endif %}">
+                <i class="fas fa-repeat" style="font-size:18px"></i>
+            </div>
+            <div style="flex:1;min-width:0">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:3px">
+                    <span style="font-size:15px;font-weight:600;color:var(--text-primary){% if not s.activa %};text-decoration:line-through{% endif %}">{{ s.nombre }}</span>
+                    {% if s.activa %}<span class="badge badge-green" style="font-size:9px;padding:2px 6px">Activa</span>
+                    {% else %}<span class="badge" style="font-size:9px;padding:2px 6px;background:rgba(150,150,150,0.15);color:var(--text-muted)">Cancelada</span>{% endif %}
+                </div>
+                <div style="font-size:12px;color:var(--text-muted)">
+                    <span class="mono" style="color:var(--orange)">{{ s.monto|money:simbolo_moneda }}</span>/mes · se cobra el día {{ s.dia_cobro }}
+                </div>
+            </div>
+            <div style="display:flex;gap:6px;flex-shrink:0">
+                {% if s.activa %}
+                <form action="{% url 'cancelar_suscripcion' s.id %}" method="POST" style="margin:0" data-confirm="Se dejará de generar el cobro mensual de {{ s.nombre|escapejs }}. El historial se mantiene." data-confirm-title="¿Cancelar suscripción?">{% csrf_token %}
+                    <button type="submit" style="display:flex;align-items:center;gap:5px;background:rgba(251,146,60,0.1);border:1px solid rgba(251,146,60,0.25);color:var(--orange);padding:7px 12px;border-radius:9px;font-size:12px;cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:600" title="Cancelar"><i class="fas fa-ban" style="font-size:11px"></i> Cancelar</button>
+                </form>
+                {% else %}
+                <form action="{% url 'cancelar_suscripcion' s.id %}" method="POST" style="margin:0">{% csrf_token %}
+                    <button type="submit" style="display:flex;align-items:center;gap:5px;background:rgba(52,211,153,0.1);border:1px solid rgba(52,211,153,0.25);color:var(--green);padding:7px 12px;border-radius:9px;font-size:12px;cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:600" title="Reactivar"><i class="fas fa-rotate-right" style="font-size:11px"></i> Reactivar</button>
+                </form>
+                {% endif %}
+                <form action="{% url 'eliminar_suscripcion' s.id %}" method="POST" style="margin:0" data-confirm="La suscripción '{{ s.nombre|escapejs }}' se eliminará. El historial de gastos ya registrados se mantiene." data-confirm-title="¿Eliminar suscripción?">{% csrf_token %}
+                    <button type="submit" class="action-btn delete" title="Eliminar" aria-label="Eliminar"><i class="fas fa-trash"></i></button>
+                </form>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="glass" style="padding:48px 24px;text-align:center">
+    <div style="margin-bottom:16px;color:var(--purple);display:flex;justify-content:center"><i class="fas fa-repeat" style="font-size:40px"></i></div>
+    <div style="font-size:16px;font-weight:600;color:var(--text-primary);margin-bottom:8px">Sin suscripciones</div>
+    <div style="font-size:13px;color:var(--text-muted);margin-bottom:20px;max-width:340px;margin-left:auto;margin-right:auto;line-height:1.6">
+        Agrega tus servicios recurrentes (Netflix, Spotify, gym...). Cada mes se registrará el cobro automáticamente hasta que canceles.
+    </div>
+    <a href="{% url 'crear_suscripcion' %}" class="btn btn-purple"><i class="fas fa-plus" style="font-size:13px"></i> Agregar primera suscripción</a>
+</div>
+{% endif %}
+
+<style>
+@media (max-width: 640px) { .grid-resumen-subs { grid-template-columns: 1fr !important; } }
+</style>
+{% endblock %}

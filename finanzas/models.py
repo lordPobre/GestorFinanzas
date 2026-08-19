@@ -407,3 +407,38 @@ class GastoPendiente(models.Model):
         if d <= 3:
             return 'proximo'
         return 'normal'
+
+
+class Suscripcion(models.Model):
+    """Suscripción recurrente (Netflix, Spotify, etc.).
+    Genera un gasto automáticamente cada mes hasta que se cancela."""
+    usuario = models.ForeignKey(User, on_delete=models.CASCADE, related_name='suscripciones')
+    nombre = models.CharField(max_length=100)
+    monto = models.DecimalField(max_digits=12, decimal_places=2)
+    categoria = models.CharField(max_length=50, blank=True, default='Suscripciones')
+    dia_cobro = models.IntegerField(default=1, help_text='Día del mes en que se cobra (1-28)')
+    activa = models.BooleanField(default=True)
+    fecha_inicio = models.DateField(default=timezone.now)
+    fecha_cancelada = models.DateField(null=True, blank=True)
+    # Hasta qué mes ya se generó el cobro (para no duplicar). Formato: año*100+mes
+    ultimo_mes_generado = models.IntegerField(default=0)
+
+    class Meta:
+        ordering = ['-activa', 'nombre']
+
+    def __str__(self):
+        return f"{self.nombre} — {self.monto}/mes"
+
+    @property
+    def total_pagado_historico(self):
+        """Cuánto se ha gastado en total en esta suscripción."""
+        return Transaccion.objects.filter(
+            usuario=self.usuario, tipo='EGRESO',
+            descripcion__startswith=f'Suscripción: {self.nombre}',
+        ).aggregate(t=models.Sum('monto'))['t'] or 0
+
+    @property
+    def meses_activa(self):
+        """Cuántos meses lleva activa (aproximado)."""
+        fin = self.fecha_cancelada or date.today()
+        return (fin.year - self.fecha_inicio.year) * 12 + (fin.month - self.fecha_inicio.month) + 1

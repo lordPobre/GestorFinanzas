@@ -59,6 +59,7 @@
             <a href="{% url 'registrar_transaccion' %}?tipo=EGRESO" class="nav-item {% block nav_gasto %}{% endblock %}" title="Nuevo gasto" aria-label="Registrar nuevo gasto"><i class="fas fa-minus-circle"></i></a>
             <a href="{% url 'estadisticas' %}" class="nav-item {% block nav_stats %}{% endblock %}" title="Estadísticas" aria-label="Ver estadísticas"><i class="fas fa-chart-pie"></i></a>
             <a href="{% url 'prestamos' %}" class="nav-item {% block nav_prestamos %}{% endblock %}" title="Me deben" aria-label="Préstamos por cobrar"><i class="fas fa-hand-holding-usd"></i></a>
+            <a href="{% url 'suscripciones' %}" class="nav-item {% block nav_suscripciones %}{% endblock %}" title="Suscripciones" aria-label="Suscripciones recurrentes"><i class="fas fa-repeat"></i></a>
             <a href="{% url 'analisis_predictivo' %}" class="nav-item {% block nav_analisis %}{% endblock %}" title="Análisis IA" aria-label="Análisis financiero con IA"><i class="fas fa-brain"></i></a>
             <a href="{% url 'perfil' %}" class="nav-item {% block nav_perfil %}{% endblock %}" title="Mi perfil" aria-label="Ir a mi perfil"><i class="fas fa-user-circle"></i></a>
         </nav>
@@ -96,6 +97,10 @@
         <a href="{% url 'analisis_predictivo' %}" class="nav-item {% block nav_analisis_m %}{% endblock %}">
             <i class="fas fa-brain"></i>
             <span class="nav-label">Análisis</span>
+        </a>
+        <a href="{% url 'suscripciones' %}" class="nav-item {% block nav_suscripciones_m %}{% endblock %}">
+            <i class="fas fa-repeat"></i>
+            <span class="nav-label">Subs</span>
         </a>
         <a href="{% url 'perfil' %}" class="nav-item {% block nav_perfil_m %}{% endblock %}">
             <i class="fas fa-user-circle" style="font-size:18px"></i>

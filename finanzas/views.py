@@ -13,12 +13,42 @@ from datetime import date
 from django.contrib import messages
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import login
-from .models import Transaccion, Deuda, Presupuesto, MetaAhorro, AporteMeta, Persona, Prestamo, AbonoPrestamo, GastoPendiente
+from .models import Transaccion, Deuda, Presupuesto, MetaAhorro, AporteMeta, Persona, Prestamo, AbonoPrestamo, GastoPendiente, Suscripcion
 from .forms import DeudaForm, TransaccionForm, MetaAhorroForm
 
+def generar_cobros_suscripciones(usuario):
+    """Genera los cobros mensuales de suscripciones activas que falten.
+    Se llama al abrir el dashboard (generación perezosa).
+    Cada cobro se registra como gasto del mes (transacción EGRESO)."""
+    from dateutil.relativedelta import relativedelta
+    import calendar as _cal
+    hoy = date.today()
+    mes_actual_clave = hoy.year * 100 + hoy.month
+
+    for sub in Suscripcion.objects.filter(usuario=usuario, activa=True):
+        if sub.ultimo_mes_generado == 0:
+            cursor = date(sub.fecha_inicio.year, sub.fecha_inicio.month, 1)
+        else:
+            ultimo_anio = sub.ultimo_mes_generado // 100
+            ultimo_mes = sub.ultimo_mes_generado % 100
+            cursor = date(ultimo_anio, ultimo_mes, 1) + relativedelta(months=1)
+
+        while cursor.year * 100 + cursor.month <= mes_actual_clave:
+            _, ult_dia = _cal.monthrange(cursor.year, cursor.month)
+            dia = min(sub.dia_cobro, ult_dia)
+            Transaccion.objects.create(
+                usuario=usuario, tipo='EGRESO', monto=sub.monto,
+                categoria=sub.categoria or 'Suscripciones',
+                descripcion=f'Suscripción: {sub.nombre}',
+                fecha=date(cursor.year, cursor.month, dia), es_cuota=False,
+            )
+            sub.ultimo_mes_generado = cursor.year * 100 + cursor.month
+            cursor = cursor + relativedelta(months=1)
+        sub.save()
 
 @login_required(login_url='/login/')
 def dashboard(request):
+    generar_cobros_suscripciones(request.user)
     hoy = date.today()
     try:
         year = int(request.GET.get('year', hoy.year))
@@ -246,7 +276,7 @@ def dashboard(request):
         'presupuesto_pct': presupuesto_pct,
         'proyecciones_deuda': proyecciones_deuda,
         'deudas': deudas_del_mes,
-        'gastos_pendientes': GastoPendiente.objects.filter(usuario=request.user).order_by('pagado', 'fecha_vencimiento'),
+        'gastos_pendientes': GastoPendiente.objects.filter(usuario=request.user, pagado=False),
         'ultimas': ultimas,
         'metas': metas,
         'calendario': calendario_datos,
@@ -360,28 +390,6 @@ def registrar_transaccion(request):
         if form.is_valid():
             t = form.save(commit=False)
             t.usuario = request.user
-            # ¿Es un gasto marcado como "aún no lo pago"? → gasto pendiente
-            es_pendiente = request.POST.get('es_pendiente') == '1'
-            if es_pendiente and t.tipo == 'EGRESO':
-                # La fecha del formulario es el vencimiento.
-                # Creamos la transacción (para que cuente en su mes) y el
-                # GastoPendiente vinculado, sin pagar.
-                t.es_cuota = False
-                nombre_gasto = t.descripcion.strip() if t.descripcion else ''
-                if not nombre_gasto:
-                    nombre_gasto = t.categoria or 'Gasto pendiente'
-                    t.descripcion = f'Pendiente: {nombre_gasto}'
-                t.save()
-                GastoPendiente.objects.create(
-                    usuario=request.user,
-                    nombre=nombre_gasto,
-                    monto=t.monto,
-                    fecha_vencimiento=t.fecha,
-                    categoria=t.categoria or 'Cuentas',
-                    transaccion=t,
-                )
-                messages.success(request, 'Gasto pendiente agregado.')
-                return redirect('dashboard')
             t.save()
             messages.success(request, f'{"Ingreso" if t.tipo == "INGRESO" else "Gasto"} registrado.')
             return redirect('dashboard')
@@ -925,3 +933,70 @@ def perfil(request):
         'perfil_form': perfil_form, 'pw_form': pw_form, 'profile': profile,
         'total_trans': total_trans, 'total_deudas': total_deudas, 'miembro_desde': miembro_desde,
     })
+
+@login_required(login_url='/login/')
+def suscripciones(request):
+    """Lista de suscripciones (activas e inactivas)."""
+    subs = Suscripcion.objects.filter(usuario=request.user)
+    activas = subs.filter(activa=True)
+    total_mensual = sum(float(s.monto) for s in activas)
+    return render(request, 'finanzas/suscripciones.html', {
+        'suscripciones': subs,
+        'total_mensual': round(total_mensual),
+        'cantidad_activas': activas.count(),
+    })
+
+
+@login_required(login_url='/login/')
+def crear_suscripcion(request):
+    if request.method == 'POST':
+        nombre = request.POST.get('nombre', '').strip()
+        monto = request.POST.get('monto')
+        dia = request.POST.get('dia_cobro', '1')
+        categoria = request.POST.get('categoria', 'Suscripciones').strip() or 'Suscripciones'
+        if nombre and monto:
+            try:
+                dia_int = max(1, min(28, int(dia)))
+                Suscripcion.objects.create(
+                    usuario=request.user, nombre=nombre, monto=float(monto),
+                    dia_cobro=dia_int, categoria=categoria, fecha_inicio=date.today(),
+                )
+                # Generar el cobro del mes actual de inmediato
+                generar_cobros_suscripciones(request.user)
+                messages.success(request, f'Suscripción a {nombre} agregada.')
+                return redirect('suscripciones')
+            except (ValueError, TypeError):
+                messages.warning(request, 'Revisa los datos ingresados.')
+        else:
+            messages.warning(request, 'Completa nombre y monto.')
+    return render(request, 'finanzas/form_suscripcion.html', {})
+
+
+@login_required(login_url='/login/')
+def cancelar_suscripcion(request, sub_id):
+    """Cancela una suscripción (deja de generar cobros). No borra el historial."""
+    sub = get_object_or_404(Suscripcion, id=sub_id, usuario=request.user)
+    if request.method == 'POST':
+        if sub.activa:
+            sub.activa = False
+            sub.fecha_cancelada = date.today()
+            sub.save()
+            messages.success(request, f'{sub.nombre} cancelada. No se generarán más cobros.')
+        else:
+            # Reactivar
+            sub.activa = True
+            sub.fecha_cancelada = None
+            sub.save()
+            generar_cobros_suscripciones(request.user)
+            messages.success(request, f'{sub.nombre} reactivada.')
+    return redirect('suscripciones')
+
+
+@login_required(login_url='/login/')
+def eliminar_suscripcion(request, sub_id):
+    """Elimina la suscripción por completo (el historial de gastos se mantiene)."""
+    sub = get_object_or_404(Suscripcion, id=sub_id, usuario=request.user)
+    if request.method == 'POST':
+        sub.delete()
+        messages.success(request, 'Suscripción eliminada.')
+    return redirect('suscripciones')
