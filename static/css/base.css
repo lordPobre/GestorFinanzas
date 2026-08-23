@@ -213,8 +213,9 @@
         /* ===== GRIDS RESPONSIVOS ===== */
         .grid-metrics { display: grid; grid-template-columns: repeat(4,1fr); gap: 16px; margin-bottom: 20px; }
         .grid-chart   { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; margin-bottom: 20px; }
-        .grid-bottom  { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 20px; }
-        .grid-right   { display: flex; flex-direction: column; gap: 16px; }
+        .grid-bottom  { display: grid; grid-template-columns: 1.15fr 1fr; gap: 18px; margin-bottom: 18px; align-items: start; }
+        .grid-bottom > :nth-child(1) { grid-row: span 2; }
+        .grid-right   { display: grid; grid-template-columns: 1.15fr 1fr; gap: 18px; align-items: start; }
 
         /* ===== MODAL ===== */
         .modal-overlay {
@@ -272,7 +273,8 @@
         @media (max-width: 900px) {
             .grid-metrics { grid-template-columns: repeat(2,1fr); }
             .grid-chart   { grid-template-columns: 1fr; }
-            .grid-bottom  { grid-template-columns: 1fr 1fr; }
+            .grid-bottom  { grid-template-columns: 1fr; }
+            .grid-bottom > :nth-child(1) { grid-row: auto; }
         }
 
         /* ===== MÓVIL (≤640px) ===== */
@@ -289,7 +291,7 @@
             .grid-metrics { grid-template-columns: repeat(2,1fr); gap: 12px; }
             .grid-chart   { grid-template-columns: 1fr; }
             .grid-bottom  { grid-template-columns: 1fr; }
-            .grid-right   { flex-direction: column; }
+            .grid-right   { grid-template-columns: 1fr; }
 
             .glass { border-radius: 16px; }
             .modal-box { border-radius: 20px; padding: 20px; }
