@@ -1,0 +1,79 @@
+{% load static %}<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0b0b16">
+  <title>{% block title %}Entrar · FinApp{% endblock %}</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <link rel="stylesheet" href="{% static 'css/finapp.css' %}">
+</head>
+<body>
+
+<div class="aurora" aria-hidden="true">
+  <span class="a1"></span><span class="a2"></span><span class="a3"></span><span class="grain"></span>
+</div>
+
+<div style="position:relative;z-index:1;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:32px 24px">
+  <div style="display:flex;align-items:center;justify-content:center;gap:64px;flex-wrap:wrap;max-width:1000px;width:100%">
+
+    {# ---- Lado izquierdo: la promesa ---- #}
+    <div style="max-width:380px;flex:1;min-width:280px">
+      <div style="display:flex;align-items:center;gap:11px;margin-bottom:24px">
+        <span class="brand-mark" style="width:40px;height:40px;border-radius:13px;font-size:15px"><i class="fas fa-chart-line"></i></span>
+        <span class="brand-name" style="font-size:19px">FinApp</span>
+      </div>
+
+      {% block pitch %}
+      <div style="font-family:'Sora',sans-serif;font-size:31px;font-weight:500;line-height:1.28;letter-spacing:-.025em;text-wrap:pretty">
+        Saber cuánto puedes gastar hoy no debería tomar una planilla.
+      </div>
+      <div class="hint" style="font-size:13px;margin-top:14px">
+        Registra en dos toques, mira una sola cifra clara y deja que la app te avise
+        antes de que se te pase una cuota.
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:12px;margin-top:26px">
+        <div style="display:flex;align-items:center;gap:11px">
+          <span class="icon-tile" style="width:28px;height:28px;border-radius:9px"><i class="fas fa-wallet" style="font-size:11px"></i></span>
+          <span style="font-size:12.5px;color:var(--text-secondary)">Una cifra: lo que te queda libre de verdad</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:11px">
+          <span class="icon-tile orange" style="width:28px;height:28px;border-radius:9px"><i class="fas fa-credit-card" style="font-size:11px"></i></span>
+          <span style="font-size:12.5px;color:var(--text-secondary)">Tus compras en cuotas, con lo que falta a la vista</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:11px">
+          <span class="icon-tile green" style="width:28px;height:28px;border-radius:9px"><i class="fas fa-hand-holding-dollar" style="font-size:11px"></i></span>
+          <span style="font-size:12.5px;color:var(--text-secondary)">Quién te debe y cuánto ha devuelto</span>
+        </div>
+      </div>
+      {% endblock %}
+    </div>
+
+    {# ---- Lado derecho: la tarjeta ---- #}
+    <div class="glass" data-spot
+         style="width:100%;max-width:372px;padding:28px;border-radius:28px;
+                background:linear-gradient(180deg,rgba(30,28,56,.72),rgba(15,14,30,.6));
+                border-color:rgba(255,255,255,.11);
+                box-shadow:inset 0 1px 0 rgba(255,255,255,.1),0 26px 70px rgba(0,0,0,.45)">
+      {% block card %}{% endblock %}
+    </div>
+  </div>
+</div>
+
+{% if messages %}
+<div class="toast-container">
+  {% for m in messages %}
+  <div class="toast toast-{{ m.tags|default:'success' }}"><i class="fas fa-circle-check"></i>{{ m }}</div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<script src="{% static 'js/finapp.js' %}"></script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

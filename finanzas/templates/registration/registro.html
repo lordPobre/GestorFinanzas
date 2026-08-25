@@ -1,84 +1,137 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>FinApp · Registro</title>
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <style>
-        :root { --purple:#a78bfa; --purple-dim:#7c3aed; --glass-bg:rgba(255,255,255,0.04); --glass-border:rgba(255,255,255,0.08); --text-primary:#f1f0ff; --text-muted:rgba(241,240,255,0.35); --surface:#0d0d1a; }
-        * { box-sizing:border-box; margin:0; padding:0; }
-        body { font-family:'DM Sans',sans-serif; background:var(--surface); color:var(--text-primary); min-height:100vh; display:flex; align-items:center; justify-content:center; padding:20px; }
-        body::before { content:''; position:fixed; inset:0; background:radial-gradient(ellipse 80% 60% at 70% 20%,rgba(124,58,237,0.15) 0%,transparent 60%); pointer-events:none; }
-        .card { width:100%; max-width:400px; background:var(--glass-bg); border:1px solid var(--glass-border); border-radius:24px; padding:40px; position:relative; z-index:1; backdrop-filter:blur(20px); }
-        .logo { width:48px; height:48px; background:rgba(124,58,237,0.15); border:1px solid rgba(167,139,250,0.25); border-radius:14px; display:flex; align-items:center; justify-content:center; font-size:20px; color:var(--purple); margin:0 auto 24px; }
-        h1 { font-size:22px; font-weight:600; text-align:center; margin-bottom:6px; }
-        .sub { font-size:13px; color:var(--text-muted); text-align:center; margin-bottom:32px; }
-        label { display:block; font-size:11px; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.08em; font-weight:500; margin-bottom:8px; }
-        input, select { width:100%; background:rgba(255,255,255,0.04); border:1px solid var(--glass-border); border-radius:12px; padding:12px 16px; color:var(--text-primary); font-family:'DM Sans',sans-serif; font-size:14px; outline:none; transition:border-color 0.2s; }
-        input:focus { border-color:rgba(167,139,250,0.4); background:rgba(124,58,237,0.05); }
-        .field { margin-bottom:14px; }
-        .help { font-size:11px; color:var(--text-muted); margin-top:4px; opacity:0.7; }
-        .error { font-size:11px; color:#f87171; margin-top:4px; }
-        .btn { width:100%; padding:13px; background:var(--purple-dim); color:#fff; border:none; border-radius:12px; font-size:14px; font-weight:500; cursor:pointer; font-family:'DM Sans',sans-serif; transition:background 0.2s; margin-top:8px; }
-        .btn:hover { background:#6d28d9; }
-        .footer { text-align:center; margin-top:24px; font-size:13px; color:var(--text-muted); }
-        .footer a { color:var(--purple); text-decoration:none; }
-        ul { display:none; }
-    </style>
-</head>
-<body>
-    <div class="card">
-        <div style="display:flex;justify-content:center;margin-bottom:20px">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 90" style="width:180px;height:68px;display:block;overflow:visible">
-              <defs>
-                <linearGradient id="lg-reg" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stop-color="#7c3aed"/>
-                  <stop offset="100%" stop-color="#a78bfa"/>
-                </linearGradient>
-              </defs>
-              <rect x="4" y="14" width="56" height="68" rx="12" fill="url(#lg-reg)" opacity="0.5"/>
-              <rect x="16" y="4" width="56" height="68" rx="12" fill="url(#lg-reg)"/>
-              <rect x="25" y="13" width="38" height="50" rx="7" fill="#0f172a"/>
-              <rect x="30" y="22" width="28" height="4" rx="2" fill="#a78bfa" opacity="0.9"/>
-              <rect x="30" y="32" width="20" height="3" rx="1.5" fill="#f1f0ff" opacity="0.45"/>
-              <rect x="30" y="40" width="24" height="3" rx="1.5" fill="#f1f0ff" opacity="0.3"/>
-              <rect x="30" y="48" width="16" height="3" rx="1.5" fill="#34d399" opacity="0.8"/>
-              <text x="84" y="46" font-family="DM Sans, Arial, sans-serif" font-size="34" font-weight="700" fill="#f1f0ff">Fin</text>
-              <text x="86" y="68" font-family="DM Sans, Arial, sans-serif" font-size="18" font-weight="500" fill="#a78bfa" letter-spacing="3">App</text>
-            </svg>
-        </div>
-        <h1>Crear cuenta</h1>
-        <p class="sub">Empieza a controlar tus finanzas</p>
+{% extends 'registration/auth_base.html' %}
+{% block title %}Crear cuenta · FinApp{% endblock %}
 
-        <form method="post">
-            {% csrf_token %}
-            {% for field in form %}
-            <div class="field">
-                <label>{{ field.label }}</label>
-                {{ field }}
-                {% if field.help_text %}<p class="help">{{ field.help_text }}</p>{% endif %}
-                {% for error in field.errors %}<p class="error">{{ error }}</p>{% endfor %}
-            </div>
-            {% endfor %}
-            <!-- Datos de perfil opcionales -->
-            <div style="height:1px;background:rgba(255,255,255,0.07);margin:8px 0"></div>
-            <p style="font-size:11px;color:rgba(241,240,255,0.35);margin-bottom:10px;font-style:italic">Datos opcionales — puedes completarlos después</p>
-            <div class="field">
-                <label>Nombre completo</label>
-                <input type="text" name="nombre_completo" placeholder="Ej: Juan Pérez">
-            </div>
-            <div class="field">
-                <label>Correo electrónico</label>
-                <input type="email" name="email_perfil" placeholder="Ej: juan@email.com">
-            </div>
-            <button type="submit" class="btn">Registrarme</button>
-        </form>
+{% block pitch %}
+<div style="font-family:'Sora',sans-serif;font-size:31px;font-weight:500;line-height:1.28;letter-spacing:-.025em;text-wrap:pretty">
+  Dos minutos ahora, y dejas de adivinar a fin de mes.
+</div>
+<div class="hint" style="font-size:13px;margin-top:14px">
+  Al terminar te pedimos tu sueldo y tus cuotas. Con eso ya sabes cuánto puedes
+  gastar por día sin quedarte corto.
+</div>
 
-        <div class="footer">
-            ¿Ya tienes cuenta? <a href="{% url 'login' %}">Inicia sesión</a>
-        </div>
+<div style="display:flex;flex-direction:column;gap:12px;margin-top:26px">
+  <div style="display:flex;align-items:center;gap:11px">
+    <span class="icon-tile green" style="width:28px;height:28px;border-radius:9px"><i class="fas fa-check" style="font-size:11px"></i></span>
+    <span style="font-size:12.5px;color:var(--text-secondary)">Sin conectar tu banco</span>
+  </div>
+  <div style="display:flex;align-items:center;gap:11px">
+    <span class="icon-tile green" style="width:28px;height:28px;border-radius:9px"><i class="fas fa-check" style="font-size:11px"></i></span>
+    <span style="font-size:12.5px;color:var(--text-secondary)">Tus datos quedan en tu cuenta</span>
+  </div>
+  <div style="display:flex;align-items:center;gap:11px">
+    <span class="icon-tile green" style="width:28px;height:28px;border-radius:9px"><i class="fas fa-check" style="font-size:11px"></i></span>
+    <span style="font-size:12.5px;color:var(--text-secondary)">Exportas todo a CSV cuando quieras</span>
+  </div>
+</div>
+{% endblock %}
+
+{% block card %}
+<div class="modal-title" style="font-size:19px">Crea tu cuenta</div>
+<div class="modal-sub" style="margin-bottom:22px">Solo necesitas un usuario y una contraseña.</div>
+
+{% if form.errors %}
+<div class="glass-coral" style="padding:13px 15px;border-radius:14px;margin-bottom:18px">
+  <div style="display:flex;gap:10px;align-items:flex-start">
+    <i class="fas fa-circle-exclamation" style="font-size:12px;color:var(--coral);margin-top:2px"></i>
+    <div style="font-size:12px;color:var(--text-secondary);line-height:1.55">
+      {% for campo, errores in form.errors.items %}
+        {% for e in errores %}<div>{{ e }}</div>{% endfor %}
+      {% endfor %}
     </div>
-</body>
-</html>
+  </div>
+</div>
+{% endif %}
+
+<form method="post">
+  {% csrf_token %}
+
+  <div class="field">
+    <label class="label" for="id_nombre_completo">Tu nombre</label>
+    <input type="text" name="nombre_completo" id="id_nombre_completo" placeholder="Ej: Matías Fuentes">
+  </div>
+
+  <div class="field">
+    <label class="label" for="{{ form.username.id_for_label }}">Usuario</label>
+    <div style="position:relative">
+      <i class="fas fa-user" style="position:absolute;left:15px;top:50%;transform:translateY(-50%);font-size:11px;color:rgba(241,240,255,.32);pointer-events:none"></i>
+      <input type="text" name="username" id="{{ form.username.id_for_label }}"
+             style="padding-left:38px" placeholder="con el que entras" autocomplete="username" required autofocus>
+    </div>
+    <div class="hint" style="font-size:10.5px;margin-top:6px">Letras, números y @ . + - _</div>
+  </div>
+
+  <div class="field">
+    <label class="label" for="id_email_perfil">Email (opcional)</label>
+    <input type="email" name="email_perfil" id="id_email_perfil" placeholder="Ej: matias@correo.cl">
+  </div>
+
+  <div class="field">
+    <label class="label" for="{{ form.password1.id_for_label }}">Contraseña</label>
+    <div style="position:relative">
+      <i class="fas fa-lock" style="position:absolute;left:15px;top:50%;transform:translateY(-50%);font-size:11px;color:rgba(241,240,255,.32);pointer-events:none"></i>
+      <input type="password" name="password1" id="{{ form.password1.id_for_label }}"
+             style="padding-left:38px" placeholder="al menos 8 caracteres" autocomplete="new-password" required>
+    </div>
+    <div class="progress-bar" style="height:4px;margin-top:9px">
+      <div class="progress-fill" id="fuerzaBar" style="width:0%;transition:width .3s,background .3s"></div>
+    </div>
+    <div class="hint" style="font-size:10.5px;margin-top:6px" id="fuerzaTexto">Mézclala con números y mayúsculas.</div>
+  </div>
+
+  <div class="field" style="margin-bottom:22px">
+    <label class="label" for="{{ form.password2.id_for_label }}">Repite la contraseña</label>
+    <div style="position:relative">
+      <i class="fas fa-lock" style="position:absolute;left:15px;top:50%;transform:translateY(-50%);font-size:11px;color:rgba(241,240,255,.32);pointer-events:none"></i>
+      <input type="password" name="password2" id="{{ form.password2.id_for_label }}"
+             style="padding-left:38px" placeholder="••••••••" autocomplete="new-password" required>
+    </div>
+    <div class="hint" style="font-size:10.5px;margin-top:6px" id="coincide"></div>
+  </div>
+
+  <button type="submit" class="btn btn-purple btn-block">Crear cuenta</button>
+</form>
+
+<div style="text-align:center;font-size:12px;color:rgba(241,240,255,.42);margin-top:16px">
+  ¿Ya tienes cuenta? <a href="{% url 'login' %}">Entra aquí</a>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+  var p1 = document.getElementById('{{ form.password1.id_for_label }}');
+  var p2 = document.getElementById('{{ form.password2.id_for_label }}');
+  var bar = document.getElementById('fuerzaBar');
+  var texto = document.getElementById('fuerzaTexto');
+  var coincide = document.getElementById('coincide');
+
+  var niveles = [
+    { ancho: '25%', color: 'linear-gradient(90deg,#dc2626,#f87171)', label: 'Muy débil: fácil de adivinar.' },
+    { ancho: '50%', color: 'linear-gradient(90deg,#ea580c,#fb923c)', label: 'Débil: agrega números o símbolos.' },
+    { ancho: '75%', color: 'linear-gradient(90deg,#7c3aed,#a78bfa)', label: 'Buena.' },
+    { ancho: '100%', color: 'linear-gradient(90deg,#059669,#34d399)', label: 'Fuerte.' }
+  ];
+
+  p1.addEventListener('input', function () {
+    var v = p1.value, puntos = 0;
+    if (v.length >= 8) puntos++;
+    if (/[A-Z]/.test(v)) puntos++;
+    if (/[0-9]/.test(v)) puntos++;
+    if (/[^A-Za-z0-9]/.test(v)) puntos++;
+    if (!v) { bar.style.width = '0%'; texto.textContent = 'Mézclala con números y mayúsculas.'; return; }
+    var n = niveles[Math.max(0, puntos - 1)];
+    bar.style.width = n.ancho;
+    bar.style.background = n.color;
+    texto.textContent = n.label;
+  });
+
+  p2.addEventListener('input', function () {
+    if (!p2.value) { coincide.textContent = ''; return; }
+    var igual = p1.value === p2.value;
+    coincide.textContent = igual ? 'Coinciden.' : 'Todavía no coinciden.';
+    coincide.style.color = igual ? 'var(--green)' : 'var(--coral)';
+  });
+})();
+</script>
+{% endblock %}

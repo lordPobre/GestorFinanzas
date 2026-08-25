@@ -142,6 +142,69 @@ def resumen_mes(usuario, year, month):
     }
 
 
+def salud_financiera(usuario):
+    """Puntaje 0-100 del mes en curso, para el bloque del sidebar.
+
+    Tres cosas, con el peso que tienen en la vida real:
+    que no gastes más de lo que entra, que las cuotas no te ahoguen,
+    y que quede algo libre. Nada de esto necesita IA.
+    """
+    hoy = date.today()
+    r = resumen_mes(usuario, hoy.year, hoy.month)
+    if r['ingresos'] <= 0:
+        return {'salud_score': None, 'salud_label': '', 'salud_nota': ''}
+
+    ingresos = r['ingresos']
+    dti = r['total_cuotas_mes'] / ingresos * 100
+    margen = r['disponible'] / ingresos * 100
+
+    score = 100
+    if r['disponible'] < 0:
+        score -= 45
+    elif margen < 10:
+        score -= 20
+    elif margen < 20:
+        score -= 8
+
+    if dti > 45:
+        score -= 30
+    elif dti > 35:
+        score -= 18
+    elif dti > 20:
+        score -= 8
+
+    gasto_pct = r['gastos'] / ingresos * 100
+    if gasto_pct > 80:
+        score -= 15
+    elif gasto_pct > 65:
+        score -= 6
+
+    score = max(0, min(100, round(score)))
+
+    if score >= 80:
+        label = 'muy buena'
+    elif score >= 60:
+        label = 'buena'
+    elif score >= 40:
+        label = 'justa'
+    else:
+        label = 'apretada'
+
+    # La nota explica el punto más débil, no repite el número.
+    if r['disponible'] < 0:
+        nota = 'Este mes gastas más de lo que entra.'
+    elif dti > 35:
+        nota = f'El {round(dti)}% de lo que entra se va en cuotas.'
+    elif margen < 10:
+        nota = 'Te queda muy poco libre para imprevistos.'
+    elif gasto_pct > 65:
+        nota = f'Llevas gastado el {round(gasto_pct)}% de lo que entró.'
+    else:
+        nota = 'Gastas menos de lo que entra y las cuotas están bajo control.'
+
+    return {'salud_score': score, 'salud_label': label, 'salud_nota': nota}
+
+
 def contadores(usuario):
     """Los números del menú lateral. Se pasan en todas las vistas para que
     los badges no aparezcan solo en el dashboard."""
@@ -149,10 +212,12 @@ def contadores(usuario):
         usuario=usuario, cuotas_pagadas__lt=F('cuotas_totales')).count()
     personas = Persona.objects.filter(usuario=usuario).prefetch_related('prestamos__abonos')
     prestamos_activos = sum(len(p.prestamos_activos) for p in personas)
-    return {
+    datos = {
         'cuotas_activas': cuotas_activas,
         'prestamos_activos': prestamos_activos,
     }
+    datos.update(salud_financiera(usuario))
+    return datos
 
 
 def generar_cobros_suscripciones(usuario):
@@ -347,6 +412,7 @@ def dashboard(request):
         'prev_month': prev_month, 'prev_year': prev_year,
         'next_month': next_month, 'next_year': next_year,
         'year': year, 'month': month,
+        'es_mes_actual': (year, month) == (hoy.year, hoy.month),
         'dias_semana': ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'],
 
         # Números del mes
@@ -384,7 +450,13 @@ def dashboard(request):
         'calendario': calendario_datos,
 
         # Formulario del panel de registro, para no salir del dashboard
-        'form': TransaccionForm(initial={'tipo': 'EGRESO'}),
+        # TransaccionForm tiene 'fecha' como campo obligatorio: sin initial,
+        # el panel de registro fallaba la validación en silencio.
+        'form': TransaccionForm(initial={'tipo': 'EGRESO', 'fecha': timezone.localdate()}),
+        'hoy_iso': hoy.isoformat(),
+        # Las categorías del panel salen del modelo, no escritas en el template
+        'cats_egreso_json': json.dumps([list(c) for c in Transaccion.CATEGORIAS_EGRESO]),
+        'cats_ingreso_json': json.dumps([list(c) for c in Transaccion.CATEGORIAS_INGRESO]),
 
         'meses_json': json.dumps(meses_labels),
         'ingresos_json': json.dumps(datos_ingresos),
@@ -579,7 +651,7 @@ def registrar_transaccion(request):
         messages.warning(request, 'Revisa el monto y la categoría.')
         tipo_inicial = request.POST.get('tipo', tipo_inicial)
     else:
-        form = TransaccionForm(initial={'tipo': tipo_inicial})
+        form = TransaccionForm(initial={'tipo': tipo_inicial, 'fecha': timezone.localdate()})
 
     context = {'form': form, 'tipo_inicial': tipo_inicial}
     context.update(contadores(request.user))

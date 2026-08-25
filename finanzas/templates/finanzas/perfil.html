@@ -1,150 +1,250 @@
 {% extends 'finanzas/base.html' %}
 {% load humanize %}
-{% block nav_perfil %}active{% endblock %}
-{% block nav_perfil_m %}active{% endblock %}
+{% block title %}Mi perfil · FinApp{% endblock %}
+
+{% block topbar_left %}
+<div>
+  <div class="label" style="color:rgba(167,139,250,.8)">Tu cuenta</div>
+</div>
+{% endblock %}
+
+{% block topbar_actions %}
+<a href="{% url 'exportar_excel' %}" class="btn btn-glass"><i class="fas fa-file-arrow-down" style="font-size:11px"></i>Exportar CSV</a>
+{% endblock %}
 
 {% block content %}
-<div style="max-width:700px;margin:0 auto">
+<div style="max-width:780px">
 
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:28px;flex-wrap:wrap;gap:12px">
-        <div>
-            <div class="label" style="margin-bottom:4px">Configuración</div>
-            <h1 style="font-size:22px;font-weight:600;color:var(--text-primary);margin:0">Mi perfil</h1>
+{# ============ Cabecera ============ #}
+<div class="glass card-lg" data-spot style="margin-bottom:16px;display:flex;align-items:center;gap:18px;flex-wrap:wrap">
+  <span class="avatar" style="width:66px;height:66px;border-radius:22px;font-size:24px;
+        background:linear-gradient(140deg,#7c3aed,#a78bfa);border:none;color:#fff;
+        box-shadow:0 10px 28px rgba(124,58,237,.4)">{{ profile.inicial }}</span>
+
+  <div style="flex:1;min-width:180px">
+    <div class="page-title" style="font-size:19px">{{ profile.nombre_display }}</div>
+    <div class="hint" style="font-size:12.5px;margin-top:4px">
+      {{ profile.email|default:request.user.email|default:"Sin email" }}
+      {% if profile.ubicacion %} · {{ profile.ubicacion }}{% endif %}
+    </div>
+  </div>
+
+  <div style="display:flex;gap:10px;flex-wrap:wrap">
+    <div style="padding:11px 15px;border-radius:14px;background:rgba(255,255,255,.05);border:1px solid var(--glass-border);text-align:center">
+      <div class="mono" style="font-size:15px">{{ total_trans }}</div>
+      <div class="label" style="margin-top:3px">movimientos</div>
+    </div>
+    <div style="padding:11px 15px;border-radius:14px;background:rgba(255,255,255,.05);border:1px solid var(--glass-border);text-align:center">
+      <div class="mono" style="font-size:15px">{{ total_deudas }}</div>
+      <div class="label" style="margin-top:3px">compras a plazo</div>
+    </div>
+    <div style="padding:11px 15px;border-radius:14px;background:rgba(167,139,250,.12);border:1px solid rgba(167,139,250,.24);text-align:center">
+      <div class="mono" style="font-size:15px;color:#c4b5fd">{{ miembro_desde }}</div>
+      <div class="label" style="color:rgba(167,139,250,.75);margin-top:3px">desde</div>
+    </div>
+  </div>
+</div>
+
+{# ============ Pestañas ============ #}
+<div class="seg" style="margin-bottom:16px;max-width:340px" id="segPerfil">
+  <button type="button" class="on" data-panel="datos">Tus datos</button>
+  <button type="button" data-panel="seguridad">Seguridad</button>
+</div>
+
+{# ============ Panel: datos ============ #}
+<div id="panelDatos">
+  <form method="post">
+    {% csrf_token %}
+    <input type="hidden" name="accion" value="perfil">
+
+    <div class="glass card" style="padding:24px;margin-bottom:16px" data-spot>
+      <div class="modal-title" style="font-size:15px;font-weight:500">Tus datos</div>
+      <div class="hint" style="font-size:11.5px;margin:3px 0 20px">
+        El nombre es lo único que se usa en la app. El resto es para tu registro.
+      </div>
+
+      <div class="form-row" style="margin-bottom:16px;flex-wrap:wrap">
+        <div style="flex:1;min-width:200px">
+          <label class="label" for="{{ perfil_form.nombre_completo.id_for_label }}">Nombre completo</label>
+          {{ perfil_form.nombre_completo }}
         </div>
-        <a href="{% url 'dashboard' %}" class="btn btn-glass">
-            <i class="fas fa-arrow-left" style="font-size:12px"></i> Volver
-        </a>
+        <div style="flex:1;min-width:200px">
+          <label class="label" for="{{ perfil_form.email.id_for_label }}">Email</label>
+          {{ perfil_form.email }}
+        </div>
+      </div>
+
+      <div class="form-row" style="margin-bottom:16px;flex-wrap:wrap">
+        <div style="flex:1;min-width:160px">
+          <label class="label" for="{{ perfil_form.telefono.id_for_label }}">Teléfono</label>
+          {{ perfil_form.telefono }}
+        </div>
+        <div style="flex:1;min-width:160px">
+          <label class="label" for="{{ perfil_form.ciudad.id_for_label }}">Ciudad</label>
+          {{ perfil_form.ciudad }}
+        </div>
+        <div style="flex:1;min-width:160px">
+          <label class="label" for="{{ perfil_form.pais.id_for_label }}">País</label>
+          {{ perfil_form.pais }}
+        </div>
+      </div>
+
+      <div class="field" style="margin-bottom:0">
+        <label class="label" for="{{ perfil_form.moneda.id_for_label }}">Moneda</label>
+        {{ perfil_form.moneda }}
+        <div class="hint" style="font-size:10.5px;margin-top:6px">
+          Cambia el símbolo en toda la app. No convierte los montos que ya registraste.
+        </div>
+      </div>
     </div>
 
-    <!-- Avatar + stats -->
-    <div class="glass" style="padding:24px;margin-bottom:20px;display:flex;align-items:center;gap:20px;flex-wrap:wrap">
-        <div style="width:72px;height:72px;border-radius:20px;background:linear-gradient(135deg,#7c3aed,#a78bfa);display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:700;color:#fff;flex-shrink:0">
-            {% if profile.nombre_completo %}{{ profile.nombre_completo|first|upper }}{% else %}{{ user.username|first|upper }}{% endif %}
-        </div>
-        <div style="flex:1;min-width:0">
-            <div style="font-size:18px;font-weight:600;color:var(--text-primary)">
-                {% if profile.nombre_completo %}{{ profile.nombre_completo }}{% else %}{{ user.username }}{% endif %}
-            </div>
-            <div style="font-size:13px;color:var(--text-muted);margin-top:2px">@{{ user.username }}</div>
-            {% if profile.ciudad or profile.pais %}
-            <div style="font-size:12px;color:var(--text-muted);margin-top:3px">
-                <i class="fas fa-map-marker-alt" style="font-size:10px;margin-right:4px;color:var(--purple)"></i>
-                {% if profile.ciudad %}{{ profile.ciudad }}{% endif %}{% if profile.ciudad and profile.pais %}, {% endif %}{% if profile.pais %}{{ profile.pais }}{% endif %}
-            </div>
-            {% endif %}
-        </div>
-        <div style="display:flex;gap:20px;flex-wrap:wrap">
-            <div style="text-align:center">
-                <div class="mono" style="font-size:20px;font-weight:600;color:var(--purple)">{{ total_trans }}</div>
-                <div style="font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.06em">Movimientos</div>
-            </div>
-            <div style="text-align:center">
-                <div class="mono" style="font-size:20px;font-weight:600;color:var(--orange)">{{ total_deudas }}</div>
-                <div style="font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.06em">Deudas</div>
-            </div>
-            <div style="text-align:center">
-                <div class="mono" style="font-size:20px;font-weight:600;color:var(--green)">{{ profile.moneda }}</div>
-                <div style="font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.06em">Moneda</div>
-            </div>
-        </div>
+    <div style="display:flex;gap:10px;margin-bottom:16px">
+      <button type="submit" class="btn btn-purple" style="padding:14px 22px;border-radius:15px;font-size:13.5px">Guardar cambios</button>
+      <a href="{% url 'dashboard' %}" class="btn btn-glass" style="padding:14px 20px;border-radius:15px">Cancelar</a>
+    </div>
+  </form>
+
+  {# ---- Tus datos, tuyos ---- #}
+  <div class="glass" style="border-radius:24px;overflow:hidden" data-spot>
+    <div style="display:flex;align-items:center;gap:14px;padding:17px 20px;border-bottom:1px solid rgba(255,255,255,.05)">
+      <span class="icon-tile"><i class="fas fa-file-arrow-down"></i></span>
+      <div class="row-main">
+        <div class="row-title">Exportar todo</div>
+        <div class="row-meta">CSV con todos tus movimientos, listo para Excel</div>
+      </div>
+      <a href="{% url 'exportar_excel' %}" class="btn btn-glass btn-sm">Descargar</a>
     </div>
 
-    <!-- Formulario datos personales — inputs manuales para máximo control -->
-    <div class="glass" style="padding:28px;margin-bottom:20px">
-        <div style="font-size:15px;font-weight:600;color:var(--text-primary);margin-bottom:20px;display:flex;align-items:center;gap:8px">
-            <i class="fas fa-user" style="color:var(--purple);font-size:13px"></i> Datos personales
-        </div>
-
-        <form method="POST" style="display:flex;flex-direction:column;gap:16px">
-            {% csrf_token %}
-            <input type="hidden" name="accion" value="perfil">
-
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
-
-                <div>
-                    <label class="field-label">Nombre completo</label>
-                    <input type="text" name="nombre_completo"
-                           value="{{ profile.nombre_completo }}"
-                           placeholder="Ej: Juan Pérez"
-                           class="field-input">
-                </div>
-
-                <div>
-                    <label class="field-label">Correo electrónico</label>
-                    <input type="email" name="email"
-                           value="{{ profile.email }}"
-                           placeholder="Ej: juan@email.com"
-                           class="field-input">
-                </div>
-
-                <div>
-                    <label class="field-label">Teléfono</label>
-                    <input type="text" name="telefono"
-                           value="{{ profile.telefono }}"
-                           placeholder="Ej: +56 9 1234 5678"
-                           class="field-input">
-                </div>
-
-                <div>
-                    <label class="field-label">Ciudad</label>
-                    <input type="text" name="ciudad"
-                           value="{{ profile.ciudad }}"
-                           placeholder="Ej: Santiago"
-                           class="field-input">
-                </div>
-
-                <div>
-                    <label class="field-label">País</label>
-                    <input type="text" name="pais"
-                           value="{{ profile.pais }}"
-                           placeholder="Ej: Chile"
-                           class="field-input">
-                </div>
-
-                <div>
-                    <label class="field-label">Moneda preferida</label>
-                    {{ perfil_form.moneda }}
-                </div>
-
-            </div>
-
-            <div style="display:flex;justify-content:flex-end;margin-top:4px">
-                <button type="submit" class="btn btn-purple" style="cursor:pointer;border:none;font-family:'DM Sans',sans-serif">
-                    <i class="fas fa-save" style="font-size:12px"></i> Guardar cambios
-                </button>
-            </div>
-        </form>
+    <div style="display:flex;align-items:center;gap:14px;padding:17px 20px;border-bottom:1px solid rgba(255,255,255,.05)">
+      <span class="icon-tile orange"><i class="fas fa-credit-card"></i></span>
+      <div class="row-main">
+        <div class="row-title">Compras en cuotas</div>
+        <div class="row-meta">{{ cuotas_activas }} activa{{ cuotas_activas|pluralize:"s" }} ahora mismo</div>
+      </div>
+      <a href="{% url 'deudas' %}" class="btn btn-glass btn-sm">Ver</a>
     </div>
 
-    <!-- Cambiar contraseña -->
-    <div class="glass" style="padding:28px">
-        <div style="font-size:15px;font-weight:600;color:var(--text-primary);margin-bottom:6px;display:flex;align-items:center;gap:8px">
-            <i class="fas fa-lock" style="color:var(--orange);font-size:13px"></i> Cambiar contraseña
-        </div>
-        <p style="font-size:12px;color:var(--text-muted);margin-bottom:20px">Elige una contraseña segura de al menos 8 caracteres.</p>
+    <div style="display:flex;align-items:center;gap:14px;padding:17px 20px">
+      <span class="icon-tile green"><i class="fas fa-hand-holding-dollar"></i></span>
+      <div class="row-main">
+        <div class="row-title">Préstamos por cobrar</div>
+        <div class="row-meta">{{ prestamos_activos }} pendiente{{ prestamos_activos|pluralize:"s" }}</div>
+      </div>
+      <a href="{% url 'prestamos' %}" class="btn btn-glass btn-sm">Ver</a>
+    </div>
+  </div>
+</div>
 
-        <form method="POST" style="display:flex;flex-direction:column;gap:14px">
-            {% csrf_token %}
-            <input type="hidden" name="accion" value="password">
-            {% for field in pw_form %}
-            <div>
-                <label class="field-label">{{ field.label }}</label>
-                {{ field }}
-                {% for error in field.errors %}<p style="font-size:11px;color:var(--red);margin-top:3px">{{ error }}</p>{% endfor %}
-                {% if field.help_text %}<p style="font-size:10px;color:var(--text-muted);margin-top:4px;opacity:0.7">{{ field.help_text }}</p>{% endif %}
-            </div>
+{# ============ Panel: seguridad ============ #}
+<div id="panelSeguridad" style="display:none">
+  <form method="post">
+    {% csrf_token %}
+    <input type="hidden" name="accion" value="password">
+
+    <div class="glass card" style="padding:24px;margin-bottom:16px" data-spot>
+      <div class="modal-title" style="font-size:15px;font-weight:500">Cambiar contraseña</div>
+      <div class="hint" style="font-size:11.5px;margin:3px 0 20px">
+        Necesitas la actual. Al cambiarla no se cierra tu sesión.
+      </div>
+
+      {% if pw_form.errors %}
+      <div class="glass-coral" style="padding:13px 15px;border-radius:14px;margin-bottom:18px">
+        <div style="display:flex;gap:10px;align-items:flex-start">
+          <i class="fas fa-circle-exclamation" style="font-size:12px;color:var(--coral);margin-top:2px"></i>
+          <div style="font-size:12px;color:var(--text-secondary);line-height:1.55">
+            {% for campo, errores in pw_form.errors.items %}
+              {% for e in errores %}<div>{{ e }}</div>{% endfor %}
             {% endfor %}
-            <div style="display:flex;justify-content:flex-end;margin-top:4px">
-                <button type="submit" style="display:inline-flex;align-items:center;gap:8px;background:rgba(251,146,60,0.15);border:1px solid rgba(251,146,60,0.25);color:var(--orange);padding:10px 18px;border-radius:12px;font-size:13px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif">
-                    <i class="fas fa-key" style="font-size:12px"></i> Cambiar contraseña
-                </button>
-            </div>
-        </form>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+
+      <div class="field">
+        <label class="label" for="{{ pw_form.old_password.id_for_label }}">Contraseña actual</label>
+        <input type="password" name="old_password" id="{{ pw_form.old_password.id_for_label }}"
+               autocomplete="current-password" placeholder="••••••••">
+      </div>
+
+      <div class="form-row" style="flex-wrap:wrap">
+        <div style="flex:1;min-width:200px;margin-bottom:16px">
+          <label class="label" for="{{ pw_form.new_password1.id_for_label }}">Nueva contraseña</label>
+          <input type="password" name="new_password1" id="{{ pw_form.new_password1.id_for_label }}"
+                 autocomplete="new-password" placeholder="al menos 8 caracteres">
+        </div>
+        <div style="flex:1;min-width:200px;margin-bottom:16px">
+          <label class="label" for="{{ pw_form.new_password2.id_for_label }}">Repítela</label>
+          <input type="password" name="new_password2" id="{{ pw_form.new_password2.id_for_label }}"
+                 autocomplete="new-password" placeholder="••••••••">
+          <div class="hint" style="font-size:10.5px;margin-top:6px" id="coincide"></div>
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-purple" style="padding:14px 22px;border-radius:15px;font-size:13.5px">Cambiar contraseña</button>
+    </div>
+  </form>
+
+  <div class="glass" style="border-radius:24px;overflow:hidden" data-spot>
+    <div style="display:flex;align-items:center;gap:14px;padding:17px 20px;border-bottom:1px solid rgba(255,255,255,.05)">
+      <span class="icon-tile"><i class="fas fa-user"></i></span>
+      <div class="row-main">
+        <div class="row-title">Usuario</div>
+        <div class="row-meta">Con el que entras. No se puede cambiar.</div>
+      </div>
+      <span class="mono" style="font-size:12px;color:var(--text-secondary)">{{ request.user.username }}</span>
     </div>
 
-    <div style="text-align:center;margin-top:16px;font-size:11px;color:var(--text-muted)">
-        Miembro desde {{ miembro_desde }}
+    <div style="display:flex;align-items:center;gap:14px;padding:17px 20px">
+      <span class="icon-tile coral"><i class="fas fa-right-from-bracket"></i></span>
+      <div class="row-main">
+        <div class="row-title">Cerrar sesión</div>
+        <div class="row-meta">Tus datos quedan guardados en tu cuenta</div>
+      </div>
+      <form method="post" action="{% url 'logout' %}" style="margin:0">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-red btn-sm">Salir</button>
+      </form>
     </div>
+  </div>
+</div>
 
 </div>
+{% endblock %}
+
+
+{% block extra_js %}
+<script>
+(function () {
+  /* Pestañas */
+  var seg = document.getElementById('segPerfil');
+  var paneles = { datos: document.getElementById('panelDatos'), seguridad: document.getElementById('panelSeguridad') };
+
+  seg.addEventListener('click', function (e) {
+    var b = e.target.closest('button'); if (!b) return;
+    seg.querySelectorAll('button').forEach(function (x) { x.classList.remove('on'); });
+    b.classList.add('on');
+    Object.keys(paneles).forEach(function (k) {
+      paneles[k].style.display = (k === b.dataset.panel) ? 'block' : 'none';
+    });
+  });
+
+  /* Si el POST de contraseña volvió con errores, abrir esa pestaña */
+  {% if pw_form.errors %}
+  seg.querySelector('[data-panel="seguridad"]').click();
+  {% endif %}
+
+  /* Aviso de coincidencia */
+  var p1 = document.getElementById('{{ pw_form.new_password1.id_for_label }}');
+  var p2 = document.getElementById('{{ pw_form.new_password2.id_for_label }}');
+  var aviso = document.getElementById('coincide');
+  if (p1 && p2) {
+    p2.addEventListener('input', function () {
+      if (!p2.value) { aviso.textContent = ''; return; }
+      var igual = p1.value === p2.value;
+      aviso.textContent = igual ? 'Coinciden.' : 'Todavía no coinciden.';
+      aviso.style.color = igual ? 'var(--green)' : 'var(--coral)';
+    });
+  }
+})();
+</script>
 {% endblock %}

@@ -117,8 +117,11 @@ a:hover { color: #c4b5fd; }
   text-align: left; text-decoration: none; cursor: pointer;
   transition: all .2s var(--ease-out);
 }
-.nav-item i { width: 17px; text-align: center; font-size: 13.5px; }
-.nav-item span { flex: 1; }
+.nav-item i { width: 17px; flex: 0 0 17px; text-align: center; font-size: 13.5px; }
+/* Solo la etiqueta crece. El badge heredaba flex:1 y se estiraba
+   hasta el borde del menú. */
+.nav-item > span { flex: 1; min-width: 0; text-wrap: pretty; }
+.nav-item > .nav-count { flex: 0 0 auto; }
 .nav-item:hover { background: var(--glass-hover); color: var(--text-primary); }
 .nav-item.active {
   background: linear-gradient(100deg, rgba(124, 58, 237, .32), rgba(167, 139, 250, .1));
@@ -126,9 +129,14 @@ a:hover { color: #c4b5fd; }
   box-shadow: 0 6px 20px rgba(124, 58, 237, .22);
 }
 .nav-count {
-  font-family: 'DM Mono', monospace; font-size: 10px; padding: 2px 6px;
-  border-radius: 7px; background: rgba(251, 113, 133, .16); color: var(--coral);
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 19px; height: 19px; padding: 0 6px;
+  font-family: 'DM Mono', monospace; font-size: 10px; line-height: 1;
+  border-radius: var(--r-pill);
+  background: rgba(251, 113, 133, .16); border: 1px solid rgba(251, 113, 133, .26);
+  color: var(--coral);
 }
+.nav-item.active .nav-count { background: rgba(251, 113, 133, .2); }
 
 .sidebar-foot { margin-top: auto; }
 .health { padding: 14px; border-radius: 18px; background: var(--glass-bg); border: 1px solid var(--glass-border); box-shadow: var(--glass-inset); }

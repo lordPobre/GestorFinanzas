@@ -68,7 +68,7 @@
     </nav>
 
     {% block sidebar_foot %}
-      {% if salud_score %}
+      {% if salud_score != None %}
       <div class="sidebar-foot health" data-spot>
         <div class="label" style="color:rgba(167,139,250,.75);margin-bottom:7px">Salud del mes</div>
         <div style="display:flex;align-items:baseline;gap:6px;margin-bottom:9px">
@@ -88,11 +88,23 @@
 
     <header class="topbar">
       {% block topbar_left %}
+      {# Solo el dashboard navega por mes; el resto no manda nombre_mes #}
+      {% if nombre_mes %}
       <div class="pill-group">
-        <a href="?mes={{ mes_anterior }}" class="icon-btn" style="display:flex;align-items:center;justify-content:center"><i class="fas fa-chevron-left" style="font-size:10px"></i></a>
-        <span class="month">{{ mes_actual|default:"Este mes" }}</span>
-        <a href="?mes={{ mes_siguiente }}" class="icon-btn" style="display:flex;align-items:center;justify-content:center"><i class="fas fa-chevron-right" style="font-size:10px"></i></a>
+        <a href="?year={{ prev_year }}&amp;month={{ prev_month }}" class="icon-btn"
+           style="display:flex;align-items:center;justify-content:center" title="Mes anterior">
+          <i class="fas fa-chevron-left" style="font-size:10px"></i>
+        </a>
+        <span class="month">{{ nombre_mes|default:"Este mes" }}</span>
+        <a href="?year={{ next_year }}&amp;month={{ next_month }}" class="icon-btn"
+           style="display:flex;align-items:center;justify-content:center" title="Mes siguiente">
+          <i class="fas fa-chevron-right" style="font-size:10px"></i>
+        </a>
       </div>
+      {% if not es_mes_actual %}
+      <a href="{% url 'dashboard' %}" class="btn btn-soft btn-sm">Volver a hoy</a>
+      {% endif %}
+      {% endif %}
 
       <div class="search">
         <i class="fas fa-magnifying-glass" style="font-size:11px;color:rgba(241,240,255,.35)"></i>
@@ -104,8 +116,8 @@
       <div class="spacer"></div>
 
       {% block topbar_actions %}
-      <button class="btn btn-green hide-mobile" data-open="#modalIngreso"><i class="fas fa-arrow-down" style="font-size:11px"></i>Ingreso</button>
-      <button class="btn btn-purple" data-open="#modalGasto"><i class="fas fa-plus" style="font-size:11px"></i><span class="hide-mobile">Registrar gasto</span></button>
+      <button class="btn btn-green hide-mobile" data-open="#modalGasto" data-preset-tipo="INGRESO"><i class="fas fa-arrow-down" style="font-size:11px"></i>Ingreso</button>
+      <button class="btn btn-purple" data-open="#modalGasto" data-preset-tipo="EGRESO"><i class="fas fa-plus" style="font-size:11px"></i><span class="hide-mobile">Registrar gasto</span></button>
       {% endblock %}
     </header>
 

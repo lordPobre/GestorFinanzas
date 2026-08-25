@@ -2,7 +2,26 @@
 {% load humanize %}
 {% block title %}Inicio · FinApp{% endblock %}
 
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+{% endblock %}
+
 {% block content %}
+
+{% if es_nuevo %}
+<div class="glass empty" style="margin-bottom:18px">
+  <i class="fas fa-hand-sparkles"></i>
+  <div class="empty-title">Empecemos por lo que entra</div>
+  <div class="empty-text">
+    Registra tu sueldo y, si tienes compras en cuotas, agrégalas. Con esos dos datos
+    ya podemos decirte cuánto puedes gastar cada día sin apretarte.
+  </div>
+  <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+    <button class="btn btn-purple" data-open="#modalGasto" data-preset-tipo="INGRESO">Registrar un ingreso</button>
+    <a href="{% url 'deudas' %}" class="btn btn-glass">Agregar una compra en cuotas</a>
+  </div>
+</div>
+{% endif %}
 
 {# ============ Lo importante hoy ============ #}
 <div class="glass card-lg" data-spot style="margin-bottom:18px">
@@ -10,12 +29,20 @@
     <div style="min-width:280px;flex:1">
       <div class="label" style="color:rgba(167,139,250,.8);margin-bottom:10px">Lo importante hoy</div>
       <div class="hero-line">
-        Puedes gastar <b>${{ disponible|intcomma }}</b> hasta fin de mes.
+        {% if disponible >= 0 %}
+          Puedes gastar <b>${{ disponible|intcomma }}</b> hasta fin de mes.
+        {% else %}
+          Te faltan <b style="color:var(--coral)">${{ disponible|intcomma }}</b> para cerrar el mes.
+        {% endif %}
       </div>
       <div class="hint" style="margin-top:9px;max-width:520px">
         Es lo que queda después de tus gastos ya hechos y de lo que aún debes pagar este mes.
-        Quedan {{ dias_restantes }} días, así que son unos
-        <span class="mono" style="color:var(--text-primary)">${{ por_dia|intcomma }}</span> por día.
+        {% if disponible >= 0 %}
+          Quedan {{ dias_restantes }} días, así que son unos
+          <span class="mono" style="color:var(--text-primary)">${{ por_dia|intcomma }}</span> por día.
+        {% else %}
+          Revisa tus cuotas o registra los ingresos que falten.
+        {% endif %}
       </div>
     </div>
 
@@ -28,13 +55,13 @@
       <div class="glass-coral" style="padding:13px 16px;border-radius:16px;min-width:132px">
         <div class="label" style="color:rgba(251,113,133,.7);margin-bottom:6px">Próximo pago</div>
         <div class="mono" style="font-size:16px;color:var(--coral)">${{ proximo_pago.monto_cuota|floatformat:0|intcomma }}</div>
-        <div style="font-size:10.5px;color:var(--text-muted);margin-top:3px">{{ proximo_pago.acreedor|truncatechars:14 }} · {{ proximo_pago.texto_urgencia }}</div>
+        <div style="font-size:10.5px;color:var(--text-muted);margin-top:3px">{{ proximo_pago.acreedor|truncatechars:16 }}</div>
+        <div style="font-size:10.5px;color:var(--text-muted)">{{ proximo_pago.texto_urgencia }}</div>
       </div>
       {% endif %}
     </div>
   </div>
 
-  {# Barra: gastado / por pagar / disponible #}
   <div style="margin-top:20px;display:flex;align-items:center;gap:12px;flex-wrap:wrap">
     <div class="split-bar" style="flex:1;min-width:200px">
       <span style="width:{{ pct_gastado }}%;background:linear-gradient(90deg,#3b82f6,#60a5fa)"></span>
@@ -49,6 +76,20 @@
   </div>
 </div>
 
+{# ============ Avisos ============ #}
+{% if insights %}
+<div style="display:flex;flex-direction:column;gap:8px;margin-bottom:18px">
+  {% for i in insights %}
+  <div class="row" style="border-color:{% if i.tipo == 'peligro' %}rgba(248,113,113,.26){% elif i.tipo == 'alerta' %}rgba(251,146,60,.24){% elif i.tipo == 'exito' %}rgba(52,211,153,.24){% else %}var(--glass-border){% endif %}">
+    <span class="icon-tile {% if i.tipo == 'peligro' %}coral{% elif i.tipo == 'alerta' %}orange{% elif i.tipo == 'exito' %}green{% endif %}">
+      <i class="fas {{ i.icono }}"></i>
+    </span>
+    <div class="row-main"><div style="font-size:12.5px;line-height:1.5">{{ i.texto }}</div></div>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
 {# ============ Cuatro métricas ============ #}
 <div class="grid-metrics">
   <div class="glass glass-lift card" data-spot>
@@ -57,7 +98,7 @@
       <span class="icon-tile green"><i class="fas fa-arrow-down"></i></span>
     </div>
     <div class="stat-value" style="color:var(--green)">${{ total_ingresos|intcomma }}</div>
-    <div class="stat-note">{{ nota_ingresos|default:"Todo lo que entró, incluyendo abonos." }}</div>
+    <div class="stat-note">Todo lo que entró, incluidos abonos y extras.</div>
   </div>
 
   <div class="glass glass-lift card" data-spot>
@@ -66,7 +107,7 @@
       <span class="icon-tile blue"><i class="fas fa-arrow-up"></i></span>
     </div>
     <div class="stat-value" style="color:var(--blue)">${{ total_gastos|intcomma }}</div>
-    <div class="stat-note">{{ pct_gastado }}% de lo que entró.</div>
+    <div class="stat-note">{{ pct_gastado }}% de lo que entró, sin contar cuotas.</div>
   </div>
 
   <div class="glass glass-lift glass-orange card" data-spot>
@@ -75,8 +116,13 @@
       <span class="icon-tile orange"><i class="fas fa-clock"></i></span>
     </div>
     <div class="stat-value" style="color:var(--orange)">${{ por_pagar|intcomma }}</div>
-    <div class="stat-note">{{ cuotas_activas }} cuotas y {{ subs_pendientes }} suscripciones antes de fin de mes.</div>
+    <div class="stat-note">
+      {% if cuotas_activas %}{{ cuotas_activas }} cuota{{ cuotas_activas|pluralize:"s" }}{% else %}Sin cuotas{% endif %}
+      y {{ subs_pendientes }} suscripción{{ subs_pendientes|pluralize:"es" }} este mes.
+    </div>
+    {% if cuotas_activas %}
     <a href="{% url 'deudas' %}" class="btn btn-orange btn-sm" style="margin-top:11px">Ver mis cuotas<i class="fas fa-arrow-right" style="font-size:9px"></i></a>
+    {% endif %}
   </div>
 
   <div class="glass glass-lift glass-purple card" data-spot>
@@ -93,36 +139,48 @@
 {# ============ Gráfico + categorías ============ #}
 <div class="grid-chart">
   <div class="glass card" style="padding:22px" data-spot>
-    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;margin-bottom:6px">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;margin-bottom:14px">
       <div>
         <div class="modal-title" style="font-size:15px;font-weight:500">Entra vs. sale</div>
         <div class="hint" style="font-size:11.5px;margin-top:3px">Pasa el cursor por un mes para ver el detalle</div>
       </div>
-      <div class="seg" style="padding:3px" data-rango>
+      <div class="seg" style="padding:3px" id="segRango">
         <button type="button" data-meses="3">3M</button>
         <button type="button" class="on" data-meses="6">6M</button>
-        <button type="button" data-meses="12">1 año</button>
       </div>
     </div>
-    {# Si ya usas Chart.js, deja tu canvas aquí. Colores: entra #34d399, sale #fb7185, grid rgba(255,255,255,.055) #}
-    <canvas id="chartFlujo" height="230" data-om-raster></canvas>
+    <div style="position:relative;height:236px">
+      <canvas id="chartFlujo" data-om-raster></canvas>
+    </div>
   </div>
 
   <div class="glass card" style="padding:22px" data-spot>
     <div class="modal-title" style="font-size:15px;font-weight:500">En qué se va</div>
     <div class="hint" style="font-size:11.5px;margin-top:3px">Toca una categoría para aislarla</div>
-    <div style="display:flex;align-items:center;justify-content:center;margin:10px 0 4px">
-      <canvas id="chartCategorias" width="190" height="190" data-om-raster></canvas>
+
+    {% if categorias %}
+    <div style="position:relative;height:196px;margin:12px 0 6px">
+      <canvas id="chartCategorias" data-om-raster></canvas>
     </div>
     <div class="row-list" style="gap:2px">
       {% for c in categorias %}
-      <button class="row" style="padding:8px 10px;background:none;border:1px solid transparent;width:100%;cursor:pointer" data-cat="{{ c.nombre }}">
+      <button type="button" class="row cat-row" data-indice="{{ forloop.counter0 }}"
+              style="padding:8px 10px;background:none;border:1px solid transparent;width:100%;cursor:pointer;text-align:left">
         <span style="width:8px;height:8px;border-radius:3px;background:{{ c.color }};flex-shrink:0"></span>
         <span class="row-main" style="font-size:12px">{{ c.label }}</span>
+        <span style="font-size:11px;color:var(--text-muted)">{{ c.porcentaje }}%</span>
         <span class="mono" style="font-size:11.5px;color:var(--text-secondary)">${{ c.total|floatformat:0|intcomma }}</span>
       </button>
       {% endfor %}
     </div>
+    {% else %}
+    <div class="empty" style="padding:36px 12px">
+      <i class="fas fa-chart-pie" style="font-size:24px"></i>
+      <div class="empty-title" style="font-size:14px">Sin gastos este mes</div>
+      <div class="empty-text" style="font-size:11.5px;margin-bottom:14px">Registra uno y verás en qué se te va.</div>
+      <button class="btn btn-soft btn-sm" data-open="#modalGasto" data-preset-tipo="EGRESO">Registrar un gasto</button>
+    </div>
+    {% endif %}
   </div>
 </div>
 
@@ -132,19 +190,22 @@
   <div class="glass card" style="padding:22px" data-spot>
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;gap:10px">
       <div class="modal-title" style="font-size:15px;font-weight:500">Calendario de pagos</div>
-      <span class="badge badge-orange mono">{{ dias_con_pago|length }} días con pagos</span>
+      {% if dias_con_pago %}
+      <span class="badge badge-orange mono">{{ dias_con_pago|length }} día{{ dias_con_pago|length|pluralize:"s" }} con pagos</span>
+      {% endif %}
     </div>
     <div class="hint" style="font-size:11.5px;margin-bottom:14px">Los días marcados tienen algo que pagar. Toca uno.</div>
 
     <div class="cal-head" style="margin-bottom:5px">
-      <div>L</div><div>M</div><div>M</div><div>J</div><div>V</div><div>S</div><div>D</div>
+      {% for d in dias_semana %}<div>{{ d|slice:":1" }}</div>{% endfor %}
     </div>
     {% for semana in calendario %}
-    <div class="cal-week">
+    <div class="cal-week" style="margin-bottom:4px">
       {% for dia in semana %}
         {% if dia %}
-          <button class="cal-day {% if dia.tiene_pagos %}has{% endif %} {% if dia.es_hoy %}on{% endif %}"
-                  {% if dia.tiene_pagos %}data-open="#dia{{ dia.numero }}"{% endif %}>
+          <button type="button" class="cal-day {% if dia.tiene_pagos %}has{% endif %} {% if dia.es_hoy %}on{% endif %}"
+                  {% if dia.tiene_pagos %}data-open="#dia{{ dia.numero }}"{% endif %}
+                  title="{% if dia.tiene_pagos %}${{ dia.total_dia|floatformat:0|intcomma }} este día{% endif %}">
             <span>{{ dia.numero }}</span>
             {% if dia.tiene_pagos %}<span class="dot {% if dia.todo_pagado %}paid{% endif %}"></span>{% endif %}
           </button>
@@ -154,20 +215,43 @@
       {% endfor %}
     </div>
     {% endfor %}
+
+    {% if gastos_pendientes %}
+    <div style="margin-top:16px;padding-top:16px;border-top:1px solid rgba(255,255,255,.06)">
+      <div class="label" style="margin-bottom:10px">Cuentas por pagar</div>
+      <div class="row-list">
+        {% for g in gastos_pendientes %}
+        <div class="row">
+          <span class="icon-tile {% if g.urgencia == 'vencido' %}coral{% elif g.urgencia == 'hoy' or g.urgencia == 'proximo' %}orange{% endif %}">
+            <i class="fas fa-file-invoice"></i>
+          </span>
+          <div class="row-main">
+            <div class="row-title">{{ g.nombre }}</div>
+            <div class="row-meta">{{ g.fecha_vencimiento|date:"j M" }} · {{ g.texto_urgencia }}</div>
+          </div>
+          <div class="mono" style="font-size:12.5px">${{ g.monto|floatformat:0|intcomma }}</div>
+          <form method="post" action="{% url 'pagar_gasto_pendiente' g.pk %}" style="margin:0">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{% url 'dashboard' %}">
+            <button type="submit" class="btn btn-green btn-sm">Pagar</button>
+          </form>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
   </div>
 
   <div style="display:flex;flex-direction:column;gap:16px">
     <div class="glass card" style="padding:22px" data-spot>
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;gap:10px">
         <div class="modal-title" style="font-size:15px;font-weight:500">Últimos movimientos</div>
-        <button class="btn btn-soft btn-sm" data-open="#modalGasto"><i class="fas fa-plus" style="font-size:9px"></i>Agregar</button>
+        <button class="btn btn-soft btn-sm" data-open="#modalGasto" data-preset-tipo="EGRESO"><i class="fas fa-plus" style="font-size:9px"></i>Agregar</button>
       </div>
       <div class="row-list">
         {% for t in ultimas %}
         <div class="row" data-searchable>
-          <span class="icon-tile {% if t.es_ingreso %}green{% endif %}">
-            <i class="fas {{ t.icono }}"></i>
-          </span>
+          <span class="icon-tile {% if t.es_ingreso %}green{% endif %}"><i class="fas {{ t.icono }}"></i></span>
           <div class="row-main">
             <div class="row-title">{{ t.descripcion|default:t.get_categoria_display }}</div>
             <div class="row-meta">{{ t.fecha|date:"j M" }} · {{ t.get_categoria_display }}</div>
@@ -175,13 +259,18 @@
           <div class="mono" style="font-size:13px;{% if t.es_ingreso %}color:var(--green){% endif %}">
             {% if t.es_ingreso %}+{% endif %}${{ t.monto|floatformat:0|intcomma }}
           </div>
+          <form method="post" action="{% url 'eliminar_transaccion' t.pk %}" style="margin:0" data-confirm="¿Eliminar este movimiento?">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{% url 'dashboard' %}">
+            <button type="submit" class="icon-btn" title="Eliminar"><i class="fas fa-trash-can" style="font-size:10px"></i></button>
+          </form>
         </div>
         {% empty %}
         <div class="empty">
           <i class="fas fa-receipt"></i>
           <div class="empty-title">Todavía no registras nada</div>
-          <div class="empty-text">Anota tu primer gasto y el dashboard empieza a tener sentido.</div>
-          <button class="btn btn-purple" data-open="#modalGasto">Registrar el primero</button>
+          <div class="empty-text">Anota tu primer gasto y el resto de la pantalla empieza a tener sentido.</div>
+          <button class="btn btn-purple" data-open="#modalGasto" data-preset-tipo="EGRESO">Registrar el primero</button>
         </div>
         {% endfor %}
       </div>
@@ -189,8 +278,11 @@
 
     {% if metas %}
     <div class="glass card" style="padding:22px" data-spot>
-      <div class="modal-title" style="font-size:15px;font-weight:500;margin-bottom:14px">Metas de ahorro</div>
-      <div style="display:flex;flex-direction:column;gap:14px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;gap:10px">
+        <div class="modal-title" style="font-size:15px;font-weight:500">Metas de ahorro</div>
+        <a href="{% url 'crear_meta' %}" class="btn btn-soft btn-sm"><i class="fas fa-plus" style="font-size:9px"></i>Nueva</a>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:16px">
         {% for m in metas %}
         <div>
           <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:7px;gap:10px">
@@ -198,9 +290,17 @@
             <span class="mono" style="font-size:11.5px;color:var(--text-secondary)">${{ m.monto_actual|floatformat:0|intcomma }} / ${{ m.monto_meta|floatformat:0|intcomma }}</span>
           </div>
           <div class="progress-bar">
-            <div class="progress-fill {% if forloop.first %}shine{% else %}cyan{% endif %}" style="width:{{ m.porcentaje }}%"></div>
+            <div class="progress-fill {% if m.esta_completa %}green{% elif forloop.first %}shine{% else %}cyan{% endif %}"
+                 style="width:{{ m.porcentaje|floatformat:0 }}%"></div>
           </div>
-          <div style="font-size:10.5px;color:var(--text-muted);margin-top:6px">{{ m.nota_plan }}</div>
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:7px">
+            <span style="font-size:10.5px;color:var(--text-muted)">{{ m.nota_plan }}</span>
+            {% if not m.esta_completa %}
+            <button class="btn btn-green btn-sm" data-open="#meta{{ m.pk }}">Aportar</button>
+            {% else %}
+            <span class="badge badge-green">Lista</span>
+            {% endif %}
+          </div>
         </div>
         {% endfor %}
       </div>
@@ -213,7 +313,7 @@
 
 
 {% block modals %}
-{# ============ Panel lateral: registrar gasto / ingreso ============ #}
+{# ============ Panel: registrar gasto / ingreso ============ #}
 <div class="modal-overlay drawer-overlay" id="modalGasto">
   <div class="drawer-box">
     <div class="modal-head">
@@ -224,54 +324,60 @@
       <button class="modal-close" data-close>✕</button>
     </div>
 
-    <form method="post" action="{% url 'registrar_transaccion' %}">
+    <form method="post" action="{% url 'registrar_transaccion' %}" id="formRegistro">
       {% csrf_token %}
+      <input type="hidden" name="next" value="{% url 'dashboard' %}">
 
-      <div class="seg" style="margin-bottom:20px">
-        <button type="button" class="on-coral" data-tipo="GASTO">Gasto</button>
+      {# El form de Django exige tipo, monto, categoria y fecha. Van ocultos:
+         el usuario los llena con el segmentado, el teclado y los chips. #}
+      <input type="hidden" name="tipo" id="campoTipo" value="EGRESO">
+      <input type="hidden" name="monto" id="campoMonto" value="">
+      <input type="hidden" name="categoria" id="campoCategoria" value="Comida">
+      <input type="hidden" name="fecha" id="campoFecha" value="{{ hoy_iso }}">
+
+      <div class="seg" style="margin-bottom:20px" id="segTipo">
+        <button type="button" class="on-coral" data-tipo="EGRESO">Gasto</button>
         <button type="button" data-tipo="INGRESO">Ingreso</button>
       </div>
-      <input type="hidden" name="tipo" id="id_tipo" value="GASTO">
 
       <div style="text-align:center;padding:16px 0 18px">
         <div class="label" style="margin-bottom:8px">Monto</div>
         <div class="amount-display" id="montoView" style="color:var(--coral)">$0</div>
       </div>
 
-      {{ form.monto.as_hidden }}
-      <div class="keypad" data-keypad data-target="#{{ form.monto.id_for_label }}" data-display="#montoView" style="margin-bottom:18px">
+      <div class="keypad" data-keypad data-target="#campoMonto" data-display="#montoView" style="margin-bottom:18px">
         <button type="button" data-key="1">1</button><button type="button" data-key="2">2</button><button type="button" data-key="3">3</button>
         <button type="button" data-key="4">4</button><button type="button" data-key="5">5</button><button type="button" data-key="6">6</button>
         <button type="button" data-key="7">7</button><button type="button" data-key="8">8</button><button type="button" data-key="9">9</button>
         <button type="button" data-key="000">000</button><button type="button" data-key="0">0</button><button type="button" data-key="del">⌫</button>
       </div>
 
-      <div class="label" style="margin-bottom:9px">Categoría</div>
-      {{ form.categoria.as_hidden }}
-      <div class="chips" data-field="#{{ form.categoria.id_for_label }}" style="margin-bottom:18px">
+      <div class="label" style="margin-bottom:9px" id="labelCat">Categoría</div>
+      <div class="chips" data-field="#campoCategoria" style="margin-bottom:18px" id="chipsGasto">
         {% for value, label in form.fields.categoria.choices %}
-          <button type="button" class="chip {% if forloop.first %}on{% endif %}" data-value="{{ value }}">{{ label }}</button>
+          {% if value %}<button type="button" class="chip" data-value="{{ value }}">{{ label }}</button>{% endif %}
         {% endfor %}
       </div>
 
       <div class="field">
-        <label class="label" for="{{ form.descripcion.id_for_label }}">Descripción</label>
-        {{ form.descripcion }}
+        <label class="label" for="campoDesc">Descripción</label>
+        <input type="text" name="descripcion" id="campoDesc" placeholder="Ej: Supermercado, sueldo de agosto">
       </div>
 
       <div class="preview-box">
         <div class="label" style="color:rgba(167,139,250,.8);margin-bottom:8px">Si guardas esto</div>
         <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:5px">
           <span style="font-size:12px;color:var(--text-secondary)">Te queda libre</span>
-          <span class="mono" style="font-size:15px" data-preview data-base="{{ disponible|floatformat:0 }}" data-dias="{{ dias_restantes }}" data-sign="-1">${{ disponible|floatformat:0|intcomma }}</span>
+          <span class="mono" style="font-size:15px" data-preview data-base="{{ disponible }}"
+                data-dias="{{ dias_restantes }}" data-sign="-1">${{ disponible|intcomma }}</span>
         </div>
         <div style="display:flex;justify-content:space-between;align-items:baseline">
           <span style="font-size:12px;color:var(--text-secondary)">Por día ({{ dias_restantes }} días)</span>
-          <span class="mono" style="font-size:12.5px;color:rgba(241,240,255,.7)" data-preview-dia>${{ por_dia|floatformat:0|intcomma }}</span>
+          <span class="mono" style="font-size:12.5px;color:rgba(241,240,255,.7)" data-preview-dia>${{ por_dia|intcomma }}</span>
         </div>
       </div>
 
-      <button type="submit" class="btn btn-purple btn-block">Guardar</button>
+      <button type="submit" class="btn btn-purple btn-block" id="btnGuardar">Guardar</button>
     </form>
   </div>
 </div>
@@ -283,7 +389,7 @@
     <div class="modal-head">
       <div>
         <div class="modal-title">{{ d.numero }} de {{ nombre_mes }}</div>
-        <div class="modal-sub">{{ d.eventos|length }} pago{{ d.eventos|length|pluralize:"s" }} este día</div>
+        <div class="modal-sub">{{ d.eventos|length }} pago{{ d.eventos|length|pluralize:"s" }} · ${{ d.total_dia|floatformat:0|intcomma }}</div>
       </div>
       <button class="modal-close" data-close>✕</button>
     </div>
@@ -300,6 +406,7 @@
         {% else %}
           <form method="post" action="{% url 'pagar_cuota' e.deuda.pk %}" style="margin:0">
             {% csrf_token %}
+            <input type="hidden" name="next" value="{% url 'dashboard' %}">
             <button type="submit" class="btn btn-purple btn-sm">Pagar</button>
           </form>
         {% endif %}
@@ -309,22 +416,225 @@
   </div>
 </div>
 {% endfor %}
+
+{# ============ Aportar a una meta ============ #}
+{% for m in metas %}
+{% if not m.esta_completa %}
+<div class="modal-overlay" id="meta{{ m.pk }}">
+  <div class="modal-box" style="max-width:380px">
+    <div class="modal-head">
+      <div>
+        <div class="modal-title">Aportar a {{ m.nombre }}</div>
+        <div class="modal-sub">Te faltan ${{ m.monto_faltante|floatformat:0|intcomma }}</div>
+      </div>
+      <button class="modal-close" data-close>✕</button>
+    </div>
+    <form method="post" action="{% url 'aportar_meta' m.pk %}">
+      {% csrf_token %}
+      <input type="hidden" name="next" value="{% url 'dashboard' %}">
+      <div class="field">
+        <label class="label" for="id_aporte_{{ m.pk }}">Cuánto aportas</label>
+        <input type="number" name="monto" id="id_aporte_{{ m.pk }}" class="input-amount"
+               style="color:var(--green)" min="1" required>
+      </div>
+      <div class="field">
+        <label class="label" for="id_nota_meta_{{ m.pk }}">Nota (opcional)</label>
+        <input type="text" name="nota" id="id_nota_meta_{{ m.pk }}" placeholder="Ej: sobró del mes">
+      </div>
+      <button type="submit" class="btn btn-block" style="background:linear-gradient(135deg,#059669,#34d399);color:#04291d;font-weight:700;box-shadow:0 10px 30px rgba(5,150,105,.4)">Guardar aporte</button>
+    </form>
+  </div>
+</div>
+{% endif %}
+{% endfor %}
 {% endblock %}
 
 
 {% block extra_js %}
 <script>
-/* Switch Gasto/Ingreso del panel: cambia el hidden, el color del monto y el signo del preview */
-document.querySelectorAll('[data-tipo]').forEach(function (b) {
-  b.addEventListener('click', function () {
-    var esGasto = b.dataset.tipo === 'GASTO';
-    b.parentElement.querySelectorAll('button').forEach(function (x) { x.className = ''; });
-    b.className = esGasto ? 'on-coral' : 'on-green';
-    document.getElementById('id_tipo').value = b.dataset.tipo;
-    document.getElementById('montoView').style.color = esGasto ? 'var(--coral)' : 'var(--green)';
+(function () {
+  var GRID = 'rgba(255,255,255,.055)';
+  var TICK = 'rgba(241,240,255,.42)';
+  var FONT = "'DM Sans', sans-serif";
+
+  var tooltip = {
+    backgroundColor: 'rgba(20,19,38,.94)',
+    borderColor: 'rgba(167,139,250,.28)', borderWidth: 1,
+    titleFont: { family: "'Sora', sans-serif", size: 12, weight: '600' },
+    bodyFont: { family: FONT, size: 12 },
+    padding: 13, cornerRadius: 14, boxPadding: 5, usePointStyle: true,
+    callbacks: {
+      label: function (c) {
+        var v = c.parsed.y !== undefined ? c.parsed.y : c.parsed;
+        return ' ' + (c.dataset.label || c.label) + ': $' + Math.round(v).toLocaleString('es-CL');
+      }
+    }
+  };
+
+  /* ---- Entra vs. sale ---- */
+  var meses = {{ meses_json|safe }};
+  var ingresos = {{ ingresos_json|safe }};
+  var gastos = {{ gastos_json|safe }};
+  var cuotas = {{ cuotas_json|safe }};
+  var salidas = gastos.map(function (g, i) { return g + (cuotas[i] || 0); });
+
+  var elFlujo = document.getElementById('chartFlujo');
+  var flujo = elFlujo && new Chart(elFlujo, {
+    type: 'bar',
+    data: {
+      labels: meses,
+      datasets: [
+        { label: 'Entró', data: ingresos, backgroundColor: 'rgba(52,211,153,.85)',
+          borderRadius: 7, borderSkipped: false, maxBarThickness: 20 },
+        { label: 'Salió', data: salidas, backgroundColor: 'rgba(251,113,133,.85)',
+          borderRadius: 7, borderSkipped: false, maxBarThickness: 20 }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { labels: { color: TICK, font: { family: FONT, size: 11 }, usePointStyle: true, boxWidth: 7, padding: 15 } },
+        tooltip: tooltip
+      },
+      scales: {
+        x: { grid: { display: false }, border: { display: false },
+             ticks: { color: TICK, font: { family: FONT, size: 10.5 } } },
+        y: { grid: { color: GRID }, border: { display: false }, beginAtZero: true,
+             ticks: { color: TICK, font: { family: FONT, size: 10 },
+                      callback: function (v) { return '$' + (v / 1000) + 'k'; } } }
+      }
+    }
+  });
+
+  var seg = document.getElementById('segRango');
+  if (seg && flujo) {
+    seg.addEventListener('click', function (e) {
+      var b = e.target.closest('button'); if (!b) return;
+      seg.querySelectorAll('button').forEach(function (x) { x.classList.remove('on'); });
+      b.classList.add('on');
+      var n = Number(b.dataset.meses);
+      flujo.data.labels = meses.slice(-n);
+      flujo.data.datasets[0].data = ingresos.slice(-n);
+      flujo.data.datasets[1].data = salidas.slice(-n);
+      flujo.update();
+    });
+  }
+
+  /* ---- En qué se va ---- */
+  var elCat = document.getElementById('chartCategorias');
+  if (elCat) {
+    var catData = {{ cat_data_json|safe }};
+    var catLabels = {{ cat_labels_json|safe }};
+    var catColores = {{ cat_colores_json|safe }};
+    var total = catData.reduce(function (a, b) { return a + b; }, 0);
+
+    var dona = new Chart(elCat, {
+      type: 'doughnut',
+      data: {
+        labels: catLabels,
+        datasets: [{
+          data: catData, backgroundColor: catColores,
+          borderColor: 'rgba(11,11,22,.6)', borderWidth: 3, hoverOffset: 10, borderRadius: 5
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false, cutout: '68%',
+        plugins: {
+          legend: { display: false },
+          tooltip: Object.assign({}, tooltip, {
+            callbacks: {
+              label: function (c) {
+                var pct = total ? Math.round(c.parsed / total * 100) : 0;
+                return ' $' + Math.round(c.parsed).toLocaleString('es-CL') + ' · ' + pct + '%';
+              }
+            }
+          })
+        }
+      }
+    });
+
+    /* Aislar una categoría al tocar su fila */
+    var activa = null;
+    document.querySelectorAll('.cat-row').forEach(function (row) {
+      row.addEventListener('click', function () {
+        var i = Number(row.dataset.indice);
+        activa = (activa === i) ? null : i;
+        document.querySelectorAll('.cat-row').forEach(function (r) {
+          var on = activa !== null && Number(r.dataset.indice) === activa;
+          r.style.background = on ? 'rgba(167,139,250,.14)' : 'none';
+          r.style.borderColor = on ? 'rgba(167,139,250,.24)' : 'transparent';
+        });
+        dona.data.datasets[0].backgroundColor = catColores.map(function (c, k) {
+          return (activa === null || k === activa) ? c : 'rgba(255,255,255,.07)';
+        });
+        dona.update();
+      });
+    });
+  }
+
+  /* ---- Panel de registro: gasto o ingreso ---- */
+  var catsGasto = {{ cats_egreso_json|safe }};
+  var catsIngreso = {{ cats_ingreso_json|safe }};
+  var chips = document.getElementById('chipsGasto');
+  var campoTipo = document.getElementById('campoTipo');
+  var campoCat = document.getElementById('campoCategoria');
+  var labelCat = document.getElementById('labelCat');
+  var montoView = document.getElementById('montoView');
+  var segTipo = document.getElementById('segTipo');
+
+  function pintarChips(tipo) {
+    var lista = tipo === 'INGRESO' ? catsIngreso : catsGasto;
+    labelCat.textContent = tipo === 'INGRESO' ? 'De dónde viene' : 'Categoría';
+    chips.innerHTML = lista.map(function (c, i) {
+      return '<button type="button" class="chip' + (i === 0 ? ' on' : '') +
+             '" data-value="' + c[0] + '">' + c[1] + '</button>';
+    }).join('');
+    campoCat.value = lista[0][0];
+  }
+
+  function setTipo(tipo) {
+    var esGasto = tipo !== 'INGRESO';
+    campoTipo.value = esGasto ? 'EGRESO' : 'INGRESO';
+    segTipo.querySelectorAll('button').forEach(function (b) {
+      b.className = b.dataset.tipo === campoTipo.value
+        ? (esGasto ? 'on-coral' : 'on-green') : '';
+    });
+    montoView.style.color = esGasto ? 'var(--coral)' : 'var(--green)';
     var prev = document.querySelector('[data-preview]');
     if (prev) prev.dataset.sign = esGasto ? '-1' : '1';
+    pintarChips(campoTipo.value);
+  }
+
+  segTipo.addEventListener('click', function (e) {
+    var b = e.target.closest('button'); if (!b) return;
+    setTipo(b.dataset.tipo);
   });
-});
+
+  /* Los chips se redibujan, así que el click se delega */
+  chips.addEventListener('click', function (e) {
+    var b = e.target.closest('button'); if (!b) return;
+    chips.querySelectorAll('button').forEach(function (x) { x.classList.remove('on'); });
+    b.classList.add('on');
+    campoCat.value = b.dataset.value;
+  });
+
+  /* El botón del topbar decide si abre en gasto o en ingreso */
+  document.querySelectorAll('[data-preset-tipo]').forEach(function (btn) {
+    btn.addEventListener('click', function () { setTipo(btn.dataset.presetTipo); });
+  });
+
+  /* No dejar guardar sin monto */
+  document.getElementById('formRegistro').addEventListener('submit', function (e) {
+    if (!Number(document.getElementById('campoMonto').value || 0)) {
+      e.preventDefault();
+      montoView.style.transition = 'transform .12s';
+      montoView.style.transform = 'scale(1.08)';
+      setTimeout(function () { montoView.style.transform = 'scale(1)'; }, 120);
+    }
+  });
+
+  setTipo('EGRESO');
+})();
 </script>
 {% endblock %}
