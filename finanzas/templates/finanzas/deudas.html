@@ -1,0 +1,186 @@
+{% extends 'finanzas/base.html' %}
+{% load humanize %}
+{% block title %}Compras en cuotas · FinApp{% endblock %}
+
+{% block content %}
+
+<div style="display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap;margin-bottom:18px">
+  <div>
+    <div class="page-title">Compras en cuotas</div>
+    <div class="hint" style="margin-top:5px;max-width:600px">
+      Lo que compraste a plazo. Cada cuota que marcas como pagada se registra como gasto
+      del mes; si te equivocas, la puedes anular.
+    </div>
+  </div>
+  <button class="btn btn-purple" data-open="#modalDeuda"><i class="fas fa-plus" style="font-size:11px"></i>Nueva compra en cuotas</button>
+</div>
+
+<div class="grid-metrics" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr))">
+  <div class="glass glass-purple card" data-spot>
+    <div class="label" style="color:rgba(167,139,250,.8);margin-bottom:10px">Cuotas de este mes</div>
+    <div class="display" style="font-size:24px;color:var(--purple)">${{ total_cuotas_mes|floatformat:0|intcomma }}</div>
+    <div class="stat-note">{{ deudas_activas }} compras activas</div>
+  </div>
+  <div class="glass card" data-spot>
+    <div class="label" style="margin-bottom:10px">Deuda que te queda</div>
+    <div class="display" style="font-size:24px">${{ total_restante|floatformat:0|intcomma }}</div>
+    <div class="stat-note">Sumando todas las cuotas por pagar</div>
+  </div>
+  <div class="glass glass-green card" data-spot>
+    <div class="label" style="color:rgba(52,211,153,.75);margin-bottom:10px">Ya pagado</div>
+    <div class="display" style="font-size:24px;color:var(--green)">${{ total_pagado|floatformat:0|intcomma }}</div>
+    <div class="stat-note">De ${{ total_deuda|floatformat:0|intcomma }} en total</div>
+  </div>
+</div>
+
+<div class="grid-cards">
+  {% for d in deudas %}
+  <div class="glass glass-lift card" data-spot data-searchable
+       {% if d.urgencia == 'critica' or d.urgencia == 'vencida' %}style="border-color:rgba(251,113,133,.28)"{% endif %}>
+
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:16px">
+      <div style="min-width:0">
+        <div class="row-title" style="font-size:14px;font-weight:600">{{ d.acreedor }}</div>
+        <div class="row-meta">{{ d.get_categoria_display }}</div>
+      </div>
+      <span class="urg urg-{{ d.urgencia }}">{{ d.texto_urgencia }}</span>
+    </div>
+
+    <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin-bottom:13px">
+      <div>
+        <div class="label" style="margin-bottom:5px">Cuota mensual</div>
+        <div class="display" style="font-size:22px">${{ d.monto_cuota|floatformat:0|intcomma }}</div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-size:11.5px;color:var(--purple);font-weight:500">
+          {% if d.esta_saldada %}Pagada completa{% else %}Cuota {{ d.cuota_actual }} de {{ d.cuotas_totales }}{% endif %}
+        </div>
+        <div class="row-meta">{{ d.cuotas_pagadas }} de {{ d.cuotas_totales }} pagadas</div>
+      </div>
+    </div>
+
+    {# Una marca por cuota #}
+    <div class="pips" style="margin-bottom:12px">
+      {% for m in d.rango_cuotas %}
+        <span class="pip {{ m.clase }}"></span>
+      {% endfor %}
+    </div>
+
+    <div style="display:flex;justify-content:space-between;font-size:11px;color:rgba(241,240,255,.45);margin-bottom:16px">
+      <span>Te queda <span class="mono" style="color:var(--text-primary)">${{ d.monto_restante|floatformat:0|intcomma }}</span></span>
+      <span>de ${{ d.monto_total|floatformat:0|intcomma }}</span>
+    </div>
+
+    <div style="display:flex;gap:8px">
+      {% if d.esta_saldada %}
+        <span class="btn btn-green" style="flex:1;cursor:default">Sin cuotas pendientes</span>
+      {% else %}
+        <form method="post" action="{% url 'pagar_cuota' d.pk %}" style="flex:1;margin:0">
+          {% csrf_token %}
+          <input type="hidden" name="next" value="{% url 'deudas' %}">
+          <button type="submit" class="btn btn-purple" style="width:100%">Pagar cuota de ${{ d.monto_cuota|floatformat:0|intcomma }}</button>
+        </form>
+      {% endif %}
+      {% if d.cuotas_pagadas > 0 %}
+        <form method="post" action="{% url 'anular_cuota' d.pk %}" style="margin:0" data-confirm="¿Anular la última cuota pagada?">
+          {% csrf_token %}
+          <input type="hidden" name="next" value="{% url 'deudas' %}">
+          <button type="submit" class="btn btn-glass">Anular</button>
+        </form>
+      {% endif %}
+    </div>
+  </div>
+
+  {% empty %}
+  <div class="glass empty" style="grid-column:1/-1">
+    <i class="fas fa-credit-card"></i>
+    <div class="empty-title">No tienes compras en cuotas</div>
+    <div class="empty-text">Cuando registres una, verás la cuota mensual, cuántas van y cuánto falta.</div>
+    <button class="btn btn-purple" data-open="#modalDeuda">Registrar la primera</button>
+  </div>
+  {% endfor %}
+</div>
+
+{% endblock %}
+
+
+{% block modals %}
+<div class="modal-overlay" id="modalDeuda">
+  <div class="modal-box">
+    <div class="modal-head">
+      <div>
+        <div class="modal-title">Nueva compra en cuotas</div>
+        <div class="modal-sub">Pon el total y en cuántas cuotas quedó. Calculamos el resto.</div>
+      </div>
+      <button class="modal-close" data-close>✕</button>
+    </div>
+
+    <form method="post" action="{% url 'crear_deuda' %}">
+      {% csrf_token %}
+      <input type="hidden" name="next" value="{% url 'deudas' %}">
+
+      <div class="field">
+        <label class="label" for="{{ form.acreedor.id_for_label }}">Dónde compraste</label>
+        {{ form.acreedor }}
+      </div>
+
+      <div class="form-row" style="margin-bottom:16px">
+        <div style="flex:1.4">
+          <label class="label" for="{{ form.monto_total.id_for_label }}">Monto total</label>
+          {{ form.monto_total }}
+        </div>
+        <div style="flex:1">
+          <label class="label" for="{{ form.cuotas_totales.id_for_label }}">Cuotas</label>
+          {{ form.cuotas_totales }}
+        </div>
+        <div style="flex:1.1">
+          <label class="label" for="{{ form.fecha_inicio.id_for_label }}">Primer pago</label>
+          {{ form.fecha_inicio }}
+        </div>
+      </div>
+
+      <div class="label" style="margin-bottom:9px">Categoría del gasto</div>
+      {{ form.categoria.as_hidden }}
+      <div class="chips" data-field="#{{ form.categoria.id_for_label }}" style="margin-bottom:18px">
+        {% for value, label in form.fields.categoria.choices %}
+          <button type="button" class="chip {% if forloop.first %}on{% endif %}" data-value="{{ value }}">{{ label }}</button>
+        {% endfor %}
+      </div>
+
+      <div class="preview-box">
+        <div class="label" style="color:rgba(167,139,250,.8);margin-bottom:9px">Quedaría así</div>
+        <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:5px">
+          <span style="font-size:12px;color:var(--text-secondary)">Cada cuota</span>
+          <span class="display" style="font-size:19px;color:var(--purple)" id="cuotaPreview">$0</span>
+        </div>
+        <div style="font-size:11.5px;color:rgba(241,240,255,.45)" id="finPreview">Elige cuántas cuotas</div>
+      </div>
+
+      <button type="submit" class="btn btn-purple btn-block">Guardar compra</button>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+
+{% block extra_js %}
+<script>
+/* Cuota y mes final en vivo mientras el usuario escribe */
+(function () {
+  var total = document.getElementById('{{ form.monto_total.id_for_label }}');
+  var cuotas = document.getElementById('{{ form.cuotas_totales.id_for_label }}');
+  var out = document.getElementById('cuotaPreview');
+  var fin = document.getElementById('finPreview');
+  var meses = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+  function paint() {
+    var t = Number(total.value || 0), c = Number(cuotas.value || 0);
+    out.textContent = t && c ? '$' + Math.round(t / c).toLocaleString('es-CL') : '$0';
+    if (!c) { fin.textContent = 'Elige cuántas cuotas'; return; }
+    var d = new Date(); d.setMonth(d.getMonth() + c - 1);
+    fin.textContent = 'Última cuota en ' + meses[d.getMonth()] + ' ' + d.getFullYear();
+  }
+  [total, cuotas].forEach(function (el) { if (el) el.addEventListener('input', paint); });
+  paint();
+})();
+</script>
+{% endblock %}

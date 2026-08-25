@@ -1,265 +1,283 @@
 {% extends 'finanzas/base.html' %}
 {% load humanize %}
-{% load moneda %}
-{% block nav_analisis %}active{% endblock %}
-{% block nav_analisis_m %}active{% endblock %}
+{% block title %}Análisis · FinApp{% endblock %}
+
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+{% endblock %}
+
+{% block topbar_left %}
+<div>
+  <div class="label" style="color:rgba(167,139,250,.8)">Sobre tus últimos 3 meses</div>
+</div>
+{% endblock %}
+
+{% block topbar_actions %}
+<button class="btn btn-soft" id="btnIA"><i class="fas fa-wand-magic-sparkles" style="font-size:11px"></i>Explicarlo con IA</button>
+{% endblock %}
 
 {% block content %}
-<div style="margin-bottom:28px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px">
-    <div>
-        <div class="label" style="margin-bottom:6px;display:flex;align-items:center;gap:6px"><i class="fas fa-brain" style="font-size:12px;color:var(--purple)"></i> Análisis predictivo</div>
-        <h1 style="font-size:26px;font-weight:600;color:var(--text-primary);margin:0">Tu salud financiera</h1>
-    </div>
-    <a href="{% url 'dashboard' %}" class="btn btn-glass">
-        <i class="fas fa-arrow-left" style="font-size:12px"></i> Volver
-    </a>
+
+<div style="margin-bottom:18px">
+  <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+    <div class="page-title">Análisis</div>
+    <span class="badge badge-purple">Calculado, no adivinado</span>
+  </div>
+  <div class="hint" style="margin-top:5px;max-width:640px">
+    Todo lo de esta página sale de matemática sobre tus datos: promedios de tres meses,
+    ratio deuda/ingreso y el calendario real de tus cuotas.
+  </div>
 </div>
 
 {% if not analisis.tiene_datos %}
-<div class="glass" style="padding:48px 24px;text-align:center">
-    <div style="margin-bottom:16px;color:var(--purple);display:flex;justify-content:center"><i class="fas fa-brain" style="font-size:40px"></i></div>
-    <div style="font-size:16px;font-weight:600;color:var(--text-primary);margin-bottom:8px">Aún no hay suficientes datos</div>
-    <div style="font-size:13px;color:var(--text-muted);max-width:360px;margin:0 auto;line-height:1.6">
-        Registra tus ingresos y deudas para que el análisis pueda proyectar tu situación financiera.
-    </div>
+<div class="glass empty">
+  <i class="fas fa-brain"></i>
+  <div class="empty-title">Todavía no hay suficiente historial</div>
+  <div class="empty-text">
+    Registra tus ingresos y al menos una compra en cuotas. Con eso ya podemos proyectar
+    cuándo quedas libre de deuda y cuánto puedes gastar sin apretarte.
+  </div>
+  <a href="{% url 'registrar_transaccion' %}" class="btn btn-purple">Registrar un ingreso</a>
 </div>
+
 {% else %}
 
-<!-- SCORE DE RIESGO (protagonista) -->
-<div class="glass" style="padding:28px;margin-bottom:20px;position:relative;overflow:hidden">
-    <div style="display:flex;align-items:center;gap:28px;flex-wrap:wrap">
-        <!-- Medidor circular -->
-        <div style="position:relative;width:140px;height:140px;flex-shrink:0">
-            <svg viewBox="0 0 120 120" style="width:140px;height:140px;transform:rotate(-90deg)">
-                <circle cx="60" cy="60" r="52" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="12"/>
-                <circle cx="60" cy="60" r="52" fill="none" stroke-width="12" stroke-linecap="round"
-                    stroke="{% if analisis.riesgo_nivel == 'critico' %}#f87171{% elif analisis.riesgo_nivel == 'alto' %}#fb923c{% elif analisis.riesgo_nivel == 'moderado' %}#fbbf24{% else %}#34d399{% endif %}"
-                    stroke-dasharray="327"
-                    stroke-dashoffset="{{ riesgo_offset }}"
-                    style="transition:stroke-dashoffset 1s ease"/>
-            </svg>
-            <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center">
-                <div class="mono" style="font-size:30px;font-weight:600;color:{% if analisis.riesgo_nivel == 'critico' %}var(--red){% elif analisis.riesgo_nivel == 'alto' %}var(--orange){% elif analisis.riesgo_nivel == 'moderado' %}#fbbf24{% else %}var(--green){% endif %}">{{ analisis.riesgo_score }}</div>
-                <div style="font-size:9px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em">de 100</div>
-            </div>
-        </div>
-        <!-- Info del riesgo -->
-        <div style="flex:1;min-width:220px">
-            <div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px">Nivel de riesgo</div>
-            <div style="font-size:24px;font-weight:600;margin-bottom:10px;color:{% if analisis.riesgo_nivel == 'critico' %}var(--red){% elif analisis.riesgo_nivel == 'alto' %}var(--orange){% elif analisis.riesgo_nivel == 'moderado' %}#fbbf24{% else %}var(--green){% endif %}">
-                {% if analisis.riesgo_nivel == 'critico' %}Crítico{% elif analisis.riesgo_nivel == 'alto' %}Alto{% elif analisis.riesgo_nivel == 'moderado' %}Moderado{% else %}Saludable{% endif %}
-            </div>
-            <div style="display:flex;flex-direction:column;gap:6px">
-                {% for f in analisis.riesgo_factores %}
-                <div style="display:flex;align-items:flex-start;gap:8px;font-size:12px;color:var(--text-secondary)">
-                    <div style="width:6px;height:6px;border-radius:50%;margin-top:5px;flex-shrink:0;background:{% if f.peso == 'alto' %}var(--red){% elif f.peso == 'medio' %}var(--orange){% else %}var(--green){% endif %}"></div>
-                    <span>{{ f.detalle }}</span>
-                </div>
-                {% endfor %}
-            </div>
-        </div>
-    </div>
-</div>
+{# ============ Titular ============ #}
+<div class="glass card-lg" data-spot
+     style="margin-bottom:18px;background:linear-gradient(135deg,rgba(124,58,237,.16),rgba(255,255,255,.03));border-color:rgba(167,139,250,.26)">
+  <div style="display:flex;flex-wrap:wrap;align-items:flex-start;justify-content:space-between;gap:24px">
 
-<!-- MÉTRICAS CLAVE -->
-<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:20px" class="grid-analisis">
-    <div class="glass" style="padding:18px">
-        <div class="label" style="margin-bottom:8px">Deuda/Ingreso</div>
-        <div class="mono" style="font-size:22px;font-weight:500;color:{% if analisis.dti > 45 %}var(--red){% elif analisis.dti > 35 %}var(--orange){% else %}var(--green){% endif %}">{{ analisis.dti }}%</div>
-        <div style="font-size:10px;color:var(--text-muted);margin-top:4px">de tus ingresos</div>
-    </div>
-    <div class="glass" style="padding:18px">
-        <div class="label" style="margin-bottom:8px">Flujo libre</div>
-        <div class="mono" style="font-size:20px;font-weight:500;color:{% if analisis.flujo_libre < 0 %}var(--red){% else %}var(--green){% endif %}">{{ analisis.flujo_libre|money:simbolo }}</div>
-        <div style="font-size:10px;color:var(--text-muted);margin-top:4px">al mes</div>
-    </div>
-    <div class="glass metric-highlight" style="padding:18px">
-        <div class="label" style="margin-bottom:8px;color:rgba(167,139,250,0.7)">Deuda total</div>
-        <div class="mono" style="font-size:22px;font-weight:600;color:var(--purple)">{{ analisis.deuda_total_restante|money:simbolo }}</div>
-        <div style="font-size:10px;color:var(--text-muted);margin-top:4px">todo lo que debes</div>
-    </div>
-    <div class="glass" style="padding:18px">
-        <div class="label" style="margin-bottom:8px">Tiempo restante</div>
-        <div class="mono" style="font-size:20px;font-weight:500;color:var(--purple)">{{ analisis.meses_restantes }} <span style="font-size:13px">meses</span></div>
-        {% if analisis.fecha_libre_deudas %}
-        <div style="font-size:10px;color:var(--text-muted);margin-top:4px">libre en {{ analisis.fecha_libre_deudas|date:"M Y" }}</div>
+    <div style="flex:1;min-width:300px">
+      <div class="label" style="color:rgba(167,139,250,.8);margin-bottom:11px">Lo que dicen tus números</div>
+      <div class="hero-line" style="max-width:620px">
+        {% if analisis.flujo_libre > 0 %}
+          Cada mes te sobran <b>${{ analisis.flujo_libre|intcomma }}</b> después de gastos y cuotas.
+        {% else %}
+          Cada mes te faltan <b style="color:var(--coral)">${{ analisis.flujo_libre|intcomma }}</b> para cubrir gastos y cuotas.
         {% endif %}
+      </div>
+      <div class="hint" style="margin-top:10px;max-width:560px">
+        {% if analisis.meses_restantes %}
+          Te quedan {{ analisis.meses_restantes }} mes{{ analisis.meses_restantes|pluralize:"es" }} de cuotas.
+          {% if analisis.fecha_libre_deudas %}Sales de deuda en {{ analisis.fecha_libre_deudas|date:"F Y" }}.{% endif %}
+        {% else %}
+          No tienes cuotas pendientes.
+        {% endif %}
+      </div>
+
+      <div style="display:flex;gap:10px;margin-top:18px;flex-wrap:wrap">
+        <div style="padding:11px 15px;border-radius:14px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09)">
+          <div class="label" style="margin-bottom:4px">Entra al mes</div>
+          <div class="mono" style="font-size:14px;color:var(--green)">${{ analisis.ingreso_mensual|intcomma }}</div>
+        </div>
+        <div style="padding:11px 15px;border-radius:14px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09)">
+          <div class="label" style="margin-bottom:4px">Gastas al mes</div>
+          <div class="mono" style="font-size:14px">${{ analisis.gasto_mensual|intcomma }}</div>
+        </div>
+        <div style="padding:11px 15px;border-radius:14px;background:rgba(167,139,250,.12);border:1px solid rgba(167,139,250,.24)">
+          <div class="label" style="color:rgba(167,139,250,.8);margin-bottom:4px">Cuotas al mes</div>
+          <div class="mono" style="font-size:14px;color:#c4b5fd">${{ analisis.cuota_mensual_total|intcomma }}</div>
+        </div>
+      </div>
     </div>
+
+    {# Anillo de riesgo #}
+    <div style="display:flex;flex-direction:column;align-items:center;gap:10px;min-width:150px">
+      <div style="position:relative;width:132px;height:132px">
+        <svg viewBox="0 0 120 120" style="width:132px;height:132px;transform:rotate(-90deg)">
+          <circle cx="60" cy="60" r="52" fill="none" stroke="rgba(255,255,255,.07)" stroke-width="9"></circle>
+          <circle cx="60" cy="60" r="52" fill="none" stroke-width="9" stroke-linecap="round"
+                  stroke-dasharray="327" stroke-dashoffset="{{ riesgo_offset }}"
+                  stroke="{% if analisis.riesgo_nivel == 'critico' %}#f87171{% elif analisis.riesgo_nivel == 'alto' %}#fb7185{% elif analisis.riesgo_nivel == 'moderado' %}#fb923c{% else %}#34d399{% endif %}"></circle>
+        </svg>
+        <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px">
+          <span class="display" style="font-size:27px">{{ analisis.riesgo_score }}</span>
+          <span style="font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--text-muted)">de riesgo</span>
+        </div>
+      </div>
+      <span class="badge {% if analisis.riesgo_nivel == 'critico' or analisis.riesgo_nivel == 'alto' %}badge-coral{% elif analisis.riesgo_nivel == 'moderado' %}badge-orange{% else %}badge-green{% endif %}">
+        {{ analisis.riesgo_nivel|capfirst }}
+      </span>
+      <div style="font-size:10.5px;color:var(--text-muted);text-align:center;max-width:150px;line-height:1.45">
+        {{ analisis.dti }}% de lo que entra va a cuotas
+      </div>
+    </div>
+  </div>
 </div>
 
-<!-- PROYECCIÓN + IA -->
-<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px" class="grid-proy-ia">
-    <!-- Gráfico de proyección -->
-    <div class="glass" style="padding:24px">
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:20px">
-            <i class="fas {% if analisis.tendencia == 'bajando' %}fa-trending-down{% else %}fa-trending-up{% endif %}" style="font-size:15px;color:{% if analisis.tendencia == 'bajando' %}var(--green){% else %}var(--orange){% endif %}"></i>
-            <span style="font-size:15px;font-weight:600;color:var(--text-primary)">Proyección de deuda</span>
-        </div>
-        <div style="position:relative;height:200px">
-            <canvas id="chartProyeccion"></canvas>
-        </div>
-        <div style="font-size:11px;color:var(--text-muted);margin-top:12px;text-align:center;line-height:1.5">
-            <span style="color:#a78bfa">■</span> Saldo total que te queda por pagar &nbsp;·&nbsp; <span style="color:#34d399">┅</span> Pago mensual (este mes incluye tus gastos; los futuros solo cuotas)<br>
-            {% if analisis.meses_restantes <= 6 and analisis.deuda_total_restante > 0 %}
-            <span style="color:var(--green);font-weight:600"><i class="fas fa-check-circle" style="font-size:11px"></i> ¡Vas a quedar libre de deudas en {{ analisis.fecha_libre_deudas|date:"F Y" }}!</span> Después de ese mes no debes nada.
-            {% elif analisis.tendencia == 'bajando' %}
-            Tu deuda va disminuyendo si mantienes los pagos al día.
-            {% elif analisis.tendencia == 'subiendo' %}
-            Tu deuda está aumentando. Revisa tus compromisos.
-            {% else %}
-            Tu deuda se mantiene estable.
-            {% endif %}
-        </div>
-    </div>
-
-    <!-- Análisis con IA -->
-    <div class="glass" style="padding:24px;position:relative;border-color:rgba(167,139,250,0.2)">
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:18px">
-            <div style="width:28px;height:28px;border-radius:8px;background:rgba(167,139,250,0.15);color:var(--purple);display:flex;align-items:center;justify-content:center"><i class="fas fa-brain" style="font-size:14px"></i></div>
-            <span style="font-size:15px;font-weight:600;color:var(--text-primary)">Diagnóstico IA</span>
-        </div>
-
-        <!-- Estado de carga -->
-        <div id="ia-loading" style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:30px 0;gap:12px">
-            <i class="fas fa-spinner fa-spin" style="font-size:24px;color:var(--purple)"></i>
-            <div style="font-size:12px;color:var(--text-muted)">Analizando tu situación...</div>
-        </div>
-
-        <!-- Resultado IA -->
-        <div id="ia-resultado" style="display:none">
-            <p id="ia-diagnostico" style="font-size:13px;color:var(--text-primary);line-height:1.6;margin:0 0 16px"></p>
-            <div style="font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px">Recomendaciones</div>
-            <div id="ia-recomendaciones" style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px"></div>
-            <div id="ia-motivacional" style="font-size:12px;color:var(--purple);font-style:italic;padding-top:12px;border-top:1px solid var(--glass-border)"></div>
-        </div>
-
-        <!-- IA no disponible -->
-        <div id="ia-error" style="display:none;padding:20px 0;text-align:center">
-            <div style="font-size:12px;color:var(--text-muted);line-height:1.6">
-                El diagnóstico con IA no está disponible ahora.<br>Los números y proyecciones de arriba siguen siendo válidos.
-            </div>
-        </div>
-    </div>
+{# ============ Interpretación IA (bajo demanda) ============ #}
+<div class="glass card" style="padding:22px;margin-bottom:16px;display:none" id="cajaIA" data-spot>
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:13px">
+    <span class="icon-tile"><i class="fas fa-wand-magic-sparkles"></i></span>
+    <div class="modal-title" style="font-size:15px;font-weight:500">En palabras simples</div>
+  </div>
+  <div class="hint" style="font-size:13px;line-height:1.7" id="textoIA"></div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
-// Datos de proyección desde Django
-const proyMeses = {{ proy_meses_json|safe }};
-const proyDeuda = {{ proy_deuda_json|safe }};
-const proyPago = {{ proy_pago_json|safe }};
+{# ============ Por qué ese riesgo ============ #}
+<div class="grid-chart" style="grid-template-columns:1fr 1.25fr;margin-bottom:16px">
 
-// Gráfico de proyección: 2 líneas (saldo de deuda + pago mensual)
-function initChart() {
-    if (typeof Chart === 'undefined') { setTimeout(initChart, 100); return; }
-    const ctx = document.getElementById('chartProyeccion').getContext('2d');
-    const gradDeuda = ctx.createLinearGradient(0, 0, 0, 200);
-    gradDeuda.addColorStop(0, 'rgba(167,139,250,0.30)');
-    gradDeuda.addColorStop(1, 'rgba(167,139,250,0.02)');
-    const fmt = v => '{{ simbolo }}'+(v>=1e6?(v/1e6).toFixed(1)+'M':v>=1e3?(v/1e3).toFixed(0)+'k':v);
-    new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: proyMeses,
-            datasets: [
-                {
-                    label: 'Saldo de deuda',
-                    data: proyDeuda,
-                    borderColor: '#a78bfa',
-                    backgroundColor: gradDeuda,
-                    borderWidth: 2.5, fill: true, tension: 0,
-                    pointBackgroundColor: '#a78bfa', pointRadius: 3, pointHoverRadius: 5,
-                    yAxisID: 'y',
-                },
-                {
-                    label: 'Pago del mes',
-                    data: proyPago,
-                    borderColor: '#34d399',
-                    backgroundColor: 'transparent',
-                    borderWidth: 2.5, fill: false, tension: 0,
-                    borderDash: [5, 4],
-                    pointBackgroundColor: '#34d399', pointRadius: 3, pointHoverRadius: 5,
-                    yAxisID: 'y1',
-                }
-            ]
-        },
-        options: {
-            responsive: true, maintainAspectRatio: false,
-            interaction: { mode: 'index', intersect: false },
-            plugins: {
-                legend: {
-                    display: true, position: 'top', align: 'end',
-                    labels: { color: '#c8c8dd', font: { size: 10 }, boxWidth: 12, boxHeight: 2, padding: 12, usePointStyle: false }
-                },
-                tooltip: {
-                    backgroundColor: '#1e1e35', borderColor: 'rgba(167,139,250,0.25)', borderWidth: 1,
-                    padding: 10, cornerRadius: 8,
-                    callbacks: { label: c => ' ' + c.dataset.label + ': {{ simbolo }}' + Math.round(c.parsed.y).toLocaleString('es-CL') }
-                }
-            },
-            scales: {
-                x: { grid: { display: false }, ticks: { font: { size: 9 }, color: '#8888aa' } },
-                y: {
-                    position: 'left',
-                    grid: { color: 'rgba(255,255,255,0.04)' }, border: { display: false },
-                    ticks: { callback: fmt, font: { size: 9 }, color: '#a78bfa' },
-                    title: { display: true, text: 'Saldo', color: '#8888aa', font: { size: 9 } }
-                },
-                y1: {
-                    position: 'right',
-                    grid: { drawOnChartArea: false }, border: { display: false },
-                    ticks: { callback: fmt, font: { size: 9 }, color: '#34d399' },
-                    title: { display: true, text: 'Pago/mes', color: '#8888aa', font: { size: 9 } }
-                }
-            }
-        }
-    });
-}
-initChart();
+  <div class="glass card" style="padding:22px" data-spot>
+    <div class="modal-title" style="font-size:15px;font-weight:500">Por qué ese número</div>
+    <div class="hint" style="font-size:11.5px;margin:3px 0 16px">Cada factor suma puntos de riesgo</div>
 
-// Pedir el análisis IA (async, no bloquea la página)
-async function cargarIA() {
-    try {
-        const res = await fetch('{% url "analisis_ia" %}', {
-            headers: { 'X-Requested-With': 'XMLHttpRequest' }
-        });
-        const data = await res.json();
-        document.getElementById('ia-loading').style.display = 'none';
+    <div style="display:flex;flex-direction:column;gap:10px">
+      {% for f in analisis.riesgo_factores %}
+      <div class="row" style="display:block;padding:15px;border-radius:17px">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+          <span class="icon-tile {% if f.peso == 'alto' %}coral{% elif f.peso == 'medio' %}orange{% else %}green{% endif %}"
+                style="width:26px;height:26px;border-radius:9px">
+            <i class="fas {% if f.peso == 'alto' %}fa-triangle-exclamation{% elif f.peso == 'medio' %}fa-circle-exclamation{% else %}fa-circle-check{% endif %}" style="font-size:10px"></i>
+          </span>
+          <span style="font-size:12.5px;font-weight:500;flex:1">{{ f.factor }}</span>
+          <span class="badge {% if f.peso == 'alto' %}badge-coral{% elif f.peso == 'medio' %}badge-orange{% else %}badge-green{% endif %}"
+                style="font-size:9.5px">{{ f.peso }}</span>
+        </div>
+        <div class="hint" style="font-size:11.5px">{{ f.detalle }}</div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
 
-        if (data.ok && data.ia) {
-            const ia = data.ia;
-            document.getElementById('ia-diagnostico').textContent = ia.diagnostico || '';
+  <div class="glass card" style="padding:22px" data-spot>
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap">
+      <div>
+        <div class="modal-title" style="font-size:15px;font-weight:500">Cómo baja tu deuda</div>
+        <div class="hint" style="font-size:11.5px;margin-top:3px">Próximos 6 meses, con tus cuotas actuales</div>
+      </div>
+      <span class="badge {% if analisis.tendencia == 'bajando' %}badge-green{% elif analisis.tendencia == 'subiendo' %}badge-coral{% else %}badge-mute{% endif %}">
+        <i class="fas fa-arrow-{% if analisis.tendencia == 'bajando' %}down{% elif analisis.tendencia == 'subiendo' %}up{% else %}right{% endif %}" style="font-size:9px"></i>
+        {{ analisis.tendencia|capfirst }}
+      </span>
+    </div>
+    <div style="position:relative;height:240px;margin-top:14px">
+      <canvas id="chartProy" data-om-raster></canvas>
+    </div>
+  </div>
+</div>
 
-            const recs = document.getElementById('ia-recomendaciones');
-            (ia.recomendaciones || []).forEach(r => {
-                const div = document.createElement('div');
-                div.style.cssText = 'display:flex;align-items:flex-start;gap:8px;font-size:12px;color:var(--text-secondary);line-height:1.5';
-                div.innerHTML = '<i class="fas fa-check" style="font-size:11px;color:var(--green);margin-top:2px;flex-shrink:0"></i><span>' + r + '</span>';
-                recs.appendChild(div);
-            });
+{# ============ Mes por mes ============ #}
+<div class="glass card" style="padding:22px" data-spot>
+  <div class="modal-title" style="font-size:15px;font-weight:500">Mes por mes</div>
+  <div class="hint" style="font-size:11.5px;margin:3px 0 16px">
+    Lo que debes durante el mes y lo que pagas ese mes
+  </div>
 
-            document.getElementById('ia-motivacional').textContent = ia.mensaje_motivacional || '';
-            document.getElementById('ia-resultado').style.display = 'block';
-            if (window.aplicarIconos) window.aplicarIconos();
-        } else {
-            document.getElementById('ia-error').style.display = 'block';
-        }
-    } catch (e) {
-        document.getElementById('ia-loading').style.display = 'none';
-        document.getElementById('ia-error').style.display = 'block';
-    }
-}
-cargarIA();
-</script>
+  <div class="row-list">
+    {% for p in analisis.proyeccion %}
+    <div class="row" {% if p.es_mes_actual %}style="background:rgba(124,58,237,.14);border-color:rgba(167,139,250,.28)"{% endif %}>
+      <span class="mono" style="font-size:12px;min-width:74px;color:{% if p.es_mes_actual %}#c4b5fd{% else %}var(--text-secondary){% endif %}">{{ p.mes }}</span>
 
-<style>
-@media (max-width: 900px) {
-    .grid-analisis { grid-template-columns: repeat(2,1fr) !important; }
-    .grid-proy-ia { grid-template-columns: 1fr !important; }
-}
-@media (max-width: 640px) {
-    .grid-analisis { grid-template-columns: repeat(2,1fr) !important; }
-}
-</style>
+      <div class="row-main">
+        <div class="progress-bar" style="height:7px">
+          <div class="progress-fill {% if p.es_mes_actual %}shine{% endif %}"
+               style="width:{% widthratio p.deuda analisis.deuda_total_restante|add:1 100 %}%"></div>
+        </div>
+      </div>
+
+      <div style="text-align:right;min-width:96px">
+        <div class="mono" style="font-size:12.5px">${{ p.deuda|intcomma }}</div>
+        <div style="font-size:10px;color:var(--text-muted);margin-top:2px">te queda debiendo</div>
+      </div>
+
+      <div style="text-align:right;min-width:92px" class="hide-mobile">
+        <div class="mono" style="font-size:12.5px;color:var(--orange)">${{ p.pago_mes|intcomma }}</div>
+        <div style="font-size:10px;color:var(--text-muted);margin-top:2px">
+          {% if p.es_mes_actual %}pagas este mes{% else %}en cuotas{% endif %}
+        </div>
+      </div>
+
+      {% if p.es_mes_actual %}<span class="badge badge-purple">Ahora</span>{% endif %}
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
 {% endif %}
+{% endblock %}
+
+
+{% block extra_js %}
+<script>
+(function () {
+  var GRID = 'rgba(255,255,255,.055)';
+  var TICK = 'rgba(241,240,255,.42)';
+  var FONT = "'DM Sans', sans-serif";
+
+  /* ---- Proyección de deuda ---- */
+  var el = document.getElementById('chartProy');
+  if (el && window.Chart) {
+    var ctx = el.getContext('2d');
+    var relleno = ctx.createLinearGradient(0, 0, 0, 240);
+    relleno.addColorStop(0, 'rgba(167,139,250,.34)');
+    relleno.addColorStop(1, 'rgba(167,139,250,0)');
+
+    new Chart(el, {
+      data: {
+        labels: {{ proy_meses_json|safe }},
+        datasets: [
+          { type: 'line', label: 'Te queda debiendo', data: {{ proy_deuda_json|safe }},
+            borderColor: '#a78bfa', backgroundColor: relleno, borderWidth: 2.5,
+            fill: true, tension: .35, pointRadius: 3, pointBackgroundColor: '#a78bfa',
+            pointHoverRadius: 6, order: 2 },
+          { type: 'bar', label: 'Pagas ese mes', data: {{ proy_pago_json|safe }},
+            backgroundColor: 'rgba(251,146,60,.55)', borderRadius: 6,
+            borderSkipped: false, maxBarThickness: 16, order: 1 }
+        ]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        interaction: { mode: 'index', intersect: false },
+        plugins: {
+          legend: { labels: { color: TICK, font: { family: FONT, size: 11 }, usePointStyle: true, boxWidth: 7, padding: 15 } },
+          tooltip: {
+            backgroundColor: 'rgba(20,19,38,.94)',
+            borderColor: 'rgba(167,139,250,.28)', borderWidth: 1,
+            titleFont: { family: "'Sora', sans-serif", size: 12, weight: '600' },
+            bodyFont: { family: FONT, size: 12 },
+            padding: 13, cornerRadius: 14, boxPadding: 5, usePointStyle: true,
+            callbacks: {
+              label: function (c) {
+                return ' ' + c.dataset.label + ': $' + Math.round(c.parsed.y).toLocaleString('es-CL');
+              }
+            }
+          }
+        },
+        scales: {
+          x: { grid: { display: false }, border: { display: false },
+               ticks: { color: TICK, font: { family: FONT, size: 10.5 } } },
+          y: { grid: { color: GRID }, border: { display: false }, beginAtZero: true,
+               ticks: { color: TICK, font: { family: FONT, size: 10 },
+                        callback: function (v) { return '$' + (v / 1000) + 'k'; } } }
+        }
+      }
+    });
+  }
+
+  /* ---- Interpretación con IA, bajo demanda ---- */
+  var btn = document.getElementById('btnIA');
+  if (!btn) return;
+  btn.addEventListener('click', function () {
+    var caja = document.getElementById('cajaIA');
+    var texto = document.getElementById('textoIA');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-circle-notch fa-spin" style="font-size:11px"></i>Pensando…';
+    caja.style.display = 'block';
+    texto.textContent = 'Leyendo tus números…';
+
+    fetch('{% url "analisis_ia" %}', { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        texto.textContent = d.ok ? d.ia : 'La IA no está disponible ahora. Los números de arriba no dependen de ella.';
+      })
+      .catch(function () {
+        texto.textContent = 'No se pudo conectar. Los números de arriba no dependen de la IA.';
+      })
+      .finally(function () {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-wand-magic-sparkles" style="font-size:11px"></i>Explicarlo con IA';
+      });
+  });
+})();
+</script>
 {% endblock %}

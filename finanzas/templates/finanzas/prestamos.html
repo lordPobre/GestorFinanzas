@@ -1,80 +1,300 @@
 {% extends 'finanzas/base.html' %}
 {% load humanize %}
-{% load moneda %}
-{% block nav_prestamos %}active{% endblock %}
-{% block nav_prestamos_m %}active{% endblock %}
+{% block title %}Me deben · FinApp{% endblock %}
 
 {% block content %}
-<div style="margin-bottom:28px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px">
-    <div>
-        <div class="label" style="margin-bottom:6px">Por cobrar</div>
-        <h1 style="font-size:26px;font-weight:600;color:var(--text-primary);margin:0">Quién me debe</h1>
+
+<div style="display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap;margin-bottom:18px">
+  <div>
+    <div class="page-title">Me deben</div>
+    <div class="hint" style="margin-top:5px;max-width:600px">
+      Plata que prestaste y todavía no vuelve. Toca una persona para ver sus préstamos y abonar.
     </div>
-    <a href="{% url 'crear_persona' %}" class="btn btn-purple">
-        <i class="fas fa-user-plus" style="font-size:13px"></i> Agregar persona
-    </a>
+  </div>
+  <div style="display:flex;gap:12px;flex-wrap:wrap">
+    <div class="glass-green" style="padding:13px 18px;border-radius:16px">
+      <div class="label" style="color:rgba(52,211,153,.75);margin-bottom:5px">Total por cobrar</div>
+      <div class="display" style="font-size:20px;color:var(--green)">${{ total_por_cobrar|floatformat:0|intcomma }}</div>
+    </div>
+    <div class="glass" style="padding:13px 18px;border-radius:16px">
+      <div class="label" style="margin-bottom:5px">Total prestado</div>
+      <div class="display" style="font-size:20px">${{ total_prestado|floatformat:0|intcomma }}</div>
+    </div>
+    <div class="glass-purple" style="padding:13px 18px;border-radius:16px">
+      <div class="label" style="color:rgba(167,139,250,.8);margin-bottom:5px">Ya recuperado</div>
+      <div class="display" style="font-size:20px;color:var(--purple)">${{ total_recuperado|floatformat:0|intcomma }}</div>
+    </div>
+  </div>
 </div>
 
-<!-- Resumen -->
-<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px" class="grid-resumen-prestamos">
-    <div class="glass metric-highlight" style="padding:20px">
-        <div class="label" style="margin-bottom:8px;color:rgba(52,211,153,0.7)">Total por cobrar</div>
-        <div class="mono" style="font-size:24px;font-weight:500;color:var(--green)">{{ total_por_cobrar|money:simbolo_moneda }}</div>
-    </div>
-    <div class="glass" style="padding:20px">
-        <div class="label" style="margin-bottom:8px">Total prestado</div>
-        <div class="mono" style="font-size:22px;font-weight:500;color:var(--text-primary)">{{ total_prestado|money:simbolo_moneda }}</div>
-    </div>
-    <div class="glass" style="padding:20px">
-        <div class="label" style="margin-bottom:8px">Ya recuperado</div>
-        <div class="mono" style="font-size:22px;font-weight:500;color:var(--purple)">{{ total_recuperado|money:simbolo_moneda }}</div>
-    </div>
-</div>
+<div class="grid-detail">
 
-{% if personas %}
-<div style="display:flex;flex-direction:column;gap:12px">
-    {% for persona in personas %}
-    <a href="{% url 'detalle_persona' persona.id %}" class="glass" style="padding:18px 20px;display:flex;align-items:center;gap:16px;text-decoration:none;transition:all 0.2s">
-        <!-- Avatar con inicial -->
-        <div style="width:46px;height:46px;border-radius:14px;background:linear-gradient(135deg,rgba(167,139,250,0.25),rgba(124,58,237,0.15));display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px;font-weight:600;color:var(--purple)">
-            {{ persona.nombre|first|upper }}
+  {# ---- Columna: personas ---- #}
+  <div class="glass" style="padding:16px" data-spot>
+    <div class="label" style="margin:4px 6px 11px">Personas</div>
+    <div class="row-list">
+      {% for p in personas %}
+      <a href="{% url 'detalle_persona' p.pk %}" class="row {% if p.pk == persona.pk %}on{% endif %}" data-searchable>
+        <span class="avatar">{{ p.nombre|first|upper }}</span>
+        <span class="row-main">
+          <span class="row-title" style="display:block">{{ p.nombre }}</span>
+          <span class="row-meta" style="display:block">{{ p.resumen_meta }}</span>
+        </span>
+        <span class="mono" style="font-size:12px;color:{% if p.total_pendiente %}var(--green){% else %}rgba(167,139,250,.9){% endif %}">
+          {% if p.total_pendiente %}${{ p.total_pendiente|floatformat:0|intcomma }}{% else %}Al día{% endif %}
+        </span>
+      </a>
+      {% empty %}
+      <div class="empty" style="padding:32px 12px">
+        <i class="fas fa-users" style="font-size:26px"></i>
+        <div class="empty-title" style="font-size:14px">Nadie te debe</div>
+        <div class="empty-text" style="font-size:11.5px;margin-bottom:14px">Agrega una persona para empezar a registrar préstamos.</div>
+      </div>
+      {% endfor %}
+    </div>
+    <button class="btn btn-dashed btn-block" style="margin-top:10px;padding:11px;font-size:11.5px" data-open="#modalPersona">+ Agregar persona</button>
+  </div>
+
+  {# ---- Columna: detalle de la persona seleccionada ---- #}
+  {% if persona %}
+  <div class="glass" style="padding:24px" data-spot>
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:20px">
+      <div style="display:flex;align-items:center;gap:13px">
+        <span class="avatar avatar-lg">{{ persona.nombre|first|upper }}</span>
+        <div>
+          <div class="modal-title">{{ persona.nombre }}</div>
+          <div class="modal-sub">{{ persona.contacto|default:"Sin contacto" }}</div>
         </div>
-        <div style="flex:1;min-width:0">
-            <div style="font-size:15px;font-weight:600;color:var(--text-primary);margin-bottom:3px">{{ persona.nombre }}</div>
-            <div style="font-size:12px;color:var(--text-muted)">
-                {{ persona.cantidad_prestamos }} préstamo{{ persona.cantidad_prestamos|pluralize }}
-                {% if persona.contacto %} · {{ persona.contacto }}{% endif %}
+      </div>
+      <button class="btn btn-soft" data-open="#modalPrestamo"><i class="fas fa-plus" style="font-size:10px"></i>Nuevo préstamo</button>
+    </div>
+
+    <div class="grid-metrics" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:22px">
+      <div class="glass-green" style="padding:13px 15px;border-radius:15px">
+        <div class="label" style="color:rgba(52,211,153,.75);margin-bottom:5px">Te debe en total</div>
+        <div class="mono" style="font-size:15px;color:var(--green)">${{ persona.total_pendiente|floatformat:0|intcomma }}</div>
+      </div>
+      <div class="glass-purple" style="padding:13px 15px;border-radius:15px">
+        <div class="label" style="color:rgba(167,139,250,.8);margin-bottom:5px">Cuotas al mes</div>
+        <div class="mono" style="font-size:15px;color:#c4b5fd">${{ persona.cuotas_del_mes|floatformat:0|intcomma }}</div>
+      </div>
+      <div class="glass" style="padding:13px 15px;border-radius:15px;box-shadow:none">
+        <div class="label" style="margin-bottom:5px">Pagos únicos</div>
+        <div class="mono" style="font-size:15px">${{ persona.unicos_pendientes|floatformat:0|intcomma }}</div>
+      </div>
+    </div>
+
+    <div class="label" style="margin-bottom:11px">Préstamos</div>
+    <div style="display:flex;flex-direction:column;gap:10px">
+      {% for x in prestamos %}
+      <div class="row" style="display:block;padding:17px;border-radius:19px">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:13px">
+          <div style="min-width:0">
+            <div style="display:flex;align-items:center;gap:9px;flex-wrap:wrap">
+              <span style="font-size:13px;font-weight:600">{{ x.descripcion }}</span>
+              {% if x.tipo == 'CUOTAS' %}
+                <span class="badge badge-purple">En cuotas</span>
+              {% else %}
+                <span class="badge badge-blue">Pago único</span>
+              {% endif %}
             </div>
+            <div class="row-meta" style="margin-top:5px">
+              Prestado el {{ x.fecha|date:"j M" }} · {{ x.detalle_plan }}
+            </div>
+          </div>
+          <div style="text-align:right">
+            <div class="display" style="font-size:17px;{% if x.esta_pagado %}color:var(--green){% endif %}">
+              {% if x.esta_pagado %}Saldado{% else %}${{ x.monto_pendiente|floatformat:0|intcomma }}{% endif %}
+            </div>
+            <div class="row-meta">de ${{ x.monto|floatformat:0|intcomma }}</div>
+          </div>
         </div>
-        <div style="text-align:right;flex-shrink:0">
-            {% if persona.tiene_deuda %}
-            <div class="mono" style="font-size:17px;font-weight:600;color:var(--green)">{{ persona.total_pendiente|money:simbolo_moneda }}</div>
-            <div style="font-size:11px;color:var(--text-muted)">te debe</div>
-            {% else %}
-            <div style="font-size:13px;font-weight:600;color:var(--purple);display:flex;align-items:center;gap:5px"><i class="fas fa-check-circle" style="font-size:13px"></i> Al día</div>
-            {% endif %}
+
+        <div class="progress-bar" style="margin-bottom:9px">
+          <div class="progress-fill green" style="width:{{ x.porcentaje }}%"></div>
         </div>
-        <i class="fas fa-chevron-right" style="font-size:14px;color:var(--text-muted);flex-shrink:0"></i>
-    </a>
-    {% endfor %}
-</div>
-{% else %}
-<!-- Estado vacío -->
-<div class="glass" style="padding:48px 24px;text-align:center">
-    <div style="margin-bottom:16px;color:var(--purple);display:flex;justify-content:center"><i class="fas fa-hand-holding-usd" style="font-size:40px"></i></div>
-    <div style="font-size:16px;font-weight:600;color:var(--text-primary);margin-bottom:8px">Aún no registras préstamos</div>
-    <div style="font-size:13px;color:var(--text-muted);margin-bottom:20px;max-width:340px;margin-left:auto;margin-right:auto;line-height:1.6">
-        Lleva la cuenta de quién te debe dinero. Agrega una persona y registra lo que le prestaste, en pago único o en cuotas.
+
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+          <div class="row-meta">{{ x.porcentaje }}% devuelto · {{ x.abonos.count }} abono{{ x.abonos.count|pluralize:"s" }}</div>
+          {% if x.esta_pagado %}
+            <span class="badge badge-green">Al día</span>
+          {% else %}
+            <button class="btn btn-green btn-sm" data-open="#abono{{ x.pk }}">Registrar abono</button>
+          {% endif %}
+        </div>
+      </div>
+      {% empty %}
+      <div class="empty">
+        <i class="fas fa-hand-holding-dollar"></i>
+        <div class="empty-title">{{ persona.nombre }} no tiene préstamos</div>
+        <div class="empty-text">Registra uno: puede ser un pago único o en cuotas mensuales.</div>
+        <button class="btn btn-purple" data-open="#modalPrestamo">Nuevo préstamo</button>
+      </div>
+      {% endfor %}
     </div>
-    <a href="{% url 'crear_persona' %}" class="btn btn-purple">
-        <i class="fas fa-user-plus" style="font-size:13px"></i> Agregar primera persona
-    </a>
+  </div>
+  {% endif %}
+</div>
+
+{% endblock %}
+
+
+{% block modals %}
+{# ---- Nueva persona ---- #}
+<div class="modal-overlay" id="modalPersona">
+  <div class="modal-box" style="max-width:400px">
+    <div class="modal-head">
+      <div class="modal-title">Agregar persona</div>
+      <button class="modal-close" data-close>✕</button>
+    </div>
+    <form method="post" action="{% url 'crear_persona' %}">
+      {% csrf_token %}
+      <div class="field">
+        <label class="label" for="id_nombre_persona">Nombre</label>
+        <input type="text" name="nombre" id="id_nombre_persona" placeholder="Ej: Camila Rojas" required>
+      </div>
+      <div class="field">
+        <label class="label" for="id_contacto_persona">Contacto (opcional)</label>
+        <input type="text" name="contacto" id="id_contacto_persona" placeholder="Teléfono, email o nota">
+      </div>
+      <button type="submit" class="btn btn-purple btn-block">Guardar</button>
+    </form>
+  </div>
+</div>
+
+{# ---- Nuevo préstamo ---- #}
+{% if persona %}
+<div class="modal-overlay" id="modalPrestamo">
+  <div class="modal-box">
+    <div class="modal-head">
+      <div>
+        <div class="modal-title">Nuevo préstamo</div>
+        <div class="modal-sub">A {{ persona.nombre }}</div>
+      </div>
+      <button class="modal-close" data-close>✕</button>
+    </div>
+
+    <form method="post" action="{% url 'crear_prestamo' persona.pk %}">
+      {% csrf_token %}
+
+      <div class="field">
+        <label class="label" for="id_desc_prestamo">Para qué fue</label>
+        <input type="text" name="descripcion" id="id_desc_prestamo" placeholder="Ej: Arriendo de mayo" required>
+      </div>
+
+      <div class="label" style="margin-bottom:9px">Cómo te lo va a devolver</div>
+      <input type="hidden" name="tipo" id="id_tipo_prestamo" value="UNICO">
+      <div class="seg" style="margin-bottom:16px" id="segTipo">
+        <button type="button" class="on" data-value="UNICO">Pago único</button>
+        <button type="button" data-value="CUOTAS">En cuotas</button>
+      </div>
+
+      <div class="form-row" style="margin-bottom:18px">
+        <div style="flex:1.5">
+          <label class="label" for="id_monto_prestamo">Monto prestado</label>
+          <input type="number" name="monto" id="id_monto_prestamo" class="mono" placeholder="180000" required>
+        </div>
+        <div style="flex:1;display:none" id="campoCuotas">
+          <label class="label" for="id_cuotas_prestamo">En cuántas</label>
+          <input type="number" name="cuotas_totales" id="id_cuotas_prestamo" class="mono" min="1" value="3">
+        </div>
+      </div>
+
+      <div class="preview-box" style="background:rgba(52,211,153,.09);border-color:rgba(52,211,153,.22)">
+        <div class="label" style="color:rgba(52,211,153,.75);margin-bottom:8px">Te devolvería</div>
+        <div class="display" style="font-size:16px;font-weight:500;color:var(--green)" id="prestamoPreview">$0</div>
+      </div>
+
+      <button type="submit" class="btn btn-purple btn-block">Registrar préstamo</button>
+    </form>
+  </div>
+</div>
+
+{# ---- Un modal de abono por préstamo ---- #}
+{% for x in prestamos %}
+{% if not x.esta_pagado %}
+<div class="modal-overlay" id="abono{{ x.pk }}">
+  <div class="modal-box" style="max-width:400px">
+    <div class="modal-head">
+      <div>
+        <div class="modal-title">Registrar abono</div>
+        <div class="modal-sub">{{ persona.nombre }} · {{ x.descripcion }}</div>
+      </div>
+      <button class="modal-close" data-close>✕</button>
+    </div>
+
+    <form method="post" action="{% url 'abonar_prestamo' x.pk %}">
+      {% csrf_token %}
+
+      <div class="chips" style="margin-bottom:16px">
+        {% for op in x.montos_sugeridos %}
+          <button type="button" class="chip {% if forloop.first %}on{% endif %}" data-monto="{{ op.monto }}">{{ op.label }} · ${{ op.monto|intcomma }}</button>
+        {% endfor %}
+      </div>
+
+      <div class="field">
+        <label class="label" for="id_monto_abono_{{ x.pk }}">Cuánto te pagó</label>
+        <input type="number" name="monto" id="id_monto_abono_{{ x.pk }}" class="input-amount"
+               style="color:var(--green)" value="{{ x.monto_cuota|floatformat:0 }}" max="{{ x.monto_pendiente|floatformat:0 }}" required>
+      </div>
+
+      <div class="field">
+        <label class="label" for="id_nota_abono_{{ x.pk }}">Nota (opcional)</label>
+        <input type="text" name="nota" id="id_nota_abono_{{ x.pk }}" placeholder="Ej: transferencia, adelantó una cuota">
+      </div>
+
+      <button type="submit" class="btn btn-block" style="background:linear-gradient(135deg,#059669,#34d399);color:#04291d;font-weight:700;box-shadow:0 10px 30px rgba(5,150,105,.4)">Guardar abono</button>
+    </form>
+  </div>
 </div>
 {% endif %}
+{% endfor %}
+{% endif %}
+{% endblock %}
 
-<style>
-@media (max-width: 640px) {
-    .grid-resumen-prestamos { grid-template-columns: 1fr !important; }
-}
-</style>
+
+{% block extra_js %}
+<script>
+/* Atajos de monto en los modales de abono */
+document.querySelectorAll('[data-monto]').forEach(function (b) {
+  b.addEventListener('click', function () {
+    var form = b.closest('form');
+    form.querySelectorAll('[data-monto]').forEach(function (x) { x.classList.remove('on'); });
+    b.classList.add('on');
+    form.querySelector('input[name="monto"]').value = b.dataset.monto;
+  });
+});
+
+/* Único vs. cuotas: muestra el campo y calcula lo que devolvería */
+(function () {
+  var seg = document.getElementById('segTipo');
+  if (!seg) return;
+  var hidden = document.getElementById('id_tipo_prestamo');
+  var campo = document.getElementById('campoCuotas');
+  var monto = document.getElementById('id_monto_prestamo');
+  var cuotas = document.getElementById('id_cuotas_prestamo');
+  var out = document.getElementById('prestamoPreview');
+
+  function paint() {
+    var esCuotas = hidden.value === 'CUOTAS';
+    var m = Number(monto.value || 0), c = Number((cuotas && cuotas.value) || 0);
+    campo.style.display = esCuotas ? '' : 'none';
+    if (!m) { out.textContent = '$0'; return; }
+    out.textContent = esCuotas && c
+      ? '$' + Math.round(m / c).toLocaleString('es-CL') + ' al mes durante ' + c + ' meses'
+      : '$' + m.toLocaleString('es-CL') + ' de una vez';
+  }
+
+  seg.addEventListener('click', function (e) {
+    var b = e.target.closest('button'); if (!b) return;
+    seg.querySelectorAll('button').forEach(function (x) { x.className = ''; });
+    b.className = 'on';
+    hidden.value = b.dataset.value;
+    paint();
+  });
+  [monto, cuotas].forEach(function (el) { if (el) el.addEventListener('input', paint); });
+  hidden.value = hidden.value || 'UNICO';
+  paint();
+})();
+</script>
 {% endblock %}

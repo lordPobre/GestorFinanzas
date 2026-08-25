@@ -1,48 +1,86 @@
 {% extends 'finanzas/base.html' %}
-{% block nav_suscripciones %}active{% endblock %}
-{% block nav_suscripciones_m %}active{% endblock %}
+{% load humanize %}
+{% block title %}Nueva suscripción · FinApp{% endblock %}
+
+{% comment %}
+  Página suelta para /suscripciones/nueva/. El flujo normal usa el modal de
+  suscripciones.html; esta página es para cuando se entra por URL directa.
+{% endcomment %}
+
+{% block topbar_actions %}
+<a href="{% url 'suscripciones' %}" class="btn btn-glass"><i class="fas fa-arrow-left" style="font-size:11px"></i>Volver</a>
+{% endblock %}
 
 {% block content %}
-<div style="width:100%;max-width:480px;margin:0 auto">
-    <a href="{% url 'suscripciones' %}" class="btn btn-glass" style="margin-bottom:24px;display:inline-flex">
-        <i class="fas fa-arrow-left" style="font-size:12px"></i> Volver
-    </a>
+<div style="max-width:440px">
 
-    <div class="glass" style="padding:28px">
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
-            <div style="width:36px;height:36px;border-radius:10px;background:rgba(167,139,250,0.15);color:var(--purple);display:flex;align-items:center;justify-content:center"><i class="fas fa-repeat" style="font-size:16px"></i></div>
-            <h1 style="font-size:20px;font-weight:600;color:var(--text-primary);margin:0">Nueva suscripción</h1>
-        </div>
-        <p style="font-size:13px;color:var(--text-muted);margin:0 0 24px">Un servicio recurrente. Cada mes se registrará el cobro automáticamente como gasto, hasta que la canceles.</p>
-
-        <form method="POST">
-            {% csrf_token %}
-
-            <div class="field-group">
-                <label class="field-label">Nombre del servicio <span style="color:var(--red)">*</span></label>
-                <input type="text" name="nombre" class="field-input" placeholder="Ej: Netflix, Spotify, Gimnasio..." required autofocus>
-            </div>
-
-            <div class="field-group">
-                <label class="field-label">Monto mensual <span style="color:var(--red)">*</span></label>
-                <input type="number" name="monto" class="field-input" placeholder="Ej: 9900" min="1" required>
-            </div>
-
-            <div class="field-group">
-                <label class="field-label">Día de cobro del mes</label>
-                <input type="number" name="dia_cobro" class="field-input" placeholder="Ej: 15" min="1" max="28" value="1">
-                <div class="field-help">Del 1 al 28. Es el día en que se registrará el gasto cada mes.</div>
-            </div>
-
-            <div class="field-group">
-                <label class="field-label">Categoría <span class="hint">(opcional)</span></label>
-                <input type="text" name="categoria" class="field-input" value="Suscripciones">
-            </div>
-
-            <button type="submit" class="btn btn-purple" style="width:100%;justify-content:center;padding:12px">
-                <i class="fas fa-plus" style="font-size:13px"></i> Agregar suscripción
-            </button>
-        </form>
+  <div class="glass card-lg" data-spot>
+    <div style="display:flex;align-items:center;gap:13px;margin-bottom:6px">
+      <span class="icon-tile" style="width:38px;height:38px;border-radius:13px"><i class="fas fa-rotate" style="font-size:14px"></i></span>
+      <div class="page-title" style="font-size:19px">Nueva suscripción</div>
     </div>
+    <div class="hint" style="margin-bottom:22px">
+      Un servicio recurrente. Cada mes se registra el cobro como gasto, sin que tengas que anotarlo.
+    </div>
+
+    <form method="post" action="{% url 'crear_suscripcion' %}">
+      {% csrf_token %}
+
+      <div class="field">
+        <label class="label" for="id_sub_nombre">Servicio</label>
+        <input type="text" name="nombre" id="id_sub_nombre" placeholder="Ej: Netflix, Spotify, Gimnasio" required autofocus>
+      </div>
+
+      <div class="form-row" style="margin-bottom:16px">
+        <div style="flex:1.5">
+          <label class="label" for="id_sub_monto">Monto mensual</label>
+          <input type="number" name="monto" id="id_sub_monto" class="mono" placeholder="9900" min="1" required>
+        </div>
+        <div style="flex:1">
+          <label class="label" for="id_sub_dia">Día de cobro</label>
+          <input type="number" name="dia_cobro" id="id_sub_dia" class="mono" min="1" max="28" value="1">
+        </div>
+      </div>
+      <div class="hint" style="font-size:11px;margin:-8px 0 18px">Del 1 al 28, para que exista en todos los meses.</div>
+
+      <div class="label" style="margin-bottom:9px">Categoría</div>
+      <input type="hidden" name="categoria" id="id_sub_categoria" value="Suscripciones">
+      <div class="chips" data-field="#id_sub_categoria" style="margin-bottom:18px">
+        <button type="button" class="chip on" data-value="Suscripciones">Suscripciones</button>
+        <button type="button" class="chip" data-value="Ocio">Entretenimiento</button>
+        <button type="button" class="chip" data-value="Servicios">Servicios</button>
+        <button type="button" class="chip" data-value="Salud">Salud</button>
+      </div>
+
+      <div class="preview-box">
+        <div class="label" style="color:rgba(167,139,250,.8);margin-bottom:9px">Lo que te costaría</div>
+        <div style="display:flex;justify-content:space-between;align-items:baseline">
+          <span style="font-size:12px;color:var(--text-secondary)">Al año</span>
+          <span class="display" style="font-size:19px;color:var(--purple)" id="subAnual">$0</span>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:10px">
+        <button type="submit" class="btn btn-purple" style="flex:1;padding:15px;border-radius:15px;font-size:13.5px">
+          <i class="fas fa-plus" style="font-size:11px"></i>Agregar suscripción
+        </button>
+        <a href="{% url 'suscripciones' %}" class="btn btn-glass" style="padding:15px 18px;border-radius:15px">Cancelar</a>
+      </div>
+    </form>
+  </div>
 </div>
+{% endblock %}
+
+
+{% block extra_js %}
+<script>
+(function () {
+  var monto = document.getElementById('id_sub_monto');
+  var anual = document.getElementById('subAnual');
+  if (!monto) return;
+  monto.addEventListener('input', function () {
+    anual.textContent = '$' + Math.round(Number(monto.value || 0) * 12).toLocaleString('es-CL');
+  });
+})();
+</script>
 {% endblock %}

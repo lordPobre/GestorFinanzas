@@ -1,99 +1,237 @@
 {% extends 'finanzas/base.html' %}
 {% load humanize %}
-{% block nav_stats %}active{% endblock %}
+{% block title %}Estadísticas · FinApp{% endblock %}
+
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+{% endblock %}
+
+{% block topbar_left %}
+<div>
+  <div class="label" style="color:rgba(167,139,250,.8)">Tus números</div>
+</div>
+<div class="search">
+  <i class="fas fa-magnifying-glass" style="font-size:11px;color:rgba(241,240,255,.35)"></i>
+  <input type="search" data-search placeholder="Buscar categoría">
+</div>
+{% endblock %}
 
 {% block content %}
-<div style="margin-bottom:32px;display:flex;justify-content:space-between;align-items:center">
+
+<div style="margin-bottom:18px">
+  <div class="page-title">Estadísticas</div>
+  <div class="hint" style="margin-top:5px;max-width:620px">
+    Cómo cambian tus gastos mes a mes, y en qué te pasaste. Los gastos incluyen las cuotas del mes.
+  </div>
+</div>
+
+{# ============ Cuatro números ============ #}
+<div class="grid-metrics" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr))">
+  <div class="glass glass-lift card" data-spot>
+    <div class="label" style="margin-bottom:10px">Gasto promedio mensual</div>
+    <div class="display" style="font-size:24px">${{ promedio_gasto|intcomma }}</div>
+    <div class="stat-note">Promedio de los meses con movimiento.</div>
+  </div>
+
+  <div class="glass glass-lift glass-green card" data-spot>
+    <div class="label" style="color:rgba(52,211,153,.75);margin-bottom:10px">Mejor mes</div>
+    <div class="display" style="font-size:24px;color:var(--green)">{{ mejor_mes|default:"—" }}</div>
+    <div class="stat-note">
+      {% if mejor_ahorro > 0 %}Ahorraste ${{ mejor_ahorro|intcomma }}.{% else %}Aún sin un mes en positivo.{% endif %}
+    </div>
+  </div>
+
+  <div class="glass glass-lift glass-coral card" data-spot>
+    <div class="label" style="color:rgba(251,113,133,.7);margin-bottom:10px">Mes más caro</div>
+    <div class="display" style="font-size:24px;color:var(--coral)">{{ peor_mes|default:"—" }}</div>
+    <div class="stat-note">${{ peor_gasto|intcomma }} en salidas.</div>
+  </div>
+
+  <div class="glass glass-lift glass-purple card" data-spot>
+    <div class="label" style="color:rgba(167,139,250,.8);margin-bottom:10px">Tasa de ahorro</div>
+    <div class="display" style="font-size:24px;color:var(--purple)">{{ tasa_ahorro }}%</div>
+    <div class="stat-note">
+      {% if tasa_ahorro > 0 %}De cada $100 que entran, guardas ${{ tasa_ahorro }}.
+      {% else %}Estás gastando más de lo que entra.{% endif %}
+    </div>
+  </div>
+</div>
+
+{# ============ Entra vs. sale ============ #}
+<div class="glass card" style="padding:22px;margin-bottom:16px" data-spot>
+  <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;margin-bottom:14px">
     <div>
-        <div class="label" style="margin-bottom:6px">Análisis</div>
-        <h1 style="font-size:26px;font-weight:600;color:var(--text-primary);margin:0">Estadísticas de deudas</h1>
+      <div class="modal-title" style="font-size:15px;font-weight:500">Entra vs. sale</div>
+      <div class="hint" style="font-size:11.5px;margin-top:3px">Pasa el cursor por un mes para ver el detalle</div>
     </div>
-    <a href="{% url 'dashboard' %}" class="btn btn-glass">
-        <i class="fas fa-arrow-left" style="font-size:12px"></i> Volver
-    </a>
+    <div class="seg" style="padding:3px" id="segRango">
+      <button type="button" data-meses="3">3M</button>
+      <button type="button" data-meses="6">6M</button>
+      <button type="button" class="on" data-meses="12">1 año</button>
+    </div>
+  </div>
+  <div style="position:relative;height:260px">
+    <canvas id="chartFlujo" data-om-raster></canvas>
+  </div>
 </div>
 
-<div style="display:grid;grid-template-columns:2fr 1fr;gap:20px">
-    <div class="glass" style="padding:28px">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px">
-            <div>
-                <div class="label" style="margin-bottom:4px">Distribución</div>
-                <div style="font-size:15px;font-weight:500;color:var(--text-primary)">Peso de cada deuda</div>
-            </div>
-            <select id="modoGrafico" style="width:auto !important;padding:8px 12px !important;font-size:12px !important;color:var(--text-secondary) !important;border-radius:10px !important">
-                <option value="cuota">Cuota mensual</option>
-                <option value="restante">Deuda restante</option>
-            </select>
-        </div>
-        <div style="position:relative;max-width:320px;margin:0 auto;aspect-ratio:1">
-            <canvas id="chartDeudas"></canvas>
-            <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none">
-                <div class="label" id="labelTotal">Total mensual</div>
-                <div class="mono" id="totalValor" style="font-size:22px;font-weight:500;color:var(--purple)">...</div>
-            </div>
-        </div>
-    </div>
+{# ============ Ranking de categorías ============ #}
+<div class="grid-chart" style="grid-template-columns:1.4fr 1fr">
 
-    <div class="glass-purple" style="padding:28px;display:flex;flex-direction:column">
-        <div style="font-size:15px;font-weight:500;color:var(--text-primary);margin-bottom:20px">Tips financieros</div>
-        <div style="display:flex;flex-direction:column;gap:14px;flex:1">
-            <div style="background:rgba(167,139,250,0.08);border:1px solid rgba(167,139,250,0.15);border-radius:14px;padding:16px">
-                <div style="font-size:11px;color:var(--purple);font-weight:500;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.08em">Bola de nieve</div>
-                <p style="font-size:12px;color:var(--text-secondary);line-height:1.6;margin:0">Paga primero las deudas más pequeñas para ganar motivación y momentum.</p>
-            </div>
-            <div style="background:rgba(167,139,250,0.08);border:1px solid rgba(167,139,250,0.15);border-radius:14px;padding:16px">
-                <div style="font-size:11px;color:var(--orange);font-weight:500;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.08em">Avalancha</div>
-                <p style="font-size:12px;color:var(--text-secondary);line-height:1.6;margin:0">Enfócate en la deuda con mayor cuota primero para ahorrar más en el largo plazo.</p>
-            </div>
-            <div style="background:rgba(167,139,250,0.08);border:1px solid rgba(167,139,250,0.15);border-radius:14px;padding:16px">
-                <div style="font-size:11px;color:var(--green);font-weight:500;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.08em">Tip</div>
-                <p style="font-size:12px;color:var(--text-secondary);line-height:1.6;margin:0">Cambia el selector a "Deuda restante" para ver el total pendiente por compromiso.</p>
-            </div>
+  <div class="glass card" style="padding:22px" data-spot>
+    <div class="modal-title" style="font-size:15px;font-weight:500">Ranking de categorías</div>
+    <div class="hint" style="font-size:11.5px;margin:3px 0 18px">Este mes, comparado con el anterior</div>
+
+    <div style="display:flex;flex-direction:column;gap:13px">
+      {% for r in ranking %}
+      <div data-searchable>
+        <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px;gap:10px">
+          <span style="font-size:12.5px">{{ r.label }}</span>
+          <span style="display:flex;align-items:baseline;gap:9px">
+            {% if r.delta != None %}
+              <span style="font-size:11px;color:{% if r.subio %}var(--coral){% else %}var(--green){% endif %}">
+                {% if r.subio %}+{% endif %}{{ r.delta }}% vs. mes pasado
+              </span>
+            {% else %}
+              <span style="font-size:11px;color:var(--text-muted)">nueva</span>
+            {% endif %}
+            <span class="mono" style="font-size:12.5px">${{ r.total|floatformat:0|intcomma }}</span>
+          </span>
         </div>
+        <div class="progress-bar" style="height:8px">
+          <div class="progress-fill" style="width:{{ r.ancho }}%;background:linear-gradient(90deg,{{ r.color }}55,{{ r.color }})"></div>
+        </div>
+      </div>
+      {% empty %}
+      <div class="empty" style="padding:32px 12px">
+        <i class="fas fa-chart-pie" style="font-size:26px"></i>
+        <div class="empty-title" style="font-size:14px">Sin gastos este mes</div>
+        <div class="empty-text" style="font-size:11.5px">Registra un gasto y aquí verás en qué se te va.</div>
+      </div>
+      {% endfor %}
     </div>
+  </div>
+
+  {# ============ Cuotas activas ============ #}
+  <div class="glass card" style="padding:22px" data-spot>
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
+      <div class="modal-title" style="font-size:15px;font-weight:500">Cuotas activas</div>
+      <a href="{% url 'deudas' %}" class="btn btn-soft btn-sm">Ver todas</a>
+    </div>
+    <div class="hint" style="font-size:11.5px;margin:3px 0 16px">Lo que pagas al mes y lo que aún debes</div>
+    <div style="position:relative;height:230px">
+      <canvas id="chartCuotas" data-om-raster></canvas>
+    </div>
+  </div>
 </div>
 
+{% endblock %}
+
+
+{% block extra_js %}
 <script>
-Chart.defaults.color = 'rgba(241,240,255,0.4)';
-Chart.defaults.font.family = "'DM Mono', monospace";
-Chart.defaults.font.size = 11;
+(function () {
+  var GRID = 'rgba(255,255,255,.055)';
+  var TICK = 'rgba(241,240,255,.42)';
+  var FONT = "'DM Sans', sans-serif";
 
-const labels = {{ labels_json|safe }};
-const dataCuota = {{ data_json|safe }};
-const dataRestante = {{ data_restante_json|safe }};
+  var meses = {{ meses_json|safe }};
+  var ingresos = {{ ingresos_json|safe }};
+  var gastos = {{ gastos_json|safe }};
 
-const fmt = new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', maximumFractionDigits: 0 });
-const total = dataCuota.reduce((a,b)=>a+b,0);
-document.getElementById('totalValor').innerText = fmt.format(total);
+  function pesos(v) { return '$' + Math.round(v).toLocaleString('es-CL'); }
 
-const colores = ['rgba(167,139,250,0.7)','rgba(96,165,250,0.7)','rgba(52,211,153,0.7)','rgba(251,146,60,0.7)','rgba(248,113,113,0.7)','rgba(244,114,182,0.7)'];
-const bordes  = ['#a78bfa','#60a5fa','#34d399','#fb923c','#f87171','#f472b6'];
+  var tooltip = {
+    backgroundColor: 'rgba(20,19,38,.94)',
+    borderColor: 'rgba(167,139,250,.28)',
+    borderWidth: 1,
+    titleFont: { family: "'Sora', sans-serif", size: 12, weight: '600' },
+    bodyFont: { family: FONT, size: 12 },
+    padding: 13,
+    cornerRadius: 14,
+    displayColors: true,
+    boxWidth: 8, boxHeight: 8, boxPadding: 5, usePointStyle: true,
+    callbacks: { label: function (c) { return ' ' + c.dataset.label + ': ' + pesos(c.parsed.y); } }
+  };
 
-const ctx = document.getElementById('chartDeudas').getContext('2d');
-const chart = new Chart(ctx, {
-    type: 'doughnut',
+  var flujo = new Chart(document.getElementById('chartFlujo'), {
+    type: 'bar',
     data: {
-        labels,
-        datasets: [{ data: dataCuota, backgroundColor: colores, borderColor: bordes, borderWidth: 1, hoverOffset: 12 }]
+      labels: meses,
+      datasets: [
+        { label: 'Entró', data: ingresos, backgroundColor: 'rgba(52,211,153,.85)',
+          borderRadius: 7, borderSkipped: false, maxBarThickness: 22 },
+        { label: 'Salió', data: gastos, backgroundColor: 'rgba(251,113,133,.85)',
+          borderRadius: 7, borderSkipped: false, maxBarThickness: 22 }
+      ]
     },
     options: {
-        responsive: true,
-        maintainAspectRatio: true,
-        cutout: '72%',
-        plugins: {
-            legend: { position: 'bottom', labels: { usePointStyle: true, boxWidth: 8, padding: 16, color: 'rgba(241,240,255,0.5)', font: { size: 11 } } },
-            tooltip: { backgroundColor: '#1e1e35', borderColor: 'rgba(167,139,250,0.2)', borderWidth: 1, callbacks: { label: ctx => ` ${ctx.label}: ${fmt.format(ctx.parsed)}` } }
-        }
+      responsive: true, maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { labels: { color: TICK, font: { family: FONT, size: 11 }, usePointStyle: true, boxWidth: 7, padding: 16 } },
+        tooltip: tooltip
+      },
+      scales: {
+        x: { grid: { display: false }, border: { display: false },
+             ticks: { color: TICK, font: { family: FONT, size: 11 } } },
+        y: { grid: { color: GRID }, border: { display: false },
+             ticks: { color: TICK, font: { family: FONT, size: 10 },
+                      callback: function (v) { return '$' + (v / 1000) + 'k'; } } }
+      }
     }
-});
+  });
 
-document.getElementById('modoGrafico').addEventListener('change', function() {
-    const esCuota = this.value === 'cuota';
-    chart.data.datasets[0].data = esCuota ? dataCuota : dataRestante;
-    chart.update();
-    const tot = (esCuota ? dataCuota : dataRestante).reduce((a,b)=>a+b,0);
-    document.getElementById('totalValor').innerText = fmt.format(tot);
-    document.getElementById('labelTotal').innerText = esCuota ? 'Total mensual' : 'Deuda total';
-});
+  /* Rango: recorta la serie sin volver al servidor */
+  document.getElementById('segRango').addEventListener('click', function (e) {
+    var b = e.target.closest('button'); if (!b) return;
+    this.querySelectorAll('button').forEach(function (x) { x.classList.remove('on'); });
+    b.classList.add('on');
+    var n = Number(b.dataset.meses);
+    flujo.data.labels = meses.slice(-n);
+    flujo.data.datasets[0].data = ingresos.slice(-n);
+    flujo.data.datasets[1].data = gastos.slice(-n);
+    flujo.update();
+  });
+
+  /* Cuotas activas: cuota mensual vs. lo que falta */
+  var cuotasEl = document.getElementById('chartCuotas');
+  var labels = {{ labels_json|safe }};
+  if (cuotasEl && labels.length) {
+    new Chart(cuotasEl, {
+      type: 'bar',
+      data: {
+        labels: labels,
+        datasets: [
+          { label: 'Cuota al mes', data: {{ data_json|safe }},
+            backgroundColor: 'rgba(167,139,250,.9)', borderRadius: 6, borderSkipped: false, maxBarThickness: 16 },
+          { label: 'Te falta', data: {{ data_restante_json|safe }},
+            backgroundColor: 'rgba(255,255,255,.12)', borderRadius: 6, borderSkipped: false, maxBarThickness: 16 }
+        ]
+      },
+      options: {
+        indexAxis: 'y',
+        responsive: true, maintainAspectRatio: false,
+        plugins: {
+          legend: { labels: { color: TICK, font: { family: FONT, size: 11 }, usePointStyle: true, boxWidth: 7, padding: 14 } },
+          tooltip: tooltip
+        },
+        scales: {
+          x: { grid: { color: GRID }, border: { display: false },
+               ticks: { color: TICK, font: { family: FONT, size: 10 },
+                        callback: function (v) { return '$' + (v / 1000) + 'k'; } } },
+          y: { grid: { display: false }, border: { display: false },
+               ticks: { color: 'rgba(241,240,255,.7)', font: { family: FONT, size: 11 } } }
+        }
+      }
+    });
+  } else if (cuotasEl) {
+    cuotasEl.parentElement.innerHTML =
+      '<div class="empty" style="padding:36px 12px">' +
+      '<i class="fas fa-credit-card" style="font-size:24px"></i>' +
+      '<div class="empty-title" style="font-size:14px">Sin cuotas activas</div>' +
+      '<div class="empty-text" style="font-size:11.5px">No tienes compras a plazo por pagar.</div></div>';
+  }
+})();
 </script>
 {% endblock %}

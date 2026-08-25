@@ -1,186 +1,141 @@
-{% load static %}
-<!DOCTYPE html>
+{% load static %}<!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}FinApp · Tu gestor financiero personal{% endblock %}</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0b0b16">
+  <title>{% block title %}FinApp{% endblock %}</title>
 
-    <!-- SEO -->
-    <meta name="description" content="FinApp — controla tus ingresos, gastos, deudas y metas de ahorro en un solo lugar. Simple, visual y en tu moneda.">
-    <meta name="theme-color" content="#0d0d1a">
-
-    <!-- Open Graph (para compartir el link en redes/WhatsApp) -->
-    <meta property="og:type" content="website">
-    <meta property="og:title" content="FinApp · Tu gestor financiero personal">
-    <meta property="og:description" content="Controla tus ingresos, gastos, deudas y metas de ahorro en un solo lugar.">
-    <meta property="og:locale" content="es_CL">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
-
-    <link rel="stylesheet" href="{% static 'css/base.css' %}">
-    <link rel="stylesheet" href="{% static 'css/utils.css' %}">
-    <!-- Capa de pulido visual -->
-    <link rel="stylesheet" href="{% static 'css/polish.css' %}">
-    <!-- Favicon SVG inline (logo FinApp) -->
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect x='6' y='10' width='40' height='48' rx='9' fill='%237c3aed'/%3E%3Crect x='16' y='4' width='40' height='48' rx='9' fill='%23a78bfa'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <link rel="stylesheet" href="{% static 'css/finapp.css' %}">
+  {% block extra_head %}{% endblock %}
 </head>
 <body>
 
-{% if messages %}
-<div class="toast-container">
-    {% for message in messages %}
-    <div class="toast toast-{% if message.tags == 'success' %}success{% elif message.tags == 'warning' %}warning{% else %}error{% endif %}">
-        <i class="fas {% if message.tags == 'success' %}fa-check-circle{% elif message.tags == 'warning' %}fa-exclamation-triangle{% else %}fa-times-circle{% endif %}"></i>
-        {{ message }}
-    </div>
-    {% endfor %}
+<div class="aurora" aria-hidden="true">
+  <span class="a1"></span><span class="a2"></span><span class="a3"></span><span class="grain"></span>
 </div>
-<script>
-    setTimeout(() => {
-        document.querySelectorAll('.toast').forEach(t => {
-            t.style.transition = 'opacity 0.4s, transform 0.4s';
-            t.style.opacity = '0'; t.style.transform = 'translateX(20px)';
-            setTimeout(() => t.remove(), 400);
-        });
-    }, 3500);
-</script>
-{% endif %}
 
 <div class="layout">
 
-    <!-- SIDEBAR DESKTOP -->
-    <aside class="sidebar">
-        <div class="sidebar-logo"><i class="fas fa-chart-line"></i></div>
-        <nav class="sidebar-nav">
-            <a href="{% url 'dashboard' %}" class="nav-item {% block nav_dashboard %}{% endblock %}" title="Dashboard" aria-label="Ir al dashboard"><i class="fas fa-home"></i></a>
-            <a href="{% url 'registrar_transaccion' %}?tipo=INGRESO" class="nav-item {% block nav_ingreso %}{% endblock %}" title="Nuevo ingreso" aria-label="Registrar nuevo ingreso"><i class="fas fa-plus-circle"></i></a>
-            <a href="{% url 'registrar_transaccion' %}?tipo=EGRESO" class="nav-item {% block nav_gasto %}{% endblock %}" title="Nuevo gasto" aria-label="Registrar nuevo gasto"><i class="fas fa-minus-circle"></i></a>
-            <a href="{% url 'estadisticas' %}" class="nav-item {% block nav_stats %}{% endblock %}" title="Estadísticas" aria-label="Ver estadísticas"><i class="fas fa-chart-pie"></i></a>
-            <a href="{% url 'prestamos' %}" class="nav-item {% block nav_prestamos %}{% endblock %}" title="Me deben" aria-label="Préstamos por cobrar"><i class="fas fa-hand-holding-usd"></i></a>
-            <a href="{% url 'suscripciones' %}" class="nav-item {% block nav_suscripciones %}{% endblock %}" title="Suscripciones" aria-label="Suscripciones recurrentes"><i class="fas fa-repeat"></i></a>
-            <a href="{% url 'analisis_predictivo' %}" class="nav-item {% block nav_analisis %}{% endblock %}" title="Análisis IA" aria-label="Análisis financiero con IA"><i class="fas fa-brain"></i></a>
-            <a href="{% url 'perfil' %}" class="nav-item {% block nav_perfil %}{% endblock %}" title="Mi perfil" aria-label="Ir a mi perfil"><i class="fas fa-user-circle"></i></a>
-        </nav>
-        <div class="sidebar-bottom">
-            <a href="{% url 'exportar_excel' %}" class="nav-item" title="Exportar CSV"><i class="fas fa-download"></i></a>
-            <form action="{% url 'logout' %}" method="post" style="margin:0">
-                {% csrf_token %}
-                <button type="submit" class="nav-item" title="Cerrar sesión"><i class="fas fa-sign-out-alt"></i></button>
-            </form>
-        </div>
-    </aside>
+  <aside class="sidebar">
+    <a href="{% url 'dashboard' %}" class="brand">
+      <span class="brand-mark"><i class="fas fa-chart-line"></i></span>
+      <span>
+        <span class="brand-name">FinApp</span>
+        <span class="brand-sub" style="display:block">Tus finanzas, claras</span>
+      </span>
+    </a>
 
-    <!-- BOTTOM NAV MÓVIL -->
-    <nav class="bottomnav">
-        <a href="{% url 'dashboard' %}" class="nav-item {% block nav_dashboard_m %}{% endblock %}">
-            <i class="fas fa-home" style="font-size:18px"></i>
-            <span class="nav-label">Inicio</span>
+    <nav style="display:flex;flex-direction:column;gap:20px;flex:1;overflow-y:auto">
+      <div class="nav-group">
+        <div class="nav-title">Tu mes</div>
+        <a href="{% url 'dashboard' %}" class="nav-item {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+          <i class="fas fa-house"></i><span>Inicio</span>
         </a>
-        <a href="{% url 'registrar_transaccion' %}?tipo=INGRESO" class="nav-item" style="color:var(--green)">
-            <i class="fas fa-plus-circle" style="font-size:18px"></i>
-            <span class="nav-label">Ingreso</span>
+        <a href="{% url 'deudas' %}" class="nav-item {% if request.resolver_match.url_name == 'deudas' %}active{% endif %}">
+          <i class="fas fa-credit-card"></i><span>Compras en cuotas</span>
+          {% if cuotas_activas %}<span class="nav-count">{{ cuotas_activas }}</span>{% endif %}
         </a>
-        <a href="{% url 'registrar_transaccion' %}?tipo=EGRESO" class="nav-item" style="color:var(--red)">
-            <i class="fas fa-minus-circle" style="font-size:18px"></i>
-            <span class="nav-label">Gasto</span>
+        <a href="{% url 'estadisticas' %}" class="nav-item {% if request.resolver_match.url_name == 'estadisticas' %}active{% endif %}">
+          <i class="fas fa-chart-pie"></i><span>Estadísticas</span>
         </a>
-        <a href="{% url 'estadisticas' %}" class="nav-item {% block nav_stats_m %}{% endblock %}">
-            <i class="fas fa-chart-pie" style="font-size:18px"></i>
-            <span class="nav-label">Stats</span>
+        <a href="{% url 'prestamos' %}" class="nav-item {% if request.resolver_match.url_name == 'prestamos' %}active{% endif %}">
+          <i class="fas fa-hand-holding-dollar"></i><span>Me deben</span>
+          {% if prestamos_activos %}<span class="nav-count">{{ prestamos_activos }}</span>{% endif %}
         </a>
-        <a href="{% url 'prestamos' %}" class="nav-item {% block nav_prestamos_m %}{% endblock %}">
-            <i class="fas fa-hand-holding-usd"></i>
-            <span class="nav-label">Me deben</span>
+        <a href="{% url 'suscripciones' %}" class="nav-item {% if request.resolver_match.url_name == 'suscripciones' %}active{% endif %}">
+          <i class="fas fa-rotate"></i><span>Suscripciones</span>
         </a>
-        <a href="{% url 'analisis_predictivo' %}" class="nav-item {% block nav_analisis_m %}{% endblock %}">
-            <i class="fas fa-brain"></i>
-            <span class="nav-label">Análisis</span>
+        <a href="{% url 'analisis_predictivo' %}" class="nav-item {% if request.resolver_match.url_name == 'analisis' %}active{% endif %}">
+          <i class="fas fa-brain"></i><span>Análisis IA</span>
         </a>
-        <a href="{% url 'suscripciones' %}" class="nav-item {% block nav_suscripciones_m %}{% endblock %}">
-            <i class="fas fa-repeat"></i>
-            <span class="nav-label">Subs</span>
+      </div>
+
+      <div class="nav-group">
+        <div class="nav-title">Cuenta</div>
+        <a href="{% url 'perfil' %}" class="nav-item {% if request.resolver_match.url_name == 'perfil' %}active{% endif %}">
+          <i class="fas fa-user"></i><span>Mi perfil</span>
         </a>
-        <a href="{% url 'perfil' %}" class="nav-item {% block nav_perfil_m %}{% endblock %}">
-            <i class="fas fa-user-circle" style="font-size:18px"></i>
-            <span class="nav-label">Perfil</span>
-        </a>
-        <form action="{% url 'logout' %}" method="post" style="margin:0">
-            {% csrf_token %}
-            <button type="submit" class="nav-item">
-                <i class="fas fa-sign-out-alt" style="font-size:18px"></i>
-                <span class="nav-label">Salir</span>
-            </button>
+        <form method="post" action="{% url 'logout' %}" style="margin:0">
+          {% csrf_token %}
+          <button type="submit" class="nav-item"><i class="fas fa-right-from-bracket"></i><span>Salir</span></button>
         </form>
+      </div>
     </nav>
 
+    {% block sidebar_foot %}
+      {% if salud_score %}
+      <div class="sidebar-foot health" data-spot>
+        <div class="label" style="color:rgba(167,139,250,.75);margin-bottom:7px">Salud del mes</div>
+        <div style="display:flex;align-items:baseline;gap:6px;margin-bottom:9px">
+          <span class="display" style="font-size:24px;line-height:1">{{ salud_score }}</span>
+          <span style="font-size:11px;color:var(--text-muted)">/ 100 · {{ salud_label }}</span>
+        </div>
+        <div class="progress-bar" style="height:5px">
+          <div class="progress-fill" style="width:{{ salud_score }}%"></div>
+        </div>
+        {% if salud_nota %}<div style="font-size:10.5px;color:rgba(241,240,255,.42);margin-top:9px;line-height:1.45">{{ salud_nota }}</div>{% endif %}
+      </div>
+      {% endif %}
+    {% endblock %}
+  </aside>
+
+  <div style="flex:1;min-width:0;display:flex;flex-direction:column">
+
+    <header class="topbar">
+      {% block topbar_left %}
+      <div class="pill-group">
+        <a href="?mes={{ mes_anterior }}" class="icon-btn" style="display:flex;align-items:center;justify-content:center"><i class="fas fa-chevron-left" style="font-size:10px"></i></a>
+        <span class="month">{{ mes_actual|default:"Este mes" }}</span>
+        <a href="?mes={{ mes_siguiente }}" class="icon-btn" style="display:flex;align-items:center;justify-content:center"><i class="fas fa-chevron-right" style="font-size:10px"></i></a>
+      </div>
+
+      <div class="search">
+        <i class="fas fa-magnifying-glass" style="font-size:11px;color:rgba(241,240,255,.35)"></i>
+        <input type="search" data-search placeholder="Buscar movimiento, persona o categoría">
+        <span class="kbd hide-mobile">⌘K</span>
+      </div>
+      {% endblock %}
+
+      <div class="spacer"></div>
+
+      {% block topbar_actions %}
+      <button class="btn btn-green hide-mobile" data-open="#modalIngreso"><i class="fas fa-arrow-down" style="font-size:11px"></i>Ingreso</button>
+      <button class="btn btn-purple" data-open="#modalGasto"><i class="fas fa-plus" style="font-size:11px"></i><span class="hide-mobile">Registrar gasto</span></button>
+      {% endblock %}
+    </header>
+
     <main class="main">
-        {% block content %}{% endblock %}
+      {% block content %}{% endblock %}
     </main>
+  </div>
 </div>
 
+<nav class="bottomnav">
+  <a href="{% url 'dashboard' %}" class="nav-item {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}"><i class="fas fa-house"></i><span>Inicio</span></a>
+  <a href="{% url 'deudas' %}" class="nav-item {% if request.resolver_match.url_name == 'deudas' %}active{% endif %}"><i class="fas fa-credit-card"></i><span>Cuotas</span></a>
+  <button class="fab" data-open="#modalGasto" aria-label="Registrar"><i class="fas fa-plus" style="font-size:16px"></i></button>
+  <a href="{% url 'prestamos' %}" class="nav-item {% if request.resolver_match.url_name == 'prestamos' %}active{% endif %}"><i class="fas fa-hand-holding-dollar"></i><span>Me deben</span></a>
+  <a href="{% url 'perfil' %}" class="nav-item {% if request.resolver_match.url_name == 'perfil' %}active{% endif %}"><i class="fas fa-user"></i><span>Perfil</span></a>
+</nav>
 
-    <link rel="stylesheet" href="{% static 'css/base.css' %}">
-    <link rel="stylesheet" href="{% static 'css/utils.css' %}">
-
-    <!-- Badge flotante Perseus Technology -->
-    <div id="perseus-wrapper" style="position:fixed;bottom:24px;right:24px;z-index:999">
-        <!-- Botón X -->
-        <button onclick="cerrarBadge()"
-                style="position:absolute;top:-7px;right:-7px;width:20px;height:20px;border-radius:50%;
-                       background:#1e1e35;border:1px solid rgba(167,139,250,0.35);
-                       color:rgba(241,240,255,0.6);cursor:pointer;
-                       display:flex;align-items:center;justify-content:center;
-                       font-size:9px;z-index:10;padding:0;transition:all 0.2s"
-                onmouseover="this.style.background='rgba(248,113,113,0.25)';this.style.color='#f87171';this.style.borderColor='rgba(248,113,113,0.5)'"
-                onmouseout="this.style.background='#1e1e35';this.style.color='rgba(241,240,255,0.6)';this.style.borderColor='rgba(167,139,250,0.35)'"
-                title="Cerrar">
-            <i class="fas fa-times"></i>
-        </button>
-        <!-- Link -->
-        <a href="https://www.perseustechnology.dev" target="_blank" rel="noopener"
-           id="perseus-badge"
-           style="display:flex;align-items:center;gap:10px;
-                  background:rgba(13,13,26,0.85);
-                  border:1px solid rgba(167,139,250,0.25);
-                  border-radius:40px;padding:10px 16px 10px 12px;
-                  text-decoration:none;
-                  backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
-                  box-shadow:0 8px 32px rgba(0,0,0,0.4);
-                  transition:all 0.3s ease;cursor:pointer"
-           onmouseover="this.style.borderColor='rgba(167,139,250,0.5)';this.style.background='rgba(124,58,237,0.2)';this.style.transform='translateY(-2px)'"
-           onmouseout="this.style.borderColor='rgba(167,139,250,0.25)';this.style.background='rgba(13,13,26,0.85)';this.style.transform='translateY(0)'">
-            <div style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#7c3aed,#a78bfa);display:flex;align-items:center;justify-content:center;flex-shrink:0">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
-                </svg>
-            </div>
-            <div style="display:flex;flex-direction:column;line-height:1.2">
-                <span style="font-size:9px;color:rgba(167,139,250,0.7);font-family:'DM Sans',sans-serif;font-weight:500;letter-spacing:0.05em;text-transform:uppercase">Desarrollado por</span>
-                <span style="font-size:12px;color:#f1f0ff;font-family:'DM Sans',sans-serif;font-weight:600">Perseus Technology</span>
-            </div>
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="rgba(167,139,250,0.6)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left:2px;flex-shrink:0">
-                <line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/>
-            </svg>
-        </a>
+{% if messages %}
+<div class="toast-container">
+  {% for m in messages %}
+    <div class="toast toast-{{ m.tags|default:'success' }}">
+      <i class="fas fa-circle-check"></i>{{ m }}
     </div>
-    <script>
-    function cerrarBadge() {
-        const wrapper = document.getElementById('perseus-wrapper');
-        if (!wrapper) return;
-        wrapper.style.transition = 'opacity 0.3s, transform 0.3s';
-        wrapper.style.opacity = '0';
-        wrapper.style.transform = 'translateY(10px)';
-        setTimeout(() => wrapper.style.display = 'none', 300);
-        sessionStorage.setItem('perseus_badge_closed', '1');
-    }
-    if (sessionStorage.getItem('perseus_badge_closed')) {
-        const w = document.getElementById('perseus-wrapper');
-        if (w) w.style.display = 'none';
-    }
-    </script>
-    <script src="{% static 'js/icons.js' %}"></script>
-    <script src="{% static 'js/polish.js' %}"></script>
+  {% endfor %}
+</div>
+{% endif %}
+
+{% block modals %}{% endblock %}
+
+<script src="{% static 'js/finapp.js' %}"></script>
+{% block extra_js %}{% endblock %}
 </body>
 </html>
