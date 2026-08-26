@@ -107,11 +107,31 @@
 
 {# ============ Interpretación IA (bajo demanda) ============ #}
 <div class="glass card" style="padding:22px;margin-bottom:16px;display:none" id="cajaIA" data-spot>
-  <div style="display:flex;align-items:center;gap:10px;margin-bottom:13px">
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:15px">
     <span class="icon-tile"><i class="fas fa-wand-magic-sparkles"></i></span>
     <div class="modal-title" style="font-size:15px;font-weight:500">En palabras simples</div>
   </div>
-  <div class="hint" style="font-size:13px;line-height:1.7" id="textoIA"></div>
+
+  <div class="hint" style="font-size:13px;line-height:1.7" id="iaEstado">Leyendo tus números…</div>
+
+  <div id="iaContenido" style="display:none">
+    <div style="font-size:13.5px;line-height:1.65;color:var(--text-primary);text-wrap:pretty" id="iaDiagnostico"></div>
+
+    <div id="iaBloqueRecs" style="margin-top:18px;display:none">
+      <div class="label" style="margin-bottom:10px">Qué hacer</div>
+      <div style="display:flex;flex-direction:column;gap:9px" id="iaRecs"></div>
+    </div>
+
+    <div id="iaBloqueProy" style="margin-top:18px;display:none">
+      <div class="label" style="margin-bottom:8px">Si mantienes el ritmo</div>
+      <div class="hint" style="font-size:12.5px;line-height:1.6" id="iaProyeccion"></div>
+    </div>
+
+    <div id="iaBloqueMotiv" class="glass-purple"
+         style="margin-top:18px;padding:14px 16px;border-radius:15px;display:none">
+      <div style="font-size:12.5px;line-height:1.6;color:#c4b5fd;text-wrap:pretty" id="iaMotivacional"></div>
+    </div>
+  </div>
 </div>
 
 {# ============ Por qué ese riesgo ============ #}
@@ -354,21 +374,76 @@
   /* ---- Interpretación con IA, bajo demanda ---- */
   var btn = document.getElementById('btnIA');
   if (!btn) return;
+  var caja = document.getElementById('cajaIA');
+  var estado = document.getElementById('iaEstado');
+  var contenido = document.getElementById('iaContenido');
+
+  function fallo(msg) {
+    contenido.style.display = 'none';
+    estado.style.display = 'block';
+    estado.textContent = msg;
+  }
+
+  /* La respuesta es un objeto con cuatro partes: diagnóstico, lista de
+     recomendaciones, proyección y una frase de cierre. Se arma cada una;
+     antes se volcaba el objeto completo y salía "[object Object]". */
+  function pintar(ia) {
+    if (!ia || typeof ia !== 'object' || !ia.diagnostico) {
+      fallo('La respuesta llegó incompleta. Vuelve a intentarlo.');
+      return;
+    }
+
+    document.getElementById('iaDiagnostico').textContent = ia.diagnostico;
+
+    var recs = Array.isArray(ia.recomendaciones) ? ia.recomendaciones : [];
+    var cajaRecs = document.getElementById('iaRecs');
+    cajaRecs.innerHTML = '';
+    recs.forEach(function (r, i) {
+      var fila = document.createElement('div');
+      fila.className = 'row';
+      fila.style.cssText = 'align-items:flex-start;padding:13px 15px';
+      var num = document.createElement('span');
+      num.className = 'icon-tile';
+      num.style.cssText = 'width:24px;height:24px;border-radius:8px;font-size:11px;font-weight:600;flex-shrink:0';
+      num.textContent = i + 1;
+      var txt = document.createElement('div');
+      txt.style.cssText = 'font-size:12.5px;line-height:1.6;flex:1;text-wrap:pretty';
+      txt.textContent = r;
+      fila.appendChild(num);
+      fila.appendChild(txt);
+      cajaRecs.appendChild(fila);
+    });
+    document.getElementById('iaBloqueRecs').style.display = recs.length ? 'block' : 'none';
+
+    if (ia.proyeccion_texto) {
+      document.getElementById('iaProyeccion').textContent = ia.proyeccion_texto;
+      document.getElementById('iaBloqueProy').style.display = 'block';
+    }
+    if (ia.mensaje_motivacional) {
+      document.getElementById('iaMotivacional').textContent = ia.mensaje_motivacional;
+      document.getElementById('iaBloqueMotiv').style.display = 'block';
+    }
+
+    estado.style.display = 'none';
+    contenido.style.display = 'block';
+  }
+
   btn.addEventListener('click', function () {
-    var caja = document.getElementById('cajaIA');
-    var texto = document.getElementById('textoIA');
     btn.disabled = true;
     btn.innerHTML = '<i class="fas fa-circle-notch fa-spin" style="font-size:11px"></i>Pensando…';
     caja.style.display = 'block';
-    texto.textContent = 'Leyendo tus números…';
+    contenido.style.display = 'none';
+    estado.style.display = 'block';
+    estado.textContent = 'Leyendo tus números…';
 
     fetch('{% url "analisis_ia" %}', { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
       .then(function (r) { return r.json(); })
       .then(function (d) {
-        texto.textContent = d.ok ? d.ia : 'La IA no está disponible ahora. Los números de arriba no dependen de ella.';
+        if (d.ok) pintar(d.ia);
+        else fallo('La IA no está disponible ahora. Los números de arriba no dependen de ella.');
       })
       .catch(function () {
-        texto.textContent = 'No se pudo conectar. Los números de arriba no dependen de la IA.';
+        fallo('No se pudo conectar. Los números de arriba no dependen de la IA.');
       })
       .finally(function () {
         btn.disabled = false;

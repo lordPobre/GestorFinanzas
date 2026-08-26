@@ -73,10 +73,18 @@ def resumen_mes(usuario, year, month):
 
     # Gastos del día a día. Excluye los pagos de cuotas (es_cuota=True)
     # porque las cuotas del mes se suman aparte, completas.
-    gastos = float(Transaccion.objects.filter(
+    qs_gastos = Transaccion.objects.filter(
         usuario=usuario, tipo='EGRESO',
         fecha__gte=fecha_inicio, fecha__lte=fecha_fin, es_cuota=False,
-    ).aggregate(t=Sum('monto'))['t'] or 0)
+    )
+    gastos = float(qs_gastos.aggregate(t=Sum('monto'))['t'] or 0)
+
+    # Del total gastado, cuánto salió de verdad y cuánto sigue debiéndose.
+    # Los dos cuentan como gasto del mes: la diferencia es si la plata ya
+    # se fue o si todavía la tienes en el bolsillo.
+    gastos_pagados = float(qs_gastos.filter(pagado=True)
+                                    .aggregate(t=Sum('monto'))['t'] or 0)
+    gastos_por_pagar = gastos - gastos_pagados
 
     # El periodo es la clave con la que se guardan los pagos: año*100+mes.
     periodo = year * 100 + month
@@ -156,6 +164,8 @@ def resumen_mes(usuario, year, month):
         'ultimo_dia': ultimo_dia,
         'ingresos': ingresos,
         'gastos': gastos,
+        'gastos_pagados': gastos_pagados,
+        'gastos_por_pagar': gastos_por_pagar,
         'cuotas_pagadas_mes': cuotas_pagadas,
         'cuotas_pendientes_mes': cuotas_pendientes,
         'total_cuotas_mes': total_cuotas,
@@ -291,6 +301,98 @@ def serie_cuotas(usuario, atras=6, adelante=6):
     return filas
 
 
+def pendientes_del_mes(usuario, year, month):
+    """Todo lo que falta pagar en un mes, en una sola lista.
+
+    Junta las tres cosas que se pagan: cuotas de compras a plazo,
+    suscripciones y cuentas puntuales. Cada item trae lo que el template
+    necesita para pintar la fila y su botón, sin ifs por tipo.
+    """
+    periodo = year * 100 + month
+    items = []
+
+    for d in Deuda.objects.filter(usuario=usuario).prefetch_related('pagos'):
+        if periodo not in d.periodos_programados:
+            continue
+        pago = next((p for p in d.pagos.all() if p.periodo == periodo), None)
+        fecha = d.fecha_cobro_de(periodo)
+        items.append({
+            'tipo': 'cuota',
+            'nombre': d.acreedor,
+            'detalle': f'Cuota {d.periodos_programados.index(periodo) + 1} de {d.cuotas_totales}',
+            'monto': pago.monto if pago else d.monto_cuota_de(periodo),
+            'fecha': fecha,
+            'pagado': bool(pago),
+            'fecha_pago': pago.fecha_pago if pago else None,
+            'icono': 'fa-credit-card',
+            'url_pagar': f'/pagar-cuota/{d.pk}/',
+            'url_anular': f'/anular-cuota/{d.pk}/',
+            'periodo': periodo,
+        })
+
+    for s in Suscripcion.objects.filter(usuario=usuario).prefetch_related('pagos'):
+        if periodo not in s.periodos_programados:
+            continue
+        pago = next((p for p in s.pagos.all() if p.periodo == periodo), None)
+        items.append({
+            'tipo': 'servicio',
+            'nombre': s.nombre,
+            'detalle': f'Suscripción · se cobra el {s.dia_cobro}',
+            'monto': s.monto,
+            'fecha': s.fecha_cobro_de(periodo),
+            'pagado': bool(pago),
+            'fecha_pago': pago.fecha_pago if pago else None,
+            'icono': 'fa-rotate',
+            'url_pagar': f'/suscripciones/pagar/{s.pk}/',
+            'url_anular': f'/suscripciones/anular-pago/{s.pk}/',
+            'periodo': periodo,
+        })
+
+    # Gastos únicos anotados pero sin pagar. Son los del bloque "ya gastaste".
+    for t in Transaccion.objects.filter(
+            usuario=usuario, tipo='EGRESO', es_cuota=False, pagado=False,
+            fecha__year=year, fecha__month=month):
+        items.append({
+            'tipo': 'gasto',
+            'nombre': t.descripcion or t.get_categoria_display(),
+            'detalle': t.get_categoria_display(),
+            'monto': t.monto,
+            'fecha': t.fecha,
+            'pagado': False,
+            'fecha_pago': None,
+            'icono': t.icono,
+            'url_pagar': f'/gasto/pagar/{t.pk}/',
+            'url_anular': f'/gasto/anular-pago/{t.pk}/',
+            'periodo': periodo,
+        })
+
+    _, ultimo = calendar.monthrange(year, month)
+    for g in GastoPendiente.objects.filter(
+            usuario=usuario,
+            fecha_vencimiento__gte=date(year, month, 1),
+            fecha_vencimiento__lte=date(year, month, ultimo)):
+        items.append({
+            'tipo': 'cuenta',
+            'nombre': g.nombre,
+            'detalle': g.categoria or 'Cuenta por pagar',
+            'monto': g.monto,
+            'fecha': g.fecha_vencimiento,
+            'pagado': g.pagado,
+            'fecha_pago': g.fecha_pago,
+            'icono': 'fa-file-invoice',
+            'url_pagar': f'/gasto-pendiente/pagar/{g.pk}/',
+            'url_anular': f'/gasto-pendiente/anular/{g.pk}/',
+            'periodo': periodo,
+        })
+
+    hoy = date.today()
+    for it in items:
+        it['atrasado'] = not it['pagado'] and it['fecha'] < hoy
+    # Lo atrasado primero, después por fecha; lo pagado al final.
+    items.sort(key=lambda x: (x['pagado'], not x['atrasado'], x['fecha']))
+    return items
+
+
 def contadores(usuario):
     """Los números del menú lateral. Se pasan en todas las vistas para que
     los badges no aparezcan solo en el dashboard."""
@@ -421,6 +523,10 @@ def dashboard(request):
     pendientes.sort(key=lambda d: d.dias_para_vencer)
     proximo_pago = pendientes[0] if pendientes else None
 
+    pagos_mes = pendientes_del_mes(request.user, year, month)
+    sin_pagar = [i for i in pagos_mes if not i['pagado']]
+    atrasados = [i for i in sin_pagar if i['atrasado']]
+
     ultimas = Transaccion.objects.filter(usuario=request.user).order_by('-fecha', '-id')[:10]
     deuda_total = sum(float(d.monto_restante) for d in todas_las_deudas if not d.esta_saldada)
     metas = MetaAhorro.objects.filter(usuario=request.user)
@@ -508,6 +614,10 @@ def dashboard(request):
         'cuotas_pagadas_mes': round(r['cuotas_pagadas_mes']),
         'cuotas_pendientes_mes': round(r['cuotas_pendientes_mes']),
         'ya_gaste': round(r['gastos']),
+        'gastos_pagados': round(r['gastos_pagados']),
+        'gastos_por_pagar': round(r['gastos_por_pagar']),
+        'pct_gasto_pagado': (round(r['gastos_pagados'] / r['gastos'] * 100)
+                             if r['gastos'] else 0),
         'total_comprometido_mes': round(r['comprometido']),
         'disponible': round(r['disponible']),
         'deuda_total': round(deuda_total),
@@ -534,6 +644,13 @@ def dashboard(request):
                                           .prefetch_related('pagos')
             if not s.pagada_este_mes
         ),
+
+        'pendientes': pagos_mes,
+        'pendientes_sin_pagar': sin_pagar,
+        'pendientes_atrasados': atrasados,
+        'monto_sin_pagar': round(sum(float(i['monto']) for i in sin_pagar)),
+        'monto_ya_pagado': round(sum(float(i['monto']) for i in pagos_mes if i['pagado'])),
+        'mes_al_dia': bool(pagos_mes) and not sin_pagar,
 
         'insights': insights,
         'presupuesto': presupuesto,
@@ -798,8 +915,19 @@ def registrar_transaccion(request):
         if form.is_valid():
             t = form.save(commit=False)
             t.usuario = request.user
+            # El panel manda 'sin_pagar' cuando el gasto se anota pero no se
+            # ha pagado todavía.
+            if t.tipo == 'EGRESO' and request.POST.get('sin_pagar'):
+                t.pagado = False
+                t.fecha_pago = None
+            else:
+                t.pagado = True
+                t.fecha_pago = t.fecha
             t.save()
-            messages.success(request, f'{"Ingreso" if t.es_ingreso else "Gasto"} registrado.')
+            if t.tipo == 'EGRESO' and not t.pagado:
+                messages.success(request, 'Gasto anotado como pendiente de pago.')
+            else:
+                messages.success(request, f'{"Ingreso" if t.es_ingreso else "Gasto"} registrado.')
             return _redirigir(request)
 
         # Antes esto caía en form_transaccion.html y el usuario no veía por qué
@@ -841,6 +969,58 @@ def eliminar_transaccion(request, transaccion_id):
     if request.method == 'POST':
         t.delete()
         messages.success(request, 'Movimiento eliminado.')
+    return _redirigir(request)
+
+
+@login_required(login_url='/login/')
+def pagar_gasto(request, transaccion_id):
+    """Marca un gasto único como pagado.
+
+    No mueve montos: el gasto ya estaba contado en el mes. Solo registra que
+    la plata salió, para que "ya gastaste" no mezcle lo pagado con lo que
+    sigues debiendo.
+    """
+    t = get_object_or_404(Transaccion, id=transaccion_id, usuario=request.user)
+    es_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
+
+    if request.method != 'POST':
+        return _redirigir(request)
+
+    if not t.es_gasto_unico:
+        if es_ajax:
+            return JsonResponse({'ok': False, 'msg': 'Solo aplica a gastos.'})
+        messages.warning(request, 'Eso no es un gasto que se marque a mano.')
+        return _redirigir(request)
+
+    if not t.pagado:
+        t.pagado = True
+        t.fecha_pago = timezone.localdate()
+        t.save(update_fields=['pagado', 'fecha_pago'])
+
+    if es_ajax:
+        return JsonResponse({'ok': True, 'pagado': True,
+                             'texto': t.texto_estado_pago})
+    messages.success(request, f'{t.descripcion or t.get_categoria_display()}: marcado como pagado.')
+    return _redirigir(request)
+
+
+@login_required(login_url='/login/')
+def anular_pago_gasto(request, transaccion_id):
+    """Devuelve un gasto a 'sin pagar'."""
+    t = get_object_or_404(Transaccion, id=transaccion_id, usuario=request.user)
+    es_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
+
+    if request.method != 'POST':
+        return _redirigir(request)
+
+    if t.pagado and t.es_gasto_unico:
+        t.pagado = False
+        t.fecha_pago = None
+        t.save(update_fields=['pagado', 'fecha_pago'])
+
+    if es_ajax:
+        return JsonResponse({'ok': True, 'pagado': False})
+    messages.success(request, 'Marcado como no pagado.')
     return _redirigir(request)
 
 

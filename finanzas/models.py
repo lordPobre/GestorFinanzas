@@ -55,6 +55,19 @@ class Transaccion(models.Model):
     descripcion = models.CharField(max_length=200, blank=True)
     es_cuota = models.BooleanField(default=False)
 
+    # ¿Esta plata ya salió?
+    #
+    # Un gasto puede estar anotado sin estar pagado todavía: la cuenta que
+    # llegó, lo que quedaste debiendo en el almacén, la compra que va con
+    # transferencia pendiente. Antes no había forma de distinguirlo, así que
+    # "ya gastaste" mezclaba plata que salió con plata que solo estaba
+    # comprometida.
+    #
+    # Por defecto True: la mayoría de los gastos se anotan después de
+    # pagarlos, y así todo lo que ya existe en la base queda como pagado.
+    pagado = models.BooleanField(default=True)
+    fecha_pago = models.DateField(null=True, blank=True)
+
     class Meta:
         ordering = ['-fecha', '-id']
 
@@ -65,6 +78,29 @@ class Transaccion(models.Model):
     def es_ingreso(self):
         """Para elegir color y signo en el template sin comparar strings."""
         return self.tipo == 'INGRESO'
+
+    @property
+    def es_gasto_unico(self):
+        """Gasto del día a día: no es cuota ni ingreso. Son los que se pueden
+        marcar como pagados a mano."""
+        return self.tipo == 'EGRESO' and not self.es_cuota
+
+    @property
+    def por_pagar(self):
+        return self.es_gasto_unico and not self.pagado
+
+    @property
+    def texto_estado_pago(self):
+        if self.es_ingreso or not self.es_gasto_unico:
+            return ''
+        if self.pagado:
+            if self.fecha_pago and self.fecha_pago != self.fecha:
+                return f'Pagado el {self.fecha_pago.strftime("%d/%m")}'
+            return 'Pagado'
+        dias = (date.today() - self.fecha).days
+        if dias > 0:
+            return f'Sin pagar hace {dias} día{"s" if dias != 1 else ""}'
+        return 'Sin pagar'
 
     @property
     def color_categoria(self):

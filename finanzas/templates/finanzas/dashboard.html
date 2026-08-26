@@ -90,6 +90,113 @@
 </div>
 {% endif %}
 
+{# ============ Lo que hay que pagar este mes ============ #}
+<div class="glass card" style="padding:22px;margin-bottom:18px" data-spot>
+  <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;margin-bottom:4px">
+    <div>
+      <div class="modal-title" style="font-size:15px;font-weight:500">Pagos de {{ nombre_mes }}</div>
+      <div class="hint" style="font-size:11.5px;margin-top:3px">
+        Cuotas, suscripciones y cuentas. Márcalas acá a medida que las pagas.
+      </div>
+    </div>
+
+    {% if mes_al_dia %}
+      <span class="badge badge-green" style="font-size:11px;padding:6px 12px">
+        <i class="fas fa-circle-check" style="font-size:10px"></i>Mes pagado
+      </span>
+    {% elif pendientes_sin_pagar %}
+      <div style="text-align:right">
+        <div class="mono" style="font-size:15px;color:var(--orange)">${{ monto_sin_pagar|intcomma }}</div>
+        <div style="font-size:10px;color:var(--text-muted);margin-top:2px">
+          {{ pendientes_sin_pagar|length }} sin pagar
+        </div>
+      </div>
+    {% endif %}
+  </div>
+
+  {% if pendientes %}
+  {% if pendientes_atrasados %}
+  <div class="glass-coral" style="margin:14px 0;padding:12px 15px;border-radius:14px;display:flex;align-items:center;gap:11px">
+    <i class="fas fa-triangle-exclamation" style="font-size:12px;color:var(--coral)"></i>
+    <div style="font-size:12px;color:var(--text-secondary)">
+      {{ pendientes_atrasados|length }} pago{{ pendientes_atrasados|length|pluralize:"s" }} con la fecha ya pasada.
+    </div>
+  </div>
+  {% endif %}
+
+  <div style="margin:14px 0 16px">
+    <div class="split-bar" style="height:8px">
+      {% if monto_ya_pagado %}<span style="width:{% widthratio monto_ya_pagado total_comprometido_mes 100 %}%;background:linear-gradient(90deg,#059669,#34d399)"></span>{% endif %}
+      {% if monto_sin_pagar %}<span style="width:{% widthratio monto_sin_pagar total_comprometido_mes 100 %}%;background:linear-gradient(90deg,#ea580c,#fb923c)"></span>{% endif %}
+    </div>
+    <div style="display:flex;justify-content:space-between;margin-top:8px;font-size:10.5px;color:var(--text-muted)">
+      <span>${{ monto_ya_pagado|intcomma }} pagado</span>
+      <span>${{ monto_sin_pagar|intcomma }} por pagar</span>
+    </div>
+  </div>
+
+  <div class="row-list">
+    {% for i in pendientes %}
+    <div class="row" data-searchable
+         {% if i.atrasado %}style="border-color:rgba(248,113,113,.26)"{% elif i.pagado %}style="opacity:.62"{% endif %}>
+      <span class="icon-tile {% if i.pagado %}green{% elif i.atrasado %}coral{% else %}orange{% endif %}">
+        <i class="fas {% if i.pagado %}fa-check{% else %}{{ i.icono }}{% endif %}"></i>
+      </span>
+
+      <div class="row-main">
+        <div class="row-title" {% if i.pagado %}style="color:var(--text-secondary)"{% endif %}>{{ i.nombre }}</div>
+        <div class="row-meta">
+          {{ i.detalle }} ·
+          {% if i.pagado %}pagado{% if i.fecha_pago %} el {{ i.fecha_pago|date:"j M" }}{% endif %}
+          {% elif i.atrasado %}<span style="color:var(--coral)">venció el {{ i.fecha|date:"j M" }}</span>
+          {% else %}vence el {{ i.fecha|date:"j M" }}{% endif %}
+        </div>
+      </div>
+
+      <div class="mono" style="font-size:12.5px;{% if i.pagado %}color:var(--text-muted){% endif %}">${{ i.monto|floatformat:0|intcomma }}</div>
+
+      {% if i.pagado %}
+      <form method="post" action="{{ i.url_anular }}" style="margin:0"
+            data-confirm="¿Marcar {{ i.nombre }} como no pagado?">
+        {% csrf_token %}
+        <input type="hidden" name="next" value="?year={{ year }}&amp;month={{ month }}">
+        <input type="hidden" name="periodo" value="{{ i.periodo }}">
+        <button type="submit" class="icon-btn" title="Deshacer"><i class="fas fa-rotate-left" style="font-size:10px"></i></button>
+      </form>
+      {% else %}
+      <form method="post" action="{{ i.url_pagar }}" style="margin:0">
+        {% csrf_token %}
+        <input type="hidden" name="next" value="?year={{ year }}&amp;month={{ month }}">
+        <input type="hidden" name="periodo" value="{{ i.periodo }}">
+        <button type="submit" class="btn {% if i.atrasado %}btn-orange{% else %}btn-green{% endif %} btn-sm">
+          <i class="fas fa-check" style="font-size:9px"></i>Pagué
+        </button>
+      </form>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+
+  {% if mes_al_dia %}
+  <div style="margin-top:16px;padding:14px 16px;border-radius:15px;background:rgba(5,150,105,.12);border:1px solid rgba(52,211,153,.24);display:flex;align-items:center;gap:11px">
+    <i class="fas fa-circle-check" style="font-size:13px;color:var(--green)"></i>
+    <div style="font-size:12.5px;color:var(--text-secondary)">
+      Pagaste todo lo de {{ nombre_mes }}: ${{ monto_ya_pagado|intcomma }} en {{ pendientes|length }} pago{{ pendientes|length|pluralize:"s" }}.
+    </div>
+  </div>
+  {% endif %}
+
+  {% else %}
+  <div class="empty" style="padding:30px 12px">
+    <i class="fas fa-circle-check" style="font-size:24px"></i>
+    <div class="empty-title" style="font-size:14px">Nada que pagar este mes</div>
+    <div class="empty-text" style="font-size:11.5px">
+      No tienes cuotas, suscripciones ni cuentas con fecha en {{ nombre_mes }}.
+    </div>
+  </div>
+  {% endif %}
+</div>
+
 {# ============ Cuatro métricas ============ #}
 <div class="grid-metrics">
   <div class="glass glass-lift card" data-spot>
@@ -107,7 +214,18 @@
       <span class="icon-tile blue"><i class="fas fa-arrow-up"></i></span>
     </div>
     <div class="stat-value" style="color:var(--blue)">${{ total_gastos|intcomma }}</div>
-    <div class="stat-note">{{ pct_gastado }}% de lo que entró, sin contar cuotas.</div>
+    {% if gastos_por_pagar %}
+    <div class="split-bar" style="height:6px;margin:10px 0 8px">
+      <span style="width:{{ pct_gasto_pagado }}%;background:linear-gradient(90deg,#059669,#34d399)"></span>
+      <span style="width:{% widthratio gastos_por_pagar total_gastos 100 %}%;background:linear-gradient(90deg,#ea580c,#fb923c)"></span>
+    </div>
+    <div class="stat-note">
+      <span style="color:var(--green)">${{ gastos_pagados|intcomma }} pagados</span> ·
+      <span style="color:var(--orange)">${{ gastos_por_pagar|intcomma }} sin pagar</span>
+    </div>
+    {% else %}
+    <div class="stat-note">Todo pagado. {{ pct_gastado }}% de lo que entró, sin contar cuotas.</div>
+    {% endif %}
   </div>
 
   <div class="glass glass-lift glass-orange card" data-spot>
@@ -117,9 +235,8 @@
     </div>
     <div class="stat-value" style="color:var(--orange)">${{ por_pagar|intcomma }}</div>
     <div class="stat-note">
-      {% if cuotas_activas %}{{ cuotas_activas }} cuota{{ cuotas_activas|pluralize:"s" }}{% else %}Sin cuotas{% endif %}
-      y {{ subs_pendientes }} suscripción{{ subs_pendientes|pluralize:"es" }} sin pagar.
-      {% if servicios_pendientes_mes %}<a href="{% url 'suscripciones' %}">Ver servicios</a>{% endif %}
+      {% if mes_al_dia %}Todo pagado este mes.
+      {% else %}{{ pendientes_sin_pagar|length }} pago{{ pendientes_sin_pagar|length|pluralize:"s" }} sin marcar.{% endif %}
     </div>
     {% if cuotas_activas %}
     <a href="{% url 'deudas' %}" class="btn btn-orange btn-sm" style="margin-top:11px">Ver mis cuotas<i class="fas fa-arrow-right" style="font-size:9px"></i></a>
@@ -219,7 +336,7 @@
 
     {% if gastos_pendientes %}
     <div style="margin-top:16px;padding-top:16px;border-top:1px solid rgba(255,255,255,.06)">
-      <div class="label" style="margin-bottom:10px">Cuentas por pagar</div>
+      <div class="label" style="margin-bottom:10px">Cuentas de otros meses</div>
       <div class="row-list">
         {% for g in gastos_pendientes %}
         <div class="row">
@@ -251,15 +368,37 @@
       </div>
       <div class="row-list">
         {% for t in ultimas %}
-        <div class="row" data-searchable>
-          <span class="icon-tile {% if t.es_ingreso %}green{% endif %}"><i class="fas {{ t.icono }}"></i></span>
+        <div class="row" data-searchable
+             {% if t.por_pagar %}style="border-color:rgba(251,146,60,.26)"{% endif %}>
+          <span class="icon-tile {% if t.es_ingreso %}green{% elif t.por_pagar %}orange{% endif %}"><i class="fas {{ t.icono }}"></i></span>
           <div class="row-main">
             <div class="row-title">{{ t.descripcion|default:t.get_categoria_display }}</div>
-            <div class="row-meta">{{ t.fecha|date:"j M" }} · {{ t.get_categoria_display }}</div>
+            <div class="row-meta">
+              {{ t.fecha|date:"j M" }} · {{ t.get_categoria_display }}
+              {% if t.por_pagar %} · <span style="color:var(--orange)">sin pagar</span>{% endif %}
+            </div>
           </div>
           <div class="mono" style="font-size:13px;{% if t.es_ingreso %}color:var(--green){% endif %}">
             {% if t.es_ingreso %}+{% endif %}${{ t.monto|floatformat:0|intcomma }}
           </div>
+
+          {% if t.por_pagar %}
+          <form method="post" action="{% url 'pagar_gasto' t.pk %}" style="margin:0">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{% url 'dashboard' %}">
+            <button type="submit" class="btn btn-green btn-sm"><i class="fas fa-check" style="font-size:9px"></i>Pagué</button>
+          </form>
+          {% elif t.es_gasto_unico %}
+          <form method="post" action="{% url 'anular_pago_gasto' t.pk %}" style="margin:0"
+                data-confirm="¿Marcar este gasto como no pagado?">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{% url 'dashboard' %}">
+            <button type="submit" class="icon-btn" title="{{ t.texto_estado_pago }} — deshacer">
+              <i class="fas fa-check" style="font-size:10px;color:var(--green)"></i>
+            </button>
+          </form>
+          {% endif %}
+
           <form method="post" action="{% url 'eliminar_transaccion' t.pk %}" style="margin:0" data-confirm="¿Eliminar este movimiento?">
             {% csrf_token %}
             <input type="hidden" name="next" value="{% url 'dashboard' %}">
@@ -365,6 +504,18 @@
       <div class="field">
         <label class="label" for="campoDesc">Descripción</label>
         <input type="text" name="descripcion" id="campoDesc" placeholder="Ej: Supermercado, sueldo de agosto">
+      </div>
+
+      <div id="bloquePago" style="margin-bottom:18px">
+        <div class="label" style="margin-bottom:9px">¿Ya la pagaste?</div>
+        <input type="hidden" name="sin_pagar" id="campoSinPagar" value="">
+        <div class="seg" id="segPago">
+          <button type="button" class="on-green" data-pagado="1">Sí, ya salió</button>
+          <button type="button" data-pagado="0">Aún la debo</button>
+        </div>
+        <div class="hint" style="font-size:10.5px;margin-top:8px" id="notaPago">
+          Cuenta como gasto del mes en los dos casos. La diferencia es si la plata ya se fue.
+        </div>
       </div>
 
       <div class="preview-box">
@@ -499,6 +650,9 @@
     montoView.style.color = esGasto ? 'var(--coral)' : 'var(--green)';
     var prev = document.querySelector('[data-preview]');
     if (prev) prev.dataset.sign = esGasto ? '-1' : '1';
+    // Un ingreso no se "paga": el bloque solo aplica a gastos
+    var bloque = document.getElementById('bloquePago');
+    if (bloque) bloque.style.display = esGasto ? 'block' : 'none';
     pintarChips(campoTipo.value);
   }
 
@@ -554,6 +708,24 @@
       montoView.style.color = 'var(--coral)';
       setTimeout(function () { montoView.style.transform = 'scale(1)'; }, 120);
     }
+  });
+
+  /* Ya pagado / aún lo debo. Solo tiene sentido en un gasto. */
+  var segPago = document.getElementById('segPago');
+  var campoSinPagar = document.getElementById('campoSinPagar');
+  var bloquePago = document.getElementById('bloquePago');
+  var notaPago = document.getElementById('notaPago');
+
+  segPago.addEventListener('click', function (e) {
+    var b = e.target.closest('button'); if (!b) return;
+    var yaPago = b.dataset.pagado === '1';
+    campoSinPagar.value = yaPago ? '' : '1';
+    segPago.querySelectorAll('button').forEach(function (x) {
+      x.className = x === b ? (yaPago ? 'on-green' : 'on-coral') : '';
+    });
+    notaPago.textContent = yaPago
+      ? 'Cuenta como gasto del mes en los dos casos. La diferencia es si la plata ya se fue.'
+      : 'Queda en la lista de pagos del mes para marcarlo cuando lo pagues.';
   });
 
   setTipo('EGRESO');

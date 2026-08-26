@@ -20,6 +20,9 @@ urlpatterns = [
     path('editar-transaccion/<int:transaccion_id>/', views.editar_transaccion, name='editar_transaccion'),
     path('eliminar-transaccion/<int:transaccion_id>/', views.eliminar_transaccion, name='eliminar_transaccion'),
 
+    path('gasto/pagar/<int:transaccion_id>/', views.pagar_gasto, name='pagar_gasto'),
+    path('gasto/anular-pago/<int:transaccion_id>/', views.anular_pago_gasto, name='anular_pago_gasto'),
+
     path('meta/nueva/', views.crear_meta, name='crear_meta'),
     path('meta/aportar/<int:meta_id>/', views.aportar_meta, name='aportar_meta'),
     path('meta/editar/<int:meta_id>/', views.editar_meta, name='editar_meta'),
