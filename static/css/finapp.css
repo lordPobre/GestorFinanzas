@@ -178,23 +178,73 @@ a:hover { color: #c4b5fd; }
 .main > * { animation: rise .45s var(--ease-out) both; }
 @keyframes rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
 
+/* ===== Suscripciones: fila que se reordena en móvil ===== */
+.sub-row {
+  display: grid; align-items: center; gap: 13px;
+  grid-template-columns: 36px 1fr auto auto auto auto auto;
+  padding: 15px 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, .05);
+  transition: background .2s var(--ease-out);
+}
+.sub-row:last-child { border-bottom: none; }
+.sub-row:hover { background: rgba(255, 255, 255, .045); }
+.sub-acciones { display: flex; align-items: center; gap: 8px; }
+
 /* Bottom nav móvil */
 .bottomnav {
   display: none; position: fixed; bottom: 0; left: 0; right: 0; z-index: 50;
-  height: var(--bottombar-h); padding: 0 8px;
+  height: var(--bottombar-h); padding: 0;
   align-items: center; justify-content: space-around;
   background: rgba(11, 11, 22, .82);
   border-top: 1px solid rgba(255, 255, 255, .07);
   backdrop-filter: blur(22px); -webkit-backdrop-filter: blur(22px);
 }
-.bottomnav .nav-item { flex-direction: column; gap: 3px; width: 56px; padding: 8px 0; justify-content: center; text-align: center; }
-.bottomnav .nav-item span { flex: none; font-size: 9px; letter-spacing: .02em; }
-.bottomnav .fab {
-  width: 48px; height: 48px; border-radius: 17px; margin-top: -22px; flex-shrink: 0;
-  background: linear-gradient(135deg, var(--purple-dim), var(--purple));
-  color: #fff; display: flex; align-items: center; justify-content: center;
-  box-shadow: 0 8px 22px rgba(124, 58, 237, .5); border: none; cursor: pointer;
+/* Seis destinos repartidos en partes iguales. El botón de registrar salió
+   de la fila (ahora flota arriba a la derecha): tener un hueco al centro
+   dejaba los ítems desalineados y sin espacio para Perfil. */
+.bottomnav .nav-item {
+  flex: 1 1 0; min-width: 0; flex-direction: column; gap: 4px;
+  padding: 9px 2px 8px; justify-content: center; text-align: center;
+  border: none; background: none; border-radius: 0;
 }
+.bottomnav .nav-item i { width: auto; font-size: 16px; opacity: .6; transition: opacity .18s var(--ease-out), color .18s var(--ease-out); }
+.bottomnav .nav-item span { opacity: .55; transition: opacity .18s var(--ease-out); }
+
+/* Activo: una marca arriba y el icono encendido. Antes heredaba la píldora
+   del sidebar, que con flex:1 se estiraba y descuadraba la fila. */
+.bottomnav .nav-item.active { background: none; color: var(--purple); }
+.bottomnav .nav-item.active i { opacity: 1; color: var(--purple); }
+.bottomnav .nav-item.active span { opacity: 1; color: var(--purple); }
+.bottomnav .nav-item.active::before {
+  content: ''; position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+  width: 22px; height: 2.5px; border-radius: 0 0 3px 3px;
+  background: var(--purple); box-shadow: 0 0 12px rgba(167, 139, 250, .8);
+}
+.bottomnav .nav-item { position: relative; }
+.bottomnav .nav-item > span:not(.nav-count) {
+  flex: none; font-size: 9px; letter-spacing: .02em;
+  max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+/* Igual que en el sidebar estrecho: el número no cabe, el punto sí */
+.bottomnav .nav-item > .nav-count {
+  position: absolute; top: 7px; left: 50%; margin-left: 7px;
+  min-width: 7px; width: 7px; height: 7px; padding: 0;
+  font-size: 0; border-radius: 50%;
+  background: var(--coral); border-color: transparent;
+  box-shadow: 0 0 0 2px rgba(15, 14, 30, .95);
+}
+/* Botón flotante, fuera de la fila */
+.fab {
+  display: none; position: fixed; right: 16px; z-index: 55;
+  bottom: calc(var(--bottombar-h) + 16px);
+  width: 54px; height: 54px; border-radius: 19px;
+  align-items: center; justify-content: center;
+  border: none; cursor: pointer; color: #fff;
+  background: linear-gradient(135deg, var(--purple-dim), var(--purple));
+  box-shadow: 0 10px 26px rgba(124, 58, 237, .55);
+  transition: transform .18s var(--ease-spring);
+}
+.fab:active { transform: scale(.93); }
 
 /* ===== Tarjetas glass ===== */
 .glass {
@@ -355,6 +405,11 @@ select option { background: #16162a; color: var(--text-primary); }
 .pips { display: flex; gap: 2px; }
 .pip { height: 7px; flex: 1; min-width: 3px; border-radius: 4px; background: rgba(255, 255, 255, .07); transition: all .35s var(--ease-out); }
 .pip.paid { background: linear-gradient(180deg, var(--purple), var(--purple-dim)); }
+/* Cuota cuyo mes ya pasó y sigue impaga */
+.pip.late {
+  background: rgba(248, 113, 113, .5);
+  box-shadow: 0 0 0 1px rgba(248, 113, 113, .3);
+}
 .pip.next { background: rgba(167, 139, 250, .42); box-shadow: 0 0 8px rgba(167, 139, 250, .6); }
 
 /* Urgencia del próximo vencimiento */
@@ -499,18 +554,76 @@ select option { background: #16162a; color: var(--text-primary); }
 
 /* ===== Responsive ===== */
 @media (max-width: 1080px) {
-  .grid-chart, .grid-bottom, .grid-detail { grid-template-columns: 1fr; }
+  /* !important porque varios bloques declaran grid-template-columns inline y
+     un estilo inline gana a la media query. */
+  .grid-chart, .grid-bottom, .grid-detail,
+  .grid-metrics { grid-template-columns: 1fr !important; }
+}
+@media (min-width: 641px) and (max-width: 1080px) {
+  /* En tablet las métricas sí caben en dos columnas */
+  .grid-metrics { grid-template-columns: repeat(2, 1fr) !important; }
 }
 @media (max-width: 900px) {
-  :root { --sidebar-w: 76px; }
-  .sidebar { padding: 20px 12px; }
-  .brand-name, .brand-sub, .nav-title, .nav-item span, .health { display: none; }
-  .nav-item { justify-content: center; padding: 12px 0; }
+  :root { --sidebar-w: 72px; }
+  .sidebar { padding: 20px 10px; align-items: center; }
+
+  /* Se ocultan las etiquetas, NO el badge: antes .nav-item span los tomaba
+     a los dos y los contadores desaparecían justo donde más se necesitan. */
+  .brand-name, .brand-sub, .nav-title,
+  .sidebar .nav-item > span:not(.nav-count) { display: none; }
+
+  .nav-group { width: 100%; }
+  .sidebar .nav-item { justify-content: center; padding: 13px 0; position: relative; }
+  .sidebar .nav-item i { width: auto; font-size: 15px; }
+
+  /* El contador pasa a ser un punto sobre el icono. El número no cabe, pero
+     la señal de "acá hay algo pendiente" sí. */
+  .sidebar .nav-item > .nav-count {
+    position: absolute; top: 7px; right: 12px;
+    min-width: 7px; width: 7px; height: 7px; padding: 0;
+    font-size: 0; border-radius: 50%;
+    background: var(--coral); border-color: transparent;
+    box-shadow: 0 0 0 2px rgba(15, 14, 30, .9);
+  }
+
+  /* Etiqueta al pasar el cursor: sin esto el menú es siete iconos a ciegas */
+  .sidebar .nav-item[data-label]::after {
+    content: attr(data-label);
+    position: absolute; left: calc(100% + 10px); top: 50%;
+    transform: translateY(-50%) translateX(-4px);
+    padding: 6px 10px; border-radius: 9px; white-space: nowrap;
+    font-family: 'DM Sans', sans-serif; font-size: 11.5px; color: var(--text-primary);
+    background: rgba(20, 19, 38, .96); border: 1px solid rgba(167, 139, 250, .24);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, .45);
+    opacity: 0; pointer-events: none; z-index: 60;
+    transition: opacity .16s var(--ease-out), transform .16s var(--ease-out);
+  }
+  .sidebar .nav-item[data-label]:hover::after { opacity: 1; transform: translateY(-50%) translateX(0); }
+
+  /* La salud del mes se reduce al número, en vez de desaparecer */
+  .health { padding: 10px 6px; text-align: center; }
+  .health .label, .health .progress-bar, .health .health-nota,
+  .health .health-detalle { display: none; }
+  .health .display { font-size: 19px !important; }
+
   .main { padding: 22px; }
 }
 @media (max-width: 640px) {
   .sidebar { display: none; }
+
+  /* Los títulos de tarjeta se partían en dos o tres líneas y empujaban todo
+     el contenido hacia abajo. */
+  .page-title { font-size: 20px; }
+  .hero-line { font-size: 19px; }
+  .modal-title { font-size: 14px !important; }
+  .display { font-size: 20px; }
+  .stat-value { font-size: 21px; }
+  .card, .card-lg { padding: 17px !important; }
+
+  /* Filas con muchas columnas: el contenido manda, no un mínimo fijo */
+  .row [style*='min-width'] { min-width: 0 !important; }
   .bottomnav { display: flex; }
+  .fab { display: flex; }
   .main { padding: 16px 16px calc(var(--bottombar-h) + 20px); }
   .topbar { padding: 12px 16px; gap: 10px; }
   .topbar .search { order: 3; max-width: none; flex-basis: 100%; }
@@ -525,6 +638,30 @@ select option { background: #16162a; color: var(--text-primary); }
   .drawer-box { max-width: none; height: auto; max-height: 92vh; border-radius: 26px 26px 0 0; animation: sheetUp .3s var(--ease-out) both; }
   @keyframes sheetUp { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: translateY(0); } }
   .hide-mobile { display: none !important; }
+
+  /* El badge se salía de la tarjeta cuando el título ocupaba tres líneas */
+  .badge { flex-shrink: 0; }
+
+  /* La fila de suscripción pasa a dos líneas: datos arriba, acciones abajo.
+     Antes eran siete elementos en una sola fila y en 375px se apretaban
+     hasta que el botón de pagar quedaba de 20px. */
+  .sub-row {
+    grid-template-columns: 36px 1fr auto;
+    grid-template-areas:
+      'avatar nombre monto'
+      'acciones acciones acciones';
+    row-gap: 12px; padding: 15px 16px;
+  }
+  .sub-row > :nth-child(1) { grid-area: avatar; }
+  .sub-row > .row-main { grid-area: nombre; }
+  .sub-row > .sub-monto { grid-area: monto; }
+  .sub-row > .sub-acciones {
+    grid-area: acciones; justify-content: space-between;
+    padding-top: 11px; border-top: 1px solid rgba(255, 255, 255, .05);
+  }
+  /* Los toques mínimos de 44px que pide una pantalla táctil */
+  .sub-acciones .btn { min-height: 40px; padding: 0 16px; }
+  .sub-acciones .icon-btn { width: 40px; height: 40px; }
 }
 
 @media (prefers-reduced-motion: reduce) {

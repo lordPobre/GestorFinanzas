@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
@@ -129,9 +131,10 @@ class Deuda(models.Model):
 
     @property
     def proximo_vencimiento(self):
-        if self.cuotas_pagadas >= self.cuotas_totales:
-            return None
-        return self.fecha_inicio + relativedelta(months=self.cuotas_pagadas)
+        """La fecha del mes pendiente más antiguo. Antes era
+        fecha_inicio + cuotas_pagadas meses, que da mal si hubo adelantos."""
+        p = self.periodo_a_pagar
+        return self.fecha_cobro_de(p) if p else None
 
     @property
     def dia_pago(self):
@@ -152,16 +155,17 @@ class Deuda(models.Model):
     def urgencia(self):
         """Sufijo de la clase CSS: .urg-<valor>.
 
-        Antes devolvía None cuando la deuda estaba saldada, lo que dejaba el
-        badge sin clase y sin color. Ahora devuelve 'saldada'.
+        Sale de los pagos que faltan de verdad. Antes salía de comparar la
+        fecha con un contador, así que una deuda con meses impagos podía
+        verse 'normal' solo porque el contador iba al día.
         """
         if self.esta_saldada:
             return 'saldada'
+        if self.periodos_atrasados:
+            return 'vencida'
         d = self.dias_para_vencer
         if d is None:
             return 'normal'
-        if d < 0:
-            return 'vencida'
         if d <= 3:
             return 'critica'
         if d <= 7:
@@ -173,15 +177,104 @@ class Deuda(models.Model):
         """Frase corta y en lenguaje plano para el badge de la tarjeta."""
         if self.esta_saldada:
             return 'Saldada'
+        atrasados = self.periodos_atrasados
+        if atrasados:
+            n = len(atrasados)
+            if n == 1:
+                dias = (date.today() - self.fecha_cobro_de(atrasados[0])).days
+                return f'Atrasada {dias} día{"s" if dias != 1 else ""}'
+            return f'{n} cuotas atrasadas'
         d = self.dias_para_vencer
         if d is None:
             return f'Vence el {self.dia_pago}'
-        if d < 0:
-            dias = abs(d)
-            return f'Vencida hace {dias} día{"s" if dias != 1 else ""}'
         if d == 0:
             return 'Vence hoy'
         return f'Vence el {self.dia_pago} · en {d} día{"s" if d != 1 else ""}'
+
+    # ---------- Periodos ----------
+    #
+    # Un "periodo" es el mes al que pertenece una cuota, guardado como
+    # año*100+mes (2026*100+8 = 202608). Es un entero: se ordena, se compara
+    # y se indexa sin trucos de fecha.
+    #
+    # Esto existe porque antes el estado de una cuota se DEDUCÍA del contador
+    # cuotas_pagadas: "van 3 pagadas, entonces las tres primeras están
+    # pagadas". Eso falla en cuanto alguien se adelanta o se atrasa. Ahora
+    # cada pago dice a qué mes corresponde.
+
+    @staticmethod
+    def periodo_de(year, month):
+        return year * 100 + month
+
+    @property
+    def periodos_programados(self):
+        """Los meses en que esta compra cobra, en orden.
+        Uno por cuota, desde fecha_inicio."""
+        salida = []
+        for i in range(self.cuotas_totales):
+            f = self.fecha_inicio + relativedelta(months=i)
+            salida.append(self.periodo_de(f.year, f.month))
+        return salida
+
+    def fecha_cobro_de(self, periodo):
+        """El día concreto en que se cobra ese mes. Si la deuda empezó un 31
+        y el mes tiene 30, cobra el 30."""
+        import calendar as _cal
+        year, month = periodo // 100, periodo % 100
+        _, ultimo = _cal.monthrange(year, month)
+        return date(year, month, min(self.fecha_inicio.day, ultimo))
+
+    @property
+    def periodos_pagados(self):
+        return set(self.pagos.values_list('periodo', flat=True))
+
+    def esta_pagada_en(self, periodo):
+        return periodo in self.periodos_pagados
+
+    @property
+    def periodos_pendientes(self):
+        """Meses programados que nadie pagó, del más antiguo al más nuevo."""
+        pagados = self.periodos_pagados
+        return [p for p in self.periodos_programados if p not in pagados]
+
+    @property
+    def periodo_a_pagar(self):
+        """El mes que toca pagar: el pendiente más antiguo.
+
+        Pagar siempre lo más viejo primero es lo que espera cualquiera que
+        deba plata, y evita que queden huecos en el historial.
+        """
+        pendientes = self.periodos_pendientes
+        return pendientes[0] if pendientes else None
+
+    @property
+    def periodos_atrasados(self):
+        """Pendientes cuya fecha de cobro ya pasó. Esto es la deuda vencida
+        de verdad, no una estimación."""
+        hoy = date.today()
+        return [p for p in self.periodos_pendientes if self.fecha_cobro_de(p) < hoy]
+
+    @property
+    def monto_atrasado(self):
+        return self.monto_cuota * len(self.periodos_atrasados)
+
+    @property
+    def texto_a_pagar(self):
+        """Qué mes se va a pagar al apretar el botón. Sin esto el usuario no
+        sabe si está pagando el mes corriente o una cuota atrasada."""
+        p = self.periodo_a_pagar
+        if p is None:
+            return 'Sin cuotas pendientes'
+        nombres = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio',
+                   'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre']
+        year, month = p // 100, p % 100
+        etiqueta = f'{nombres[month - 1]} {year}'
+        atrasados = len(self.periodos_atrasados)
+        if atrasados > 1:
+            return f'Pagar {etiqueta} · {atrasados} cuotas atrasadas'
+        if atrasados == 1:
+            return f'Pagar {etiqueta} · atrasada'
+        return f'Pagar cuota de {etiqueta}'
 
     # ---------- Cuotas ----------
 
@@ -202,20 +295,27 @@ class Deuda(models.Model):
 
     @property
     def rango_cuotas(self):
-        """Una entrada por cuota, para dibujar la fila de marcas (.pip).
-        Cada item ya trae su clase, así el template no calcula nada.
-        Se corta en 36 marcas: más allá no se distinguen.
+        """Una marca (.pip) por cuota, en orden de mes.
+
+        Antes las marcas se pintaban por posición: las primeras N verdes
+        porque cuotas_pagadas era N. Si alguien se adelantaba, mentía. Ahora
+        cada marca corresponde a SU mes y dice si ese mes está pagado,
+        atrasado o por venir.
         """
-        total = min(self.cuotas_totales, 36)
+        pagados = self.periodos_pagados
+        siguiente = self.periodo_a_pagar
+        hoy_p = self.periodo_de(date.today().year, date.today().month)
         marcas = []
-        for i in range(total):
-            if i < self.cuotas_pagadas:
+        for i, p in enumerate(self.periodos_programados[:36]):
+            if p in pagados:
                 estado = 'paid'
-            elif i == self.cuotas_pagadas:
+            elif p == siguiente:
                 estado = 'next'
+            elif p < hoy_p:
+                estado = 'late'
             else:
                 estado = ''
-            marcas.append({'indice': i + 1, 'clase': estado})
+            marcas.append({'indice': i + 1, 'periodo': p, 'clase': estado})
         return marcas
 
     @property
@@ -228,17 +328,76 @@ class Deuda(models.Model):
 
     @property
     def monto_cuota(self):
+        """Cuota redondeada al peso. La diferencia por redondeo va en la
+        última cuota (ver monto_cuota_de), así la suma da el total exacto."""
         if self.cuotas_totales > 0:
-            return self.monto_total / self.cuotas_totales
-        return 0
+            return (self.monto_total / self.cuotas_totales).quantize(Decimal('1'))
+        return Decimal('0')
+
+    def monto_cuota_de(self, periodo):
+        """La última cuota absorbe el residuo del redondeo. Sin esto,
+        12 cuotas de $83.333 sobre $1.000.000 dejaban $4 sin cobrar."""
+        programados = self.periodos_programados
+        if programados and periodo == programados[-1]:
+            return self.monto_total - self.monto_cuota * (self.cuotas_totales - 1)
+        return self.monto_cuota
 
     @property
     def monto_pagado(self):
-        return self.monto_cuota * self.cuotas_pagadas
+        """Lo abonado de verdad, sumando los pagos registrados."""
+        return sum((p.monto for p in self.pagos.all()), Decimal('0'))
 
     @property
     def monto_restante(self):
         return self.monto_total - self.monto_pagado
+
+
+class PagoCuota(models.Model):
+    """Un pago de una cuota, atado al MES al que corresponde.
+
+    Es la pieza que faltaba. Antes una deuda solo guardaba cuántas cuotas
+    llevaba pagadas, sin decir cuáles: no se podía saber si el mes pasado
+    quedó impago, ni fechar el gasto en el mes correcto, ni permitir que
+    alguien se adelante sin desordenar todo el historial.
+
+    'periodo' es año*100+mes (agosto 2026 = 202608). La combinación
+    deuda + periodo es única: un mes no se puede pagar dos veces.
+    """
+    deuda = models.ForeignKey('Deuda', on_delete=models.CASCADE, related_name='pagos')
+    periodo = models.IntegerField(db_index=True, help_text='Mes al que corresponde: año*100+mes')
+    monto = models.DecimalField(max_digits=12, decimal_places=2)
+    fecha_pago = models.DateField(default=timezone.now, help_text='Cuándo se pagó de verdad')
+    # El movimiento que este pago generó. Al anular el pago se borra también.
+    transaccion = models.OneToOneField('Transaccion', on_delete=models.SET_NULL,
+                                       null=True, blank=True, related_name='pago_cuota')
+
+    class Meta:
+        ordering = ['-periodo']
+        constraints = [
+            models.UniqueConstraint(fields=['deuda', 'periodo'], name='pago_unico_por_mes'),
+        ]
+
+    def __str__(self):
+        return f'{self.deuda.acreedor} — {self.periodo}'
+
+    @property
+    def year(self):
+        return self.periodo // 100
+
+    @property
+    def month(self):
+        return self.periodo % 100
+
+    @property
+    def etiqueta_mes(self):
+        nombres = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio',
+                   'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre']
+        return f'{nombres[self.month - 1]} {self.year}'
+
+    @property
+    def fue_atrasado(self):
+        """Se pagó después de la fecha de cobro de su mes."""
+        return self.fecha_pago > self.deuda.fecha_cobro_de(self.periodo)
 
 
 class Presupuesto(models.Model):
@@ -317,6 +476,39 @@ class AporteMeta(models.Model):
 
     def __str__(self):
         return f"Aporte {self.monto} a {self.meta.nombre}"
+
+
+class PagoServicio(models.Model):
+    """Un mes de una suscripción, marcado como pagado.
+
+    Mismo criterio que PagoCuota: el mes se guarda en 'periodo'
+    (año*100+mes) y la combinación suscripción + periodo es única, así un
+    mes no se puede pagar dos veces.
+
+    Ojo con la diferencia respecto a la transacción: el cobro se registra
+    como gasto en cuanto llega el mes (lo hace generar_cobros_suscripciones),
+    esté pagado o no. Este modelo dice si ese cobro ya salió de tu bolsillo.
+    """
+    suscripcion = models.ForeignKey('Suscripcion', on_delete=models.CASCADE, related_name='pagos')
+    periodo = models.IntegerField(db_index=True, help_text='Mes al que corresponde: año*100+mes')
+    monto = models.DecimalField(max_digits=12, decimal_places=2)
+    fecha_pago = models.DateField(default=timezone.now)
+
+    class Meta:
+        ordering = ['-periodo']
+        constraints = [
+            models.UniqueConstraint(fields=['suscripcion', 'periodo'],
+                                    name='pago_servicio_unico_por_mes'),
+        ]
+
+    def __str__(self):
+        return f'{self.suscripcion.nombre} — {self.periodo}'
+
+    @property
+    def etiqueta_mes(self):
+        nombres = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio',
+                   'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre']
+        return f'{nombres[self.periodo % 100 - 1]} {self.periodo // 100}'
 
 
 class UserProfile(models.Model):
@@ -655,6 +847,117 @@ class Suscripcion(models.Model):
         _, ultimo_sig = _cal.monthrange(siguiente.year, siguiente.month)
         objetivo = date(siguiente.year, siguiente.month, min(self.dia_cobro, ultimo_sig))
         return (objetivo - hoy).days
+
+    # ---------- Periodos (mismo criterio que las cuotas) ----------
+    #
+    # Una suscripción cobra un mes tras otro. Antes solo se sabía que el
+    # cobro se había GENERADO, no si se había pagado: la fila decía "$9.900
+    # al mes" y nada más. Ahora cada mes se puede marcar como pagado, igual
+    # que una cuota.
+
+    @staticmethod
+    def periodo_de(year, month):
+        return year * 100 + month
+
+    @property
+    def periodos_programados(self):
+        """Los meses que esta suscripción ha cobrado, desde que empezó hasta
+        hoy (o hasta que se canceló). No incluye meses futuros: un servicio
+        se paga cuando llega el cobro, no antes."""
+        hoy = date.today()
+        fin = self.fecha_cancelada or hoy
+        salida = []
+        cursor = date(self.fecha_inicio.year, self.fecha_inicio.month, 1)
+        tope = self.periodo_de(min(fin, hoy).year, min(fin, hoy).month)
+        while self.periodo_de(cursor.year, cursor.month) <= tope:
+            salida.append(self.periodo_de(cursor.year, cursor.month))
+            cursor = cursor + relativedelta(months=1)
+        return salida
+
+    def fecha_cobro_de(self, periodo):
+        import calendar as _cal
+        year, month = periodo // 100, periodo % 100
+        _, ultimo = _cal.monthrange(year, month)
+        return date(year, month, min(self.dia_cobro, ultimo))
+
+    @property
+    def periodos_pagados(self):
+        return set(self.pagos.values_list('periodo', flat=True))
+
+    def esta_pagada_en(self, periodo):
+        return periodo in self.periodos_pagados
+
+    @property
+    def periodos_pendientes(self):
+        pagados = self.periodos_pagados
+        return [p for p in self.periodos_programados if p not in pagados]
+
+    @property
+    def periodo_a_pagar(self):
+        """El mes pendiente más antiguo."""
+        pendientes = self.periodos_pendientes
+        return pendientes[0] if pendientes else None
+
+    @property
+    def periodos_atrasados(self):
+        """Meses pendientes cuya fecha de cobro ya pasó."""
+        hoy = date.today()
+        return [p for p in self.periodos_pendientes if self.fecha_cobro_de(p) < hoy]
+
+    @property
+    def monto_atrasado(self):
+        return self.monto * len(self.periodos_atrasados)
+
+    @property
+    def periodo_actual(self):
+        hoy = date.today()
+        return self.periodo_de(hoy.year, hoy.month)
+
+    @property
+    def pagada_este_mes(self):
+        return self.esta_pagada_en(self.periodo_actual)
+
+    @property
+    def texto_a_pagar(self):
+        """Qué mes paga el botón. Sin esto no se sabe si estás pagando el mes
+        corriente o poniéndote al día."""
+        p = self.periodo_a_pagar
+        if p is None:
+            return 'Al día'
+        nombres = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio',
+                   'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre']
+        etiqueta = f'{nombres[p % 100 - 1]} {p // 100}'
+        n = len(self.periodos_atrasados)
+        if n > 1:
+            return f'Pagar {etiqueta} · {n} meses atrasados'
+        return f'Pagar {etiqueta}'
+
+    @property
+    def estado_mes(self):
+        """Sufijo de clase y lectura rápida de la fila."""
+        if not self.activa:
+            return 'pausada'
+        if self.periodos_atrasados:
+            return 'atrasada'
+        if self.pagada_este_mes:
+            return 'pagada'
+        return 'pendiente'
+
+    @property
+    def texto_estado(self):
+        if not self.activa:
+            return 'Pausada'
+        atrasados = len(self.periodos_atrasados)
+        if atrasados > 1:
+            return f'{atrasados} meses sin pagar'
+        if atrasados == 1:
+            return 'Mes atrasado'
+        if self.pagada_este_mes:
+            return 'Pagada este mes'
+        d = self.dias_para_cobro
+        if d == 0:
+            return 'Se cobra hoy'
+        return f'Se cobra en {d} día{"s" if d != 1 else ""}'
 
     @property
     def total_pagado_historico(self):

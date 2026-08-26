@@ -18,8 +18,8 @@ from django.utils import timezone
 
 from .forms import DeudaForm, MetaAhorroForm, TransaccionForm
 from .models import (AbonoPrestamo, AporteMeta, Deuda, GastoPendiente,
-                     MetaAhorro, Persona, Prestamo, Presupuesto, Suscripcion,
-                     Transaccion, UserProfile)
+                     MetaAhorro, PagoCuota, PagoServicio, Persona, Prestamo,
+                     Presupuesto, Suscripcion, Transaccion, UserProfile)
 
 NOMBRES_MESES = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun',
                  'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic']
@@ -78,38 +78,67 @@ def resumen_mes(usuario, year, month):
         fecha__gte=fecha_inicio, fecha__lte=fecha_fin, es_cuota=False,
     ).aggregate(t=Sum('monto'))['t'] or 0)
 
-    deudas = Deuda.objects.filter(usuario=usuario)
+    # El periodo es la clave con la que se guardan los pagos: año*100+mes.
+    periodo = year * 100 + month
+
+    deudas = Deuda.objects.filter(usuario=usuario).prefetch_related('pagos')
     cuotas_pagadas = 0.0
     cuotas_pendientes = 0.0
     eventos = {}
 
     for d in deudas:
-        dia_venc = min(d.fecha_inicio.day, ultimo_dia)
-        fecha_cobro = date(year, month, dia_venc)
-        fecha_fin_deuda = d.fecha_inicio + relativedelta(months=int(d.cuotas_totales) - 1)
-        if not (d.fecha_inicio <= fecha_cobro <= fecha_fin_deuda):
+        # ¿Esta compra cobra en este mes? Se pregunta al calendario de la
+        # deuda, no a una resta de fechas suelta.
+        if periodo not in d.periodos_programados:
             continue
 
-        if (year, month) < (hoy.year, hoy.month):
-            estado = 'pagado'
-        elif (year, month) > (hoy.year, hoy.month):
-            estado = 'pendiente'
-        elif d.esta_saldada or (d.proximo_vencimiento and d.proximo_vencimiento > fecha_cobro):
-            estado = 'pagado'
-        else:
-            estado = 'pendiente'
+        fecha_cobro = d.fecha_cobro_de(periodo)
+        dia_venc = fecha_cobro.day
 
-        monto = float(d.monto_cuota)
+        # El estado sale de si EXISTE un pago para este mes.
+        #
+        # Antes se deducía: los meses pasados se daban por pagados sin mirar
+        # nada, y el mes en curso se comparaba contra un contador. Un mes
+        # impago se veía limpio al navegar atrás, y quien se adelantaba
+        # dejaba meses futuros marcados como pagados.
+        pago = next((p for p in d.pagos.all() if p.periodo == periodo), None)
+        estado = 'pagado' if pago else 'pendiente'
+
+        # El monto es el de la cuota de ESE mes: la última absorbe el residuo
+        # del redondeo, así la suma de las cuotas da el total exacto.
+        monto_cuota = pago.monto if pago else d.monto_cuota_de(periodo)
+        monto = float(monto_cuota)
+
         if estado == 'pagado':
             cuotas_pagadas += monto
         else:
             cuotas_pendientes += monto
 
         eventos.setdefault(dia_venc, []).append({
-            'deuda': d, 'estado': estado, 'monto': d.monto_cuota,
+            'deuda': d, 'estado': estado, 'monto': monto_cuota,
+            'periodo': periodo, 'pago': pago,
+            'atrasado': estado == 'pendiente' and fecha_cobro < hoy,
         })
 
     total_cuotas = cuotas_pagadas + cuotas_pendientes
+
+    # Suscripciones del mes.
+    #
+    # El cobro ya está dentro de 'gastos' (generar_cobros_suscripciones crea
+    # la transacción en cuanto llega el mes), así que NO se suma otra vez.
+    # Lo que se calcula acá es solo el reparto: cuánto de ese gasto ya salió
+    # del bolsillo y cuánto sigue pendiente.
+    servicios_pagados = 0.0
+    servicios_pendientes = 0.0
+    for s in Suscripcion.objects.filter(usuario=usuario).prefetch_related('pagos'):
+        if periodo not in s.periodos_programados:
+            continue
+        monto = float(s.monto)
+        if s.esta_pagada_en(periodo):
+            servicios_pagados += monto
+        else:
+            servicios_pendientes += monto
+
     comprometido = gastos + total_cuotas
     disponible = ingresos - comprometido
 
@@ -130,6 +159,9 @@ def resumen_mes(usuario, year, month):
         'cuotas_pagadas_mes': cuotas_pagadas,
         'cuotas_pendientes_mes': cuotas_pendientes,
         'total_cuotas_mes': total_cuotas,
+        'servicios_pagados_mes': servicios_pagados,
+        'servicios_pendientes_mes': servicios_pendientes,
+        'total_servicios_mes': servicios_pagados + servicios_pendientes,
         'comprometido': comprometido,
         'disponible': disponible,
         'dias_restantes': dias_restantes,
@@ -203,6 +235,60 @@ def salud_financiera(usuario):
         nota = 'Gastas menos de lo que entra y las cuotas están bajo control.'
 
     return {'salud_score': score, 'salud_label': label, 'salud_nota': nota}
+
+
+def serie_cuotas(usuario, atras=6, adelante=6):
+    """Cuotas mes a mes, incluyendo los meses ya pagados.
+
+    El gráfico de análisis solo mostraba la deuda que queda por delante, así
+    que los meses ya pagados desaparecían y no se veía el peso real que las
+    cuotas tuvieron en cada mes. Acá cada mes trae la cuota COMPLETA
+    programada (pagada o no) y, aparte, cuánto de eso ya está pagado.
+    """
+    hoy = date.today()
+    deudas = list(Deuda.objects.filter(usuario=usuario).prefetch_related('pagos'))
+
+    # Los pagos se indexan una vez por deuda: recorrer pagos dentro del bucle
+    # de meses haría una consulta por mes.
+    pagos_por_deuda = {d.pk: {p.periodo: p for p in d.pagos.all()} for d in deudas}
+
+    filas = []
+    saldo_futuro = None
+    for i in range(-atras, adelante + 1):
+        f = date(hoy.year, hoy.month, 1) + relativedelta(months=i)
+        periodo = f.year * 100 + f.month
+
+        total = Decimal('0')
+        pagado = Decimal('0')
+        for d in deudas:
+            if periodo not in d.periodos_programados:
+                continue
+            pago = pagos_por_deuda[d.pk].get(periodo)
+            cuota = pago.monto if pago else d.monto_cuota_de(periodo)
+            total += cuota
+            if pago:
+                pagado += cuota
+
+        # Lo que aún se deberá al terminar ese mes: solo cuenta los periodos
+        # sin pago, así el saldo baja al pagar y no por el paso del tiempo.
+        restante = Decimal('0')
+        for d in deudas:
+            for p in d.periodos_pendientes:
+                if p > periodo:
+                    restante += d.monto_cuota_de(p)
+
+        filas.append({
+            'periodo': periodo,
+            'mes': f'{NOMBRES_MESES[f.month - 1]} {f.year}',
+            'mes_corto': NOMBRES_MESES[f.month - 1],
+            'total': float(total),
+            'pagado': float(pagado),
+            'pendiente': float(total - pagado),
+            'restante': float(restante),
+            'es_pasado': (f.year, f.month) < (hoy.year, hoy.month),
+            'es_mes_actual': (f.year, f.month) == (hoy.year, hoy.month),
+        })
+    return filas
 
 
 def contadores(usuario):
@@ -426,8 +512,12 @@ def dashboard(request):
         'disponible': round(r['disponible']),
         'deuda_total': round(deuda_total),
 
-        # Nuevos: los usa el encabezado "Puedes gastar X hasta fin de mes"
-        'por_pagar': round(r['cuotas_pendientes_mes']),
+        # Nuevos: los usa el encabezado "Puedes gastar X hasta fin de mes".
+        # por_pagar suma cuotas y servicios sin pagar. No se resta aparte del
+        # disponible: los servicios ya están contados dentro de los gastos.
+        'por_pagar': round(r['cuotas_pendientes_mes'] + r['servicios_pendientes_mes']),
+        'servicios_pendientes_mes': round(r['servicios_pendientes_mes']),
+        'servicios_pagados_mes': round(r['servicios_pagados_mes']),
         'dias_restantes': r['dias_restantes'],
         'por_dia': round(r['por_dia']),
         'pct_gastado': r['pct_gastado'],
@@ -437,7 +527,13 @@ def dashboard(request):
         'se_libera': se_libera,
         'categorias': categorias,
         'dias_con_pago': dias_con_pago,
-        'subs_pendientes': Suscripcion.objects.filter(usuario=request.user, activa=True).count(),
+        # Antes contaba las suscripciones activas, que no es lo mismo que las
+        # que faltan por pagar este mes.
+        'subs_pendientes': sum(
+            1 for s in Suscripcion.objects.filter(usuario=request.user, activa=True)
+                                          .prefetch_related('pagos')
+            if not s.pagada_este_mes
+        ),
 
         'insights': insights,
         'presupuesto': presupuesto,
@@ -454,6 +550,7 @@ def dashboard(request):
         # el panel de registro fallaba la validación en silencio.
         'form': TransaccionForm(initial={'tipo': 'EGRESO', 'fecha': timezone.localdate()}),
         'hoy_iso': hoy.isoformat(),
+        'abrir_panel': bool(request.GET.get('registrar')),
         # Las categorías del panel salen del modelo, no escritas en el template
         'cats_egreso_json': json.dumps([list(c) for c in Transaccion.CATEGORIAS_EGRESO]),
         'cats_ingreso_json': json.dumps([list(c) for c in Transaccion.CATEGORIAS_INGRESO]),
@@ -481,11 +578,14 @@ def deudas(request):
     Antes las deudas solo se veían dentro del dashboard, mezcladas con todo
     lo demás, y no había dónde ver el avance de cada una.
     """
-    lista = list(Deuda.objects.filter(usuario=request.user))
+    lista = list(Deuda.objects.filter(usuario=request.user).prefetch_related('pagos'))
     activas = [d for d in lista if not d.esta_saldada]
 
-    # Orden: primero lo que vence antes; las saldadas al final.
-    activas.sort(key=lambda d: d.dias_para_vencer if d.dias_para_vencer is not None else 9999)
+    # Orden: primero lo atrasado, después lo que vence antes.
+    activas.sort(key=lambda d: (
+        -len(d.periodos_atrasados),
+        d.dias_para_vencer if d.dias_para_vencer is not None else 9999,
+    ))
     saldadas = [d for d in lista if d.esta_saldada]
 
     proximas = [d for d in activas if d.dias_para_vencer is not None]
@@ -497,6 +597,8 @@ def deudas(request):
         'total_cuotas_mes': round(sum(float(d.monto_cuota) for d in activas)),
         'total_restante': round(sum(float(d.monto_restante) for d in lista)),
         'total_pagado': round(sum(float(d.monto_pagado) for d in lista)),
+        'total_atrasado': round(sum(float(d.monto_atrasado) for d in activas)),
+        'cuotas_atrasadas': sum(len(d.periodos_atrasados) for d in activas),
         'total_deuda': round(sum(float(d.monto_total) for d in lista)),
         'se_libera': proximas[0] if proximas else None,
         'form': DeudaForm(),
@@ -507,71 +609,121 @@ def deudas(request):
 
 @login_required(login_url='/login/')
 def pagar_cuota(request, deuda_id):
+    """Registra el pago de UNA cuota, atado al mes que le corresponde.
+
+    Por defecto paga el mes pendiente más antiguo: es lo que espera
+    cualquiera que deba plata, y evita huecos en el historial. Se puede
+    pasar 'periodo' en el POST para pagar un mes concreto (el calendario
+    del dashboard lo hace).
+    """
     if request.method != 'POST':
         return _redirigir(request)
 
     deuda = get_object_or_404(Deuda, pk=deuda_id, usuario=request.user)
     es_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
 
-    if deuda.esta_saldada:
+    def responder(ok, msg, nivel='success'):
         if es_ajax:
-            return JsonResponse({'ok': False, 'msg': 'Ya está pagada.'})
-        messages.warning(request, f'{deuda.acreedor} ya está pagada.')
+            datos = {'ok': ok, 'msg': msg}
+            if ok:
+                datos.update({
+                    'acreedor': deuda.acreedor,
+                    'cuotas_pagadas': deuda.pagos.count(),
+                    'cuotas_totales': deuda.cuotas_totales,
+                    'porcentaje': deuda.porcentaje,
+                    'terminada': deuda.esta_saldada,
+                    'restante': str(deuda.monto_restante),
+                    'texto_urgencia': deuda.texto_urgencia,
+                })
+            return JsonResponse(datos)
+        getattr(messages, nivel)(request, msg)
         return _redirigir(request)
 
-    deuda.cuotas_pagadas += 1
-    deuda.save(update_fields=['cuotas_pagadas'])
+    # Qué mes se paga: el pedido, o el pendiente más antiguo.
+    try:
+        periodo = int(request.POST.get('periodo') or 0) or deuda.periodo_a_pagar
+    except (ValueError, TypeError):
+        periodo = deuda.periodo_a_pagar
 
-    Transaccion.objects.create(
-        usuario=request.user, tipo='EGRESO',
-        monto=deuda.monto_cuota, categoria=deuda.categoria,
-        descripcion=f'Cuota {deuda.cuotas_pagadas}/{deuda.cuotas_totales} — {deuda.acreedor}',
-        # Antes: timezone.now() (un datetime en un DateField).
-        fecha=timezone.localdate(),
-        es_cuota=True,
+    if periodo is None:
+        return responder(False, f'{deuda.acreedor} ya está pagada por completo.', 'warning')
+    if periodo not in deuda.periodos_programados:
+        return responder(False, 'Ese mes no corresponde a esta compra.', 'warning')
+    if deuda.esta_pagada_en(periodo):
+        return responder(False, 'Esa cuota ya estaba pagada.', 'warning')
+
+    monto = deuda.monto_cuota_de(periodo)
+    fecha_cobro = deuda.fecha_cobro_de(periodo)
+    hoy = timezone.localdate()
+    numero = deuda.periodos_programados.index(periodo) + 1
+
+    # El gasto se fecha en el mes al que pertenece la cuota, no en el día en
+    # que se apretó el botón. Antes, pagar en marzo la cuota de enero dejaba
+    # el movimiento en marzo y la cuota de enero no se contaba en ningún mes.
+    tx = Transaccion.objects.create(
+        usuario=request.user, tipo='EGRESO', monto=monto,
+        categoria=deuda.categoria,
+        descripcion=f'Cuota {numero}/{deuda.cuotas_totales} — {deuda.acreedor}',
+        fecha=fecha_cobro, es_cuota=True,
+    )
+    PagoCuota.objects.create(
+        deuda=deuda, periodo=periodo, monto=monto, fecha_pago=hoy, transaccion=tx,
     )
 
-    if es_ajax:
-        return JsonResponse({
-            'ok': True, 'acreedor': deuda.acreedor,
-            'cuotas_pagadas': deuda.cuotas_pagadas,
-            'cuotas_totales': deuda.cuotas_totales,
-            'porcentaje': deuda.porcentaje,
-            'terminada': deuda.esta_saldada,
-            'monto': str(deuda.monto_cuota),
-            'restante': str(deuda.monto_restante),
-        })
-    messages.success(
-        request,
-        f'Cuota {deuda.cuotas_pagadas}/{deuda.cuotas_totales} de {deuda.acreedor} pagada.')
-    return _redirigir(request)
+    # cuotas_pagadas queda como espejo del recuento real, para que el resto
+    # del código y las plantillas antiguas sigan funcionando.
+    deuda.cuotas_pagadas = deuda.pagos.count()
+    deuda.save(update_fields=['cuotas_pagadas'])
+
+    if deuda.esta_saldada:
+        msg = f'{deuda.acreedor} quedó pagada por completo.'
+    else:
+        nombres = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio',
+                   'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre']
+        etiqueta = f'{nombres[periodo % 100 - 1]} {periodo // 100}'
+        restantes = len(deuda.periodos_pendientes)
+        msg = (f'Cuota de {etiqueta} pagada. '
+               f'Te queda{"n" if restantes != 1 else ""} {restantes} '
+               f'cuota{"s" if restantes != 1 else ""}.')
+    return responder(True, msg)
 
 
 @login_required(login_url='/login/')
 def anular_cuota(request, deuda_id):
+    """Deshace el pago de una cuota y borra su movimiento.
+
+    Antes buscaba la transacción por texto (descripcion__icontains=acreedor),
+    lo que podía borrar la cuota de otra deuda de nombre parecido ("Visa" y
+    "Visa Oro"). Ahora el pago apunta a su propia transacción, así que se
+    borra exactamente la que corresponde.
+    """
     if request.method != 'POST':
         return _redirigir(request)
 
     deuda = get_object_or_404(Deuda, pk=deuda_id, usuario=request.user)
     es_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
 
-    if deuda.cuotas_pagadas <= 0:
+    try:
+        periodo = int(request.POST.get('periodo') or 0)
+    except (ValueError, TypeError):
+        periodo = 0
+
+    # Sin periodo se anula el pago más reciente.
+    pago = (deuda.pagos.filter(periodo=periodo).first() if periodo
+            else deuda.pagos.order_by('-periodo').first())
+
+    if not pago:
         if es_ajax:
             return JsonResponse({'ok': False, 'msg': 'No hay pagos que anular.'})
         messages.warning(request, 'No hay pagos que anular.')
         return _redirigir(request)
 
-    # Se busca la transacción por su descripción exacta antes de decrementar.
-    # Antes se usaba descripcion__icontains=acreedor, que podía borrar la
-    # cuota de otra deuda con nombre parecido ("Visa" y "Visa Oro").
-    etiqueta = f'Cuota {deuda.cuotas_pagadas}/{deuda.cuotas_totales} — {deuda.acreedor}'
-    tx = Transaccion.objects.filter(
-        usuario=request.user, tipo='EGRESO', es_cuota=True, descripcion=etiqueta,
-    ).order_by('-fecha', '-id').first()
-    if tx:
-        tx.delete()
+    etiqueta = pago.etiqueta_mes
+    if pago.transaccion:
+        pago.transaccion.delete()   # el pago cae con ella (SET_NULL + delete abajo)
+    pago.delete()
 
-    deuda.cuotas_pagadas -= 1
+    deuda.cuotas_pagadas = deuda.pagos.count()
     deuda.save(update_fields=['cuotas_pagadas'])
 
     if es_ajax:
@@ -581,8 +733,9 @@ def anular_cuota(request, deuda_id):
             'cuotas_totales': deuda.cuotas_totales,
             'porcentaje': deuda.porcentaje,
             'restante': str(deuda.monto_restante),
+            'texto_urgencia': deuda.texto_urgencia,
         })
-    messages.success(request, f'Se anuló una cuota de {deuda.acreedor}.')
+    messages.success(request, f'Se anuló la cuota de {etiqueta} de {deuda.acreedor}.')
     return _redirigir(request)
 
 
@@ -648,7 +801,15 @@ def registrar_transaccion(request):
             t.save()
             messages.success(request, f'{"Ingreso" if t.es_ingreso else "Gasto"} registrado.')
             return _redirigir(request)
-        messages.warning(request, 'Revisa el monto y la categoría.')
+
+        # Antes esto caía en form_transaccion.html y el usuario no veía por qué
+        # había fallado. Ahora el error se muestra y, si vino del panel del
+        # dashboard, se vuelve ahí con el panel abierto.
+        for campo, errores in form.errors.items():
+            etiqueta = form.fields[campo].label or campo
+            messages.warning(request, f'{etiqueta}: {errores[0]}')
+        if request.POST.get('next'):
+            return _redirigir(request)
         tipo_inicial = request.POST.get('tipo', tipo_inicial)
     else:
         form = TransaccionForm(initial={'tipo': tipo_inicial, 'fecha': timezone.localdate()})
@@ -1052,10 +1213,23 @@ def analisis_predictivo(request):
     circunferencia = 327  # 2*pi*52, el círculo de riesgo del SVG
     riesgo_offset = circunferencia - (circunferencia * analisis['riesgo_score'] / 100)
 
+    # Seis meses atrás y seis adelante, con las cuotas ya pagadas incluidas.
+    serie = serie_cuotas(request.user, atras=6, adelante=6)
+    indice_actual = next((i for i, f in enumerate(serie) if f['es_mes_actual']), 0)
+
     context = {
         'analisis': analisis,
         'simbolo': _simbolo_moneda(request.user),
         'riesgo_offset': round(riesgo_offset, 1),
+        'serie': serie,
+        'indice_actual': indice_actual,
+        'total_pagado_serie': round(sum(f['pagado'] for f in serie)),
+        'total_pendiente_serie': round(sum(f['pendiente'] for f in serie)),
+        'serie_meses_json': json.dumps([f['mes'] for f in serie]),
+        'serie_pagado_json': json.dumps([round(f['pagado']) for f in serie]),
+        'serie_pendiente_json': json.dumps([round(f['pendiente']) for f in serie]),
+        'serie_total_json': json.dumps([round(f['total']) for f in serie]),
+        'serie_restante_json': json.dumps([round(f['restante']) for f in serie]),
         'proy_meses_json': json.dumps([p['mes'] for p in analisis['proyeccion']]),
         'proy_deuda_json': json.dumps([p['deuda'] for p in analisis['proyeccion']]),
         'proy_pago_json': json.dumps([p['pago_mes'] for p in analisis['proyeccion']]),
@@ -1172,9 +1346,16 @@ def eliminar_gasto_pendiente(request, gasto_id):
 @login_required(login_url='/login/')
 def suscripciones(request):
     """Lista de suscripciones (activas e inactivas)."""
-    subs = list(Suscripcion.objects.filter(usuario=request.user))
+    subs = list(Suscripcion.objects.filter(usuario=request.user).prefetch_related('pagos'))
     activas = [s for s in subs if s.activa]
     total_mensual = sum(float(s.monto) for s in activas)
+
+    # Orden: lo que falta pagar primero, después lo del mes, al final las pausadas.
+    orden = {'atrasada': 0, 'pendiente': 1, 'pagada': 2, 'pausada': 3}
+    subs.sort(key=lambda s: (orden.get(s.estado_mes, 9), s.nombre))
+
+    pendientes = [s for s in activas if not s.pagada_este_mes]
+    atrasadas = [s for s in activas if s.periodos_atrasados]
 
     # Aviso de servicios que se pisan (dos de música, dos de video...).
     # Es el insight que más ahorra y no requiere IA.
@@ -1191,6 +1372,11 @@ def suscripciones(request):
         'total_anual': round(total_mensual * 12),
         'cantidad_activas': len(activas),
         'duplicadas': duplicadas,
+        'pendientes_mes': len(pendientes),
+        'monto_pendiente_mes': round(sum(float(s.monto) for s in pendientes)),
+        'monto_pagado_mes': round(sum(float(s.monto) for s in activas if s.pagada_este_mes)),
+        'atrasadas': len(atrasadas),
+        'monto_atrasado': round(sum(float(s.monto_atrasado) for s in atrasadas)),
     }
     context.update(contadores(request.user))
     return render(request, 'finanzas/suscripciones.html', context)
@@ -1224,6 +1410,94 @@ def crear_suscripcion(request):
     context = {}
     context.update(contadores(request.user))
     return render(request, 'finanzas/form_suscripcion.html', context)
+
+
+@login_required(login_url='/login/')
+def pagar_servicio(request, sub_id):
+    """Marca el mes de una suscripción como pagado.
+
+    Por defecto paga el mes pendiente más antiguo, igual que las cuotas: así
+    ponerse al día no deja huecos. No crea transacción — el cobro ya se
+    registró como gasto cuando llegó el mes.
+    """
+    sub = get_object_or_404(Suscripcion, id=sub_id, usuario=request.user)
+    es_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
+
+    def responder(ok, msg, nivel='success'):
+        if es_ajax:
+            datos = {'ok': ok, 'msg': msg}
+            if ok:
+                datos.update({
+                    'nombre': sub.nombre,
+                    'estado': sub.estado_mes,
+                    'texto_estado': sub.texto_estado,
+                    'texto_a_pagar': sub.texto_a_pagar,
+                    'pagada_este_mes': sub.pagada_este_mes,
+                })
+            return JsonResponse(datos)
+        getattr(messages, nivel)(request, msg)
+        return _redirigir(request, 'suscripciones')
+
+    if request.method != 'POST':
+        return _redirigir(request, 'suscripciones')
+
+    try:
+        periodo = int(request.POST.get('periodo') or 0) or sub.periodo_a_pagar
+    except (ValueError, TypeError):
+        periodo = sub.periodo_a_pagar
+
+    if periodo is None:
+        return responder(False, f'{sub.nombre} ya está al día.', 'warning')
+    if periodo not in sub.periodos_programados:
+        return responder(False, 'Ese mes todavía no se ha cobrado.', 'warning')
+    if sub.esta_pagada_en(periodo):
+        return responder(False, 'Ese mes ya estaba pagado.', 'warning')
+
+    PagoServicio.objects.create(
+        suscripcion=sub, periodo=periodo, monto=sub.monto,
+        fecha_pago=timezone.localdate(),
+    )
+
+    restantes = len(sub.periodos_pendientes)
+    if restantes:
+        msg = (f'{sub.nombre}: mes pagado. '
+               f'Te queda{"n" if restantes != 1 else ""} {restantes} sin pagar.')
+    else:
+        msg = f'{sub.nombre} quedó al día.'
+    return responder(True, msg)
+
+
+@login_required(login_url='/login/')
+def anular_pago_servicio(request, sub_id):
+    """Deshace el pago de un mes de la suscripción."""
+    sub = get_object_or_404(Suscripcion, id=sub_id, usuario=request.user)
+    es_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
+
+    if request.method != 'POST':
+        return _redirigir(request, 'suscripciones')
+
+    try:
+        periodo = int(request.POST.get('periodo') or 0)
+    except (ValueError, TypeError):
+        periodo = 0
+
+    pago = (sub.pagos.filter(periodo=periodo).first() if periodo
+            else sub.pagos.order_by('-periodo').first())
+
+    if not pago:
+        if es_ajax:
+            return JsonResponse({'ok': False, 'msg': 'No hay pagos que anular.'})
+        messages.warning(request, 'No hay pagos que anular.')
+        return _redirigir(request, 'suscripciones')
+
+    etiqueta = pago.etiqueta_mes
+    pago.delete()
+
+    if es_ajax:
+        return JsonResponse({'ok': True, 'estado': sub.estado_mes,
+                             'texto_estado': sub.texto_estado})
+    messages.success(request, f'{sub.nombre}: se anuló el pago de {etiqueta}.')
+    return _redirigir(request, 'suscripciones')
 
 
 @login_required(login_url='/login/')

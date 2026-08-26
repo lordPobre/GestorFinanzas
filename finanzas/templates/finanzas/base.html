@@ -12,6 +12,32 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
   <link rel="stylesheet" href="{% static 'css/finapp.css' %}">
   {% block extra_head %}{% endblock %}
+  <script>
+  /* Respaldo mínimo: abre y cierra modales aunque finapp.js no cargue.
+     finapp.js sobreescribe estas funciones cuando sí está disponible. */
+  (function () {
+    function open(id) {
+      var m = document.querySelector(id);
+      if (m) { m.classList.add('open'); document.body.style.overflow = 'hidden'; }
+    }
+    function closeAll() {
+      document.querySelectorAll('.modal-overlay.open').forEach(function (m) { m.classList.remove('open'); });
+      document.body.style.overflow = '';
+    }
+    document.addEventListener('click', function (e) {
+      if (window.__finappJsCargado) return;
+      var o = e.target.closest('[data-open]');
+      if (o) { e.preventDefault(); open(o.getAttribute('data-open')); return; }
+      if (e.target.closest('[data-close]')) { e.preventDefault(); closeAll(); return; }
+      if (e.target.classList.contains('modal-overlay')) closeAll();
+    });
+    document.addEventListener('keydown', function (e) {
+      if (!window.__finappJsCargado && e.key === 'Escape') closeAll();
+    });
+    window.finappOpen = open;
+    window.finappClose = closeAll;
+  })();
+  </script>
 </head>
 <body>
 
@@ -33,52 +59,53 @@
     <nav style="display:flex;flex-direction:column;gap:20px;flex:1;overflow-y:auto">
       <div class="nav-group">
         <div class="nav-title">Tu mes</div>
-        <a href="{% url 'dashboard' %}" class="nav-item {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+        <a href="{% url 'dashboard' %}" data-label="Inicio" class="nav-item {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
           <i class="fas fa-house"></i><span>Inicio</span>
         </a>
-        <a href="{% url 'deudas' %}" class="nav-item {% if request.resolver_match.url_name == 'deudas' %}active{% endif %}">
+        <a href="{% url 'deudas' %}" data-label="Cuotas" class="nav-item {% if request.resolver_match.url_name == 'deudas' %}active{% endif %}">
           <i class="fas fa-credit-card"></i><span>Compras en cuotas</span>
           {% if cuotas_activas %}<span class="nav-count">{{ cuotas_activas }}</span>{% endif %}
         </a>
-        <a href="{% url 'estadisticas' %}" class="nav-item {% if request.resolver_match.url_name == 'estadisticas' %}active{% endif %}">
+        <a href="{% url 'estadisticas' %}" data-label="Estadísticas" class="nav-item {% if request.resolver_match.url_name == 'estadisticas' %}active{% endif %}">
           <i class="fas fa-chart-pie"></i><span>Estadísticas</span>
         </a>
-        <a href="{% url 'prestamos' %}" class="nav-item {% if request.resolver_match.url_name == 'prestamos' %}active{% endif %}">
+        <a href="{% url 'prestamos' %}" data-label="Me deben" class="nav-item {% if request.resolver_match.url_name == 'prestamos' %}active{% endif %}">
           <i class="fas fa-hand-holding-dollar"></i><span>Me deben</span>
           {% if prestamos_activos %}<span class="nav-count">{{ prestamos_activos }}</span>{% endif %}
         </a>
-        <a href="{% url 'suscripciones' %}" class="nav-item {% if request.resolver_match.url_name == 'suscripciones' %}active{% endif %}">
+        <a href="{% url 'suscripciones' %}" data-label="Suscripciones" class="nav-item {% if request.resolver_match.url_name == 'suscripciones' %}active{% endif %}">
           <i class="fas fa-rotate"></i><span>Suscripciones</span>
+          {% if subs_pendientes %}<span class="nav-count">{{ subs_pendientes }}</span>{% endif %}
         </a>
-        <a href="{% url 'analisis_predictivo' %}" class="nav-item {% if request.resolver_match.url_name == 'analisis' %}active{% endif %}">
+        <a href="{% url 'analisis_predictivo' %}" data-label="Análisis IA" class="nav-item {% if request.resolver_match.url_name == 'analisis_predictivo' %}active{% endif %}">
           <i class="fas fa-brain"></i><span>Análisis IA</span>
         </a>
       </div>
 
       <div class="nav-group">
         <div class="nav-title">Cuenta</div>
-        <a href="{% url 'perfil' %}" class="nav-item {% if request.resolver_match.url_name == 'perfil' %}active{% endif %}">
+        <a href="{% url 'perfil' %}" data-label="Mi perfil" class="nav-item {% if request.resolver_match.url_name == 'perfil' %}active{% endif %}">
           <i class="fas fa-user"></i><span>Mi perfil</span>
         </a>
         <form method="post" action="{% url 'logout' %}" style="margin:0">
           {% csrf_token %}
-          <button type="submit" class="nav-item"><i class="fas fa-right-from-bracket"></i><span>Salir</span></button>
+          <button type="submit" class="nav-item" data-label="Salir" style="width:100%"><i class="fas fa-right-from-bracket"></i><span>Salir</span></button>
         </form>
       </div>
     </nav>
 
     {% block sidebar_foot %}
       {% if salud_score != None %}
-      <div class="sidebar-foot health" data-spot>
+      <div class="sidebar-foot health" data-spot title="Salud del mes: {{ salud_score }}/100 · {{ salud_label }}">
         <div class="label" style="color:rgba(167,139,250,.75);margin-bottom:7px">Salud del mes</div>
-        <div style="display:flex;align-items:baseline;gap:6px;margin-bottom:9px">
+        <div style="display:flex;align-items:baseline;gap:6px;margin-bottom:9px;justify-content:center">
           <span class="display" style="font-size:24px;line-height:1">{{ salud_score }}</span>
-          <span style="font-size:11px;color:var(--text-muted)">/ 100 · {{ salud_label }}</span>
+          <span class="health-detalle" style="font-size:11px;color:var(--text-muted)">/ 100 · {{ salud_label }}</span>
         </div>
         <div class="progress-bar" style="height:5px">
           <div class="progress-fill" style="width:{{ salud_score }}%"></div>
         </div>
-        {% if salud_nota %}<div style="font-size:10.5px;color:rgba(241,240,255,.42);margin-top:9px;line-height:1.45">{{ salud_nota }}</div>{% endif %}
+        {% if salud_nota %}<div class="health-nota" style="font-size:10.5px;color:rgba(241,240,255,.42);margin-top:9px;line-height:1.45">{{ salud_nota }}</div>{% endif %}
       </div>
       {% endif %}
     {% endblock %}
@@ -117,7 +144,7 @@
 
       {% block topbar_actions %}
       <button class="btn btn-green hide-mobile" data-open="#modalGasto" data-preset-tipo="INGRESO"><i class="fas fa-arrow-down" style="font-size:11px"></i>Ingreso</button>
-      <button class="btn btn-purple" data-open="#modalGasto" data-preset-tipo="EGRESO"><i class="fas fa-plus" style="font-size:11px"></i><span class="hide-mobile">Registrar gasto</span></button>
+      <button class="btn btn-purple hide-mobile" data-open="#modalGasto" data-preset-tipo="EGRESO"><i class="fas fa-plus" style="font-size:11px"></i>Registrar gasto</button>
       {% endblock %}
     </header>
 
@@ -128,12 +155,26 @@
 </div>
 
 <nav class="bottomnav">
-  <a href="{% url 'dashboard' %}" class="nav-item {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}"><i class="fas fa-house"></i><span>Inicio</span></a>
-  <a href="{% url 'deudas' %}" class="nav-item {% if request.resolver_match.url_name == 'deudas' %}active{% endif %}"><i class="fas fa-credit-card"></i><span>Cuotas</span></a>
-  <button class="fab" data-open="#modalGasto" aria-label="Registrar"><i class="fas fa-plus" style="font-size:16px"></i></button>
-  <a href="{% url 'prestamos' %}" class="nav-item {% if request.resolver_match.url_name == 'prestamos' %}active{% endif %}"><i class="fas fa-hand-holding-dollar"></i><span>Me deben</span></a>
-  <a href="{% url 'perfil' %}" class="nav-item {% if request.resolver_match.url_name == 'perfil' %}active{% endif %}"><i class="fas fa-user"></i><span>Perfil</span></a>
+  <a href="{% url 'dashboard' %}" data-label="Inicio" class="nav-item {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}"><i class="fas fa-house"></i><span>Inicio</span></a>
+  <a href="{% url 'deudas' %}" data-label="Cuotas" class="nav-item {% if request.resolver_match.url_name == 'deudas' %}active{% endif %}">
+    <i class="fas fa-credit-card"></i><span>Cuotas</span>
+    {% if cuotas_activas %}<span class="nav-count">{{ cuotas_activas }}</span>{% endif %}
+  </a>
+  <a href="{% url 'suscripciones' %}" data-label="Suscripciones" class="nav-item {% if request.resolver_match.url_name == 'suscripciones' %}active{% endif %}">
+    <i class="fas fa-rotate"></i><span>Servicios</span>
+    {% if subs_pendientes %}<span class="nav-count">{{ subs_pendientes }}</span>{% endif %}
+  </a>
+  <a href="{% url 'prestamos' %}" data-label="Me deben" class="nav-item {% if request.resolver_match.url_name == 'prestamos' %}active{% endif %}">
+    <i class="fas fa-hand-holding-dollar"></i><span>Me deben</span>
+    {% if prestamos_activos %}<span class="nav-count">{{ prestamos_activos }}</span>{% endif %}
+  </a>
+  <a href="{% url 'analisis_predictivo' %}" data-label="Análisis IA" class="nav-item {% if request.resolver_match.url_name == 'analisis_predictivo' %}active{% endif %}"><i class="fas fa-brain"></i><span>Análisis</span></a>
+  <a href="{% url 'perfil' %}" data-label="Mi perfil" class="nav-item {% if request.resolver_match.url_name == 'perfil' %}active{% endif %}"><i class="fas fa-user"></i><span>Perfil</span></a>
 </nav>
+
+<button class="fab" data-open="#modalGasto" data-preset-tipo="EGRESO" aria-label="Registrar gasto">
+  <i class="fas fa-plus" style="font-size:18px"></i>
+</button>
 
 {% if messages %}
 <div class="toast-container">

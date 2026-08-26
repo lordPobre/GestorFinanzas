@@ -124,12 +124,12 @@
     <div style="display:flex;flex-direction:column;gap:10px">
       {% for f in analisis.riesgo_factores %}
       <div class="row" style="display:block;padding:15px;border-radius:17px">
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;flex-wrap:wrap">
           <span class="icon-tile {% if f.peso == 'alto' %}coral{% elif f.peso == 'medio' %}orange{% else %}green{% endif %}"
-                style="width:26px;height:26px;border-radius:9px">
+                style="width:26px;height:26px;border-radius:9px;flex-shrink:0">
             <i class="fas {% if f.peso == 'alto' %}fa-triangle-exclamation{% elif f.peso == 'medio' %}fa-circle-exclamation{% else %}fa-circle-check{% endif %}" style="font-size:10px"></i>
           </span>
-          <span style="font-size:12.5px;font-weight:500;flex:1">{{ f.factor }}</span>
+          <span style="font-size:12.5px;font-weight:500;flex:1;min-width:110px">{{ f.factor }}</span>
           <span class="badge {% if f.peso == 'alto' %}badge-coral{% elif f.peso == 'medio' %}badge-orange{% else %}badge-green{% endif %}"
                 style="font-size:9.5px">{{ f.peso }}</span>
         </div>
@@ -142,16 +142,36 @@
   <div class="glass card" style="padding:22px" data-spot>
     <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap">
       <div>
-        <div class="modal-title" style="font-size:15px;font-weight:500">Cómo baja tu deuda</div>
-        <div class="hint" style="font-size:11.5px;margin-top:3px">Próximos 6 meses, con tus cuotas actuales</div>
+        <div class="modal-title" style="font-size:15px;font-weight:500">Tus cuotas mes a mes</div>
+        <div class="hint" style="font-size:11.5px;margin-top:3px">
+          Seis meses atrás y seis adelante. Las barras son la cuota completa de cada mes,
+          esté pagada o no.
+        </div>
       </div>
       <span class="badge {% if analisis.tendencia == 'bajando' %}badge-green{% elif analisis.tendencia == 'subiendo' %}badge-coral{% else %}badge-mute{% endif %}">
         <i class="fas fa-arrow-{% if analisis.tendencia == 'bajando' %}down{% elif analisis.tendencia == 'subiendo' %}up{% else %}right{% endif %}" style="font-size:9px"></i>
         {{ analisis.tendencia|capfirst }}
       </span>
     </div>
-    <div style="position:relative;height:240px;margin-top:14px">
-      <canvas id="chartProy" data-om-raster></canvas>
+    <div style="display:flex;gap:10px 16px;flex-wrap:wrap;margin-top:12px">
+      <div style="display:flex;align-items:center;gap:7px">
+        <span style="width:9px;height:9px;border-radius:3px;background:#34d399"></span>
+        <span style="font-size:11px;color:var(--text-secondary);white-space:nowrap">Ya pagado</span>
+        <span class="mono" style="font-size:11px;color:var(--green);white-space:nowrap">${{ total_pagado_serie|intcomma }}</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:7px">
+        <span style="width:9px;height:9px;border-radius:3px;background:#fb923c"></span>
+        <span style="font-size:11px;color:var(--text-secondary);white-space:nowrap">Por pagar</span>
+        <span class="mono" style="font-size:11px;color:var(--orange);white-space:nowrap">${{ total_pendiente_serie|intcomma }}</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:7px">
+        <span style="width:14px;height:2.5px;border-radius:2px;background:#a78bfa"></span>
+        <span style="font-size:11px;color:var(--text-secondary)">Lo que te queda debiendo</span>
+      </div>
+    </div>
+
+    <div style="position:relative;height:250px;margin-top:12px">
+      <canvas id="chartSerie" data-om-raster></canvas>
     </div>
   </div>
 </div>
@@ -160,35 +180,51 @@
 <div class="glass card" style="padding:22px" data-spot>
   <div class="modal-title" style="font-size:15px;font-weight:500">Mes por mes</div>
   <div class="hint" style="font-size:11.5px;margin:3px 0 16px">
-    Lo que debes durante el mes y lo que pagas ese mes
+    La cuota completa de cada mes. Los meses ya pagados se mantienen a la vista.
   </div>
 
   <div class="row-list">
-    {% for p in analisis.proyeccion %}
-    <div class="row" {% if p.es_mes_actual %}style="background:rgba(124,58,237,.14);border-color:rgba(167,139,250,.28)"{% endif %}>
-      <span class="mono" style="font-size:12px;min-width:74px;color:{% if p.es_mes_actual %}#c4b5fd{% else %}var(--text-secondary){% endif %}">{{ p.mes }}</span>
+    {% for f in serie %}
+    {% if f.total %}
+    <div class="row" {% if f.es_mes_actual %}style="background:rgba(124,58,237,.14);border-color:rgba(167,139,250,.28)"{% endif %}>
+      <span class="mono" style="font-size:12px;min-width:74px;color:{% if f.es_mes_actual %}#c4b5fd{% elif f.es_pasado %}var(--text-muted){% else %}var(--text-secondary){% endif %}">{{ f.mes }}</span>
 
       <div class="row-main">
-        <div class="progress-bar" style="height:7px">
-          <div class="progress-fill {% if p.es_mes_actual %}shine{% endif %}"
-               style="width:{% widthratio p.deuda analisis.deuda_total_restante|add:1 100 %}%"></div>
+        {# Una sola barra partida: verde lo pagado, naranja lo que falta #}
+        <div class="split-bar" style="height:8px">
+          {% if f.pagado %}<span style="width:{% widthratio f.pagado f.total 100 %}%;background:linear-gradient(90deg,#059669,#34d399)"></span>{% endif %}
+          {% if f.pendiente %}<span style="width:{% widthratio f.pendiente f.total 100 %}%;background:linear-gradient(90deg,#ea580c,#fb923c)"></span>{% endif %}
         </div>
       </div>
 
       <div style="text-align:right;min-width:96px">
-        <div class="mono" style="font-size:12.5px">${{ p.deuda|intcomma }}</div>
-        <div style="font-size:10px;color:var(--text-muted);margin-top:2px">te queda debiendo</div>
+        <div class="mono" style="font-size:12.5px">${{ f.total|floatformat:0|intcomma }}</div>
+        <div style="font-size:10px;color:var(--text-muted);margin-top:2px">cuota del mes</div>
       </div>
 
       <div style="text-align:right;min-width:92px" class="hide-mobile">
-        <div class="mono" style="font-size:12.5px;color:var(--orange)">${{ p.pago_mes|intcomma }}</div>
-        <div style="font-size:10px;color:var(--text-muted);margin-top:2px">
-          {% if p.es_mes_actual %}pagas este mes{% else %}en cuotas{% endif %}
-        </div>
+        {% if f.pendiente %}
+          <div class="mono" style="font-size:12.5px;color:var(--orange)">${{ f.pendiente|floatformat:0|intcomma }}</div>
+          <div style="font-size:10px;color:var(--text-muted);margin-top:2px">
+            {% if f.es_pasado %}quedó impago{% else %}por pagar{% endif %}
+          </div>
+        {% else %}
+          <div class="mono" style="font-size:12.5px;color:var(--green)">Pagado</div>
+          <div style="font-size:10px;color:var(--text-muted);margin-top:2px">completo</div>
+        {% endif %}
       </div>
 
-      {% if p.es_mes_actual %}<span class="badge badge-purple">Ahora</span>{% endif %}
+      {% if f.es_mes_actual %}
+        <span class="badge badge-purple">Ahora</span>
+      {% elif f.es_pasado and f.pendiente %}
+        <span class="badge badge-coral">Impago</span>
+      {% elif f.es_pasado %}
+        <span class="badge badge-green">Al día</span>
+      {% else %}
+        <span class="badge badge-mute">Viene</span>
+      {% endif %}
     </div>
+    {% endif %}
     {% endfor %}
   </div>
 </div>
@@ -204,53 +240,114 @@
   var TICK = 'rgba(241,240,255,.42)';
   var FONT = "'DM Sans', sans-serif";
 
-  /* ---- Proyección de deuda ---- */
-  var el = document.getElementById('chartProy');
+  /* ---- Cuotas mes a mes ----
+     Barras apiladas: lo pagado y lo pendiente de CADA mes. Los meses ya
+     pagados siguen en el gráfico, así se ve el peso real que tuvieron.
+     Antes solo se dibujaba la deuda futura y el pasado desaparecía. */
+  var el = document.getElementById('chartSerie');
   if (el && window.Chart) {
     var ctx = el.getContext('2d');
-    var relleno = ctx.createLinearGradient(0, 0, 0, 240);
-    relleno.addColorStop(0, 'rgba(167,139,250,.34)');
+    var relleno = ctx.createLinearGradient(0, 0, 0, 250);
+    relleno.addColorStop(0, 'rgba(167,139,250,.28)');
     relleno.addColorStop(1, 'rgba(167,139,250,0)');
+
+    var idxActual = {{ indice_actual }};
+
+    /* En pantalla angosta el eje derecho y las doce etiquetas no caben:
+       ocupaban más de la mitad del ancho y dejaban las barras en un hilo. */
+    var angosto = window.innerWidth < 720;
+
+    /* Línea vertical en el mes en curso: separa lo que pasó de lo que viene */
+    var lineaHoy = {
+      id: 'lineaHoy',
+      afterDatasetsDraw: function (chart) {
+        var x = chart.scales.x.getPixelForValue(idxActual);
+        var area = chart.chartArea;
+        var c = chart.ctx;
+        c.save();
+        c.beginPath();
+        c.setLineDash([4, 4]);
+        c.lineWidth = 1;
+        c.strokeStyle = 'rgba(167,139,250,.45)';
+        c.moveTo(x, area.top);
+        c.lineTo(x, area.bottom);
+        c.stroke();
+        c.setLineDash([]);
+        if (!angosto) {
+          c.fillStyle = 'rgba(167,139,250,.75)';
+          c.font = "10px 'DM Sans', sans-serif";
+          c.textAlign = 'center';
+          c.fillText('hoy', x, area.top - 4);
+        }
+        c.restore();
+      }
+    };
 
     new Chart(el, {
       data: {
-        labels: {{ proy_meses_json|safe }},
+        labels: {{ serie_meses_json|safe }},
         datasets: [
-          { type: 'line', label: 'Te queda debiendo', data: {{ proy_deuda_json|safe }},
+          { type: 'bar', label: 'Ya pagado', data: {{ serie_pagado_json|safe }},
+            backgroundColor: 'rgba(52,211,153,.85)', stack: 'cuota',
+            borderRadius: 5, borderSkipped: false, maxBarThickness: 20, order: 2 },
+          { type: 'bar', label: 'Por pagar', data: {{ serie_pendiente_json|safe }},
+            backgroundColor: 'rgba(251,146,60,.85)', stack: 'cuota',
+            borderRadius: 5, borderSkipped: false, maxBarThickness: 20, order: 2 },
+          { type: 'line', label: 'Te queda debiendo', data: {{ serie_restante_json|safe }},
             borderColor: '#a78bfa', backgroundColor: relleno, borderWidth: 2.5,
-            fill: true, tension: .35, pointRadius: 3, pointBackgroundColor: '#a78bfa',
-            pointHoverRadius: 6, order: 2 },
-          { type: 'bar', label: 'Pagas ese mes', data: {{ proy_pago_json|safe }},
-            backgroundColor: 'rgba(251,146,60,.55)', borderRadius: 6,
-            borderSkipped: false, maxBarThickness: 16, order: 1 }
+            fill: true, tension: .35, pointRadius: angosto ? 0 : 3,
+            pointBackgroundColor: '#a78bfa',
+            pointHoverRadius: 6, yAxisID: 'y2', order: 1 }
         ]
       },
       options: {
         responsive: true, maintainAspectRatio: false,
         interaction: { mode: 'index', intersect: false },
         plugins: {
-          legend: { labels: { color: TICK, font: { family: FONT, size: 11 }, usePointStyle: true, boxWidth: 7, padding: 15 } },
+          legend: { display: false },
           tooltip: {
             backgroundColor: 'rgba(20,19,38,.94)',
             borderColor: 'rgba(167,139,250,.28)', borderWidth: 1,
             titleFont: { family: "'Sora', sans-serif", size: 12, weight: '600' },
             bodyFont: { family: FONT, size: 12 },
             padding: 13, cornerRadius: 14, boxPadding: 5, usePointStyle: true,
+            filter: function (c) { return c.parsed.y > 0; },
             callbacks: {
               label: function (c) {
                 return ' ' + c.dataset.label + ': $' + Math.round(c.parsed.y).toLocaleString('es-CL');
+              },
+              footer: function (items) {
+                var barras = items.filter(function (i) { return i.dataset.stack === 'cuota'; });
+                if (barras.length < 2) return '';
+                var t = barras.reduce(function (a, i) { return a + i.parsed.y; }, 0);
+                return 'Cuota del mes: $' + Math.round(t).toLocaleString('es-CL');
               }
             }
           }
         },
         scales: {
-          x: { grid: { display: false }, border: { display: false },
-               ticks: { color: TICK, font: { family: FONT, size: 10.5 } } },
-          y: { grid: { color: GRID }, border: { display: false }, beginAtZero: true,
-               ticks: { color: TICK, font: { family: FONT, size: 10 },
-                        callback: function (v) { return '$' + (v / 1000) + 'k'; } } }
+          x: { stacked: true, grid: { display: false }, border: { display: false },
+               ticks: { color: TICK, font: { family: FONT, size: angosto ? 9 : 10 },
+                        maxRotation: 0, autoSkipPadding: angosto ? 26 : 8,
+                        callback: function (v, i) {
+                          var l = this.getLabelForValue(v);
+                          /* 'Ago 2026' → 'Ago': el año se repite y no aporta */
+                          return angosto ? String(l).split(' ')[0] : l;
+                        } } },
+          y: { stacked: true, grid: { color: GRID }, border: { display: false }, beginAtZero: true,
+               ticks: { color: TICK, font: { family: FONT, size: angosto ? 9 : 10 },
+                        maxTicksLimit: angosto ? 5 : 8,
+                        callback: function (v) { return '$' + (v / 1000) + 'k'; } } },
+          /* El saldo total va en otra escala: es un orden de magnitud mayor
+             que una cuota mensual y aplastaría las barras. */
+          y2: { position: 'right', display: !angosto,
+                grid: { display: false }, border: { display: false },
+                beginAtZero: true,
+                ticks: { color: 'rgba(167,139,250,.5)', font: { family: FONT, size: 9.5 },
+                         callback: function (v) { return '$' + (v / 1000) + 'k'; } } }
         }
-      }
+      },
+      plugins: [lineaHoy]
     });
   }
 

@@ -13,6 +13,22 @@
   </div>
 
   <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:stretch">
+    {% if monto_pendiente_mes %}
+    <div class="glass-orange" style="padding:13px 18px;border-radius:16px">
+      <div class="label" style="color:rgba(251,146,60,.7);margin-bottom:5px">Falta pagar este mes</div>
+      <div class="display" style="font-size:20px;color:var(--orange)">${{ monto_pendiente_mes|intcomma }}</div>
+      <div style="font-size:10.5px;color:var(--text-muted);margin-top:3px">
+        {{ pendientes_mes }} de {{ cantidad_activas }} suscripción{{ pendientes_mes|pluralize:"es" }}
+      </div>
+    </div>
+    {% else %}
+    <div class="glass-green" style="padding:13px 18px;border-radius:16px">
+      <div class="label" style="color:rgba(52,211,153,.75);margin-bottom:5px">Este mes</div>
+      <div class="display" style="font-size:20px;color:var(--green)">Al día</div>
+      <div style="font-size:10.5px;color:var(--text-muted);margin-top:3px">${{ monto_pagado_mes|intcomma }} pagados</div>
+    </div>
+    {% endif %}
+
     <div class="glass-purple" style="padding:13px 18px;border-radius:16px">
       <div class="label" style="color:rgba(167,139,250,.8);margin-bottom:5px">Total activo al mes</div>
       <div class="display" style="font-size:20px;color:var(--purple)">${{ total_mensual|intcomma }}</div>
@@ -22,26 +38,37 @@
   </div>
 </div>
 
+{% if atrasadas %}
+<div class="glass-coral" style="margin-bottom:14px;padding:16px 20px;border-radius:18px;display:flex;align-items:center;gap:13px;flex-wrap:wrap">
+  <span class="icon-tile coral" style="width:30px;height:30px"><i class="fas fa-triangle-exclamation" style="font-size:12px"></i></span>
+  <div style="flex:1;min-width:200px">
+    <div style="font-size:12.5px;font-weight:500;margin-bottom:3px">
+      {{ atrasadas }} suscripción{{ atrasadas|pluralize:"es" }} con meses sin pagar
+    </div>
+    <div class="hint" style="font-size:11.5px">Suman ${{ monto_atrasado|intcomma }} de cobros que ya pasaron.</div>
+  </div>
+</div>
+{% endif %}
+
 {% if suscripciones %}
 <div class="glass" data-spot style="overflow:hidden">
   {% for s in suscripciones %}
-  <div class="sub-row" data-searchable
-       style="display:flex;align-items:center;gap:13px;padding:15px 20px;border-bottom:1px solid rgba(255,255,255,.05);transition:all .2s;{% if not s.activa %}opacity:.55{% endif %}">
+  <div class="sub-row" data-searchable {% if not s.activa %}style="opacity:.55"{% endif %}>
 
     <span style="width:36px;height:36px;border-radius:12px;flex-shrink:0;display:flex;align-items:center;justify-content:center;
                  font-family:'Sora',sans-serif;font-size:14px;font-weight:600;
                  background:rgba(167,139,250,.13);border:1px solid rgba(167,139,250,.26);color:#c4b5fd">{{ s.inicial }}</span>
 
     <div class="row-main">
-      <div class="row-title" style="font-size:13px;{% if not s.activa %}text-decoration:line-through;color:var(--text-muted){% endif %}">{{ s.nombre }}</div>
-      <div class="row-meta">
-        {{ s.texto_cobro }}
-        {% if s.activa and s.dias_para_cobro == 0 %} · hoy
-        {% elif s.activa and s.dias_para_cobro %} · en {{ s.dias_para_cobro }} día{{ s.dias_para_cobro|pluralize:"s" }}{% endif %}
+      <div class="row-title" style="font-size:13px;{% if not s.activa %}text-decoration:line-through;color:var(--text-muted){% endif %}">
+        {{ s.nombre }}
+        {% if s.estado_mes == 'pagada' %}<span class="badge badge-green" style="margin-left:7px">Pagada</span>
+        {% elif s.estado_mes == 'atrasada' %}<span class="badge badge-coral" style="margin-left:7px">Atrasada</span>{% endif %}
       </div>
+      <div class="row-meta">{{ s.texto_cobro }} · {{ s.texto_estado }}</div>
     </div>
 
-    <div style="text-align:right">
+    <div class="sub-monto" style="text-align:right">
       <div class="mono" style="font-size:13px;{% if not s.activa %}color:rgba(241,240,255,.3){% endif %}">${{ s.monto|floatformat:0|intcomma }}</div>
       <div style="font-size:10px;color:var(--text-muted);margin-top:2px">al mes</div>
     </div>
@@ -50,6 +77,28 @@
       <div class="mono" style="font-size:12px;color:var(--text-secondary)">${{ s.monto_anual|floatformat:0|intcomma }}</div>
       <div style="font-size:10px;color:var(--text-muted);margin-top:2px">al año</div>
     </div>
+
+    <div class="sub-acciones">
+    {% if s.activa %}
+      {% if s.periodo_a_pagar %}
+      <form method="post" action="{% url 'pagar_servicio' s.pk %}" style="margin:0">
+        {% csrf_token %}
+        <input type="hidden" name="periodo" value="{{ s.periodo_a_pagar }}">
+        <button type="submit" class="btn {% if s.periodos_atrasados %}btn-orange{% else %}btn-soft{% endif %} btn-sm"
+                title="{{ s.texto_a_pagar }}">
+          <i class="fas fa-check" style="font-size:9px"></i>Pagar
+        </button>
+      </form>
+      {% else %}
+      <form method="post" action="{% url 'anular_pago_servicio' s.pk %}" style="margin:0"
+            data-confirm="¿Marcar {{ s.nombre }} como no pagada este mes?">
+        {% csrf_token %}
+        <button type="submit" class="icon-btn" title="Deshacer el pago del mes">
+          <i class="fas fa-rotate-left" style="font-size:10px"></i>
+        </button>
+      </form>
+      {% endif %}
+    {% endif %}
 
     {# El interruptor ES el botón de cancelar/reactivar #}
     <form method="post" action="{% url 'cancelar_suscripcion' s.pk %}" style="margin:0;display:flex;align-items:center"
@@ -67,6 +116,7 @@
       {% csrf_token %}
       <button type="submit" class="icon-btn" title="Eliminar"><i class="fas fa-trash-can" style="font-size:11px"></i></button>
     </form>
+    </div>
   </div>
   {% endfor %}
 </div>
@@ -175,11 +225,5 @@
       : 'Se suma a tus $' + actual.toLocaleString('es-CL') + ' mensuales actuales.';
   });
 })();
-
-/* Hover de fila sin CSS extra */
-document.querySelectorAll('.sub-row').forEach(function (r) {
-  r.addEventListener('mouseenter', function () { r.style.background = 'rgba(255,255,255,.045)'; });
-  r.addEventListener('mouseleave', function () { r.style.background = 'transparent'; });
-});
 </script>
 {% endblock %}

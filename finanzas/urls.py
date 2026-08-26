@@ -49,6 +49,8 @@ urlpatterns = [
 
     path('suscripciones/', views.suscripciones, name='suscripciones'),
     path('suscripciones/nueva/', views.crear_suscripcion, name='crear_suscripcion'),
+    path('suscripciones/pagar/<int:sub_id>/', views.pagar_servicio, name='pagar_servicio'),
+    path('suscripciones/anular-pago/<int:sub_id>/', views.anular_pago_servicio, name='anular_pago_servicio'),
     path('suscripciones/cancelar/<int:sub_id>/', views.cancelar_suscripcion, name='cancelar_suscripcion'),
     path('suscripciones/eliminar/<int:sub_id>/', views.eliminar_suscripcion, name='eliminar_suscripcion'),
 
