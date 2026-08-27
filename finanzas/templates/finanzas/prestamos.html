@@ -1,5 +1,6 @@
 {% extends 'finanzas/base.html' %}
 {% load humanize %}
+{% block search_placeholder %}Buscar persona o préstamo{% endblock %}
 {% block title %}Me deben · FinApp{% endblock %}
 
 {% block content %}
@@ -157,6 +158,55 @@
         <label class="label" for="id_contacto_persona">Contacto (opcional)</label>
         <input type="text" name="contacto" id="id_contacto_persona" placeholder="Teléfono, email o nota">
       </div>
+
+      {% comment %}
+        El primer préstamo, acá mismo.
+
+        ANTES este modal solo pedía nombre y contacto, aunque crear_persona ya
+        aceptaba un préstamo inicial. Peor: el modal de "nuevo préstamo" está
+        dentro de {% templatetag openblock %} if persona {% templatetag closeblock %},
+        así que sin ninguna persona creada NO EXISTÍA — no había forma de
+        registrar un préstamo en cuotas desde cero.
+      {% endcomment %}
+      <details style="margin-bottom:18px" id="detallePrestamo">
+        <summary style="display:flex;align-items:center;gap:9px;padding:12px 14px;border-radius:14px;
+                        background:rgba(255,255,255,.04);border:1px solid var(--glass-border);cursor:pointer">
+          <i class="fas fa-plus" style="font-size:10px;color:var(--purple)"></i>
+          <span style="font-size:12.5px;flex:1">Agregar el primer préstamo</span>
+          <i class="fas fa-chevron-down" style="font-size:9px;color:var(--text-muted)"></i>
+        </summary>
+
+        <div style="padding:16px 2px 0">
+          <div class="field">
+            <label class="label" for="id_desc_persona">Para qué fue</label>
+            <input type="text" name="descripcion" id="id_desc_persona" placeholder="Ej: Arriendo de mayo">
+          </div>
+
+          <div class="label" style="margin-bottom:9px">Cómo te lo va a devolver</div>
+          <input type="hidden" name="tipo" id="id_tipo_persona" value="UNICO">
+          <div class="seg" style="margin-bottom:16px" id="segTipoPersona">
+            <button type="button" class="on" data-value="UNICO">Pago único</button>
+            <button type="button" data-value="CUOTAS">En cuotas</button>
+          </div>
+
+          <div class="form-row" style="margin-bottom:16px">
+            <div style="flex:1.5">
+              <label class="label" for="id_monto_persona">Monto prestado</label>
+              <input type="number" name="monto" id="id_monto_persona" class="mono" placeholder="180000" min="1">
+            </div>
+            <div style="flex:1;display:none" id="campoCuotasPersona">
+              <label class="label" for="id_cuotas_persona">En cuántas</label>
+              <input type="number" name="cuotas_totales" id="id_cuotas_persona" class="mono" min="1" value="3">
+            </div>
+          </div>
+
+          <div class="preview-box" style="margin-bottom:0">
+            <div class="label" style="color:rgba(52,211,153,.75);margin-bottom:7px">Te devolvería</div>
+            <div class="display" style="font-size:17px;color:var(--green)" id="personaPreview">$0</div>
+          </div>
+        </div>
+      </details>
+
       <button type="submit" class="btn btn-purple btn-block">Guardar</button>
     </form>
   </div>
@@ -184,7 +234,7 @@
 
       <div class="label" style="margin-bottom:9px">Cómo te lo va a devolver</div>
       <input type="hidden" name="tipo" id="id_tipo_prestamo" value="UNICO">
-      <div class="seg" style="margin-bottom:16px" id="segTipo">
+      <div class="seg" style="margin-bottom:16px" id="segTipoPrestamo">
         <button type="button" class="on" data-value="UNICO">Pago único</button>
         <button type="button" data-value="CUOTAS">En cuotas</button>
       </div>
@@ -265,15 +315,16 @@ document.querySelectorAll('[data-monto]').forEach(function (b) {
   });
 });
 
-/* Único vs. cuotas: muestra el campo y calcula lo que devolvería */
-(function () {
-  var seg = document.getElementById('segTipo');
+/* Único vs. cuotas. Se aplica a los DOS formularios (nueva persona y nuevo
+   préstamo) con la misma función, en vez de duplicar la lógica. */
+function conectarTipoPrestamo(ids) {
+  var seg = document.getElementById(ids.seg);
   if (!seg) return;
-  var hidden = document.getElementById('id_tipo_prestamo');
-  var campo = document.getElementById('campoCuotas');
-  var monto = document.getElementById('id_monto_prestamo');
-  var cuotas = document.getElementById('id_cuotas_prestamo');
-  var out = document.getElementById('prestamoPreview');
+  var hidden = document.getElementById(ids.hidden);
+  var campo = document.getElementById(ids.campo);
+  var monto = document.getElementById(ids.monto);
+  var cuotas = document.getElementById(ids.cuotas);
+  var out = document.getElementById(ids.out);
 
   function paint() {
     var esCuotas = hidden.value === 'CUOTAS';
@@ -293,8 +344,12 @@ document.querySelectorAll('[data-monto]').forEach(function (b) {
     paint();
   });
   [monto, cuotas].forEach(function (el) { if (el) el.addEventListener('input', paint); });
-  hidden.value = hidden.value || 'UNICO';
   paint();
-})();
+}
+
+conectarTipoPrestamo({ seg: 'segTipoPrestamo', hidden: 'id_tipo_prestamo', campo: 'campoCuotas',
+                       monto: 'id_monto_prestamo', cuotas: 'id_cuotas_prestamo', out: 'prestamoPreview' });
+conectarTipoPrestamo({ seg: 'segTipoPersona', hidden: 'id_tipo_persona', campo: 'campoCuotasPersona',
+                       monto: 'id_monto_persona', cuotas: 'id_cuotas_persona', out: 'personaPreview' });
 </script>
 {% endblock %}

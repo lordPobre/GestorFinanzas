@@ -24,7 +24,13 @@
 </div>
 {% endif %}
 
-{# ============ Lo importante hoy ============ #}
+{% comment %}
+  1. LO IMPORTANTE HOY — la conclusión, arriba de todo.
+
+  El número de "te queda libre" salía TRES veces: acá, en la tarjeta "Por día"
+  con el texto repitiéndolo al lado, y otra vez en la cuarta métrica. Tres
+  copias del mismo dato hacen dudar cuál es el bueno. Ahora vive solo acá.
+{% endcomment %}
 <div class="glass card-lg" data-spot style="margin-bottom:18px">
   <div style="display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:22px">
     <div style="min-width:280px;flex:1">
@@ -39,8 +45,7 @@
       <div class="hint" style="margin-top:9px;max-width:520px">
         Es lo que queda después de tus gastos ya hechos y de lo que aún debes pagar este mes.
         {% if disponible >= 0 %}
-          Quedan {{ dias_restantes }} días, así que son unos
-          <span class="mono" style="color:var(--text-primary)">${{ por_dia|intcomma }}</span> por día.
+          Quedan {{ dias_restantes }} días de mes.
         {% else %}
           Revisa tus cuotas o registra los ingresos que falten.
         {% endif %}
@@ -77,8 +82,183 @@
   </div>
 </div>
 
-{# ============ Avisos ============ #}
+{% comment %}
+  2. DE DÓNDE SALE ESE NÚMERO — el desglose, justo debajo.
+
+  Antes estas tarjetas iban DESPUÉS de la lista de pagos, así que la
+  explicación del número principal llegaba tras una lista de acciones. Y
+  eran cuatro: la última repetía el "te queda libre" del titular. Ahora son
+  tres y suman al titular: entró − gastaste − debes = te queda.
+{% endcomment %}
+<div class="section-head">
+  <h2 class="section-title">De dónde sale ese número</h2>
+  <span class="section-sub">{{ nombre_mes }}</span>
+</div>
+<div class="grid-metrics" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr))">
+  <div class="glass glass-lift card" data-spot>
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px">
+      <div class="label">Entró este mes</div>
+      <span class="icon-tile green"><i class="fas fa-arrow-down"></i></span>
+    </div>
+    <div class="stat-value" style="color:var(--green)">${{ total_ingresos|intcomma }}</div>
+    <div class="stat-note">Todo lo que entró, incluidos abonos y extras.</div>
+  </div>
+
+  <div class="glass glass-lift card" data-spot>
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px">
+      <div class="label">Ya gastaste</div>
+      <span class="icon-tile blue"><i class="fas fa-arrow-up"></i></span>
+    </div>
+    <div class="stat-value" style="color:var(--blue)">${{ total_gastos|intcomma }}</div>
+    {% if gastos_por_pagar %}
+    <div class="split-bar" style="height:6px;margin:10px 0 8px">
+      <span style="width:{{ pct_gasto_pagado }}%;background:linear-gradient(90deg,#059669,#34d399)"></span>
+      <span style="width:{% widthratio gastos_por_pagar total_gastos 100 %}%;background:linear-gradient(90deg,#ea580c,#fb923c)"></span>
+    </div>
+    <div class="stat-note">
+      <span style="color:var(--green)">${{ gastos_pagados|intcomma }} pagados</span> ·
+      <span style="color:var(--orange)">${{ gastos_por_pagar|intcomma }} sin pagar</span>
+    </div>
+    {% else %}
+    <div class="stat-note">Todo pagado. {{ pct_gastado }}% de lo que entró, sin contar cuotas.</div>
+    {% endif %}
+  </div>
+
+  <div class="glass glass-lift glass-orange card" data-spot>
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px">
+      <div class="label" style="color:rgba(251,146,60,.7)">Aún debes pagar</div>
+      <span class="icon-tile orange"><i class="fas fa-clock"></i></span>
+    </div>
+    <div class="stat-value" style="color:var(--orange)">${{ por_pagar|intcomma }}</div>
+    <div class="stat-note">
+      {% if mes_al_dia %}Todo pagado este mes.
+      {% else %}{{ pendientes_sin_pagar|length }} pago{{ pendientes_sin_pagar|length|pluralize:"s" }} sin marcar.{% endif %}
+    </div>
+    {% if fijo_mensual %}
+    <div class="stat-note" style="margin-top:7px;padding-top:7px;border-top:1px solid rgba(255,255,255,.06)">
+      De eso, <b style="color:var(--text-secondary)">${{ fijo_mensual|intcomma }}</b> es fijo todos los meses
+      (cuotas y suscripciones).
+    </div>
+    {% endif %}
+  </div>
+
+</div>
+
+{% comment %}
+  3. LO QUE DEBES EN TOTAL
+
+  El dashboard mostraba cuánto se paga ESTE mes y nada más. Faltaba la
+  pregunta que la gente hace primero: cuánto debo en total. Sin eso, una
+  cuota de $30.000 se ve igual de liviana el primer mes que el último, y no
+  hay forma de ver si vas avanzando.
+{% endcomment %}
+{% if mis_cuotas %}
+<div class="section-head">
+  <h2 class="section-title">Lo que debes en total</h2>
+  <a href="{% url 'deudas' %}" class="section-sub" style="text-decoration:none">Ver todas →</a>
+</div>
+
+<div class="glass card-lg deuda-panel" data-spot style="margin-bottom:18px">
+  <div class="deuda-cabecera">
+    <div>
+      <div class="label" style="margin-bottom:8px">Te falta pagar</div>
+      <div class="display" style="font-size:30px;line-height:1">${{ deuda_total|intcomma }}</div>
+      <div class="hint" style="font-size:11.5px;margin-top:7px">
+        de ${{ deuda_bruta_total|intcomma }} en {{ mis_cuotas|length }} compra{{ mis_cuotas|length|pluralize:"s" }}
+        {% if se_libera %} · terminas en {{ se_libera.mes_fin }}{% endif %}
+      </div>
+    </div>
+
+    <div class="deuda-datos">
+      <div class="deuda-dato">
+        <div class="label" style="margin-bottom:5px">Al mes</div>
+        <div class="mono" style="font-size:16px">${{ cuota_mensual_total|intcomma }}</div>
+      </div>
+      <div class="deuda-dato">
+        <div class="label" style="margin-bottom:5px">Ya pagaste</div>
+        <div class="mono" style="font-size:16px;color:var(--green)">${{ deuda_pagada_total|intcomma }}</div>
+      </div>
+      {% if cuotas_atrasadas_total %}
+      <div class="deuda-dato" style="background:rgba(248,113,113,.12);border-color:rgba(248,113,113,.26)">
+        <div class="label" style="color:rgba(251,113,133,.75);margin-bottom:5px">Atrasadas</div>
+        <div class="mono" style="font-size:16px;color:var(--coral)">{{ cuotas_atrasadas_total }}</div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  {# Avance total: la única forma de ver que la deuda se está achicando #}
+  <div style="margin-top:20px">
+    <div class="progress-bar" style="height:10px">
+      <div class="progress-fill green shine" style="width:{{ deuda_pct_pagado }}%"></div>
+    </div>
+    <div style="display:flex;justify-content:space-between;margin-top:7px;font-size:10.5px;color:var(--text-muted)">
+      <span>{{ deuda_pct_pagado }}% pagado</span>
+      <span>${{ deuda_total|intcomma }} por delante</span>
+    </div>
+  </div>
+
+  {# Una fila por compra. Se abre para ver el detalle y pagar sin salir. #}
+  <div class="deuda-lista">
+    {% for c in mis_cuotas %}
+    <details class="deuda-item" data-searchable>
+      <summary>
+        <span class="icon-tile" style="background:{{ c.color }}22;border-color:{{ c.color }}44;color:{{ c.color }}">
+          <i class="fas {{ c.icono }}"></i>
+        </span>
+        <span class="deuda-item-main">
+          <span class="deuda-item-nombre">{{ c.acreedor }}</span>
+          <span class="row-meta">
+            {{ c.cuotas_pagadas }} de {{ c.cuotas_totales }} cuotas
+            {% if c.atrasadas %} · <span style="color:var(--coral)">{{ c.texto_urgencia }}</span>
+            {% elif c.pagada_este_mes %} · <span style="color:var(--green)">al día</span>{% endif %}
+          </span>
+          <span class="deuda-item-barra">
+            <span style="width:{{ c.porcentaje }}%;background:{{ c.color }}"></span>
+          </span>
+        </span>
+        <span class="deuda-item-monto">
+          <span class="mono">${{ c.restante|intcomma }}</span>
+          <span class="row-meta">por pagar</span>
+        </span>
+        <i class="fas fa-chevron-down deuda-item-flecha"></i>
+      </summary>
+
+      <div class="deuda-item-detalle">
+        <div class="deuda-item-nums">
+          <div><span class="label">Cuota</span><span class="mono">${{ c.cuota|intcomma }}</span></div>
+          <div><span class="label">Pagado</span><span class="mono" style="color:var(--green)">${{ c.pagado|intcomma }}</span></div>
+          <div><span class="label">Total</span><span class="mono">${{ c.monto_total|intcomma }}</span></div>
+          <div><span class="label">Última</span><span class="mono">{{ c.fin|date:"M Y" }}</span></div>
+        </div>
+
+        <div class="pips" style="margin:14px 0">
+          {% for m in c.obj.rango_cuotas %}<span class="pip {{ m.clase }}"></span>{% endfor %}
+        </div>
+
+        {% if not c.pagada_este_mes and c.periodo_a_pagar %}
+        <form method="post" action="{% url 'pagar_cuota' c.obj.pk %}" style="margin:0">
+          {% csrf_token %}
+          <input type="hidden" name="next" value="?year={{ year }}&amp;month={{ month }}">
+          <input type="hidden" name="periodo" value="{{ c.periodo_a_pagar }}">
+          <button type="submit" class="btn btn-green btn-sm">
+            <i class="fas fa-check" style="font-size:9px"></i>{{ c.obj.texto_a_pagar }}
+          </button>
+        </form>
+        {% endif %}
+      </div>
+    </details>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+{% comment %}
+  4. AVISOS — solo si hay algo que decir.
+{% endcomment %}
 {% if insights %}
+<div class="section-head">
+  <h2 class="section-title">Atención a esto</h2>
+</div>
 <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:18px">
   {% for i in insights %}
   <div class="row" style="border-color:{% if i.tipo == 'peligro' %}rgba(248,113,113,.26){% elif i.tipo == 'alerta' %}rgba(251,146,60,.24){% elif i.tipo == 'exito' %}rgba(52,211,153,.24){% else %}var(--glass-border){% endif %}">
@@ -92,9 +272,23 @@
 {% endif %}
 
 {% comment %}
-  Cuando el mes está pagado la lista completa solo ocupa espacio: no hay nada
-  que hacer con ella. Se pliega a una línea y se abre si quieres revisarla.
+  5. QUÉ HAY QUE PAGAR — la lista y el calendario, juntos.
+
+  Antes el calendario estaba 300 líneas más abajo, en otra sección: dos
+  vistas de la MISMA pregunta separadas por media pantalla, sin nada que
+  las relacionara. La lista dice qué; el calendario, cuándo.
+
+  Cuando el mes está pagado la lista se pliega a una línea: no hay nada que
+  hacer con ella.
 {% endcomment %}
+<div class="section-head">
+  <h2 class="section-title">Qué hay que pagar</h2>
+  {% if not mes_al_dia and monto_sin_pagar %}
+  <span class="section-sub" style="color:var(--orange)">${{ monto_sin_pagar|intcomma }} pendiente</span>
+  {% endif %}
+</div>
+<div class="grid-pagos">
+<div>
 {% if mes_al_dia %}
 <details class="glass card" style="padding:0;margin-bottom:18px" data-spot>
   <summary style="padding:16px 20px;cursor:pointer;display:flex;align-items:center;gap:13px">
@@ -229,114 +423,7 @@
   {% endif %}
 </div>
 {% endif %}
-
-{# ============ Cuatro métricas ============ #}
-<div class="grid-metrics">
-  <div class="glass glass-lift card" data-spot>
-    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px">
-      <div class="label">Entró este mes</div>
-      <span class="icon-tile green"><i class="fas fa-arrow-down"></i></span>
-    </div>
-    <div class="stat-value" style="color:var(--green)">${{ total_ingresos|intcomma }}</div>
-    <div class="stat-note">Todo lo que entró, incluidos abonos y extras.</div>
-  </div>
-
-  <div class="glass glass-lift card" data-spot>
-    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px">
-      <div class="label">Ya gastaste</div>
-      <span class="icon-tile blue"><i class="fas fa-arrow-up"></i></span>
-    </div>
-    <div class="stat-value" style="color:var(--blue)">${{ total_gastos|intcomma }}</div>
-    {% if gastos_por_pagar %}
-    <div class="split-bar" style="height:6px;margin:10px 0 8px">
-      <span style="width:{{ pct_gasto_pagado }}%;background:linear-gradient(90deg,#059669,#34d399)"></span>
-      <span style="width:{% widthratio gastos_por_pagar total_gastos 100 %}%;background:linear-gradient(90deg,#ea580c,#fb923c)"></span>
-    </div>
-    <div class="stat-note">
-      <span style="color:var(--green)">${{ gastos_pagados|intcomma }} pagados</span> ·
-      <span style="color:var(--orange)">${{ gastos_por_pagar|intcomma }} sin pagar</span>
-    </div>
-    {% else %}
-    <div class="stat-note">Todo pagado. {{ pct_gastado }}% de lo que entró, sin contar cuotas.</div>
-    {% endif %}
-  </div>
-
-  <div class="glass glass-lift glass-orange card" data-spot>
-    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px">
-      <div class="label" style="color:rgba(251,146,60,.7)">Aún debes pagar</div>
-      <span class="icon-tile orange"><i class="fas fa-clock"></i></span>
-    </div>
-    <div class="stat-value" style="color:var(--orange)">${{ por_pagar|intcomma }}</div>
-    <div class="stat-note">
-      {% if mes_al_dia %}Todo pagado este mes.
-      {% else %}{{ pendientes_sin_pagar|length }} pago{{ pendientes_sin_pagar|length|pluralize:"s" }} sin marcar.{% endif %}
-    </div>
-    {% if cuotas_activas %}
-    <a href="{% url 'deudas' %}" class="btn btn-orange btn-sm" style="margin-top:11px">Ver mis cuotas<i class="fas fa-arrow-right" style="font-size:9px"></i></a>
-    {% endif %}
-  </div>
-
-  <div class="glass glass-lift glass-purple card" data-spot>
-    <div style="position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--purple),transparent)"></div>
-    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px">
-      <div class="label" style="color:rgba(167,139,250,.8)">Te queda libre</div>
-      <span class="icon-tile"><i class="fas fa-wallet"></i></span>
-    </div>
-    <div class="stat-value" style="color:var(--purple)">${{ disponible|intcomma }}</div>
-    <div class="stat-note">Después de todo lo comprometido. Este es tu número real.</div>
-  </div>
 </div>
-
-{# ============ Gráfico + categorías ============ #}
-<div class="grid-chart">
-  <div class="glass card" style="padding:22px" data-spot>
-    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;margin-bottom:14px">
-      <div>
-        <div class="modal-title" style="font-size:15px;font-weight:500">Entra vs. sale</div>
-        <div class="hint" style="font-size:11.5px;margin-top:3px">Pasa el cursor por un mes para ver el detalle</div>
-      </div>
-      <div class="seg" style="padding:3px" id="segRango">
-        <button type="button" data-meses="3">3M</button>
-        <button type="button" class="on" data-meses="6">6M</button>
-      </div>
-    </div>
-    <div style="position:relative;height:236px">
-      <canvas id="chartFlujo" data-om-raster></canvas>
-    </div>
-  </div>
-
-  <div class="glass card" style="padding:22px" data-spot>
-    <div class="modal-title" style="font-size:15px;font-weight:500">En qué se va</div>
-    <div class="hint" style="font-size:11.5px;margin-top:3px">Toca una categoría para aislarla</div>
-
-    {% if categorias %}
-    <div style="position:relative;height:196px;margin:12px 0 6px">
-      <canvas id="chartCategorias" data-om-raster></canvas>
-    </div>
-    <div class="row-list" style="gap:2px">
-      {% for c in categorias %}
-      <button type="button" class="row cat-row" data-indice="{{ forloop.counter0 }}"
-              style="padding:8px 10px;background:none;border:1px solid transparent;width:100%;cursor:pointer;text-align:left">
-        <span style="width:8px;height:8px;border-radius:3px;background:{{ c.color }};flex-shrink:0"></span>
-        <span class="row-main" style="font-size:12px">{{ c.label }}</span>
-        <span style="font-size:11px;color:var(--text-muted)">{{ c.porcentaje }}%</span>
-        <span class="mono" style="font-size:11.5px;color:var(--text-secondary)">${{ c.total|floatformat:0|intcomma }}</span>
-      </button>
-      {% endfor %}
-    </div>
-    {% else %}
-    <div class="empty" style="padding:36px 12px">
-      <i class="fas fa-chart-pie" style="font-size:24px"></i>
-      <div class="empty-title" style="font-size:14px">Sin gastos este mes</div>
-      <div class="empty-text" style="font-size:11.5px;margin-bottom:14px">Registra uno y verás en qué se te va.</div>
-      <button class="btn btn-soft btn-sm" data-open="#modalGasto" data-preset-tipo="EGRESO">Registrar un gasto</button>
-    </div>
-    {% endif %}
-  </div>
-</div>
-
-{# ============ Calendario + movimientos ============ #}
-<div class="grid-bottom">
 
   <div class="glass card" style="padding:22px" data-spot>
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;gap:10px">
@@ -391,9 +478,71 @@
       </div>
     </div>
     {% endif %}
+</div>
+
+</div>
+
+{% comment %}
+  6. CÓMO VIENES — el contexto histórico. Va después de lo accionable:
+  saber que gastaste más que el mes pasado no es urgente.
+{% endcomment %}
+<div class="section-head">
+  <h2 class="section-title">Cómo vienes</h2>
+</div>
+<div class="grid-chart">
+  <div class="glass card" style="padding:22px" data-spot>
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;margin-bottom:14px">
+      <div>
+        <div class="modal-title" style="font-size:15px;font-weight:500">Entra vs. sale</div>
+        <div class="hint" style="font-size:11.5px;margin-top:3px">Pasa el cursor por un mes para ver el detalle</div>
+      </div>
+      <div class="seg" style="padding:3px" id="segRango">
+        <button type="button" data-meses="3">3M</button>
+        <button type="button" class="on" data-meses="6">6M</button>
+      </div>
+    </div>
+    <div style="position:relative;height:236px">
+      <canvas id="chartFlujo" data-om-raster></canvas>
+    </div>
   </div>
 
-  <div style="display:flex;flex-direction:column;gap:16px">
+  <div class="glass card" style="padding:22px" data-spot>
+    <div class="modal-title" style="font-size:15px;font-weight:500">En qué se va</div>
+    <div class="hint" style="font-size:11.5px;margin-top:3px">Toca una categoría para aislarla</div>
+
+    {% if categorias %}
+    <div style="position:relative;height:196px;margin:12px 0 6px">
+      <canvas id="chartCategorias" data-om-raster></canvas>
+    </div>
+    <div class="row-list" style="gap:2px">
+      {% for c in categorias %}
+      <button type="button" class="row cat-row" data-indice="{{ forloop.counter0 }}"
+              style="padding:8px 10px;background:none;border:1px solid transparent;width:100%;cursor:pointer;text-align:left">
+        <span style="width:8px;height:8px;border-radius:3px;background:{{ c.color }};flex-shrink:0"></span>
+        <span class="row-main" style="font-size:12px">{{ c.label }}</span>
+        <span style="font-size:11px;color:var(--text-muted)">{{ c.porcentaje }}%</span>
+        <span class="mono" style="font-size:11.5px;color:var(--text-secondary)">${{ c.total|floatformat:0|intcomma }}</span>
+      </button>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty" style="padding:36px 12px">
+      <i class="fas fa-chart-pie" style="font-size:24px"></i>
+      <div class="empty-title" style="font-size:14px">Sin gastos este mes</div>
+      <div class="empty-text" style="font-size:11.5px;margin-bottom:14px">Registra uno y verás en qué se te va.</div>
+      <button class="btn btn-soft btn-sm" data-open="#modalGasto" data-preset-tipo="EGRESO">Registrar un gasto</button>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+{% comment %}
+  7. EL DETALLE — movimientos y metas.
+{% endcomment %}
+<div class="section-head">
+  <h2 class="section-title">Tu registro</h2>
+</div>
+<div class="grid-registro">
     <div class="glass card" style="padding:22px" data-spot>
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;gap:10px">
         <div class="modal-title" style="font-size:15px;font-weight:500">Últimos movimientos</div>
@@ -479,7 +628,6 @@
       </div>
     </div>
     {% endif %}
-  </div>
 </div>
 
 {% endblock %}

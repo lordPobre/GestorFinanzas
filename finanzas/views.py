@@ -571,6 +571,45 @@ def dashboard(request):
     sin_pagar = [i for i in pagos_mes if not i['pagado']]
     atrasados = [i for i in sin_pagar if i['atrasado']]
 
+    # ---------- Deuda: el total, no solo la cuota del mes ----------
+    #
+    # El dashboard mostraba cuánto se paga ESTE mes y nada más. Faltaba la
+    # pregunta que la gente hace primero: "¿cuánto debo en total?". Sin eso,
+    # una cuota de $30.000 se ve igual de liviana el primer mes que el
+    # último, y no hay forma de ver si vas avanzando.
+    mis_cuotas = []
+    for d in Deuda.objects.filter(usuario=request.user).prefetch_related('pagos'):
+        if d.esta_saldada:
+            continue
+        atrasadas = len(d.periodos_atrasados)
+        mis_cuotas.append({
+            'obj': d,
+            'acreedor': d.acreedor,
+            'categoria': d.get_categoria_display(),
+            'icono': Transaccion(categoria=d.categoria, tipo='EGRESO').icono,
+            'color': Transaccion.COLORES_CATEGORIA.get(
+                d.categoria, Transaccion.COLORES_CATEGORIA['Otros']),
+            'monto_total': round(float(d.monto_total)),
+            'pagado': round(float(d.monto_pagado)),
+            'restante': round(float(d.monto_restante)),
+            'cuota': round(float(d.monto_cuota)),
+            'porcentaje': d.porcentaje,
+            'cuotas_pagadas': d.cuotas_pagadas,
+            'cuotas_totales': d.cuotas_totales,
+            'restantes': d.cuotas_restantes,
+            'periodo_a_pagar': d.periodo_a_pagar,
+            'pagada_este_mes': d.esta_pagada_en(hoy.year * 100 + hoy.month),
+            'atrasadas': atrasadas,
+            'urgencia': d.urgencia,
+            'texto_urgencia': d.texto_urgencia,
+            'fin': d.fecha_fin_estimada,
+        })
+    # Lo atrasado primero; después lo que más falta por pagar.
+    mis_cuotas.sort(key=lambda x: (-x['atrasadas'], -x['restante']))
+
+    deuda_pagada_total = sum(c['pagado'] for c in mis_cuotas)
+    deuda_bruta_total = sum(c['monto_total'] for c in mis_cuotas)
+
     ultimas = Transaccion.objects.filter(usuario=request.user).order_by('-fecha', '-id')[:10]
     deuda_total = sum(float(d.monto_restante) for d in todas_las_deudas if not d.esta_saldada)
     metas = MetaAhorro.objects.filter(usuario=request.user)
@@ -668,6 +707,24 @@ def dashboard(request):
         'total_comprometido_mes': round(r['comprometido']),
         'disponible': round(r['disponible']),
         'deuda_total': round(deuda_total),
+
+        # Deuda en cuotas, vista completa
+        'mis_cuotas': mis_cuotas,
+        'deuda_bruta_total': deuda_bruta_total,
+        'deuda_pagada_total': deuda_pagada_total,
+        'deuda_pct_pagado': (round(deuda_pagada_total / deuda_bruta_total * 100)
+                             if deuda_bruta_total else 0),
+        'cuota_mensual_total': round(sum(c['cuota'] for c in mis_cuotas)),
+        'cuotas_atrasadas_total': sum(c['atrasadas'] for c in mis_cuotas),
+
+        # Gasto mensual comprometido: cuotas + suscripciones activas.
+        # Es lo que sale todos los meses pase lo que pase, y no estaba a la
+        # vista en ninguna parte.
+        'fijo_mensual': round(
+            sum(c['cuota'] for c in mis_cuotas)
+            + sum(float(s.monto) for s in Suscripcion.objects.filter(
+                usuario=request.user, activa=True))
+        ),
 
         # Nuevos: los usa el encabezado "Puedes gastar X hasta fin de mes".
         # por_pagar suma cuotas y servicios sin pagar. No se resta aparte del

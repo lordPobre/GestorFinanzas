@@ -697,6 +697,125 @@ select option { background: #16162a; color: var(--text-primary); }
   .sub-acciones .icon-btn { width: 40px; height: 40px; }
 }
 
+/* ===== Encabezados de sección =====
+   El dashboard era una pila de tarjetas sin jerarquía: todo pesaba igual y
+   nada decía por qué una cosa venía después de otra. Cada bloque ahora
+   arranca con un título, así la página se puede leer de arriba abajo como
+   un relato: cuánto te queda → de dónde sale → qué pagar → cómo vienes. */
+.section-head {
+  display: flex; align-items: baseline; justify-content: space-between;
+  gap: 12px; flex-wrap: wrap;
+  margin: 26px 2px 12px;
+}
+.section-head:first-child { margin-top: 0; }
+.section-title {
+  font-family: 'Sora', sans-serif; font-size: 13px; font-weight: 500;
+  letter-spacing: .01em; color: var(--text-primary); margin: 0;
+}
+.section-sub {
+  font-family: 'DM Sans', sans-serif; font-size: 11.5px;
+  color: var(--text-muted);
+}
+
+/* Lista de pagos + calendario, lado a lado. La lista manda: es donde se
+   actúa. El calendario acompaña. */
+.grid-pagos {
+  display: grid; grid-template-columns: 1.5fr 1fr; gap: 16px;
+  margin-bottom: 18px; align-items: start;
+}
+.grid-registro {
+  display: grid; grid-template-columns: 1.35fr 1fr; gap: 16px;
+  align-items: start;
+}
+/* Sin metas, los movimientos ocupan el ancho completo en vez de dejar
+   media pantalla vacía. */
+.grid-registro > :only-child { grid-column: 1 / -1; }
+@media (max-width: 1100px) {
+  .grid-pagos, .grid-registro { grid-template-columns: 1fr; }
+}
+
+/* ===== Panel de deuda total ===== */
+.deuda-panel { position: relative; overflow: hidden; }
+.deuda-cabecera {
+  display: flex; flex-wrap: wrap; align-items: flex-end;
+  justify-content: space-between; gap: 22px;
+}
+.deuda-datos { display: flex; gap: 10px; flex-wrap: wrap; }
+.deuda-dato {
+  padding: 12px 16px; border-radius: 15px; min-width: 116px;
+  background: rgba(255, 255, 255, .04); border: 1px solid var(--glass-border);
+}
+
+.deuda-lista {
+  margin-top: 20px; padding-top: 18px;
+  border-top: 1px solid rgba(255, 255, 255, .06);
+  display: flex; flex-direction: column; gap: 7px;
+}
+
+/* Cada compra es una fila que se abre. Cerrada da el titular; abierta, el
+   detalle y el botón de pago — sin cambiar de pantalla. */
+.deuda-item {
+  border-radius: var(--r-md); border: 1px solid transparent;
+  transition: background .2s var(--ease-out), border-color .2s var(--ease-out);
+}
+.deuda-item:hover { background: rgba(255, 255, 255, .035); }
+.deuda-item[open] {
+  background: rgba(255, 255, 255, .04);
+  border-color: var(--glass-border);
+}
+.deuda-item > summary {
+  display: flex; align-items: center; gap: 13px;
+  padding: 12px 14px; cursor: pointer;
+}
+.deuda-item-main { flex: 1; min-width: 0; display: block; }
+.deuda-item-nombre {
+  display: block; font-size: 13px; color: var(--text-primary);
+  margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.deuda-item-main .row-meta { display: block; }
+
+/* Barra de avance dentro de la fila: se ve el progreso sin abrir nada */
+.deuda-item-barra {
+  display: block; height: 4px; margin-top: 8px; border-radius: 3px;
+  background: rgba(255, 255, 255, .07); overflow: hidden;
+}
+.deuda-item-barra > span {
+  display: block; height: 100%; border-radius: 3px;
+  transition: width .5s var(--ease-out);
+}
+
+.deuda-item-monto { text-align: right; flex-shrink: 0; }
+.deuda-item-monto .mono { display: block; font-size: 13.5px; }
+.deuda-item-monto .row-meta { display: block; }
+.deuda-item-flecha {
+  font-size: 9px; color: var(--text-muted); flex-shrink: 0;
+  transition: transform .2s var(--ease-out);
+}
+.deuda-item[open] .deuda-item-flecha { transform: rotate(180deg); }
+
+.deuda-item-detalle {
+  padding: 2px 14px 15px 63px;
+  animation: deudaAbre .22s var(--ease-out);
+}
+@keyframes deudaAbre {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: none; }
+}
+.deuda-item-nums {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(84px, 1fr)); gap: 12px;
+}
+.deuda-item-nums > div { display: flex; flex-direction: column; gap: 3px; }
+.deuda-item-nums .mono { font-size: 12.5px; }
+.deuda-item-detalle .pips { justify-content: flex-start; }
+.deuda-item-detalle .pip { max-width: 26px; }
+
+@media (max-width: 640px) {
+  .deuda-item > summary { gap: 10px; padding: 12px 10px; }
+  .deuda-item-detalle { padding-left: 14px; }
+  .deuda-datos { width: 100%; }
+  .deuda-dato { flex: 1; min-width: 104px; }
+}
+
 /* Panel plegable (details/summary) */
 summary { list-style: none; }
 summary::-webkit-details-marker { display: none; }
