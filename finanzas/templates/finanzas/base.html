@@ -1,4 +1,4 @@
-{% load static %}<!DOCTYPE html>
+{% load static humanize %}<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8">
@@ -107,6 +107,17 @@
         </div>
         {% if salud_nota %}<div class="health-nota" style="font-size:10.5px;color:rgba(241,240,255,.42);margin-top:9px;line-height:1.45">{{ salud_nota }}</div>{% endif %}
       </div>
+      {% else %}
+      {% comment %}
+        Antes el bloque simplemente no aparecía y quedaba un hueco sin
+        explicación. Ahora dice qué falta para que aparezca.
+      {% endcomment %}
+      <div class="sidebar-foot health health-nota" data-spot>
+        <div class="label" style="color:rgba(167,139,250,.75);margin-bottom:6px">Salud del mes</div>
+        <div style="font-size:11px;color:rgba(241,240,255,.45);line-height:1.5">
+          Registra un ingreso y aquí verás qué tan holgado va tu mes.
+        </div>
+      </div>
       {% endif %}
     {% endblock %}
   </aside>
@@ -119,12 +130,17 @@
       {% if nombre_mes %}
       <div class="pill-group">
         <a href="?year={{ prev_year }}&amp;month={{ prev_month }}" class="icon-btn"
-           style="display:flex;align-items:center;justify-content:center" title="Mes anterior">
+           style="display:flex;align-items:center;justify-content:center"
+           title="Ver {{ prev_month_nombre }}" aria-label="Ver {{ prev_month_nombre }}">
           <i class="fas fa-chevron-left" style="font-size:10px"></i>
         </a>
-        <span class="month">{{ nombre_mes|default:"Este mes" }}</span>
+        <span class="month">
+          {{ nombre_mes|default:"Este mes" }}
+          {% if es_mes_actual %}<span style="font-size:9.5px;color:rgba(167,139,250,.8);margin-left:5px">ahora</span>{% endif %}
+        </span>
         <a href="?year={{ next_year }}&amp;month={{ next_month }}" class="icon-btn"
-           style="display:flex;align-items:center;justify-content:center" title="Mes siguiente">
+           style="display:flex;align-items:center;justify-content:center"
+           title="Ver {{ next_month_nombre }}" aria-label="Ver {{ next_month_nombre }}">
           <i class="fas fa-chevron-right" style="font-size:10px"></i>
         </a>
       </div>
@@ -133,9 +149,16 @@
       {% endif %}
       {% endif %}
 
+      {% comment %}
+        El placeholder decía "Buscar movimiento, persona o categoría" en todas
+        las pantallas, pero la búsqueda solo filtra lo que hay a la vista: en
+        Cuotas no puede encontrar una persona. Cada pantalla dice qué filtra.
+      {% endcomment %}
       <div class="search">
+        <label for="buscador" class="visually-hidden">Buscar en esta pantalla</label>
         <i class="fas fa-magnifying-glass" style="font-size:11px;color:rgba(241,240,255,.35)"></i>
-        <input type="search" data-search placeholder="Buscar movimiento, persona o categoría">
+        <input type="search" id="buscador" data-search
+               placeholder="{% block search_placeholder %}Filtrar lo que ves{% endblock %}">
         <span class="kbd hide-mobile">⌘K</span>
       </div>
       {% endblock %}
@@ -143,8 +166,12 @@
       <div class="spacer"></div>
 
       {% block topbar_actions %}
-      <button class="btn btn-green hide-mobile" data-open="#modalGasto" data-preset-tipo="INGRESO"><i class="fas fa-arrow-down" style="font-size:11px"></i>Ingreso</button>
-      <button class="btn btn-purple hide-mobile" data-open="#modalGasto" data-preset-tipo="EGRESO"><i class="fas fa-plus" style="font-size:11px"></i>Registrar gasto</button>
+      <button class="btn btn-green hide-mobile" data-open="#modalGasto" data-preset-tipo="INGRESO">
+        <i class="fas fa-arrow-down" style="font-size:11px"></i>Anotar ingreso
+      </button>
+      <button class="btn btn-purple hide-mobile" data-open="#modalGasto" data-preset-tipo="EGRESO">
+        <i class="fas fa-plus" style="font-size:11px"></i>Anotar gasto
+      </button>
       {% endblock %}
     </header>
 
@@ -172,9 +199,22 @@
   <a href="{% url 'perfil' %}" data-label="Mi perfil" class="nav-item {% if request.resolver_match.url_name == 'perfil' %}active{% endif %}"><i class="fas fa-user"></i><span>Perfil</span></a>
 </nav>
 
-<button class="fab" data-open="#modalGasto" data-preset-tipo="EGRESO" aria-label="Registrar gasto">
-  <i class="fas fa-plus" style="font-size:18px"></i>
-</button>
+{% comment %}
+  Dos botones, no uno. Los del topbar están ocultos en móvil, así que antes
+  no quedaba NINGUNA forma de registrar un ingreso desde el teléfono.
+{% endcomment %}
+<div class="fab-group">
+  {% block fab %}
+  <button class="fab fab-mini" data-open="#modalGasto" data-preset-tipo="INGRESO"
+          aria-label="Registrar un ingreso" title="Registrar un ingreso">
+    <i class="fas fa-arrow-down" style="font-size:13px"></i>
+  </button>
+  <button class="fab" data-open="#modalGasto" data-preset-tipo="EGRESO"
+          aria-label="Registrar un gasto" title="Registrar un gasto">
+    <i class="fas fa-plus" style="font-size:18px"></i>
+  </button>
+  {% endblock %}
+</div>
 
 {% if messages %}
 <div class="toast-container">
@@ -186,9 +226,229 @@
 </div>
 {% endif %}
 
+{% comment %}
+  Panel de registro. Vive en base.html porque los botones que lo abren están
+  en el topbar de TODAS las pantallas. Antes estaba solo en dashboard.html,
+  así que en Cuotas, Me deben o Suscripciones esos botones no hacían nada:
+  apuntaban a un modal que no existía ahí.
+{% endcomment %}
+<div class="modal-overlay drawer-overlay" id="modalGasto">
+  <div class="drawer-box">
+    <div class="modal-head">
+      <div>
+        <div class="modal-title">Registrar</div>
+        <div class="modal-sub">Sin salir del panel. Se guarda al toque.</div>
+      </div>
+      <button class="modal-close" data-close>✕</button>
+    </div>
+
+    <form method="post" action="{% url 'registrar_transaccion' %}" id="formRegistro">
+      {% csrf_token %}
+      {% comment %}
+        Vuelve a la pantalla desde la que se registró. Antes el panel solo
+        existía en el dashboard, así que mandaba siempre ahí.
+      {% endcomment %}
+      <input type="hidden" name="next" value="{{ request.get_full_path }}">
+
+      {% comment %}
+        El form de Django exige tipo, monto, categoria y fecha. Van ocultos:
+        el usuario los llena con el segmentado, el teclado y los chips.
+      {% endcomment %}
+      <input type="hidden" name="tipo" id="campoTipo" value="EGRESO">
+      <input type="hidden" name="monto" id="campoMonto" value="">
+      <input type="hidden" name="categoria" id="campoCategoria" value="Comida">
+      <input type="hidden" name="fecha" id="campoFecha" value="{{ hoy_iso }}">
+
+      <div class="seg" style="margin-bottom:20px" id="segTipo">
+        <button type="button" class="on-coral" data-tipo="EGRESO">Gasto</button>
+        <button type="button" data-tipo="INGRESO">Ingreso</button>
+      </div>
+
+      <div style="text-align:center;padding:16px 0 18px">
+        <div class="label" style="margin-bottom:8px">Monto</div>
+        <div class="amount-display" id="montoView" style="color:var(--coral)">$0</div>
+      </div>
+
+      <div class="keypad" data-keypad data-target="#campoMonto" data-display="#montoView" style="margin-bottom:18px">
+        <button type="button" data-key="1">1</button><button type="button" data-key="2">2</button><button type="button" data-key="3">3</button>
+        <button type="button" data-key="4">4</button><button type="button" data-key="5">5</button><button type="button" data-key="6">6</button>
+        <button type="button" data-key="7">7</button><button type="button" data-key="8">8</button><button type="button" data-key="9">9</button>
+        <button type="button" data-key="000">000</button><button type="button" data-key="0">0</button><button type="button" data-key="del">⌫</button>
+      </div>
+
+      <div class="label" style="margin-bottom:9px" id="labelCat">Categoría</div>
+      <div class="chips" data-field="#campoCategoria" style="margin-bottom:18px" id="chipsGasto">
+        {% for value, label in form_registro.fields.categoria.choices %}
+          {% if value %}<button type="button" class="chip" data-value="{{ value }}">{{ label }}</button>{% endif %}
+        {% endfor %}
+      </div>
+
+      <div class="field">
+        <label class="label" for="campoDesc">Descripción</label>
+        <input type="text" name="descripcion" id="campoDesc" placeholder="Ej: Supermercado, sueldo de agosto">
+      </div>
+
+      <div id="bloquePago" style="margin-bottom:18px">
+        <div class="label" style="margin-bottom:9px">¿Ya la pagaste?</div>
+        <input type="hidden" name="sin_pagar" id="campoSinPagar" value="">
+        <div class="seg" id="segPago">
+          <button type="button" class="on-green" data-pagado="1">Sí, ya salió</button>
+          <button type="button" data-pagado="0">Aún la debo</button>
+        </div>
+        <div class="hint" style="font-size:10.5px;margin-top:8px" id="notaPago">
+          Cuenta como gasto del mes en los dos casos. La diferencia es si la plata ya se fue.
+        </div>
+      </div>
+
+      {% if dias_restantes %}
+      <div class="preview-box">
+        <div class="label" style="color:rgba(167,139,250,.8);margin-bottom:8px">Si guardas esto</div>
+        <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:5px">
+          <span style="font-size:12px;color:var(--text-secondary)">Te queda libre</span>
+          <span class="mono" style="font-size:15px" data-preview data-base="{{ disponible }}"
+                data-dias="{{ dias_restantes }}" data-sign="-1">${{ disponible|intcomma }}</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:baseline">
+          <span style="font-size:12px;color:var(--text-secondary)">Por día ({{ dias_restantes }} días)</span>
+          <span class="mono" style="font-size:12.5px;color:rgba(241,240,255,.7)" data-preview-dia>${{ por_dia|intcomma }}</span>
+        </div>
+      </div>
+      {% endif %}
+
+      <button type="submit" class="btn btn-purple btn-block" id="btnGuardar">Guardar</button>
+    </form>
+  </div>
+</div>
+
 {% block modals %}{% endblock %}
 
 <script src="{% static 'js/finapp.js' %}"></script>
+<script>
+/* Panel de registro. Va en base.html, después de finapp.js, porque el panel
+   está disponible en todas las pantallas. */
+(function () {
+  var form = document.getElementById('formRegistro');
+  if (!form) return;
+
+  var catsGasto = {{ cats_egreso_json|safe }};
+  var catsIngreso = {{ cats_ingreso_json|safe }};
+
+  var chips = document.getElementById('chipsGasto');
+  var campoTipo = document.getElementById('campoTipo');
+  var campoCat = document.getElementById('campoCategoria');
+  var campoMonto = document.getElementById('campoMonto');
+  var labelCat = document.getElementById('labelCat');
+  var montoView = document.getElementById('montoView');
+  var segTipo = document.getElementById('segTipo');
+
+  function pintarChips(tipo) {
+    var lista = tipo === 'INGRESO' ? catsIngreso : catsGasto;
+    labelCat.textContent = tipo === 'INGRESO' ? 'De dónde viene' : 'Categoría';
+    chips.innerHTML = lista.map(function (c, i) {
+      return '<button type="button" class="chip' + (i === 0 ? ' on' : '') +
+             '" data-value="' + c[0] + '">' + c[1] + '</button>';
+    }).join('');
+    campoCat.value = lista[0][0];
+  }
+
+  function setTipo(tipo) {
+    var esGasto = tipo !== 'INGRESO';
+    campoTipo.value = esGasto ? 'EGRESO' : 'INGRESO';
+    segTipo.querySelectorAll('button').forEach(function (b) {
+      b.className = b.dataset.tipo === campoTipo.value ? (esGasto ? 'on-coral' : 'on-green') : '';
+    });
+    montoView.style.color = esGasto ? 'var(--coral)' : 'var(--green)';
+    var prev = document.querySelector('[data-preview]');
+    if (prev) prev.dataset.sign = esGasto ? '-1' : '1';
+    // Un ingreso no se "paga": el bloque solo aplica a gastos
+    var bloque = document.getElementById('bloquePago');
+    if (bloque) bloque.style.display = esGasto ? 'block' : 'none';
+    pintarChips(campoTipo.value);
+  }
+
+  segTipo.addEventListener('click', function (e) {
+    var b = e.target.closest('button'); if (!b) return;
+    setTipo(b.dataset.tipo);
+  });
+
+  chips.addEventListener('click', function (e) {
+    var b = e.target.closest('button'); if (!b) return;
+    chips.querySelectorAll('button').forEach(function (x) { x.classList.remove('on'); });
+    b.classList.add('on');
+    campoCat.value = b.dataset.value;
+  });
+
+  document.querySelectorAll('[data-preset-tipo]').forEach(function (btn) {
+    btn.addEventListener('click', function () { setTipo(btn.dataset.presetTipo); });
+  });
+
+  /* El teclado propio del panel: no depende de finapp.js, para que el
+     monto quede escrito en el input del form pase lo que pase. */
+  var teclado = form.querySelector('.keypad');
+  var valor = '';
+  function pintarMonto() {
+    campoMonto.value = valor;
+    montoView.textContent = valor ? '$' + Number(valor).toLocaleString('es-CL') : '$0';
+    var prev = document.querySelector('[data-preview]');
+    if (prev) {
+      var base = Number(prev.dataset.base || 0);
+      var signo = Number(prev.dataset.sign || -1);
+      var dias = Number(prev.dataset.dias || 1);
+      var v = base + signo * Number(valor || 0);
+      prev.textContent = '$' + Math.round(v).toLocaleString('es-CL');
+      prev.style.color = v < 0 ? 'var(--coral)' : 'var(--text-primary)';
+      var porDia = document.querySelector('[data-preview-dia]');
+      if (porDia) porDia.textContent = '$' + Math.round(v / dias).toLocaleString('es-CL');
+    }
+  }
+  teclado.addEventListener('click', function (e) {
+    var b = e.target.closest('button'); if (!b) return;
+    e.preventDefault();
+    var k = b.dataset.key;
+    if (k === 'del') valor = valor.slice(0, -1);
+    else if (valor.length <= 8) valor = (valor + k).replace(/^0+/, '');
+    pintarMonto();
+  });
+
+  form.addEventListener('submit', function (e) {
+    if (!Number(campoMonto.value || 0)) {
+      e.preventDefault();
+      montoView.style.transition = 'transform .12s';
+      montoView.style.transform = 'scale(1.08)';
+      montoView.style.color = 'var(--coral)';
+      setTimeout(function () { montoView.style.transform = 'scale(1)'; }, 120);
+    }
+  });
+
+  /* Ya pagado / aún lo debo. Solo tiene sentido en un gasto. */
+  var segPago = document.getElementById('segPago');
+  var campoSinPagar = document.getElementById('campoSinPagar');
+  var bloquePago = document.getElementById('bloquePago');
+  var notaPago = document.getElementById('notaPago');
+
+  segPago.addEventListener('click', function (e) {
+    var b = e.target.closest('button'); if (!b) return;
+    var yaPago = b.dataset.pagado === '1';
+    campoSinPagar.value = yaPago ? '' : '1';
+    segPago.querySelectorAll('button').forEach(function (x) {
+      x.className = x === b ? (yaPago ? 'on-green' : 'on-coral') : '';
+    });
+    notaPago.textContent = yaPago
+      ? 'Cuenta como gasto del mes en los dos casos. La diferencia es si la plata ya se fue.'
+      : 'Queda en la lista de pagos del mes para marcarlo cuando lo pagues.';
+  });
+
+  setTipo('EGRESO');
+  pintarMonto();
+
+  /* ?registrar=1 abre el panel al cargar. Lo usan el botón flotante de las
+     pantallas sin panel propio y el retorno de un POST con error. */
+  {% if abrir_panel or request.GET.registrar %}
+  var overlay = document.getElementById('modalGasto');
+  if (overlay) { overlay.classList.add('open'); document.body.style.overflow = 'hidden'; }
+  {% endif %}
+})();
+</script>
 {% block extra_js %}{% endblock %}
 </body>
 </html>

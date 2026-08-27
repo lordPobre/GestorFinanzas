@@ -19,6 +19,15 @@ class Transaccion(models.Model):
         ('Servicios', 'Luz, Agua, Internet'),
         ('Ocio', 'Entretenimiento y Salidas'),
         ('Salud', 'Salud y Farmacia'),
+        # Estas cuatro son las que se compran a plazo. Antes todas caían en
+        # "Otros Gastos", así que la dona de categorías no distinguía un
+        # televisor de una multa.
+        ('Tecnologia', 'Tecnología y electrónica'),
+        ('Ropa', 'Ropa y calzado'),
+        ('Hogar', 'Hogar y muebles'),
+        ('Viajes', 'Viajes y pasajes'),
+        ('Compras', 'Compras online'),
+        ('Educacion', 'Educación y cursos'),
         ('Otros', 'Otros Gastos'),
     )
 
@@ -42,8 +51,14 @@ class Transaccion(models.Model):
         'Servicios': '#a78bfa',
         'Ocio': '#fbbf24',
         'Salud': '#22d3ee',
+        'Tecnologia': '#818cf8',
+        'Ropa': '#f472b6',
+        'Hogar': '#2dd4bf',
+        'Viajes': '#38bdf8',
+        'Compras': '#c084fc',
+        'Educacion': '#facc15',
         'Suscripciones': '#fb923c',
-        'Cuentas': '#f472b6',
+        'Cuentas': '#fb7185',
         'Otros': 'rgba(241,240,255,.28)',
     }
 
@@ -115,6 +130,12 @@ class Transaccion(models.Model):
             'Servicios': 'fa-bolt',
             'Ocio': 'fa-film',
             'Salud': 'fa-kit-medical',
+            'Tecnologia': 'fa-laptop',
+            'Ropa': 'fa-shirt',
+            'Hogar': 'fa-couch',
+            'Viajes': 'fa-plane',
+            'Compras': 'fa-bag-shopping',
+            'Educacion': 'fa-graduation-cap',
             'Suscripciones': 'fa-rotate',
             'Cuentas': 'fa-file-invoice',
         }
@@ -124,31 +145,35 @@ class Transaccion(models.Model):
 
 
 class Deuda(models.Model):
-    CATEGORIAS_EGRESO = (
-        ('Comida', 'Comida y Supermercado'),
-        ('Transporte', 'Transporte y Gasolina'),
-        ('Servicios', 'Luz, Agua, Internet'),
-        ('Ocio', 'Entretenimiento y Salidas'),
+    # Las categorías de una compra a plazo no son las del día a día.
+    #
+    # ANTES esta lista era una copia de las de gasto corriente, encabezada
+    # por "Comida y Supermercado" — que además salía preseleccionada. Nadie
+    # compra el supermercado en 12 cuotas; lo que se compra a plazo es
+    # tecnología, ropa, muebles y viajes. El orden importa: lo más probable
+    # va primero, para que la mayoría no tenga que buscar.
+    CATEGORIAS_CUOTAS = (
+        ('Tecnologia', 'Tecnología y electrónica'),
+        ('Compras', 'Compras online'),
+        ('Ropa', 'Ropa y calzado'),
+        ('Hogar', 'Hogar y muebles'),
+        ('Ocio', 'Entretenimiento'),
+        ('Viajes', 'Viajes y pasajes'),
+        ('Educacion', 'Educación y cursos'),
         ('Salud', 'Salud y Farmacia'),
-        ('Otros', 'Otros Gastos'),
+        ('Transporte', 'Transporte'),
+        ('Otros', 'Otra cosa'),
     )
 
-    CATEGORIAS_INGRESO = (
-        ('Sueldo', 'Sueldo o salario'),
-        ('Freelance', 'Trabajo freelance'),
-        ('Negocio', 'Negocio o emprendimiento'),
-        ('Venta', 'Venta de algo'),
-        ('Bono', 'Bono o aguinaldo'),
-        ('Transferencia', 'Transferencia recibida'),
-        ('Otros_Ingresos', 'Otros ingresos'),
-    )
-
-    CATEGORIAS = CATEGORIAS_EGRESO + CATEGORIAS_INGRESO
+    # Se mantienen los nombres viejos porque otro código los importa.
+    CATEGORIAS_EGRESO = CATEGORIAS_CUOTAS
+    CATEGORIAS = CATEGORIAS_CUOTAS
 
     usuario = models.ForeignKey(User, on_delete=models.CASCADE)
     acreedor = models.CharField(max_length=100)
     monto_total = models.DecimalField(max_digits=10, decimal_places=2)
-    categoria = models.CharField(max_length=50, choices=CATEGORIAS, default='Otros')
+    categoria = models.CharField(max_length=50, choices=CATEGORIAS_CUOTAS,
+                                 default='Tecnologia')
     cuotas_totales = models.IntegerField(default=12)
     cuotas_pagadas = models.IntegerField(default=0)
     fecha_inicio = models.DateField(default=timezone.now, help_text="Fecha del primer pago")

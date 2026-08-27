@@ -24,6 +24,19 @@ from .models import (AbonoPrestamo, AporteMeta, Deuda, GastoPendiente,
 NOMBRES_MESES = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun',
                  'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic']
 
+MESES_LARGOS = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio',
+                'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre']
+
+
+def nombre_mes_es(year, month, capitalizado=True):
+    """Mes en español.
+
+    strftime('%B') usa el locale del SISTEMA, no LANGUAGE_CODE de Django, así
+    que en el servidor devolvía 'August' aunque la app esté en español.
+    """
+    texto = f'{MESES_LARGOS[month - 1]} {year}'
+    return texto.capitalize() if capitalizado else texto
+
 
 # ============================================================
 #  HELPERS
@@ -394,15 +407,39 @@ def pendientes_del_mes(usuario, year, month):
 
 
 def contadores(usuario):
-    """Los números del menú lateral. Se pasan en todas las vistas para que
-    los badges no aparezcan solo en el dashboard."""
+    """Contexto compartido por todas las pantallas.
+
+    Los badges del menú, la salud del mes y los datos del panel de registro.
+    El panel vive en base.html (los botones que lo abren están en el topbar
+    de todas las pantallas), así que sus datos tienen que llegar a todas —
+    antes solo existían en el contexto del dashboard.
+    """
     cuotas_activas = Deuda.objects.filter(
         usuario=usuario, cuotas_pagadas__lt=F('cuotas_totales')).count()
     personas = Persona.objects.filter(usuario=usuario).prefetch_related('prestamos__abonos')
     prestamos_activos = sum(len(p.prestamos_activos) for p in personas)
+    hoy = date.today()
     datos = {
         'cuotas_activas': cuotas_activas,
         'prestamos_activos': prestamos_activos,
+
+        # Panel de registro.
+        #
+        # Se llama 'form_registro', NO 'form': contadores() se aplica con
+        # context.update() al final de cada vista, así que un 'form' acá
+        # pisaba el formulario propio de la pantalla (en Cuotas borraba el
+        # DeudaForm y el modal salía sin campos).
+        'form_registro': TransaccionForm(initial={'tipo': 'EGRESO', 'fecha': hoy}),
+        'hoy_iso': hoy.isoformat(),
+        'cats_egreso_json': json.dumps([list(c) for c in Transaccion.CATEGORIAS_EGRESO]),
+        'cats_ingreso_json': json.dumps([list(c) for c in Transaccion.CATEGORIAS_INGRESO]),
+
+        # Suscripciones sin pagar este mes: el badge del menú
+        'subs_pendientes': sum(
+            1 for s in Suscripcion.objects.filter(usuario=usuario, activa=True)
+                                          .prefetch_related('pagos')
+            if not s.pagada_este_mes
+        ),
     }
     datos.update(salud_financiera(usuario))
     return datos
@@ -427,11 +464,18 @@ def generar_cobros_suscripciones(usuario):
         while cursor.year * 100 + cursor.month <= mes_actual_clave:
             _, ult_dia = calendar.monthrange(cursor.year, cursor.month)
             dia = min(sub.dia_cobro, ult_dia)
+            # El cobro se genera porque llegó el mes, no porque se pagó.
+            # Nace sin pagar y se marca desde la pantalla de suscripciones.
+            # Los meses anteriores al actual se dan por pagados: si el
+            # servicio siguió activo, es porque se pagó.
+            es_mes_en_curso = (cursor.year, cursor.month) == (hoy.year, hoy.month)
             Transaccion.objects.create(
                 usuario=usuario, tipo='EGRESO', monto=sub.monto,
                 categoria=sub.categoria or 'Suscripciones',
                 descripcion=f'Suscripción: {sub.nombre}',
                 fecha=date(cursor.year, cursor.month, dia), es_cuota=False,
+                pagado=not es_mes_en_curso,
+                fecha_pago=None if es_mes_en_curso else date(cursor.year, cursor.month, dia),
             )
             sub.ultimo_mes_generado = cursor.year * 100 + cursor.month
             cursor = cursor + relativedelta(months=1)
@@ -463,7 +507,7 @@ def dashboard(request):
     next_month, next_year = (1, year + 1) if month == 12 else (month + 1, year)
 
     r = resumen_mes(request.user, year, month)
-    nombre_mes = date(year, month, 1).strftime('%B %Y').capitalize()
+    nombre_mes = nombre_mes_es(year, month)
     todas_las_deudas = Deuda.objects.filter(usuario=request.user)
 
     # ---------- Calendario ----------
@@ -605,6 +649,9 @@ def dashboard(request):
         'next_month': next_month, 'next_year': next_year,
         'year': year, 'month': month,
         'es_mes_actual': (year, month) == (hoy.year, hoy.month),
+        # Para que las flechas digan a qué mes llevan, no solo "anterior"
+        'prev_month_nombre': nombre_mes_es(prev_year, prev_month),
+        'next_month_nombre': nombre_mes_es(next_year, next_month),
         'dias_semana': ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'],
 
         # Números del mes
@@ -637,13 +684,7 @@ def dashboard(request):
         'se_libera': se_libera,
         'categorias': categorias,
         'dias_con_pago': dias_con_pago,
-        # Antes contaba las suscripciones activas, que no es lo mismo que las
-        # que faltan por pagar este mes.
-        'subs_pendientes': sum(
-            1 for s in Suscripcion.objects.filter(usuario=request.user, activa=True)
-                                          .prefetch_related('pagos')
-            if not s.pagada_este_mes
-        ),
+
 
         'pendientes': pagos_mes,
         'pendientes_sin_pagar': sin_pagar,
@@ -663,14 +704,9 @@ def dashboard(request):
         'calendario': calendario_datos,
 
         # Formulario del panel de registro, para no salir del dashboard
-        # TransaccionForm tiene 'fecha' como campo obligatorio: sin initial,
-        # el panel de registro fallaba la validación en silencio.
-        'form': TransaccionForm(initial={'tipo': 'EGRESO', 'fecha': timezone.localdate()}),
-        'hoy_iso': hoy.isoformat(),
+        # El form, hoy_iso y las categorías del panel los entrega contadores(),
+        # porque el panel ahora está en base.html y lo usan todas las pantallas.
         'abrir_panel': bool(request.GET.get('registrar')),
-        # Las categorías del panel salen del modelo, no escritas en el template
-        'cats_egreso_json': json.dumps([list(c) for c in Transaccion.CATEGORIAS_EGRESO]),
-        'cats_ingreso_json': json.dumps([list(c) for c in Transaccion.CATEGORIAS_INGRESO]),
 
         'meses_json': json.dumps(meses_labels),
         'ingresos_json': json.dumps(datos_ingresos),
@@ -782,6 +818,8 @@ def pagar_cuota(request, deuda_id):
         categoria=deuda.categoria,
         descripcion=f'Cuota {numero}/{deuda.cuotas_totales} — {deuda.acreedor}',
         fecha=fecha_cobro, es_cuota=True,
+        # Nace pagada: la transacción se crea justamente porque se pagó.
+        pagado=True, fecha_pago=hoy,
     )
     PagoCuota.objects.create(
         deuda=deuda, periodo=periodo, monto=monto, fecha_pago=hoy, transaccion=tx,
@@ -917,7 +955,12 @@ def registrar_transaccion(request):
             t.usuario = request.user
             # El panel manda 'sin_pagar' cuando el gasto se anota pero no se
             # ha pagado todavía.
-            if t.tipo == 'EGRESO' and request.POST.get('sin_pagar'):
+            # Dos plantillas mandan esto con nombres distintos: el panel del
+            # dashboard usa 'sin_pagar' y el formulario completo 'es_pendiente'.
+            # Antes solo se leía uno y el checkbox del formulario no hacía nada.
+            marcado_pendiente = (request.POST.get('sin_pagar')
+                                 or request.POST.get('es_pendiente'))
+            if t.tipo == 'EGRESO' and marcado_pendiente:
                 t.pagado = False
                 t.fecha_pago = None
             else:
@@ -1402,6 +1445,10 @@ def analisis_predictivo(request):
         'simbolo': _simbolo_moneda(request.user),
         'riesgo_offset': round(riesgo_offset, 1),
         'serie': serie,
+        # Cuotas que ya vencieron y no se pagaron: plata que se debe hoy,
+        # no una proyección. Antes no aparecía en el análisis.
+        'cuotas_atrasadas': analisis.get('cuotas_atrasadas', 0),
+        'monto_atrasado': analisis.get('monto_atrasado', 0),
         'indice_actual': indice_actual,
         'total_pagado_serie': round(sum(f['pagado'] for f in serie)),
         'total_pendiente_serie': round(sum(f['pendiente'] for f in serie)),
@@ -1456,10 +1503,13 @@ def crear_gasto_pendiente(request):
             messages.warning(request, 'La fecha no es válida.')
             return _redirigir(request)
 
+        # Nace sin pagar: es justamente una cuenta que falta pagar. Antes
+        # entraba como pagada y "ya gastaste" contaba plata que no había
+        # salido del bolsillo.
         tx = Transaccion.objects.create(
             usuario=request.user, tipo='EGRESO', monto=monto,
             categoria=categoria, descripcion=f'Pendiente: {nombre}',
-            fecha=venc, es_cuota=False,
+            fecha=venc, es_cuota=False, pagado=False,
         )
         GastoPendiente.objects.create(
             usuario=request.user, nombre=nombre, monto=monto,
@@ -1484,6 +1534,12 @@ def pagar_gasto_pendiente(request, gasto_id):
         gasto.pagado = True
         gasto.fecha_pago = date.today()
         gasto.save(update_fields=['pagado', 'fecha_pago'])
+        # La transacción asociada también queda pagada, si no el gasto
+        # seguiría apareciendo como pendiente en "ya gastaste".
+        if gasto.transaccion:
+            gasto.transaccion.pagado = True
+            gasto.transaccion.fecha_pago = gasto.fecha_pago
+            gasto.transaccion.save(update_fields=['pagado', 'fecha_pago'])
         if es_ajax:
             return JsonResponse({'ok': True})
         messages.success(request, f'{gasto.nombre} marcado como pagado.')
@@ -1501,6 +1557,10 @@ def anular_gasto_pendiente(request, gasto_id):
         gasto.pagado = False
         gasto.fecha_pago = None
         gasto.save(update_fields=['pagado', 'fecha_pago'])
+        if gasto.transaccion:
+            gasto.transaccion.pagado = False
+            gasto.transaccion.fecha_pago = None
+            gasto.transaccion.save(update_fields=['pagado', 'fecha_pago'])
         if es_ajax:
             return JsonResponse({'ok': True})
         messages.success(request, 'Marcado como no pagado.')
@@ -1633,10 +1693,17 @@ def pagar_servicio(request, sub_id):
     if sub.esta_pagada_en(periodo):
         return responder(False, 'Ese mes ya estaba pagado.', 'warning')
 
+    hoy = timezone.localdate()
     PagoServicio.objects.create(
-        suscripcion=sub, periodo=periodo, monto=sub.monto,
-        fecha_pago=timezone.localdate(),
+        suscripcion=sub, periodo=periodo, monto=sub.monto, fecha_pago=hoy,
     )
+    # La transacción de ese mes también queda pagada, para que el reparto de
+    # "ya gastaste" cuadre con lo que marcaste acá.
+    Transaccion.objects.filter(
+        usuario=request.user, tipo='EGRESO', es_cuota=False,
+        descripcion=f'Suscripción: {sub.nombre}',
+        fecha__year=periodo // 100, fecha__month=periodo % 100,
+    ).update(pagado=True, fecha_pago=hoy)
 
     restantes = len(sub.periodos_pendientes)
     if restantes:
@@ -1671,6 +1738,11 @@ def anular_pago_servicio(request, sub_id):
         return _redirigir(request, 'suscripciones')
 
     etiqueta = pago.etiqueta_mes
+    Transaccion.objects.filter(
+        usuario=request.user, tipo='EGRESO', es_cuota=False,
+        descripcion=f'Suscripción: {sub.nombre}',
+        fecha__year=pago.periodo // 100, fecha__month=pago.periodo % 100,
+    ).update(pagado=False, fecha_pago=None)
     pago.delete()
 
     if es_ajax:
@@ -1839,7 +1911,8 @@ def perfil(request):
         'perfil_form': perfil_form, 'pw_form': pw_form, 'profile': profile,
         'total_trans': Transaccion.objects.filter(usuario=request.user).count(),
         'total_deudas': Deuda.objects.filter(usuario=request.user).count(),
-        'miembro_desde': request.user.date_joined.strftime('%B %Y'),
+        'miembro_desde': nombre_mes_es(request.user.date_joined.year,
+                                       request.user.date_joined.month),
     }
     context.update(contadores(request.user))
     return render(request, 'finanzas/perfil.html', context)
