@@ -1,5 +1,5 @@
 {% extends 'finanzas/base.html' %}
-{% load humanize %}
+{% load humanize moneda %}
 {% block search_placeholder %}Filtrar movimientos y pagos{% endblock %}
 {% block title %}Inicio · FinApp{% endblock %}
 
@@ -53,12 +53,12 @@
     </div>
 
     <div class="display" style="font-size:32px;margin:18px 0 0">
-      ${{ disponible|intcomma }}
+      {{ disponible|money }}
     </div>
 
     <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin-top:16px">
       <div style="font-size:11.5px;color:rgba(26,18,0,.68);font-weight:600">
-        ${{ por_dia|intcomma }} por día · quedan {{ dias_restantes }} días
+        {{ por_dia|money }} por día · quedan {{ dias_restantes }} días
       </div>
     </div>
   </div>
@@ -74,10 +74,10 @@
       </a>
     </div>
     <div class="display" style="font-size:32px;margin:18px 0 0;color:var(--amber)">
-      ${{ deuda_total|intcomma }}
+      {{ deuda_total|money }}
     </div>
     <div style="font-size:11.5px;color:var(--text-muted);margin-top:16px">
-      {% if total_cuotas_mes %}${{ total_cuotas_mes|intcomma }} este mes{% else %}Sin cuotas este mes{% endif %}
+      {% if total_cuotas_mes %}{{ total_cuotas_mes|money }} este mes{% else %}Sin cuotas este mes{% endif %}
       {% if cuotas_atrasadas %} · <span style="color:var(--coral)">{{ cuotas_atrasadas }} atrasada{{ cuotas_atrasadas|pluralize:"s" }}</span>{% endif %}
     </div>
   </div>
@@ -106,103 +106,93 @@
 </div>
 
 {% comment %}
-  Ingresos y egresos en una sola fila partida, igual que la plantilla.
-{% endcomment %}
-<div class="split-card" style="margin-bottom:18px">
-  <div>
-    <i class="fas fa-arrow-down split-flecha" style="color:var(--green)"></i>
-    <div>
-      <div class="label">Ingresos</div>
-      <div class="display" style="font-size:19px">${{ total_ingresos|intcomma }}</div>
-    </div>
-  </div>
-  <span class="divisor"></span>
-  <div style="padding-left:18px">
-    <i class="fas fa-arrow-up split-flecha" style="color:var(--coral)"></i>
-    <div>
-      <div class="label">Egresos</div>
-      <div class="display" style="font-size:19px">${{ total_comprometido_mes|intcomma }}</div>
-    </div>
-  </div>
-</div>
+  2. TU MES — un solo bloque.
 
-{% comment %}
-  El reparto del mes: gastado, por pagar y disponible en una barra.
-{% endcomment %}
-<div class="glass card" style="margin-bottom:18px" data-spot>
-  <div class="split-bar" style="height:10px">
-    <span style="width:{{ pct_gastado }}%;background:var(--blue)"></span>
-    <span style="width:{{ pct_por_pagar }}%;background:var(--amber)"></span>
-    <span style="width:{{ pct_disponible }}%;background:var(--green)"></span>
-  </div>
-  <div style="display:flex;gap:16px;margin-top:11px;font-size:10.5px;color:var(--text-muted);flex-wrap:wrap">
-    <span><span style="display:inline-block;width:7px;height:7px;border-radius:2px;background:var(--blue);margin-right:5px"></span>Ya gastado</span>
-    <span><span style="display:inline-block;width:7px;height:7px;border-radius:2px;background:var(--amber);margin-right:5px"></span>Por pagar</span>
-    <span><span style="display:inline-block;width:7px;height:7px;border-radius:2px;background:var(--green);margin-right:5px"></span>Disponible</span>
-  </div>
-</div>
-{% comment %}
-  2. DE DÓNDE SALE ESE NÚMERO — el desglose, justo debajo.
-
-  Antes estas tarjetas iban DESPUÉS de la lista de pagos, así que la
-  explicación del número principal llegaba tras una lista de acciones. Y
-  eran cuatro: la última repetía el "te queda libre" del titular. Ahora son
-  tres y suman al titular: entró − gastaste − debes = te queda.
+  Antes esto eran TRES bloques seguidos que decían casi lo mismo: la fila
+  ingresos/egresos, una barra de tres tramos suelta sin título, y una
+  cuadrícula de tres tarjetas ("Entró este mes", "Ya gastaste", "Aún debes
+  pagar"). total_ingresos aparecía dos veces y por_pagar otras dos. Ahora es
+  un bloque: los dos totales arriba, la barra al medio, y el desglose de
+  cada tramo debajo con su color.
 {% endcomment %}
 <div class="section-head">
-  <h2 class="section-title">De dónde sale ese número</h2>
-  <span class="section-sub">{{ nombre_mes }}</span>
+  <h2 class="section-title">Tu mes</h2>
+  <span class="section-sub" style="cursor:default">{{ nombre_mes }}</span>
 </div>
-<div class="grid-metrics" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr))">
-  <div class="glass glass-lift card" data-spot>
-    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px">
-      <div class="label">Entró este mes</div>
+
+<div class="glass card-lg" style="margin-bottom:18px" data-spot>
+
+  {# Entró y salió, la comparación de la que sale todo lo demás #}
+  <div class="mes-totales">
+    <div>
       <span class="icon-tile green"><i class="fas fa-arrow-down"></i></span>
+      <div>
+        <div class="label">Entró</div>
+        <div class="display" style="font-size:21px;color:var(--green)">{{ total_ingresos|money }}</div>
+      </div>
     </div>
-    <div class="stat-value" style="color:var(--green)">${{ total_ingresos|intcomma }}</div>
-    <div class="stat-note">Todo lo que entró, incluidos abonos y extras.</div>
+    <span class="mes-divisor"></span>
+    <div>
+      <span class="icon-tile coral"><i class="fas fa-arrow-up"></i></span>
+      <div>
+        <div class="label">Comprometido</div>
+        <div class="display" style="font-size:21px;color:var(--coral)">{{ total_comprometido_mes|money }}</div>
+      </div>
+    </div>
   </div>
 
-  <div class="glass glass-lift card" data-spot>
-    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px">
-      <div class="label">Ya gastaste</div>
-      <span class="icon-tile blue"><i class="fas fa-arrow-up"></i></span>
-    </div>
-    <div class="stat-value" style="color:var(--blue)">${{ total_gastos|intcomma }}</div>
-    {% if gastos_por_pagar %}
-    <div class="split-bar" style="height:6px;margin:10px 0 8px">
-      <span style="width:{{ pct_gasto_pagado }}%;background:linear-gradient(90deg,#059669,var(--green))"></span>
-      <span style="width:{% widthratio gastos_por_pagar total_gastos 100 %}%;background:linear-gradient(90deg,#ea580c,#fb923c)"></span>
-    </div>
-    <div class="stat-note">
-      <span style="color:var(--green)">${{ gastos_pagados|intcomma }} pagados</span> ·
-      <span style="color:var(--orange)">${{ gastos_por_pagar|intcomma }} sin pagar</span>
-    </div>
-    {% else %}
-    <div class="stat-note">Todo pagado. {{ pct_gastado }}% de lo que entró, sin contar cuotas.</div>
-    {% endif %}
+  {# La barra reparte lo que entró en sus tres destinos #}
+  <div class="split-bar" style="height:12px;margin-bottom:14px">
+    <span style="width:{{ pct_gastado }}%;background:var(--blue)" title="Ya gastado"></span>
+    <span style="width:{{ pct_por_pagar }}%;background:var(--amber)" title="Por pagar"></span>
+    <span style="width:{{ pct_disponible }}%;background:var(--green)" title="Disponible"></span>
   </div>
 
-  <div class="glass glass-lift glass-orange card" data-spot>
-    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px">
-      <div class="label" style="color:rgba(251,146,60,.7)">Aún debes pagar</div>
-      <span class="icon-tile orange"><i class="fas fa-clock"></i></span>
-    </div>
-    <div class="stat-value" style="color:var(--orange)">${{ por_pagar|intcomma }}</div>
-    <div class="stat-note">
-      {% if mes_al_dia %}Todo pagado este mes.
-      {% else %}{{ pendientes_sin_pagar|length }} pago{{ pendientes_sin_pagar|length|pluralize:"s" }} sin marcar.{% endif %}
-    </div>
-    {% if fijo_mensual %}
-    <div class="stat-note" style="margin-top:7px;padding-top:7px;border-top:1px solid rgba(255,255,255,.06)">
-      De eso, <b style="color:var(--text-secondary)">${{ fijo_mensual|intcomma }}</b> es fijo todos los meses
-      (cuotas y suscripciones).
-    </div>
-    {% endif %}
-  </div>
+  {% comment %}
+    Cada tramo con su monto. Una leyenda de colores sin cifras obliga a
+    mirar la barra y adivinar; con el monto al lado se lee de una.
+  {% endcomment %}
+  <div class="mes-tramos">
 
+    <div class="mes-tramo">
+      <span class="mes-punto" style="background:var(--blue)"></span>
+      <div>
+        <div class="label">Ya gastaste</div>
+        <div class="mono" style="font-size:15px">{{ total_gastos|money }}</div>
+        {% if gastos_por_pagar %}
+        <div class="mes-nota">
+          <span style="color:var(--green)">{{ gastos_pagados|money }} pagados</span> ·
+          <span style="color:var(--amber)">{{ gastos_por_pagar|money }} sin pagar</span>
+        </div>
+        {% else %}
+        <div class="mes-nota">Todo pagado</div>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="mes-tramo">
+      <span class="mes-punto" style="background:var(--amber)"></span>
+      <div>
+        <div class="label">Falta pagar</div>
+        <div class="mono" style="font-size:15px;color:var(--amber)">{{ por_pagar|money }}</div>
+        <div class="mes-nota">
+          {% if mes_al_dia %}Nada pendiente
+          {% else %}{{ pendientes_sin_pagar|length }} pago{{ pendientes_sin_pagar|length|pluralize:"s" }} sin marcar{% endif %}
+          {% if fijo_mensual %} · {{ fijo_mensual|money }} es fijo{% endif %}
+        </div>
+      </div>
+    </div>
+
+    <div class="mes-tramo">
+      <span class="mes-punto" style="background:var(--green)"></span>
+      <div>
+        <div class="label">Te queda</div>
+        <div class="mono" style="font-size:15px;color:var(--green)">{{ disponible|money }}</div>
+        <div class="mes-nota">{{ por_dia|money }} por día · {{ dias_restantes }} días</div>
+      </div>
+    </div>
+  </div>
 </div>
-
 {% comment %}
   3. LO QUE DEBES EN TOTAL
 
@@ -221,9 +211,9 @@
   <div class="deuda-cabecera">
     <div>
       <div class="label" style="margin-bottom:8px">Te falta pagar</div>
-      <div class="display" style="font-size:30px;line-height:1">${{ deuda_total|intcomma }}</div>
+      <div class="display" style="font-size:30px;line-height:1">{{ deuda_total|money }}</div>
       <div class="hint" style="font-size:11.5px;margin-top:7px">
-        de ${{ deuda_bruta_total|intcomma }} en {{ mis_cuotas|length }} compra{{ mis_cuotas|length|pluralize:"s" }}
+        de {{ deuda_bruta_total|money }} en {{ mis_cuotas|length }} compra{{ mis_cuotas|length|pluralize:"s" }}
         {% if se_libera %} · terminas en {{ se_libera.mes_fin }}{% endif %}
       </div>
     </div>
@@ -231,11 +221,11 @@
     <div class="deuda-datos">
       <div class="deuda-dato">
         <div class="label" style="margin-bottom:5px">Al mes</div>
-        <div class="mono" style="font-size:16px">${{ cuota_mensual_total|intcomma }}</div>
+        <div class="mono" style="font-size:16px">{{ cuota_mensual_total|money }}</div>
       </div>
       <div class="deuda-dato">
         <div class="label" style="margin-bottom:5px">Ya pagaste</div>
-        <div class="mono" style="font-size:16px;color:var(--green)">${{ deuda_pagada_total|intcomma }}</div>
+        <div class="mono" style="font-size:16px;color:var(--green)">{{ deuda_pagada_total|money }}</div>
       </div>
       {% if cuotas_atrasadas_total %}
       <div class="deuda-dato" style="background:rgba(248,113,113,.12);border-color:rgba(248,113,113,.26)">
@@ -253,7 +243,7 @@
     </div>
     <div style="display:flex;justify-content:space-between;margin-top:7px;font-size:10.5px;color:var(--text-muted)">
       <span>{{ deuda_pct_pagado }}% pagado</span>
-      <span>${{ deuda_total|intcomma }} por delante</span>
+      <span>{{ deuda_total|money }} por delante</span>
     </div>
   </div>
 
@@ -277,7 +267,7 @@
           </span>
         </span>
         <span class="deuda-item-monto">
-          <span class="mono">${{ c.restante|intcomma }}</span>
+          <span class="mono">{{ c.restante|money }}</span>
           <span class="row-meta">por pagar</span>
         </span>
         <i class="fas fa-chevron-down deuda-item-flecha"></i>
@@ -285,9 +275,9 @@
 
       <div class="deuda-item-detalle">
         <div class="deuda-item-nums">
-          <div><span class="label">Cuota</span><span class="mono">${{ c.cuota|intcomma }}</span></div>
-          <div><span class="label">Pagado</span><span class="mono" style="color:var(--green)">${{ c.pagado|intcomma }}</span></div>
-          <div><span class="label">Total</span><span class="mono">${{ c.monto_total|intcomma }}</span></div>
+          <div><span class="label">Cuota</span><span class="mono">{{ c.cuota|money }}</span></div>
+          <div><span class="label">Pagado</span><span class="mono" style="color:var(--green)">{{ c.pagado|money }}</span></div>
+          <div><span class="label">Total</span><span class="mono">{{ c.monto_total|money }}</span></div>
           <div><span class="label">Última</span><span class="mono">{{ c.fin|date:"M Y" }}</span></div>
         </div>
 
@@ -343,7 +333,7 @@
 <div class="section-head">
   <h2 class="section-title">Qué hay que pagar</h2>
   {% if not mes_al_dia and monto_sin_pagar %}
-  <span class="section-sub" style="color:var(--orange)">${{ monto_sin_pagar|intcomma }} pendiente</span>
+  <span class="section-sub" style="color:var(--orange)">{{ monto_sin_pagar|money }} pendiente</span>
   {% endif %}
 </div>
 <div class="grid-pagos">
@@ -355,7 +345,7 @@
     <div class="row-main">
       <div class="row-title">{{ nombre_mes }} está pagado</div>
       <div class="row-meta">
-        ${{ monto_ya_pagado|intcomma }} en {{ pendientes|length }} pago{{ pendientes|length|pluralize:"s" }}
+        {{ monto_ya_pagado|money }} en {{ pendientes|length }} pago{{ pendientes|length|pluralize:"s" }}
       </div>
     </div>
     <span style="font-size:11px;color:var(--text-muted)" class="hide-mobile">Ver detalle</span>
@@ -373,7 +363,7 @@
             {{ i.detalle }} · pagado{% if i.fecha_pago %} el {{ i.fecha_pago|date:"j M" }}{% endif %}
           </div>
         </div>
-        <div class="mono" style="font-size:12.5px;color:var(--text-muted)">${{ i.monto|floatformat:0|intcomma }}</div>
+        <div class="mono" style="font-size:12.5px;color:var(--text-muted)">{{ i.monto|money }}</div>
         <form method="post" action="{{ i.url_anular }}" style="margin:0"
               data-confirm="¿Marcar {{ i.nombre }} como no pagado?">
           {% csrf_token %}
@@ -400,7 +390,7 @@
 
     {% if pendientes_sin_pagar %}
       <div style="text-align:right">
-        <div class="mono" style="font-size:15px;color:var(--orange)">${{ monto_sin_pagar|intcomma }}</div>
+        <div class="mono" style="font-size:15px;color:var(--orange)">{{ monto_sin_pagar|money }}</div>
         <div style="font-size:10px;color:var(--text-muted);margin-top:2px">
           {{ pendientes_sin_pagar|length }} sin pagar
         </div>
@@ -424,8 +414,8 @@
       {% if monto_sin_pagar %}<span style="width:{% widthratio monto_sin_pagar total_comprometido_mes 100 %}%;background:linear-gradient(90deg,#ea580c,#fb923c)"></span>{% endif %}
     </div>
     <div style="display:flex;justify-content:space-between;margin-top:8px;font-size:10.5px;color:var(--text-muted)">
-      <span>${{ monto_ya_pagado|intcomma }} pagado</span>
-      <span>${{ monto_sin_pagar|intcomma }} por pagar</span>
+      <span>{{ monto_ya_pagado|money }} pagado</span>
+      <span>{{ monto_sin_pagar|money }} por pagar</span>
     </div>
   </div>
 
@@ -447,7 +437,7 @@
         </div>
       </div>
 
-      <div class="mono" style="font-size:12.5px;{% if i.pagado %}color:var(--text-muted){% endif %}">${{ i.monto|floatformat:0|intcomma }}</div>
+      <div class="mono" style="font-size:12.5px;{% if i.pagado %}color:var(--text-muted){% endif %}">{{ i.monto|money }}</div>
 
       {% if i.pagado %}
       <form method="post" action="{{ i.url_anular }}" style="margin:0"
@@ -502,7 +492,7 @@
         {% if dia %}
           <button type="button" class="cal-day {% if dia.tiene_pagos %}has{% endif %} {% if dia.es_hoy %}on{% endif %}"
                   {% if dia.tiene_pagos %}data-open="#dia{{ dia.numero }}"{% endif %}
-                  title="{% if dia.tiene_pagos %}${{ dia.total_dia|floatformat:0|intcomma }} este día{% endif %}">
+                  title="{% if dia.tiene_pagos %}{{ dia.total_dia|money }} este día{% endif %}">
             <span>{{ dia.numero }}</span>
             {% if dia.tiene_pagos %}<span class="dot {% if dia.todo_pagado %}paid{% endif %}"></span>{% endif %}
           </button>
@@ -526,7 +516,7 @@
             <div class="row-title">{{ g.nombre }}</div>
             <div class="row-meta">{{ g.fecha_vencimiento|date:"j M" }} · {{ g.texto_urgencia }}</div>
           </div>
-          <div class="mono" style="font-size:12.5px">${{ g.monto|floatformat:0|intcomma }}</div>
+          <div class="mono" style="font-size:12.5px">{{ g.monto|money }}</div>
           <form method="post" action="{% url 'pagar_gasto_pendiente' g.pk %}" style="margin:0">
             {% csrf_token %}
             <input type="hidden" name="next" value="{% url 'dashboard' %}">
@@ -556,8 +546,8 @@
         <div class="hint" style="font-size:11.5px;margin-top:3px">Pasa el cursor por un mes para ver el detalle</div>
       </div>
       <div class="seg" style="padding:3px" id="segRango">
-        <button type="button" data-meses="3">3M</button>
-        <button type="button" class="on" data-meses="6">6M</button>
+        <button type="button" data-meses="3">3 meses</button>
+        <button type="button" class="on" data-meses="6">6 meses</button>
       </div>
     </div>
     <div style="position:relative;height:236px">
@@ -580,7 +570,7 @@
         <span style="width:8px;height:8px;border-radius:3px;background:{{ c.color }};flex-shrink:0"></span>
         <span class="row-main" style="font-size:12px">{{ c.label }}</span>
         <span style="font-size:11px;color:var(--text-muted)">{{ c.porcentaje }}%</span>
-        <span class="mono" style="font-size:11.5px;color:var(--text-secondary)">${{ c.total|floatformat:0|intcomma }}</span>
+        <span class="mono" style="font-size:11.5px;color:var(--text-secondary)">{{ c.total|money }}</span>
       </button>
       {% endfor %}
     </div>
@@ -621,7 +611,7 @@
             </div>
           </div>
           <div class="mono" style="font-size:13px;{% if t.es_ingreso %}color:var(--green){% endif %}">
-            {% if t.es_ingreso %}+{% endif %}${{ t.monto|floatformat:0|intcomma }}
+            {% if t.es_ingreso %}+{% endif %}{{ t.monto|money }}
           </div>
 
           {% if t.por_pagar %}
@@ -675,7 +665,7 @@
             <span class="meta-mini-nombre">{{ m.nombre }}</span>
             <i class="fas fa-chevron-right" style="font-size:11px;color:var(--text-muted)"></i>
           </div>
-          <div class="meta-mini-monto">${{ m.monto_actual|floatformat:0|intcomma }}</div>
+          <div class="meta-mini-monto">{{ m.monto_actual|money }}</div>
           <div class="progress-bar" style="height:6px">
             <div class="progress-fill" style="width:{{ m.porcentaje|floatformat:0 }}%;
                  background:{% cycle '#4b8cff' '#f4626c' '#ffd54f' '#53d258' '#818cf8' '#2fd8c8' %}"></div>
@@ -697,7 +687,7 @@
     <div class="modal-head">
       <div>
         <div class="modal-title">{{ d.numero }} de {{ nombre_mes }}</div>
-        <div class="modal-sub">{{ d.eventos|length }} pago{{ d.eventos|length|pluralize:"s" }} · ${{ d.total_dia|floatformat:0|intcomma }}</div>
+        <div class="modal-sub">{{ d.eventos|length }} pago{{ d.eventos|length|pluralize:"s" }} · {{ d.total_dia|money }}</div>
       </div>
       <button class="modal-close" data-close>✕</button>
     </div>
@@ -712,7 +702,7 @@
             {% elif e.pago %} · pagada el {{ e.pago.fecha_pago|date:"j M" }}{% endif %}
           </div>
         </div>
-        <div class="mono" style="font-size:12.5px">${{ e.monto|floatformat:0|intcomma }}</div>
+        <div class="mono" style="font-size:12.5px">{{ e.monto|money }}</div>
         {% if e.estado == 'pagado' %}
           <span class="badge badge-green">Pagada</span>
         {% else %}
@@ -738,7 +728,7 @@
     <div class="modal-head">
       <div>
         <div class="modal-title">Aportar a {{ m.nombre }}</div>
-        <div class="modal-sub">Te faltan ${{ m.monto_faltante|floatformat:0|intcomma }}</div>
+        <div class="modal-sub">Te faltan {{ m.monto_faltante|money }}</div>
       </div>
       <button class="modal-close" data-close>✕</button>
     </div>
@@ -771,9 +761,27 @@
 (function () {
   if (typeof Chart === 'undefined') return;
 
-  var GRID = 'rgba(255,255,255,.055)';
-  var TICK = 'var(--text-muted)';
+  /* Chart.js dibuja en canvas y NO resuelve variables CSS: 'var(--text-muted)'
+     era un color inválido, así que los ejes y la leyenda se pintaban en negro
+     por defecto — invisibles sobre el fondo oscuro. Van los literales. */
+  var GRID = 'rgba(255,255,255,.06)';
+  var TICK = 'rgba(245,245,245,.42)';
+  var TEXTO = 'rgba(245,245,245,.72)';
   var FONT = "'Manrope', sans-serif";
+
+  /* Una barra sin valor no lleva esquina redondeada. */
+  function radioBarra(ctx) {
+    var v = ctx.raw;
+    return (typeof v === 'number' && v > 0) ? 6 : 0;
+  }
+
+  /* Formato corto: el eje mostraba '$1200k' para 1,2 millones. */
+  function corto(v) {
+    v = Math.abs(v);
+    if (v >= 1000000) return '$' + (v / 1000000).toFixed(1).replace('.', ',').replace(',0', '') + 'M';
+    if (v >= 1000) return '$' + Math.round(v / 1000) + 'k';
+    return '$' + Math.round(v);
+  }
 
   var tooltip = {
     backgroundColor: 'rgba(33,33,33,.96)',
@@ -804,25 +812,35 @@
       data: {
         labels: meses,
         datasets: [
-          { label: 'Entró', data: ingresos, backgroundColor: 'rgba(52,211,153,.85)',
-            borderRadius: 7, borderSkipped: false, maxBarThickness: 20 },
-          { label: 'Salió', data: salidas, backgroundColor: 'rgba(251,113,133,.85)',
-            borderRadius: 7, borderSkipped: false, maxBarThickness: 20 }
+          /* borderRadius fijo en una barra de altura ~0 hace que Chart.js
+             dibuje un óvalo suelto: con 5 meses sin datos el gráfico se veía
+             como puntos rojos y verdes flotando sobre el eje. Ahora el radio
+             depende del valor. */
+          { label: 'Entró', data: ingresos, backgroundColor: 'rgba(83,210,88,.9)',
+            borderRadius: radioBarra, borderSkipped: false, maxBarThickness: 18 },
+          { label: 'Salió', data: salidas, backgroundColor: 'rgba(226,92,92,.9)',
+            borderRadius: radioBarra, borderSkipped: false, maxBarThickness: 18 }
         ]
       },
       options: {
         responsive: true, maintainAspectRatio: false,
         interaction: { mode: 'index', intersect: false },
         plugins: {
-          legend: { labels: { color: TICK, font: { family: FONT, size: 11 }, usePointStyle: true, boxWidth: 7, padding: 15 } },
+          legend: {
+            labels: { color: TEXTO, font: { family: FONT, size: 11, weight: '600' },
+                      usePointStyle: true, pointStyle: 'circle', boxWidth: 7, padding: 16 }
+          },
           tooltip: tooltip
         },
         scales: {
           x: { grid: { display: false }, border: { display: false },
-               ticks: { color: TICK, font: { family: FONT, size: 10.5 } } },
+               ticks: { color: TICK, font: { family: FONT, size: 10.5 },
+                        /* Sin esto Chart.js rotaba las etiquetas 45° al
+                           apretarse y quedaban cortadas contra el borde. */
+                        maxRotation: 0, minRotation: 0, autoSkipPadding: 8 } },
           y: { grid: { color: GRID }, border: { display: false }, beginAtZero: true,
-               ticks: { color: TICK, font: { family: FONT, size: 10 },
-                        callback: function (v) { return '$' + (v / 1000) + 'k'; } } }
+               ticks: { color: TICK, font: { family: FONT, size: 10 }, maxTicksLimit: 4,
+                        padding: 6, callback: corto } }
         }
       }
     });
@@ -857,7 +875,9 @@
       labels: catLabels,
       datasets: [{
         data: catData, backgroundColor: catColores,
-        borderColor: 'rgba(11,11,22,.6)', borderWidth: 3, hoverOffset: 10
+        // El borde tiene que ser el color de la tarjeta, no del fondo de la
+        // página: la dona vive dentro de una superficie #383838.
+        borderColor: '#383838', borderWidth: 3, hoverOffset: 10
       }]
     },
     options: {

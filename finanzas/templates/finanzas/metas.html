@@ -1,5 +1,5 @@
 {% extends 'finanzas/base.html' %}
-{% load humanize %}
+{% load humanize moneda %}
 {% block title %}Metas · FinApp{% endblock %}
 {% block topbar_sub %}Para qué estás ahorrando{% endblock %}
 {% block search_placeholder %}Filtrar metas{% endblock %}
@@ -21,15 +21,15 @@
 {% if metas_datos %}
 <div class="balance-card" style="margin-bottom:18px">
   <div class="label" style="margin-bottom:6px">Llevas ahorrado</div>
-  <div class="display" style="font-size:32px">${{ total_ahorrado|intcomma }}</div>
+  <div class="display" style="font-size:32px">{{ total_ahorrado|money }}</div>
   <div style="display:flex;gap:20px;margin-top:16px;flex-wrap:wrap">
     <div>
       <div class="label" style="margin-bottom:2px">De un total de</div>
-      <div class="mono" style="font-size:14px;font-weight:600">${{ total_meta|intcomma }}</div>
+      <div class="mono" style="font-size:14px;font-weight:600">{{ total_meta|money }}</div>
     </div>
     <div>
       <div class="label" style="margin-bottom:2px">Te falta</div>
-      <div class="mono" style="font-size:14px;font-weight:600">${{ total_faltante|intcomma }}</div>
+      <div class="mono" style="font-size:14px;font-weight:600">{{ total_faltante|money }}</div>
     </div>
     {% if completas %}
     <div>
@@ -70,8 +70,8 @@
     </div>
 
     <div style="display:flex;align-items:baseline;gap:7px;margin-bottom:10px">
-      <span class="display" style="font-size:24px">${{ d.meta.monto_actual|floatformat:0|intcomma }}</span>
-      <span style="font-size:12px;color:var(--text-muted)">de ${{ d.meta.monto_meta|floatformat:0|intcomma }}</span>
+      <span class="display" style="font-size:24px">{{ d.meta.monto_actual|money }}</span>
+      <span style="font-size:12px;color:var(--text-muted)">de {{ d.meta.monto_meta|money }}</span>
     </div>
 
     <div class="progress-bar" style="height:9px">
@@ -80,7 +80,7 @@
     </div>
     <div style="display:flex;justify-content:space-between;margin-top:7px;font-size:10.5px;color:var(--text-muted)">
       <span>{{ d.meta.porcentaje|floatformat:0 }}% logrado</span>
-      {% if not d.meta.esta_completa %}<span>faltan ${{ d.meta.monto_faltante|floatformat:0|intcomma }}</span>{% endif %}
+      {% if not d.meta.esta_completa %}<span>faltan {{ d.meta.monto_faltante|money }}</span>{% endif %}
     </div>
 
     {# ---------- Avance mes a mes ---------- #}
@@ -88,14 +88,14 @@
       <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:12px">
         <span class="label">Aportes por mes</span>
         <span class="mono" style="font-size:11px;color:var(--text-secondary)">
-          ${{ d.aportado_6m|intcomma }} en 6 meses
+          {{ d.aportado_6m|money }} en 6 meses
         </span>
       </div>
 
       <div style="display:flex;align-items:flex-end;gap:6px;height:64px">
         {% for s in d.serie %}
         <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:5px;height:100%;justify-content:flex-end"
-             title="{{ s.label }}: ${{ s.monto|intcomma }}">
+             title="{{ s.label }}: {{ s.monto|money }}">
           {% comment %}
             Un mes sin aportes deja una marca fina en vez de nada: así se ve
             el hueco. Con altura cero la barra desaparecía y parecía que ese
@@ -111,9 +111,9 @@
 
       {% if d.promedio_mes %}
       <div class="hint" style="font-size:11px;margin-top:11px">
-        Promedio de ${{ d.promedio_mes|intcomma }} en los meses que aportaste.
+        Promedio de {{ d.promedio_mes|money }} en los meses que aportaste.
         {% if d.meta.ahorro_mensual_sugerido %}
-          Necesitas ${{ d.meta.ahorro_mensual_sugerido|floatformat:0|intcomma }} al mes para llegar a tiempo.
+          Necesitas {{ d.meta.ahorro_mensual_sugerido|money }} al mes para llegar a tiempo.
         {% endif %}
       </div>
       {% else %}
@@ -209,7 +209,7 @@
     <div class="modal-head">
       <div>
         <div class="modal-title">Aportar a {{ d.meta.nombre }}</div>
-        <div class="modal-sub">Faltan ${{ d.meta.monto_faltante|floatformat:0|intcomma }} para llegar.</div>
+        <div class="modal-sub">Faltan {{ d.meta.monto_faltante|money }} para llegar.</div>
       </div>
       <button class="modal-close" data-close>✕</button>
     </div>
@@ -223,12 +223,12 @@
       <div class="chips" style="margin-bottom:16px" data-montos="#id_aporte_{{ d.meta.pk }}">
         {% if d.meta.ahorro_mensual_sugerido %}
         <button type="button" class="chip" data-monto="{{ d.meta.ahorro_mensual_sugerido|floatformat:0 }}">
-          Lo que necesitas · ${{ d.meta.ahorro_mensual_sugerido|floatformat:0|intcomma }}
+          Lo que necesitas · {{ d.meta.ahorro_mensual_sugerido|money }}
         </button>
         {% endif %}
         {% if d.promedio_mes %}
         <button type="button" class="chip" data-monto="{{ d.promedio_mes }}">
-          Tu promedio · ${{ d.promedio_mes|intcomma }}
+          Tu promedio · {{ d.promedio_mes|money }}
         </button>
         {% endif %}
         <button type="button" class="chip" data-monto="{{ d.meta.monto_faltante|floatformat:0 }}">

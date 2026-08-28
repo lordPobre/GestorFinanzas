@@ -1,5 +1,5 @@
 {% extends 'finanzas/base.html' %}
-{% load humanize %}
+{% load humanize moneda %}
 {% block search_placeholder %}Buscar persona o préstamo{% endblock %}
 {% block title %}Me deben · FinApp{% endblock %}
 
@@ -15,15 +15,15 @@
   <div style="display:flex;gap:12px;flex-wrap:wrap">
     <div class="glass-green" style="padding:13px 18px;border-radius:16px">
       <div class="label" style="color:var(--green);margin-bottom:5px">Total por cobrar</div>
-      <div class="display" style="font-size:20px;color:var(--green)">${{ total_por_cobrar|floatformat:0|intcomma }}</div>
+      <div class="display" style="font-size:20px;color:var(--green)">{{ total_por_cobrar|money }}</div>
     </div>
     <div class="glass" style="padding:13px 18px;border-radius:16px">
       <div class="label" style="margin-bottom:5px">Total prestado</div>
-      <div class="display" style="font-size:20px">${{ total_prestado|floatformat:0|intcomma }}</div>
+      <div class="display" style="font-size:20px">{{ total_prestado|money }}</div>
     </div>
     <div class="glass-purple" style="padding:13px 18px;border-radius:16px">
       <div class="label" style="color:var(--amber);margin-bottom:5px">Ya recuperado</div>
-      <div class="display" style="font-size:20px;color:var(--purple)">${{ total_recuperado|floatformat:0|intcomma }}</div>
+      <div class="display" style="font-size:20px;color:var(--purple)">{{ total_recuperado|money }}</div>
     </div>
   </div>
 </div>
@@ -42,7 +42,7 @@
           <span class="row-meta" style="display:block">{{ p.resumen_meta }}</span>
         </span>
         <span class="mono" style="font-size:12px;color:{% if p.total_pendiente %}var(--green){% else %}var(--amber){% endif %}">
-          {% if p.total_pendiente %}${{ p.total_pendiente|floatformat:0|intcomma }}{% else %}Al día{% endif %}
+          {% if p.total_pendiente %}{{ p.total_pendiente|money }}{% else %}Al día{% endif %}
         </span>
       </a>
       {% empty %}
@@ -73,15 +73,15 @@
     <div class="grid-metrics" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:22px">
       <div class="glass-green" style="padding:13px 15px;border-radius:15px">
         <div class="label" style="color:var(--green);margin-bottom:5px">Te debe en total</div>
-        <div class="mono" style="font-size:15px;color:var(--green)">${{ persona.total_pendiente|floatformat:0|intcomma }}</div>
+        <div class="mono" style="font-size:15px;color:var(--green)">{{ persona.total_pendiente|money }}</div>
       </div>
       <div class="glass-purple" style="padding:13px 15px;border-radius:15px">
         <div class="label" style="color:var(--amber);margin-bottom:5px">Cuotas al mes</div>
-        <div class="mono" style="font-size:15px;color:var(--amber-claro)">${{ persona.cuotas_del_mes|floatformat:0|intcomma }}</div>
+        <div class="mono" style="font-size:15px;color:var(--amber-claro)">{{ persona.cuotas_del_mes|money }}</div>
       </div>
       <div class="glass" style="padding:13px 15px;border-radius:15px;box-shadow:none">
         <div class="label" style="margin-bottom:5px">Pagos únicos</div>
-        <div class="mono" style="font-size:15px">${{ persona.unicos_pendientes|floatformat:0|intcomma }}</div>
+        <div class="mono" style="font-size:15px">{{ persona.unicos_pendientes|money }}</div>
       </div>
     </div>
 
@@ -105,9 +105,9 @@
           </div>
           <div style="text-align:right">
             <div class="display" style="font-size:17px;{% if x.esta_pagado %}color:var(--green){% endif %}">
-              {% if x.esta_pagado %}Saldado{% else %}${{ x.monto_pendiente|floatformat:0|intcomma }}{% endif %}
+              {% if x.esta_pagado %}Saldado{% else %}{{ x.monto_pendiente|money }}{% endif %}
             </div>
-            <div class="row-meta">de ${{ x.monto|floatformat:0|intcomma }}</div>
+            <div class="row-meta">de {{ x.monto|money }}</div>
           </div>
         </div>
 
@@ -278,7 +278,7 @@
 
       <div class="chips" style="margin-bottom:16px">
         {% for op in x.montos_sugeridos %}
-          <button type="button" class="chip {% if forloop.first %}on{% endif %}" data-monto="{{ op.monto }}">{{ op.label }} · ${{ op.monto|intcomma }}</button>
+          <button type="button" class="chip {% if forloop.first %}on{% endif %}" data-monto="{{ op.monto }}">{{ op.label }} · {{ op.monto|money }}</button>
         {% endfor %}
       </div>
 

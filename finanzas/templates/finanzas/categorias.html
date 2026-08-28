@@ -1,5 +1,5 @@
 {% extends 'finanzas/base.html' %}
-{% load humanize %}
+{% load humanize moneda %}
 {% block title %}Categorías · FinApp{% endblock %}
 {% block topbar_sub %}Cómo se ordenan tus movimientos{% endblock %}
 {% block search_placeholder %}Filtrar categorías{% endblock %}
@@ -60,7 +60,7 @@
           </div>
           <div style="text-align:right">
             <div class="mono" style="font-size:13px;{% if not c.gastado %}color:var(--text-muted){% endif %}">
-              ${{ c.gastado|intcomma }}
+              {{ c.gastado|money }}
             </div>
             <div class="row-meta">este mes</div>
           </div>
@@ -101,7 +101,7 @@
           </div>
           <div style="text-align:right">
             <div class="mono" style="font-size:13px;{% if c.gastado %}color:var(--green){% else %}color:var(--text-muted){% endif %}">
-              ${{ c.gastado|intcomma }}
+              {{ c.gastado|money }}
             </div>
             <div class="row-meta">este mes</div>
           </div>

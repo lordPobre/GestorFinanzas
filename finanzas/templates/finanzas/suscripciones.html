@@ -1,5 +1,5 @@
 {% extends 'finanzas/base.html' %}
-{% load humanize %}
+{% load humanize moneda %}
 {% block search_placeholder %}Filtrar suscripciones{% endblock %}
 {% block title %}Suscripciones · FinApp{% endblock %}
 
@@ -17,7 +17,7 @@
     {% if monto_pendiente_mes %}
     <div class="glass-orange" style="padding:13px 18px;border-radius:16px">
       <div class="label" style="color:rgba(251,146,60,.7);margin-bottom:5px">Falta pagar este mes</div>
-      <div class="display" style="font-size:20px;color:var(--orange)">${{ monto_pendiente_mes|intcomma }}</div>
+      <div class="display" style="font-size:20px;color:var(--orange)">{{ monto_pendiente_mes|money }}</div>
       <div style="font-size:10.5px;color:var(--text-muted);margin-top:3px">
         {{ pendientes_mes }} de {{ cantidad_activas }} suscripción{{ pendientes_mes|pluralize:"es" }}
       </div>
@@ -26,14 +26,14 @@
     <div class="glass-green" style="padding:13px 18px;border-radius:16px">
       <div class="label" style="color:var(--green);margin-bottom:5px">Este mes</div>
       <div class="display" style="font-size:20px;color:var(--green)">Al día</div>
-      <div style="font-size:10.5px;color:var(--text-muted);margin-top:3px">${{ monto_pagado_mes|intcomma }} pagados</div>
+      <div style="font-size:10.5px;color:var(--text-muted);margin-top:3px">{{ monto_pagado_mes|money }} pagados</div>
     </div>
     {% endif %}
 
     <div class="glass-purple" style="padding:13px 18px;border-radius:16px">
       <div class="label" style="color:var(--amber);margin-bottom:5px">Total activo al mes</div>
-      <div class="display" style="font-size:20px;color:var(--purple)">${{ total_mensual|intcomma }}</div>
-      <div style="font-size:10.5px;color:var(--text-muted);margin-top:3px">${{ total_anual|intcomma }} al año</div>
+      <div class="display" style="font-size:20px;color:var(--purple)">{{ total_mensual|money }}</div>
+      <div style="font-size:10.5px;color:var(--text-muted);margin-top:3px">{{ total_anual|money }} al año</div>
     </div>
     <button class="btn btn-purple" data-open="#modalSub"><i class="fas fa-plus" style="font-size:11px"></i>Nueva suscripción</button>
   </div>
@@ -46,7 +46,7 @@
     <div style="font-size:12.5px;font-weight:500;margin-bottom:3px">
       {{ atrasadas }} suscripción{{ atrasadas|pluralize:"es" }} con meses sin pagar
     </div>
-    <div class="hint" style="font-size:11.5px">Suman ${{ monto_atrasado|intcomma }} de cobros que ya pasaron.</div>
+    <div class="hint" style="font-size:11.5px">Suman {{ monto_atrasado|money }} de cobros que ya pasaron.</div>
   </div>
 </div>
 {% endif %}
@@ -70,12 +70,12 @@
     </div>
 
     <div class="sub-monto" style="text-align:right">
-      <div class="mono" style="font-size:13px;{% if not s.activa %}color:var(--text-muted){% endif %}">${{ s.monto|floatformat:0|intcomma }}</div>
+      <div class="mono" style="font-size:13px;{% if not s.activa %}color:var(--text-muted){% endif %}">{{ s.monto|money }}</div>
       <div style="font-size:10px;color:var(--text-muted);margin-top:2px">al mes</div>
     </div>
 
     <div style="text-align:right;min-width:96px" class="hide-mobile">
-      <div class="mono" style="font-size:12px;color:var(--text-secondary)">${{ s.monto_anual|floatformat:0|intcomma }}</div>
+      <div class="mono" style="font-size:12px;color:var(--text-secondary)">{{ s.monto_anual|money }}</div>
       <div style="font-size:10px;color:var(--text-muted);margin-top:2px">al año</div>
     </div>
 
@@ -103,7 +103,7 @@
 
     {# El interruptor ES el botón de cancelar/reactivar #}
     <form method="post" action="{% url 'cancelar_suscripcion' s.pk %}" style="margin:0;display:flex;align-items:center"
-          {% if s.activa %}data-confirm="¿Dejar de pagar {{ s.nombre }}? Ahorras ${{ s.monto_anual|floatformat:0|intcomma }} al año."{% endif %}>
+          {% if s.activa %}data-confirm="¿Dejar de pagar {{ s.nombre }}? Ahorras {{ s.monto_anual|money }} al año."{% endif %}>
       {% csrf_token %}
       <button type="submit" class="switch {% if s.activa %}on{% endif %}"
               title="{% if s.activa %}Cancelar{% else %}Reactivar{% endif %} {{ s.nombre }}"
@@ -131,7 +131,7 @@
     </div>
     <div class="hint" style="font-size:11.5px">
       {% for i in grupo.items %}{{ i.nombre }}{% if not forloop.last %} y {% endif %}{% endfor %}
-      se superponen. Dejando uno ahorras ${{ grupo.ahorro_anual|intcomma }} al año.
+      se superponen. Dejando uno ahorras {{ grupo.ahorro_anual|money }} al año.
     </div>
   </div>
 </div>
@@ -198,7 +198,7 @@
           <span class="display" style="font-size:19px;color:var(--purple)" id="subAnual">$0</span>
         </div>
         <div style="font-size:11.5px;color:var(--text-muted)" id="subNota">
-          Se suma a tus ${{ total_mensual|intcomma }} mensuales actuales.
+          Se suma a tus {{ total_mensual|money }} mensuales actuales.
         </div>
       </div>
 

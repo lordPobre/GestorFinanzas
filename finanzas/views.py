@@ -431,8 +431,18 @@ def contadores(usuario):
         # DeudaForm y el modal salía sin campos).
         'form_registro': TransaccionForm(initial={'tipo': 'EGRESO', 'fecha': hoy}),
         'hoy_iso': hoy.isoformat(),
-        'cats_egreso_json': json.dumps([list(c) for c in Transaccion.CATEGORIAS_EGRESO]),
-        'cats_ingreso_json': json.dumps([list(c) for c in Transaccion.CATEGORIAS_INGRESO]),
+        # Las de gasto se pintan en el HTML (el tipo por defecto), así que la
+        # lista tiene que existir también sin pasar por JSON. Antes solo
+        # estaban las versiones JSON y el panel arrancaba sin categorías
+        # hasta que corría el script.
+        #
+        # Incluyen las categorías propias del usuario: si alguien creó
+        # "Mascotas" y no aparece acá, la pantalla de Categorías queda de
+        # adorno.
+        'cats_egreso': Categoria.opciones(usuario, 'EGRESO'),
+        'cats_ingreso': Categoria.opciones(usuario, 'INGRESO'),
+        'cats_egreso_json': json.dumps([list(c) for c in Categoria.opciones(usuario, 'EGRESO')]),
+        'cats_ingreso_json': json.dumps([list(c) for c in Categoria.opciones(usuario, 'INGRESO')]),
 
         # Suscripciones sin pagar este mes: el badge del menú
         'subs_pendientes': sum(

@@ -1,5 +1,5 @@
 {% extends 'finanzas/base.html' %}
-{% load humanize %}
+{% load humanize moneda %}
 {% block title %}Análisis · FinApp{% endblock %}
 
 {% block extra_head %}
@@ -51,9 +51,9 @@
       <div class="label" style="color:var(--amber);margin-bottom:11px">Lo que dicen tus números</div>
       <div class="hero-line" style="max-width:620px">
         {% if analisis.flujo_libre > 0 %}
-          Cada mes te sobran <b>${{ analisis.flujo_libre|intcomma }}</b> después de gastos y cuotas.
+          Cada mes te sobran <b>{{ analisis.flujo_libre|money }}</b> después de gastos y cuotas.
         {% else %}
-          Cada mes te faltan <b style="color:var(--coral)">${{ analisis.flujo_libre|intcomma }}</b> para cubrir gastos y cuotas.
+          Cada mes te faltan <b style="color:var(--coral)">{{ analisis.flujo_libre|money }}</b> para cubrir gastos y cuotas.
         {% endif %}
       </div>
       <div class="hint" style="margin-top:10px;max-width:560px">
@@ -68,15 +68,15 @@
       <div style="display:flex;gap:10px;margin-top:18px;flex-wrap:wrap">
         <div style="padding:11px 15px;border-radius:14px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09)">
           <div class="label" style="margin-bottom:4px">Entra al mes</div>
-          <div class="mono" style="font-size:14px;color:var(--green)">${{ analisis.ingreso_mensual|intcomma }}</div>
+          <div class="mono" style="font-size:14px;color:var(--green)">{{ analisis.ingreso_mensual|money }}</div>
         </div>
         <div style="padding:11px 15px;border-radius:14px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09)">
           <div class="label" style="margin-bottom:4px">Gastas al mes</div>
-          <div class="mono" style="font-size:14px">${{ analisis.gasto_mensual|intcomma }}</div>
+          <div class="mono" style="font-size:14px">{{ analisis.gasto_mensual|money }}</div>
         </div>
         <div style="padding:11px 15px;border-radius:14px;background:rgba(255,170,44,.12);border:1px solid rgba(255,170,44,.24)">
           <div class="label" style="color:var(--amber);margin-bottom:4px">Cuotas al mes</div>
-          <div class="mono" style="font-size:14px;color:var(--amber-claro)">${{ analisis.cuota_mensual_total|intcomma }}</div>
+          <div class="mono" style="font-size:14px;color:var(--amber-claro)">{{ analisis.cuota_mensual_total|money }}</div>
         </div>
       </div>
     </div>
@@ -177,12 +177,12 @@
       <div style="display:flex;align-items:center;gap:7px">
         <span style="width:9px;height:9px;border-radius:3px;background:var(--green)"></span>
         <span style="font-size:11px;color:var(--text-secondary);white-space:nowrap">Ya pagado</span>
-        <span class="mono" style="font-size:11px;color:var(--green);white-space:nowrap">${{ total_pagado_serie|intcomma }}</span>
+        <span class="mono" style="font-size:11px;color:var(--green);white-space:nowrap">{{ total_pagado_serie|money }}</span>
       </div>
       <div style="display:flex;align-items:center;gap:7px">
         <span style="width:9px;height:9px;border-radius:3px;background:#fb923c"></span>
         <span style="font-size:11px;color:var(--text-secondary);white-space:nowrap">Por pagar</span>
-        <span class="mono" style="font-size:11px;color:var(--orange);white-space:nowrap">${{ total_pendiente_serie|intcomma }}</span>
+        <span class="mono" style="font-size:11px;color:var(--orange);white-space:nowrap">{{ total_pendiente_serie|money }}</span>
       </div>
 
     </div>
@@ -201,7 +201,7 @@
     <div style="margin-top:16px;padding-top:16px;border-top:1px solid rgba(255,255,255,.06);display:flex;gap:22px;flex-wrap:wrap">
       <div>
         <div class="label" style="margin-bottom:5px">Te queda debiendo</div>
-        <div class="mono" style="font-size:15px;color:var(--amber-claro)">${{ analisis.deuda_total_restante|intcomma }}</div>
+        <div class="mono" style="font-size:15px;color:var(--amber-claro)">{{ analisis.deuda_total_restante|money }}</div>
       </div>
       {% if analisis.meses_restantes %}
       <div>
@@ -217,7 +217,7 @@
       {% if analisis.cuotas_atrasadas %}
       <div>
         <div class="label" style="color:var(--coral);margin-bottom:5px">Atrasado</div>
-        <div class="mono" style="font-size:15px;color:var(--coral)">${{ analisis.monto_atrasado|intcomma }}</div>
+        <div class="mono" style="font-size:15px;color:var(--coral)">{{ analisis.monto_atrasado|money }}</div>
         <div style="font-size:10px;color:var(--text-muted);margin-top:2px">
           {{ analisis.cuotas_atrasadas }} cuota{{ analisis.cuotas_atrasadas|pluralize:"s" }} vencida{{ analisis.cuotas_atrasadas|pluralize:"s" }}
         </div>
@@ -249,13 +249,13 @@
       </div>
 
       <div style="text-align:right;min-width:96px">
-        <div class="mono" style="font-size:12.5px">${{ f.total|floatformat:0|intcomma }}</div>
+        <div class="mono" style="font-size:12.5px">{{ f.total|money }}</div>
         <div style="font-size:10px;color:var(--text-muted);margin-top:2px">cuota del mes</div>
       </div>
 
       <div style="text-align:right;min-width:92px" class="hide-mobile">
         {% if f.pendiente %}
-          <div class="mono" style="font-size:12.5px;color:var(--orange)">${{ f.pendiente|floatformat:0|intcomma }}</div>
+          <div class="mono" style="font-size:12.5px;color:var(--orange)">{{ f.pendiente|money }}</div>
           <div style="font-size:10px;color:var(--text-muted);margin-top:2px">
             {% if f.es_pasado %}quedó impago{% else %}por pagar{% endif %}
           </div>

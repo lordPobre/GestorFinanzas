@@ -1,5 +1,5 @@
 {% extends 'finanzas/base.html' %}
-{% load humanize %}
+{% load humanize moneda %}
 {% block search_placeholder %}Filtrar categorías{% endblock %}
 {% block title %}Estadísticas · FinApp{% endblock %}
 
@@ -30,7 +30,7 @@
 <div class="grid-metrics" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr))">
   <div class="glass glass-lift card" data-spot>
     <div class="label" style="margin-bottom:10px">Gasto promedio mensual</div>
-    <div class="display" style="font-size:24px">${{ promedio_gasto|intcomma }}</div>
+    <div class="display" style="font-size:24px">{{ promedio_gasto|money }}</div>
     <div class="stat-note">Promedio de los meses con movimiento.</div>
   </div>
 
@@ -38,14 +38,14 @@
     <div class="label" style="color:var(--green);margin-bottom:10px">Mejor mes</div>
     <div class="display" style="font-size:24px;color:var(--green)">{{ mejor_mes|default:"—" }}</div>
     <div class="stat-note">
-      {% if mejor_ahorro > 0 %}Ahorraste ${{ mejor_ahorro|intcomma }}.{% else %}Aún sin un mes en positivo.{% endif %}
+      {% if mejor_ahorro > 0 %}Ahorraste {{ mejor_ahorro|money }}.{% else %}Aún sin un mes en positivo.{% endif %}
     </div>
   </div>
 
   <div class="glass glass-lift glass-coral card" data-spot>
     <div class="label" style="color:var(--coral);margin-bottom:10px">Mes más caro</div>
     <div class="display" style="font-size:24px;color:var(--coral)">{{ peor_mes|default:"—" }}</div>
-    <div class="stat-note">${{ peor_gasto|intcomma }} en salidas.</div>
+    <div class="stat-note">{{ peor_gasto|money }} en salidas.</div>
   </div>
 
   <div class="glass glass-lift glass-purple card" data-spot>
@@ -96,7 +96,7 @@
             {% else %}
               <span style="font-size:11px;color:var(--text-muted)">nueva</span>
             {% endif %}
-            <span class="mono" style="font-size:12.5px">${{ r.total|floatformat:0|intcomma }}</span>
+            <span class="mono" style="font-size:12.5px">{{ r.total|money }}</span>
           </span>
         </div>
         <div class="progress-bar" style="height:8px">

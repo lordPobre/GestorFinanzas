@@ -1,3 +1,4 @@
+{% load moneda %}
 {% load static humanize %}<!DOCTYPE html>
 <html lang="es">
 <head>
@@ -360,7 +361,7 @@
   apuntaban a un modal que no existía ahí.
 {% endcomment %}
 <div class="modal-overlay drawer-overlay" id="modalGasto">
-  <div class="drawer-box">
+  <div class="drawer-box registro-box">
     <div class="modal-head">
       <div>
         <div class="modal-title">Registrar</div>
@@ -386,62 +387,78 @@
       <input type="hidden" name="categoria" id="campoCategoria" value="Comida">
       <input type="hidden" name="fecha" id="campoFecha" value="{{ hoy_iso }}">
 
-      <div class="seg" style="margin-bottom:20px" id="segTipo">
+      <div class="seg" style="margin-bottom:18px" id="segTipo">
         <button type="button" class="on-coral" data-tipo="EGRESO">Gasto</button>
         <button type="button" data-tipo="INGRESO">Ingreso</button>
       </div>
 
-      <div style="text-align:center;padding:16px 0 18px">
-        <div class="label" style="margin-bottom:8px">Monto</div>
-        <div class="amount-display" id="montoView" style="color:var(--coral)">$0</div>
-      </div>
+      {% comment %}
+        Dos columnas: el monto a la izquierda, el resto a la derecha.
+        Antes el teclado ocupaba media pantalla ANTES de elegir la categoría,
+        así que en un teléfono había que desplazarse para completar el
+        registro más frecuente de la app.
+      {% endcomment %}
+      <div class="registro-grid">
 
-      <div class="keypad" data-keypad data-target="#campoMonto" data-display="#montoView" style="margin-bottom:18px">
-        <button type="button" data-key="1">1</button><button type="button" data-key="2">2</button><button type="button" data-key="3">3</button>
-        <button type="button" data-key="4">4</button><button type="button" data-key="5">5</button><button type="button" data-key="6">6</button>
-        <button type="button" data-key="7">7</button><button type="button" data-key="8">8</button><button type="button" data-key="9">9</button>
-        <button type="button" data-key="000">000</button><button type="button" data-key="0">0</button><button type="button" data-key="del">⌫</button>
-      </div>
+        <div class="registro-monto">
+          <div class="label" style="margin-bottom:6px;text-align:center">Monto</div>
+          <div class="amount-display" id="montoView" style="color:var(--coral)">$0</div>
 
-      <div class="label" style="margin-bottom:9px" id="labelCat">Categoría</div>
-      <div class="chips" data-field="#campoCategoria" style="margin-bottom:18px" id="chipsGasto">
-        {% for value, label in form_registro.fields.categoria.choices %}
-          {% if value %}<button type="button" class="chip" data-value="{{ value }}">{{ label }}</button>{% endif %}
-        {% endfor %}
-      </div>
-
-      <div class="field">
-        <label class="label" for="campoDesc">Descripción</label>
-        <input type="text" name="descripcion" id="campoDesc" placeholder="Ej: Supermercado, sueldo de agosto">
-      </div>
-
-      <div id="bloquePago" style="margin-bottom:18px">
-        <div class="label" style="margin-bottom:9px">¿Ya la pagaste?</div>
-        <input type="hidden" name="sin_pagar" id="campoSinPagar" value="">
-        <div class="seg" id="segPago">
-          <button type="button" class="on-green" data-pagado="1">Sí, ya salió</button>
-          <button type="button" data-pagado="0">Aún la debo</button>
+          <div class="keypad" data-keypad data-target="#campoMonto" data-display="#montoView">
+            <button type="button" data-key="1">1</button><button type="button" data-key="2">2</button><button type="button" data-key="3">3</button>
+            <button type="button" data-key="4">4</button><button type="button" data-key="5">5</button><button type="button" data-key="6">6</button>
+            <button type="button" data-key="7">7</button><button type="button" data-key="8">8</button><button type="button" data-key="9">9</button>
+            <button type="button" data-key="000">000</button><button type="button" data-key="0">0</button><button type="button" data-key="del">⌫</button>
+          </div>
         </div>
-        <div class="hint" style="font-size:10.5px;margin-top:8px" id="notaPago">
-          Cuenta como gasto del mes en los dos casos. La diferencia es si la plata ya se fue.
+
+        <div class="registro-datos">
+          <div class="label" style="margin-bottom:9px" id="labelCat">Categoría</div>
+          {% comment %}
+            Se pintan solo las de gasto: es el tipo por defecto. Antes el
+            template volcaba las de gasto Y las de ingreso mezcladas, y el
+            JS las reemplazaba después — así que el primer parpadeo mostraba
+            "Sueldo" como si fuera un gasto.
+          {% endcomment %}
+          <div class="chips" data-field="#campoCategoria" style="margin-bottom:18px" id="chipsGasto">
+            {% for value, label in cats_egreso %}
+            <button type="button" class="chip {% if forloop.first %}on{% endif %}" data-value="{{ value }}">{{ label }}</button>
+            {% endfor %}
+          </div>
+
+          <div class="field">
+            <label class="label" for="campoDesc">Descripción</label>
+            <input type="text" name="descripcion" id="campoDesc" placeholder="Ej: Supermercado, sueldo de agosto">
+          </div>
+
+          <div id="bloquePago" style="margin-bottom:18px">
+            <div class="label" style="margin-bottom:9px">¿Ya la pagaste?</div>
+            <input type="hidden" name="sin_pagar" id="campoSinPagar" value="">
+            <div class="seg" id="segPago">
+              <button type="button" class="on-green" data-pagado="1">Sí, ya salió</button>
+              <button type="button" data-pagado="0">Aún la debo</button>
+            </div>
+            <div class="hint" style="font-size:10.5px;margin-top:8px" id="notaPago">
+              Cuenta como gasto del mes en los dos casos. La diferencia es si la plata ya se fue.
+            </div>
+          </div>
+
+          {% if dias_restantes %}
+          <div class="preview-box" id="cajaImpacto" style="margin-bottom:0">
+            <div class="label" style="color:var(--amber);margin-bottom:8px">Si guardas esto</div>
+            <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:5px">
+              <span style="font-size:12px;color:var(--text-secondary)">Te queda libre</span>
+              <span class="mono" style="font-size:15px" data-preview data-base="{{ disponible }}"
+                    data-dias="{{ dias_restantes }}" data-sign="-1">{{ disponible|money }}</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:baseline">
+              <span style="font-size:12px;color:var(--text-secondary)">Por día ({{ dias_restantes }} días)</span>
+              <span class="mono" style="font-size:12.5px;color:var(--text-secondary)" data-preview-dia>{{ por_dia|money }}</span>
+            </div>
+          </div>
+          {% endif %}
         </div>
       </div>
-
-      {% if dias_restantes %}
-      <div class="preview-box">
-        <div class="label" style="color:var(--amber);margin-bottom:8px">Si guardas esto</div>
-        <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:5px">
-          <span style="font-size:12px;color:var(--text-secondary)">Te queda libre</span>
-          <span class="mono" style="font-size:15px" data-preview data-base="{{ disponible }}"
-                data-dias="{{ dias_restantes }}" data-sign="-1">${{ disponible|intcomma }}</span>
-        </div>
-        <div style="display:flex;justify-content:space-between;align-items:baseline">
-          <span style="font-size:12px;color:var(--text-secondary)">Por día ({{ dias_restantes }} días)</span>
-          <span class="mono" style="font-size:12.5px;color:var(--text-secondary)" data-preview-dia>${{ por_dia|intcomma }}</span>
-        </div>
-      </div>
-      {% endif %}
-
       <button type="submit" class="btn btn-purple btn-block" id="btnGuardar">Guardar</button>
     </form>
   </div>
@@ -457,6 +474,8 @@
   var form = document.getElementById('formRegistro');
   if (!form) return;
 
+  /* Las de gasto ya están en el HTML; este arreglo solo sirve para volver
+     a ellas si el usuario cambia de Ingreso a Gasto. */
   var catsGasto = {{ cats_egreso_json|safe }};
   var catsIngreso = {{ cats_ingreso_json|safe }};
 

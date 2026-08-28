@@ -1,5 +1,5 @@
 {% extends 'finanzas/base.html' %}
-{% load humanize %}
+{% load humanize moneda %}
 {% block search_placeholder %}Filtrar compras en cuotas{% endblock %}
 {% block title %}Compras en cuotas · FinApp{% endblock %}
 
@@ -19,18 +19,18 @@
 <div class="grid-metrics" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr))">
   <div class="glass glass-purple card" data-spot>
     <div class="label" style="color:var(--amber);margin-bottom:10px">Cuotas de este mes</div>
-    <div class="display" style="font-size:24px;color:var(--purple)">${{ total_cuotas_mes|floatformat:0|intcomma }}</div>
+    <div class="display" style="font-size:24px;color:var(--purple)">{{ total_cuotas_mes|money }}</div>
     <div class="stat-note">{{ deudas_activas }} compras activas</div>
   </div>
   <div class="glass card" data-spot>
     <div class="label" style="margin-bottom:10px">Deuda que te queda</div>
-    <div class="display" style="font-size:24px">${{ total_restante|floatformat:0|intcomma }}</div>
+    <div class="display" style="font-size:24px">{{ total_restante|money }}</div>
     <div class="stat-note">Sumando todas las cuotas por pagar</div>
   </div>
   <div class="glass glass-green card" data-spot>
     <div class="label" style="color:var(--green);margin-bottom:10px">Ya pagado</div>
-    <div class="display" style="font-size:24px;color:var(--green)">${{ total_pagado|floatformat:0|intcomma }}</div>
-    <div class="stat-note">De ${{ total_deuda|floatformat:0|intcomma }} en total</div>
+    <div class="display" style="font-size:24px;color:var(--green)">{{ total_pagado|money }}</div>
+    <div class="stat-note">De {{ total_deuda|money }} en total</div>
   </div>
 </div>
 
@@ -50,7 +50,7 @@
     <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin-bottom:13px">
       <div>
         <div class="label" style="margin-bottom:5px">Cuota mensual</div>
-        <div class="display" style="font-size:22px">${{ d.monto_cuota|floatformat:0|intcomma }}</div>
+        <div class="display" style="font-size:22px">{{ d.monto_cuota|money }}</div>
       </div>
       <div style="text-align:right">
         <div style="font-size:11.5px;color:var(--purple);font-weight:500">
@@ -68,8 +68,8 @@
     </div>
 
     <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-muted);margin-bottom:16px">
-      <span>Te queda <span class="mono" style="color:var(--text-primary)">${{ d.monto_restante|floatformat:0|intcomma }}</span></span>
-      <span>de ${{ d.monto_total|floatformat:0|intcomma }}</span>
+      <span>Te queda <span class="mono" style="color:var(--text-primary)">{{ d.monto_restante|money }}</span></span>
+      <span>de {{ d.monto_total|money }}</span>
     </div>
 
     <div style="display:flex;gap:8px">
@@ -80,7 +80,7 @@
           {% csrf_token %}
           <input type="hidden" name="next" value="{% url 'deudas' %}">
           <input type="hidden" name="periodo" value="{{ d.periodo_a_pagar }}">
-          <button type="submit" class="btn btn-purple" style="width:100%">Pagar cuota de ${{ d.monto_cuota|floatformat:0|intcomma }}</button>
+          <button type="submit" class="btn btn-purple" style="width:100%">Pagar cuota de {{ d.monto_cuota|money }}</button>
         </form>
       {% endif %}
       {% if d.cuotas_pagadas > 0 %}
