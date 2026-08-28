@@ -139,7 +139,7 @@
       var dias = Number(el.dataset.dias || 1);
       var v = base + sign * e.detail.value;
       el.textContent = '$' + Math.round(v).toLocaleString('es-CL');
-      el.style.color = v < 0 ? '#fb7185' : '#f1f0ff';
+      el.style.color = v < 0 ? 'var(--coral)' : '#f5f5f5';
       var perDia = el.parentElement.querySelector('[data-preview-dia]');
       if (perDia) perDia.textContent = '$' + Math.round(Math.max(0, v) / dias).toLocaleString('es-CL');
     });
@@ -277,7 +277,7 @@
         aviso.innerHTML =
           '<div style="font-family:\'Sora\',sans-serif;font-size:14px;margin-bottom:5px">' +
           'Nada coincide con “' + search.value.replace(/</g, '&lt;') + '”</div>' +
-          '<div style="font-size:12px;color:rgba(241,240,255,.45)">' +
+          '<div style="font-size:12px;color:var(--text-muted)">' +
           'La búsqueda solo mira lo que hay en esta pantalla.</div>';
         aviso.style.display = 'block';
       } else if (aviso) {
@@ -287,7 +287,36 @@
   }
 
   /* ============================================================
-     10. Botón flotante: gasto con un toque, ingreso manteniéndolo
+     10. Puntos del carrusel de saldo
+     ============================================================
+     El carrusel se desliza con el dedo; los puntos dicen en cuál vas. Sin
+     ellos no hay señal de que haya más tarjetas a la derecha. */
+  var carrusel = $('[data-carrusel]');
+  var dots = $('[data-dots]');
+  if (carrusel && dots) {
+    var marcas = $$('span', dots);
+    var pintar = function () {
+      var ancho = carrusel.scrollWidth / marcas.length;
+      var i = Math.round(carrusel.scrollLeft / ancho);
+      marcas.forEach(function (m, k) { m.classList.toggle('on', k === Math.min(i, marcas.length - 1)); });
+    };
+    carrusel.addEventListener('scroll', function () {
+      window.clearTimeout(carrusel._t);
+      carrusel._t = window.setTimeout(pintar, 60);
+    }, { passive: true });
+
+    /* Los puntos también sirven para navegar: en la plantilla son solo
+       indicadores, pero un punto que no responde al toque se siente roto. */
+    marcas.forEach(function (m, k) {
+      m.style.cursor = 'pointer';
+      m.addEventListener('click', function () {
+        carrusel.scrollTo({ left: (carrusel.scrollWidth / marcas.length) * k, behavior: 'smooth' });
+      });
+    });
+  }
+
+  /* ============================================================
+     11. Botón flotante: gasto con un toque, ingreso manteniéndolo
      ============================================================
      En móvil los botones del topbar están ocultos, así que no quedaba
      NINGUNA forma de registrar un ingreso desde el teléfono. El botón

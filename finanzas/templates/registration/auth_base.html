@@ -11,6 +11,32 @@
   <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
   <link rel="stylesheet" href="{% static 'css/finapp.css' %}">
+  <script>
+  /* Respaldo mínimo: abre y cierra modales aunque finapp.js no cargue.
+     finapp.js sobreescribe estas funciones cuando sí está disponible. */
+  (function () {
+    function open(id) {
+      var m = document.querySelector(id);
+      if (m) { m.classList.add('open'); document.body.style.overflow = 'hidden'; }
+    }
+    function closeAll() {
+      document.querySelectorAll('.modal-overlay.open').forEach(function (m) { m.classList.remove('open'); });
+      document.body.style.overflow = '';
+    }
+    document.addEventListener('click', function (e) {
+      if (window.__finappJsCargado) return;
+      var o = e.target.closest('[data-open]');
+      if (o) { e.preventDefault(); open(o.getAttribute('data-open')); return; }
+      if (e.target.closest('[data-close]')) { e.preventDefault(); closeAll(); return; }
+      if (e.target.classList.contains('modal-overlay')) closeAll();
+    });
+    document.addEventListener('keydown', function (e) {
+      if (!window.__finappJsCargado && e.key === 'Escape') closeAll();
+    });
+    window.finappOpen = open;
+    window.finappClose = closeAll;
+  })();
+  </script>
 </head>
 <body>
 
@@ -29,7 +55,7 @@
       </div>
 
       {% block pitch %}
-      <div style="font-family:'Sora',sans-serif;font-size:31px;font-weight:500;line-height:1.28;letter-spacing:-.025em;text-wrap:pretty">
+      <div style="font-family:'Manrope',sans-serif;font-size:31px;font-weight:500;line-height:1.28;letter-spacing:-.025em;text-wrap:pretty">
         Saber cuánto puedes gastar hoy no debería tomar una planilla.
       </div>
       <div class="hint" style="font-size:13px;margin-top:14px">

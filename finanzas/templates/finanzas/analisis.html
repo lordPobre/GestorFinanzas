@@ -8,7 +8,7 @@
 
 {% block topbar_left %}
 <div>
-  <div class="label" style="color:rgba(167,139,250,.8)">Sobre tus últimos 3 meses</div>
+  <div class="label" style="color:var(--amber)">Sobre tus últimos 3 meses</div>
 </div>
 {% endblock %}
 
@@ -44,11 +44,11 @@
 
 {# ============ Titular ============ #}
 <div class="glass card-lg" data-spot
-     style="margin-bottom:18px;background:linear-gradient(135deg,rgba(124,58,237,.16),rgba(255,255,255,.03));border-color:rgba(167,139,250,.26)">
+     style="margin-bottom:18px;background:linear-gradient(135deg,rgba(255,170,44,.14),rgba(255,255,255,.03));border-color:rgba(255,170,44,.26)">
   <div style="display:flex;flex-wrap:wrap;align-items:flex-start;justify-content:space-between;gap:24px">
 
     <div style="flex:1;min-width:300px">
-      <div class="label" style="color:rgba(167,139,250,.8);margin-bottom:11px">Lo que dicen tus números</div>
+      <div class="label" style="color:var(--amber);margin-bottom:11px">Lo que dicen tus números</div>
       <div class="hero-line" style="max-width:620px">
         {% if analisis.flujo_libre > 0 %}
           Cada mes te sobran <b>${{ analisis.flujo_libre|intcomma }}</b> después de gastos y cuotas.
@@ -74,9 +74,9 @@
           <div class="label" style="margin-bottom:4px">Gastas al mes</div>
           <div class="mono" style="font-size:14px">${{ analisis.gasto_mensual|intcomma }}</div>
         </div>
-        <div style="padding:11px 15px;border-radius:14px;background:rgba(167,139,250,.12);border:1px solid rgba(167,139,250,.24)">
-          <div class="label" style="color:rgba(167,139,250,.8);margin-bottom:4px">Cuotas al mes</div>
-          <div class="mono" style="font-size:14px;color:#c4b5fd">${{ analisis.cuota_mensual_total|intcomma }}</div>
+        <div style="padding:11px 15px;border-radius:14px;background:rgba(255,170,44,.12);border:1px solid rgba(255,170,44,.24)">
+          <div class="label" style="color:var(--amber);margin-bottom:4px">Cuotas al mes</div>
+          <div class="mono" style="font-size:14px;color:var(--amber-claro)">${{ analisis.cuota_mensual_total|intcomma }}</div>
         </div>
       </div>
     </div>
@@ -88,7 +88,7 @@
           <circle cx="60" cy="60" r="52" fill="none" stroke="rgba(255,255,255,.07)" stroke-width="9"></circle>
           <circle cx="60" cy="60" r="52" fill="none" stroke-width="9" stroke-linecap="round"
                   stroke-dasharray="327" stroke-dashoffset="{{ riesgo_offset }}"
-                  stroke="{% if analisis.riesgo_nivel == 'critico' %}#f87171{% elif analisis.riesgo_nivel == 'alto' %}#fb7185{% elif analisis.riesgo_nivel == 'moderado' %}#fb923c{% else %}#34d399{% endif %}"></circle>
+                  stroke="{% if analisis.riesgo_nivel == 'critico' %}#f87171{% elif analisis.riesgo_nivel == 'alto' %}var(--coral){% elif analisis.riesgo_nivel == 'moderado' %}#fb923c{% else %}var(--green){% endif %}"></circle>
         </svg>
         <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px">
           <span class="display" style="font-size:27px">{{ analisis.riesgo_score }}</span>
@@ -129,7 +129,7 @@
 
     <div id="iaBloqueMotiv" class="glass-purple"
          style="margin-top:18px;padding:14px 16px;border-radius:15px;display:none">
-      <div style="font-size:12.5px;line-height:1.6;color:#c4b5fd;text-wrap:pretty" id="iaMotivacional"></div>
+      <div style="font-size:12.5px;line-height:1.6;color:var(--amber-claro);text-wrap:pretty" id="iaMotivacional"></div>
     </div>
   </div>
 </div>
@@ -175,7 +175,7 @@
     </div>
     <div style="display:flex;gap:10px 16px;flex-wrap:wrap;margin-top:12px">
       <div style="display:flex;align-items:center;gap:7px">
-        <span style="width:9px;height:9px;border-radius:3px;background:#34d399"></span>
+        <span style="width:9px;height:9px;border-radius:3px;background:var(--green)"></span>
         <span style="font-size:11px;color:var(--text-secondary);white-space:nowrap">Ya pagado</span>
         <span class="mono" style="font-size:11px;color:var(--green);white-space:nowrap">${{ total_pagado_serie|intcomma }}</span>
       </div>
@@ -201,7 +201,7 @@
     <div style="margin-top:16px;padding-top:16px;border-top:1px solid rgba(255,255,255,.06);display:flex;gap:22px;flex-wrap:wrap">
       <div>
         <div class="label" style="margin-bottom:5px">Te queda debiendo</div>
-        <div class="mono" style="font-size:15px;color:#c4b5fd">${{ analisis.deuda_total_restante|intcomma }}</div>
+        <div class="mono" style="font-size:15px;color:var(--amber-claro)">${{ analisis.deuda_total_restante|intcomma }}</div>
       </div>
       {% if analisis.meses_restantes %}
       <div>
@@ -216,7 +216,7 @@
       {% endif %}
       {% if analisis.cuotas_atrasadas %}
       <div>
-        <div class="label" style="color:rgba(251,113,133,.7);margin-bottom:5px">Atrasado</div>
+        <div class="label" style="color:var(--coral);margin-bottom:5px">Atrasado</div>
         <div class="mono" style="font-size:15px;color:var(--coral)">${{ analisis.monto_atrasado|intcomma }}</div>
         <div style="font-size:10px;color:var(--text-muted);margin-top:2px">
           {{ analisis.cuotas_atrasadas }} cuota{{ analisis.cuotas_atrasadas|pluralize:"s" }} vencida{{ analisis.cuotas_atrasadas|pluralize:"s" }}
@@ -237,13 +237,13 @@
   <div class="row-list">
     {% for f in serie %}
     {% if f.total %}
-    <div class="row" {% if f.es_mes_actual %}style="background:rgba(124,58,237,.14);border-color:rgba(167,139,250,.28)"{% endif %}>
-      <span class="mono" style="font-size:12px;min-width:74px;color:{% if f.es_mes_actual %}#c4b5fd{% elif f.es_pasado %}var(--text-muted){% else %}var(--text-secondary){% endif %}">{{ f.mes }}</span>
+    <div class="row" {% if f.es_mes_actual %}style="background:rgba(255,170,44,.14);border-color:rgba(255,170,44,.28)"{% endif %}>
+      <span class="mono" style="font-size:12px;min-width:74px;color:{% if f.es_mes_actual %}var(--amber-claro){% elif f.es_pasado %}var(--text-muted){% else %}var(--text-secondary){% endif %}">{{ f.mes }}</span>
 
       <div class="row-main">
         {# Una sola barra partida: verde lo pagado, naranja lo que falta #}
         <div class="split-bar" style="height:8px">
-          {% if f.pagado %}<span style="width:{% widthratio f.pagado f.total 100 %}%;background:linear-gradient(90deg,#059669,#34d399)"></span>{% endif %}
+          {% if f.pagado %}<span style="width:{% widthratio f.pagado f.total 100 %}%;background:linear-gradient(90deg,#059669,var(--green))"></span>{% endif %}
           {% if f.pendiente %}<span style="width:{% widthratio f.pendiente f.total 100 %}%;background:linear-gradient(90deg,#ea580c,#fb923c)"></span>{% endif %}
         </div>
       </div>
@@ -288,8 +288,8 @@
 <script>
 (function () {
   var GRID = 'rgba(255,255,255,.055)';
-  var TICK = 'rgba(241,240,255,.42)';
-  var FONT = "'DM Sans', sans-serif";
+  var TICK = 'var(--text-muted)';
+  var FONT = "'Manrope', sans-serif";
 
   /* ---- Cuánto pagas en cuotas cada mes ----
 
@@ -322,19 +322,19 @@
       var ancho = chart.scales.x.width / etiquetas.length;
       var c = chart.ctx;
       c.save();
-      c.fillStyle = "rgba(167,139,250,.07)";
+      c.fillStyle = "rgba(255,170,44,.07)";
       c.fillRect(x - ancho / 2, area.top, ancho, area.bottom - area.top);
       c.beginPath();
       c.setLineDash([4, 4]);
       c.lineWidth = 1;
-      c.strokeStyle = "rgba(167,139,250,.4)";
+      c.strokeStyle = "rgba(255,170,44,.4)";
       c.moveTo(x + ancho / 2, area.top);
       c.lineTo(x + ancho / 2, area.bottom);
       c.stroke();
       c.setLineDash([]);
       if (!angosto) {
-        c.fillStyle = "rgba(167,139,250,.7)";
-        c.font = "10px 'DM Sans', sans-serif";
+        c.fillStyle = "var(--amber)";
+        c.font = "10px 'Manrope', sans-serif";
         c.textAlign = "center";
         c.fillText("este mes", x, area.top + 12);
       }
@@ -361,9 +361,9 @@
       plugins: {
         legend: { display: false },
         tooltip: {
-          backgroundColor: "rgba(20,19,38,.96)",
-          borderColor: "rgba(167,139,250,.28)", borderWidth: 1,
-          titleFont: { family: "'Sora', sans-serif", size: 12, weight: "600" },
+          backgroundColor: "rgba(33,33,33,.96)",
+          borderColor: "rgba(255,170,44,.28)", borderWidth: 1,
+          titleFont: { family: "'Manrope', sans-serif", size: 12, weight: "600" },
           bodyFont: { family: FONT, size: 12 },
           footerFont: { family: FONT, size: 11, weight: "400" },
           footerColor: "rgba(241,240,255,.5)",

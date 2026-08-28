@@ -4,7 +4,7 @@
 
 {% block topbar_left %}
 <div>
-  <div class="label" style="color:rgba(167,139,250,.8)">Tu cuenta</div>
+  <div class="label" style="color:var(--amber)">Tu cuenta</div>
 </div>
 {% endblock %}
 
@@ -18,8 +18,8 @@
 {# ============ Cabecera ============ #}
 <div class="glass card-lg" data-spot style="margin-bottom:16px;display:flex;align-items:center;gap:18px;flex-wrap:wrap">
   <span class="avatar" style="width:66px;height:66px;border-radius:22px;font-size:24px;
-        background:linear-gradient(140deg,#7c3aed,#a78bfa);border:none;color:#fff;
-        box-shadow:0 10px 28px rgba(124,58,237,.4)">{{ profile.inicial }}</span>
+        background:linear-gradient(140deg,var(--amber-oscuro),var(--amber));border:none;color:#fff;
+        box-shadow:0 10px 28px rgba(255,170,44,.35)">{{ profile.inicial }}</span>
 
   <div style="flex:1;min-width:180px">
     <div class="page-title" style="font-size:19px">{{ profile.nombre_display }}</div>
@@ -38,9 +38,9 @@
       <div class="mono" style="font-size:15px">{{ total_deudas }}</div>
       <div class="label" style="margin-top:3px">compras a plazo</div>
     </div>
-    <div style="padding:11px 15px;border-radius:14px;background:rgba(167,139,250,.12);border:1px solid rgba(167,139,250,.24);text-align:center">
-      <div class="mono" style="font-size:15px;color:#c4b5fd">{{ miembro_desde }}</div>
-      <div class="label" style="color:rgba(167,139,250,.75);margin-top:3px">desde</div>
+    <div style="padding:11px 15px;border-radius:14px;background:rgba(255,170,44,.12);border:1px solid rgba(255,170,44,.24);text-align:center">
+      <div class="mono" style="font-size:15px;color:var(--amber-claro)">{{ miembro_desde }}</div>
+      <div class="label" style="color:var(--amber);margin-top:3px">desde</div>
     </div>
   </div>
 </div>

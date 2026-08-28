@@ -47,8 +47,8 @@ class Transaccion(models.Model):
     # Vive acá para que el template no tenga colores hardcodeados.
     COLORES_CATEGORIA = {
         'Comida': '#60a5fa',
-        'Transporte': '#34d399',
-        'Servicios': '#a78bfa',
+        'Transporte': '#53d258',
+        'Servicios': '#818cf8',
         'Ocio': '#fbbf24',
         'Salud': '#22d3ee',
         'Tecnologia': '#818cf8',
@@ -58,8 +58,8 @@ class Transaccion(models.Model):
         'Compras': '#c084fc',
         'Educacion': '#facc15',
         'Suscripciones': '#fb923c',
-        'Cuentas': '#fb7185',
-        'Otros': 'rgba(241,240,255,.28)',
+        'Cuentas': '#e25c5c',
+        'Otros': 'rgba(245,245,245,.28)',
     }
 
     usuario = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -459,6 +459,116 @@ class PagoCuota(models.Model):
     def fue_atrasado(self):
         """Se pagó después de la fecha de cobro de su mes."""
         return self.fecha_pago > self.deuda.fecha_cobro_de(self.periodo)
+
+
+class Categoria(models.Model):
+    """Una categoría creada por el usuario.
+
+    Las categorías base viven en las tuplas CATEGORIAS_* de Transaccion: son
+    las mismas para todos y no se pueden borrar. Este modelo agrega las
+    propias, que es lo que faltaba — si alguien gasta en "Mascotas" o
+    "Gimnasio" antes tenía que meterlo todo en "Otros Gastos", y después la
+    dona de categorías no le decía nada.
+
+    Transaccion.categoria es un CharField con choices. Django solo valida
+    choices en los formularios, no en la base, así que guardar un slug propio
+    funciona sin cambiar la columna.
+    """
+    TIPOS = [('EGRESO', 'Gasto'), ('INGRESO', 'Ingreso')]
+
+    PALETA = [
+        ('#ffaa2c', 'Ámbar'), ('#53d258', 'Verde'), ('#4b8cff', 'Azul'),
+        ('#e25c5c', 'Rojo'), ('#f4626c', 'Rosa'), ('#2fd8c8', 'Turquesa'),
+        ('#ffd54f', 'Amarillo'), ('#818cf8', 'Lila'), ('#c084fc', 'Violeta'),
+    ]
+
+    ICONOS = [
+        ('fa-tag', 'Etiqueta'), ('fa-cart-shopping', 'Compras'),
+        ('fa-utensils', 'Comida'), ('fa-car', 'Auto'), ('fa-house', 'Casa'),
+        ('fa-paw', 'Mascotas'), ('fa-dumbbell', 'Gimnasio'),
+        ('fa-gift', 'Regalos'), ('fa-plane', 'Viajes'), ('fa-book', 'Estudios'),
+        ('fa-mug-hot', 'Café'), ('fa-gamepad', 'Juegos'), ('fa-shirt', 'Ropa'),
+        ('fa-heart', 'Salud'), ('fa-wallet', 'Dinero'),
+    ]
+
+    usuario = models.ForeignKey(User, on_delete=models.CASCADE, related_name='categorias')
+    nombre = models.CharField(max_length=40)
+    slug = models.SlugField(max_length=50)
+    tipo = models.CharField(max_length=10, choices=TIPOS, default='EGRESO')
+    color = models.CharField(max_length=20, default='#ffaa2c')
+    icono = models.CharField(max_length=30, default='fa-tag')
+    activa = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ['tipo', 'nombre']
+        constraints = [
+            models.UniqueConstraint(fields=['usuario', 'slug'],
+                                    name='categoria_unica_por_usuario'),
+        ]
+
+    def __str__(self):
+        return self.nombre
+
+    def save(self, *args, **kwargs):
+        """Genera el slug y le agrega un sufijo si ya existe.
+
+        Sin esto, dos categorías con el mismo nombre revientan la restricción
+        única con un error de base de datos que el usuario no entiende.
+        """
+        if not self.slug:
+            from django.utils.text import slugify
+            base = slugify(self.nombre)[:40] or 'categoria'
+            slug, n = base, 2
+            while True:
+                choca = Categoria.objects.filter(usuario=self.usuario, slug=slug)
+                if self.pk:
+                    choca = choca.exclude(pk=self.pk)
+                if not choca.exists():
+                    break
+                slug = base + '-' + str(n)
+                n += 1
+            self.slug = slug
+        super().save(*args, **kwargs)
+
+    @property
+    def es_gasto(self):
+        return self.tipo == 'EGRESO'
+
+    @classmethod
+    def opciones(cls, usuario, tipo=None):
+        """Las categorías base más las del usuario, listas para un choices.
+
+        Se usa en los formularios para que las propias aparezcan junto a las
+        de siempre, no en una lista aparte.
+        """
+        base = []
+        if tipo != 'INGRESO':
+            base += list(Transaccion.CATEGORIAS_EGRESO)
+        if tipo != 'EGRESO':
+            base += list(Transaccion.CATEGORIAS_INGRESO)
+        propias = cls.objects.filter(usuario=usuario, activa=True)
+        if tipo:
+            propias = propias.filter(tipo=tipo)
+        return base + [(c.slug, c.nombre) for c in propias]
+
+    @classmethod
+    def mapa(cls, usuario):
+        """slug → {label, color, icono}, para pintar cualquier categoría sin
+        tener que preguntar de dónde viene."""
+        salida = {}
+        for slug, label in Transaccion.CATEGORIAS:
+            salida[slug] = {
+                'label': label,
+                'color': Transaccion.COLORES_CATEGORIA.get(
+                    slug, Transaccion.COLORES_CATEGORIA['Otros']),
+                'icono': 'fa-tag', 'propia': False,
+            }
+        for c in cls.objects.filter(usuario=usuario):
+            salida[c.slug] = {
+                'label': c.nombre, 'color': c.color,
+                'icono': c.icono, 'propia': True,
+            }
+        return salida
 
 
 class Presupuesto(models.Model):

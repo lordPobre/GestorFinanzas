@@ -10,7 +10,7 @@ from datetime import date
 
 from django import forms
 
-from .models import Deuda, MetaAhorro, Transaccion
+from .models import Categoria, Deuda, MetaAhorro, Transaccion
 
 
 class DeudaForm(forms.ModelForm):
@@ -91,11 +91,17 @@ class TransaccionForm(forms.ModelForm):
             'descripcion': forms.TextInput(attrs={'placeholder': 'Ej: Supermercado, sueldo de agosto'}),
         }
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, usuario=None, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['descripcion'].required = False
         if not self.instance.pk and not self.initial.get('fecha'):
             self.fields['fecha'].initial = date.today()
+
+        # Las categorías propias del usuario se suman a las base. Sin esto,
+        # una categoría creada por él no aparecía al registrar un movimiento.
+        self._usuario = usuario or getattr(self.instance, 'usuario_id', None) and self.instance.usuario
+        if self._usuario:
+            self.fields['categoria'].choices = Categoria.opciones(self._usuario)
 
     def clean_monto(self):
         monto = self.cleaned_data.get('monto')
@@ -130,6 +136,17 @@ class TransaccionForm(forms.ModelForm):
 
         de_ingreso = {c[0] for c in Transaccion.CATEGORIAS_INGRESO}
         de_egreso = {c[0] for c in Transaccion.CATEGORIAS_EGRESO}
+
+        # Una categoría propia declara su propio tipo.
+        if getattr(self, '_usuario', None):
+            propia = Categoria.objects.filter(
+                usuario=self._usuario, slug=categoria).first()
+            if propia:
+                if propia.tipo != tipo:
+                    self.add_error('categoria',
+                                   'Esa categoría es de ' +
+                                   ('ingresos' if propia.tipo == 'INGRESO' else 'gastos') + '.')
+                return datos
 
         if tipo == 'INGRESO' and categoria in de_egreso:
             self.add_error('categoria', 'Esa categoría es de gastos. Elige de dónde viene el ingreso.')

@@ -41,9 +41,7 @@
 </head>
 <body>
 
-<div class="aurora" aria-hidden="true">
-  <span class="a1"></span><span class="a2"></span><span class="a3"></span><span class="grain"></span>
-</div>
+
 
 <div class="layout">
 
@@ -83,6 +81,16 @@
       </div>
 
       <div class="nav-group">
+        <div class="nav-title">Ajustes</div>
+        <a href="{% url 'metas' %}" data-label="Metas" class="nav-item {% if request.resolver_match.url_name == 'metas' %}active{% endif %}">
+          <i class="fas fa-bullseye"></i><span>Metas</span>
+        </a>
+        <a href="{% url 'categorias' %}" data-label="Categorías" class="nav-item {% if request.resolver_match.url_name == 'categorias' %}active{% endif %}">
+          <i class="fas fa-tags"></i><span>Categorías</span>
+        </a>
+      </div>
+
+      <div class="nav-group">
         <div class="nav-title">Cuenta</div>
         <a href="{% url 'perfil' %}" data-label="Mi perfil" class="nav-item {% if request.resolver_match.url_name == 'perfil' %}active{% endif %}">
           <i class="fas fa-user"></i><span>Mi perfil</span>
@@ -97,7 +105,7 @@
     {% block sidebar_foot %}
       {% if salud_score != None %}
       <div class="sidebar-foot health" data-spot title="Salud del mes: {{ salud_score }}/100 · {{ salud_label }}">
-        <div class="label" style="color:rgba(167,139,250,.75);margin-bottom:7px">Salud del mes</div>
+        <div class="label" style="color:var(--amber);margin-bottom:7px">Salud del mes</div>
         <div style="display:flex;align-items:baseline;gap:6px;margin-bottom:9px;justify-content:center">
           <span class="display" style="font-size:24px;line-height:1">{{ salud_score }}</span>
           <span class="health-detalle" style="font-size:11px;color:var(--text-muted)">/ 100 · {{ salud_label }}</span>
@@ -105,16 +113,16 @@
         <div class="progress-bar" style="height:5px">
           <div class="progress-fill" style="width:{{ salud_score }}%"></div>
         </div>
-        {% if salud_nota %}<div class="health-nota" style="font-size:10.5px;color:rgba(241,240,255,.42);margin-top:9px;line-height:1.45">{{ salud_nota }}</div>{% endif %}
+        {% if salud_nota %}<div class="health-nota" style="font-size:10.5px;color:var(--text-muted);margin-top:9px;line-height:1.45">{{ salud_nota }}</div>{% endif %}
       </div>
       {% else %}
       {% comment %}
         Antes el bloque simplemente no aparecía y quedaba un hueco sin
         explicación. Ahora dice qué falta para que aparezca.
       {% endcomment %}
-      <div class="sidebar-foot health health-nota" data-spot>
-        <div class="label" style="color:rgba(167,139,250,.75);margin-bottom:6px">Salud del mes</div>
-        <div style="font-size:11px;color:rgba(241,240,255,.45);line-height:1.5">
+      <div class="sidebar-foot health" data-spot title="Salud del mes">
+        <div class="label" style="color:var(--amber);margin-bottom:6px">Salud del mes</div>
+        <div class="health-nota" style="font-size:11px;color:var(--text-muted);line-height:1.5">
           Registra un ingreso y aquí verás qué tan holgado va tu mes.
         </div>
       </div>
@@ -126,6 +134,16 @@
 
     <header class="topbar">
       {% block topbar_left %}
+      <div style="display:flex;align-items:center;gap:11px">
+        <a href="{% url 'perfil' %}" class="avatar" title="Mi perfil">{{ profile.inicial|default:"?" }}</a>
+        <div>
+          <div style="font-size:15px;font-weight:700;letter-spacing:-.02em">
+            Hola, {{ profile.nombre_display|default:user.username }}
+          </div>
+          <div class="saludo-sub" style="font-size:11px;color:var(--text-muted)">{% block topbar_sub %}Tus finanzas al día{% endblock %}</div>
+        </div>
+      </div>
+
       {# Solo el dashboard navega por mes; el resto no manda nombre_mes #}
       {% if nombre_mes %}
       <div class="pill-group">
@@ -136,7 +154,7 @@
         </a>
         <span class="month">
           {{ nombre_mes|default:"Este mes" }}
-          {% if es_mes_actual %}<span style="font-size:9.5px;color:rgba(167,139,250,.8);margin-left:5px">ahora</span>{% endif %}
+          {% if es_mes_actual %}<span style="font-size:9.5px;color:var(--amber);margin-left:5px">ahora</span>{% endif %}
         </span>
         <a href="?year={{ next_year }}&amp;month={{ next_month }}" class="icon-btn"
            style="display:flex;align-items:center;justify-content:center"
@@ -156,7 +174,7 @@
       {% endcomment %}
       <div class="search">
         <label for="buscador" class="visually-hidden">Buscar en esta pantalla</label>
-        <i class="fas fa-magnifying-glass" style="font-size:11px;color:rgba(241,240,255,.35)"></i>
+        <i class="fas fa-magnifying-glass" style="font-size:11px;color:var(--text-muted)"></i>
         <input type="search" id="buscador" data-search
                placeholder="{% block search_placeholder %}Filtrar lo que ves{% endblock %}">
         <span class="kbd hide-mobile">⌘K</span>
@@ -166,37 +184,62 @@
       <div class="spacer"></div>
 
       {% block topbar_actions %}
-      <button class="btn btn-green hide-mobile" data-open="#modalGasto" data-preset-tipo="INGRESO">
-        <i class="fas fa-arrow-down" style="font-size:11px"></i>Anotar ingreso
+      <button class="btn btn-green hide-mobile" data-open="#modalGasto" data-preset-tipo="INGRESO"
+              title="Anotar ingreso" aria-label="Anotar ingreso">
+        <i class="fas fa-arrow-down" style="font-size:11px"></i><span>Anotar ingreso</span>
       </button>
-      <button class="btn btn-purple hide-mobile" data-open="#modalGasto" data-preset-tipo="EGRESO">
-        <i class="fas fa-plus" style="font-size:11px"></i>Anotar gasto
+      <button class="btn btn-purple hide-mobile" data-open="#modalGasto" data-preset-tipo="EGRESO"
+              title="Anotar gasto" aria-label="Anotar gasto">
+        <i class="fas fa-plus" style="font-size:11px"></i><span>Anotar gasto</span>
       </button>
       {% endblock %}
     </header>
 
     <main class="main">
+      {% comment %}
+        La plantilla abre con esta tarjeta en vez de una barra superior.
+        En escritorio se esconde: ahí el saludo vive en el topbar.
+      {% endcomment %}
+      <div class="saludo-card">
+        <a href="{% url 'perfil' %}" class="avatar">{{ profile.inicial|default:"?" }}</a>
+        <div class="saludo-txt">
+          <div class="saludo-hola">{% block saludo %}Buenos días{% endblock %}</div>
+          <div class="saludo-nombre">{{ profile.nombre_display|default:user.username }}</div>
+        </div>
+        <button class="saludo-campana" data-open="#modalAvisos" aria-label="Avisos">
+          <i class="fas fa-bell"></i>
+          {% if cuotas_atrasadas or pendientes_sin_pagar %}<span class="punto"></span>{% endif %}
+        </button>
+      </div>
+
       {% block content %}{% endblock %}
     </main>
   </div>
 </div>
 
+{% comment %}
+  Cuatro destinos y un hueco al centro para el botón, calcado de la
+  plantilla. Los otros cinco viven en "Más": nueve iconos en una barra de
+  teléfono no se distinguen ni se aciertan con el pulgar.
+{% endcomment %}
 <nav class="bottomnav">
-  <a href="{% url 'dashboard' %}" data-label="Inicio" class="nav-item {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}"><i class="fas fa-house"></i><span>Inicio</span></a>
+  <a href="{% url 'dashboard' %}" data-label="Inicio" class="nav-item {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+    <i class="fas fa-house"></i><span>Inicio</span>
+  </a>
   <a href="{% url 'deudas' %}" data-label="Cuotas" class="nav-item {% if request.resolver_match.url_name == 'deudas' %}active{% endif %}">
     <i class="fas fa-credit-card"></i><span>Cuotas</span>
     {% if cuotas_activas %}<span class="nav-count">{{ cuotas_activas }}</span>{% endif %}
   </a>
-  <a href="{% url 'suscripciones' %}" data-label="Suscripciones" class="nav-item {% if request.resolver_match.url_name == 'suscripciones' %}active{% endif %}">
-    <i class="fas fa-rotate"></i><span>Servicios</span>
-    {% if subs_pendientes %}<span class="nav-count">{{ subs_pendientes }}</span>{% endif %}
-  </a>
+
+  <span class="nav-hueco" aria-hidden="true"></span>
+
   <a href="{% url 'prestamos' %}" data-label="Me deben" class="nav-item {% if request.resolver_match.url_name == 'prestamos' %}active{% endif %}">
     <i class="fas fa-hand-holding-dollar"></i><span>Me deben</span>
     {% if prestamos_activos %}<span class="nav-count">{{ prestamos_activos }}</span>{% endif %}
   </a>
-  <a href="{% url 'analisis_predictivo' %}" data-label="Análisis IA" class="nav-item {% if request.resolver_match.url_name == 'analisis_predictivo' %}active{% endif %}"><i class="fas fa-brain"></i><span>Análisis</span></a>
-  <a href="{% url 'perfil' %}" data-label="Mi perfil" class="nav-item {% if request.resolver_match.url_name == 'perfil' %}active{% endif %}"><i class="fas fa-user"></i><span>Perfil</span></a>
+  <button class="nav-item" data-open="#modalMas" data-label="Más">
+    <i class="fas fa-grip"></i><span>Más</span>
+  </button>
 </nav>
 
 {% comment %}
@@ -214,6 +257,90 @@
     <i class="fas fa-plus" style="font-size:18px"></i>
   </button>
   {% endblock %}
+</div>
+
+{% comment %}
+  Las pantallas que no caben en la barra. Se abre como hoja desde abajo,
+  que es donde está el pulgar.
+{% endcomment %}
+<div class="modal-overlay hoja-overlay" id="modalMas">
+  <div class="modal-box hoja-box">
+    <div class="modal-head">
+      <div class="modal-title">Todo lo demás</div>
+      <button class="modal-close" data-close>✕</button>
+    </div>
+    <div class="hoja-grid">
+      <a href="{% url 'metas' %}" class="hoja-item">
+        <span class="icon-tile orange"><i class="fas fa-bullseye"></i></span><span>Metas</span></a>
+      <a href="{% url 'suscripciones' %}" class="hoja-item">
+        <span class="icon-tile orange"><i class="fas fa-rotate"></i></span><span>Suscripciones</span>
+        {% if subs_pendientes %}<span class="nav-count">{{ subs_pendientes }}</span>{% endif %}</a>
+      <a href="{% url 'estadisticas' %}" class="hoja-item">
+        <span class="icon-tile blue"><i class="fas fa-chart-pie"></i></span><span>Estadísticas</span></a>
+      <a href="{% url 'analisis_predictivo' %}" class="hoja-item">
+        <span class="icon-tile orange"><i class="fas fa-brain"></i></span><span>Análisis IA</span></a>
+      <a href="{% url 'categorias' %}" class="hoja-item">
+        <span class="icon-tile blue"><i class="fas fa-tags"></i></span><span>Categorías</span></a>
+      <a href="{% url 'perfil' %}" class="hoja-item">
+        <span class="icon-tile"><i class="fas fa-user"></i></span><span>Mi perfil</span></a>
+    </div>
+    <form method="post" action="{% url 'logout' %}" style="margin-top:16px">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-glass btn-block" style="color:var(--coral)">
+        <i class="fas fa-right-from-bracket" style="font-size:11px"></i>Salir
+      </button>
+    </form>
+  </div>
+</div>
+
+<div class="modal-overlay hoja-overlay" id="modalAvisos">
+  <div class="modal-box hoja-box">
+    <div class="modal-head">
+      <div>
+        <div class="modal-title">Lo que necesita tu atención</div>
+        <div class="modal-sub">{{ nombre_mes|default:"Este mes" }}</div>
+      </div>
+      <button class="modal-close" data-close>✕</button>
+    </div>
+
+    {% if pendientes_atrasados %}
+    <div class="label" style="color:var(--coral);margin-bottom:9px">Atrasado</div>
+    <div class="row-list" style="margin-bottom:16px">
+      {% for i in pendientes_atrasados %}
+      <div class="row">
+        <span class="icon-tile coral"><i class="fas {{ i.icono|default:'fa-circle-exclamation' }}"></i></span>
+        <div class="row-main">
+          <div class="row-title">{{ i.nombre }}</div>
+          <div class="row-meta">{{ i.detalle }}</div>
+        </div>
+        <div class="mono" style="font-size:13px;color:var(--coral)">${{ i.monto|floatformat:0 }}</div>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if pendientes_sin_pagar %}
+    <div class="label" style="margin-bottom:9px">Por pagar este mes</div>
+    <div class="row-list">
+      {% for i in pendientes_sin_pagar %}
+      <div class="row">
+        <span class="icon-tile orange"><i class="fas {{ i.icono|default:'fa-clock' }}"></i></span>
+        <div class="row-main">
+          <div class="row-title">{{ i.nombre }}</div>
+          <div class="row-meta">{{ i.detalle }}</div>
+        </div>
+        <div class="mono" style="font-size:13px">${{ i.monto|floatformat:0 }}</div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty" style="padding:30px 12px">
+      <i class="fas fa-circle-check" style="color:var(--green)"></i>
+      <div class="empty-title" style="font-size:14px">Estás al día</div>
+      <div class="empty-text" style="font-size:11.5px">No hay nada pendiente de pago.</div>
+    </div>
+    {% endif %}
+  </div>
 </div>
 
 {% if messages %}
@@ -302,7 +429,7 @@
 
       {% if dias_restantes %}
       <div class="preview-box">
-        <div class="label" style="color:rgba(167,139,250,.8);margin-bottom:8px">Si guardas esto</div>
+        <div class="label" style="color:var(--amber);margin-bottom:8px">Si guardas esto</div>
         <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:5px">
           <span style="font-size:12px;color:var(--text-secondary)">Te queda libre</span>
           <span class="mono" style="font-size:15px" data-preview data-base="{{ disponible }}"
@@ -310,7 +437,7 @@
         </div>
         <div style="display:flex;justify-content:space-between;align-items:baseline">
           <span style="font-size:12px;color:var(--text-secondary)">Por día ({{ dias_restantes }} días)</span>
-          <span class="mono" style="font-size:12.5px;color:rgba(241,240,255,.7)" data-preview-dia>${{ por_dia|intcomma }}</span>
+          <span class="mono" style="font-size:12.5px;color:var(--text-secondary)" data-preview-dia>${{ por_dia|intcomma }}</span>
         </div>
       </div>
       {% endif %}

@@ -31,57 +31,116 @@
   con el texto repitiéndolo al lado, y otra vez en la cuarta métrica. Tres
   copias del mismo dato hacen dudar cuál es el bueno. Ahora vive solo acá.
 {% endcomment %}
-<div class="glass card-lg" data-spot style="margin-bottom:18px">
-  <div style="display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:22px">
-    <div style="min-width:280px;flex:1">
-      <div class="label" style="color:rgba(167,139,250,.8);margin-bottom:10px">Lo importante hoy</div>
-      <div class="hero-line">
-        {% if disponible >= 0 %}
-          Puedes gastar <b>${{ disponible|intcomma }}</b> hasta fin de mes.
-        {% else %}
-          Te faltan <b style="color:var(--coral)">${{ disponible|intcomma }}</b> para cerrar el mes.
-        {% endif %}
+{% comment %}
+  Carrusel de tarjetas, como la plantilla: se desliza con el dedo en el
+  teléfono y se reparte en tres columnas en escritorio. La primera es la
+  ámbar del saldo; las otras dos son los números que en esta app pesan
+  igual — lo que debes y lo que te deben.
+{% endcomment %}
+<div class="balance-carrusel" data-carrusel>
+
+  <div class="balance-card">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px">
+      <div>
+        <div style="font-size:17px;font-weight:700;letter-spacing:-.02em">
+          {% if disponible >= 0 %}Puedes gastar{% else %}Te falta{% endif %}
+        </div>
+        <div class="label" style="margin-top:2px">{{ hoy_texto|default:nombre_mes }}</div>
       </div>
-      <div class="hint" style="margin-top:9px;max-width:520px">
-        Es lo que queda después de tus gastos ya hechos y de lo que aún debes pagar este mes.
-        {% if disponible >= 0 %}
-          Quedan {{ dias_restantes }} días de mes.
-        {% else %}
-          Revisa tus cuotas o registra los ingresos que falten.
-        {% endif %}
-      </div>
+      <a href="{% url 'estadisticas' %}" style="color:rgba(26,18,0,.55);font-size:15px" title="Ver detalle">
+        <i class="fas fa-ellipsis"></i>
+      </a>
     </div>
 
-    <div style="display:flex;gap:10px;flex-wrap:wrap">
-      <div style="padding:13px 16px;border-radius:16px;background:rgba(255,255,255,.04);border:1px solid var(--glass-border);min-width:132px">
-        <div class="label" style="margin-bottom:6px">Por día</div>
-        <div class="mono" style="font-size:16px">${{ por_dia|intcomma }}</div>
+    <div class="display" style="font-size:32px;margin:18px 0 0">
+      ${{ disponible|intcomma }}
+    </div>
+
+    <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin-top:16px">
+      <div style="font-size:11.5px;color:rgba(26,18,0,.68);font-weight:600">
+        ${{ por_dia|intcomma }} por día · quedan {{ dias_restantes }} días
       </div>
-      {% if proximo_pago %}
-      <div class="glass-coral" style="padding:13px 16px;border-radius:16px;min-width:132px">
-        <div class="label" style="color:rgba(251,113,133,.7);margin-bottom:6px">Próximo pago</div>
-        <div class="mono" style="font-size:16px;color:var(--coral)">${{ proximo_pago.monto_cuota|floatformat:0|intcomma }}</div>
-        <div style="font-size:10.5px;color:var(--text-muted);margin-top:3px">{{ proximo_pago.acreedor|truncatechars:16 }}</div>
-        <div style="font-size:10.5px;color:var(--text-muted)">{{ proximo_pago.texto_urgencia }}</div>
-      </div>
-      {% endif %}
     </div>
   </div>
 
-  <div style="margin-top:20px;display:flex;align-items:center;gap:12px;flex-wrap:wrap">
-    <div class="split-bar" style="flex:1;min-width:200px">
-      <span style="width:{{ pct_gastado }}%;background:linear-gradient(90deg,#3b82f6,#60a5fa)"></span>
-      <span style="width:{{ pct_por_pagar }}%;background:linear-gradient(90deg,#fb923c,#fbbf24)"></span>
-      <span style="width:{{ pct_disponible }}%;background:linear-gradient(90deg,#7c3aed,#a78bfa)"></span>
+  <div class="glass card-lg" data-spot>
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px">
+      <div>
+        <div style="font-size:17px;font-weight:700;letter-spacing:-.02em">Debes en cuotas</div>
+        <div class="label" style="margin-top:2px">{{ mis_cuotas|length }} compra{{ mis_cuotas|length|pluralize:"s" }} a plazo</div>
+      </div>
+      <a href="{% url 'deudas' %}" style="color:var(--text-muted);font-size:15px" title="Ver cuotas">
+        <i class="fas fa-ellipsis"></i>
+      </a>
     </div>
-    <div style="display:flex;gap:14px;font-size:10.5px;color:rgba(241,240,255,.45);flex-wrap:wrap">
-      <span><span style="display:inline-block;width:7px;height:7px;border-radius:2px;background:#60a5fa;margin-right:5px"></span>Ya gastado</span>
-      <span><span style="display:inline-block;width:7px;height:7px;border-radius:2px;background:#fbbf24;margin-right:5px"></span>Por pagar</span>
-      <span><span style="display:inline-block;width:7px;height:7px;border-radius:2px;background:#a78bfa;margin-right:5px"></span>Disponible</span>
+    <div class="display" style="font-size:32px;margin:18px 0 0;color:var(--amber)">
+      ${{ deuda_total|intcomma }}
+    </div>
+    <div style="font-size:11.5px;color:var(--text-muted);margin-top:16px">
+      {% if total_cuotas_mes %}${{ total_cuotas_mes|intcomma }} este mes{% else %}Sin cuotas este mes{% endif %}
+      {% if cuotas_atrasadas %} · <span style="color:var(--coral)">{{ cuotas_atrasadas }} atrasada{{ cuotas_atrasadas|pluralize:"s" }}</span>{% endif %}
+    </div>
+  </div>
+
+  <div class="glass card-lg" data-spot>
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px">
+      <div>
+        <div style="font-size:17px;font-weight:700;letter-spacing:-.02em">Te deben</div>
+        <div class="label" style="margin-top:2px">{{ prestamos_activos }} préstamo{{ prestamos_activos|pluralize:"s" }} activo{{ prestamos_activos|pluralize:"s" }}</div>
+      </div>
+      <a href="{% url 'prestamos' %}" style="color:var(--text-muted);font-size:15px" title="Ver préstamos">
+        <i class="fas fa-ellipsis"></i>
+      </a>
+    </div>
+    <div class="display" style="font-size:32px;margin:18px 0 0;color:var(--green)">
+      ${{ total_por_cobrar|default:0|intcomma }}
+    </div>
+    <div style="font-size:11.5px;color:var(--text-muted);margin-top:16px">
+      No cuenta en tu balance hasta que te paguen
     </div>
   </div>
 </div>
 
+<div class="balance-dots" data-dots>
+  <span class="on"></span><span></span><span></span>
+</div>
+
+{% comment %}
+  Ingresos y egresos en una sola fila partida, igual que la plantilla.
+{% endcomment %}
+<div class="split-card" style="margin-bottom:18px">
+  <div>
+    <i class="fas fa-arrow-down split-flecha" style="color:var(--green)"></i>
+    <div>
+      <div class="label">Ingresos</div>
+      <div class="display" style="font-size:19px">${{ total_ingresos|intcomma }}</div>
+    </div>
+  </div>
+  <span class="divisor"></span>
+  <div style="padding-left:18px">
+    <i class="fas fa-arrow-up split-flecha" style="color:var(--coral)"></i>
+    <div>
+      <div class="label">Egresos</div>
+      <div class="display" style="font-size:19px">${{ total_comprometido_mes|intcomma }}</div>
+    </div>
+  </div>
+</div>
+
+{% comment %}
+  El reparto del mes: gastado, por pagar y disponible en una barra.
+{% endcomment %}
+<div class="glass card" style="margin-bottom:18px" data-spot>
+  <div class="split-bar" style="height:10px">
+    <span style="width:{{ pct_gastado }}%;background:var(--blue)"></span>
+    <span style="width:{{ pct_por_pagar }}%;background:var(--amber)"></span>
+    <span style="width:{{ pct_disponible }}%;background:var(--green)"></span>
+  </div>
+  <div style="display:flex;gap:16px;margin-top:11px;font-size:10.5px;color:var(--text-muted);flex-wrap:wrap">
+    <span><span style="display:inline-block;width:7px;height:7px;border-radius:2px;background:var(--blue);margin-right:5px"></span>Ya gastado</span>
+    <span><span style="display:inline-block;width:7px;height:7px;border-radius:2px;background:var(--amber);margin-right:5px"></span>Por pagar</span>
+    <span><span style="display:inline-block;width:7px;height:7px;border-radius:2px;background:var(--green);margin-right:5px"></span>Disponible</span>
+  </div>
+</div>
 {% comment %}
   2. DE DÓNDE SALE ESE NÚMERO — el desglose, justo debajo.
 
@@ -112,7 +171,7 @@
     <div class="stat-value" style="color:var(--blue)">${{ total_gastos|intcomma }}</div>
     {% if gastos_por_pagar %}
     <div class="split-bar" style="height:6px;margin:10px 0 8px">
-      <span style="width:{{ pct_gasto_pagado }}%;background:linear-gradient(90deg,#059669,#34d399)"></span>
+      <span style="width:{{ pct_gasto_pagado }}%;background:linear-gradient(90deg,#059669,var(--green))"></span>
       <span style="width:{% widthratio gastos_por_pagar total_gastos 100 %}%;background:linear-gradient(90deg,#ea580c,#fb923c)"></span>
     </div>
     <div class="stat-note">
@@ -261,7 +320,7 @@
 </div>
 <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:18px">
   {% for i in insights %}
-  <div class="row" style="border-color:{% if i.tipo == 'peligro' %}rgba(248,113,113,.26){% elif i.tipo == 'alerta' %}rgba(251,146,60,.24){% elif i.tipo == 'exito' %}rgba(52,211,153,.24){% else %}var(--glass-border){% endif %}">
+  <div class="row" style="border-color:{% if i.tipo == 'peligro' %}rgba(248,113,113,.26){% elif i.tipo == 'alerta' %}rgba(251,146,60,.24){% elif i.tipo == 'exito' %}rgba(83,210,88,.24){% else %}var(--glass-border){% endif %}">
     <span class="icon-tile {% if i.tipo == 'peligro' %}coral{% elif i.tipo == 'alerta' %}orange{% elif i.tipo == 'exito' %}green{% endif %}">
       <i class="fas {{ i.icono }}"></i>
     </span>
@@ -361,7 +420,7 @@
 
   <div style="margin:14px 0 16px">
     <div class="split-bar" style="height:8px">
-      {% if monto_ya_pagado %}<span style="width:{% widthratio monto_ya_pagado total_comprometido_mes 100 %}%;background:linear-gradient(90deg,#059669,#34d399)"></span>{% endif %}
+      {% if monto_ya_pagado %}<span style="width:{% widthratio monto_ya_pagado total_comprometido_mes 100 %}%;background:linear-gradient(90deg,#059669,var(--green))"></span>{% endif %}
       {% if monto_sin_pagar %}<span style="width:{% widthratio monto_sin_pagar total_comprometido_mes 100 %}%;background:linear-gradient(90deg,#ea580c,#fb923c)"></span>{% endif %}
     </div>
     <div style="display:flex;justify-content:space-between;margin-top:8px;font-size:10.5px;color:var(--text-muted)">
@@ -544,11 +603,12 @@
 </div>
 <div class="grid-registro">
     <div class="glass card" style="padding:22px" data-spot>
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;gap:10px">
-        <div class="modal-title" style="font-size:15px;font-weight:500">Últimos movimientos</div>
-        <button class="btn btn-soft btn-sm" data-open="#modalGasto" data-preset-tipo="EGRESO"><i class="fas fa-plus" style="font-size:9px"></i>Agregar</button>
+      <div class="section-head" style="margin:0 0 6px">
+        <h2 class="section-title" style="font-size:15px">Movimientos</h2>
+        <button class="section-sub" style="background:none;border:none;padding:0;font-family:inherit"
+                data-open="#modalGasto" data-preset-tipo="EGRESO">Agregar</button>
       </div>
-      <div class="row-list">
+      <div class="row-list mov-list">
         {% for t in ultimas %}
         <div class="row" data-searchable
              {% if t.por_pagar %}style="border-color:rgba(251,146,60,.26)"{% endif %}>
@@ -599,35 +659,31 @@
     </div>
 
     {% if metas %}
-    <div class="glass card" style="padding:22px" data-spot>
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;gap:10px">
-        <div class="modal-title" style="font-size:15px;font-weight:500">Metas de ahorro</div>
-        <a href="{% url 'crear_meta' %}" class="btn btn-soft btn-sm"><i class="fas fa-plus" style="font-size:9px"></i>Nueva</a>
+    <div>
+      <div class="section-head" style="margin-top:0">
+        <h2 class="section-title" style="font-size:15px">Metas de ahorro</h2>
+        <a href="{% url 'metas' %}" class="section-sub">Ver mas</a>
       </div>
-      <div style="display:flex;flex-direction:column;gap:16px">
+      {% comment %}
+        Dos columnas con la barra de color abajo, como en la plantilla. Cada
+        meta lleva su propio color para distinguirlas de un vistazo.
+      {% endcomment %}
+      <div class="metas-grid">
         {% for m in metas %}
-        <div>
-          <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:7px;gap:10px">
-            <span style="font-size:12.5px">{{ m.nombre }}</span>
-            <span class="mono" style="font-size:11.5px;color:var(--text-secondary)">${{ m.monto_actual|floatformat:0|intcomma }} / ${{ m.monto_meta|floatformat:0|intcomma }}</span>
+        <a href="{% url 'metas' %}#meta{{ m.pk }}" class="meta-mini">
+          <div class="meta-mini-head">
+            <span class="meta-mini-nombre">{{ m.nombre }}</span>
+            <i class="fas fa-chevron-right" style="font-size:11px;color:var(--text-muted)"></i>
           </div>
-          <div class="progress-bar">
-            <div class="progress-fill {% if m.esta_completa %}green{% elif forloop.first %}shine{% else %}cyan{% endif %}"
-                 style="width:{{ m.porcentaje|floatformat:0 }}%"></div>
+          <div class="meta-mini-monto">${{ m.monto_actual|floatformat:0|intcomma }}</div>
+          <div class="progress-bar" style="height:6px">
+            <div class="progress-fill" style="width:{{ m.porcentaje|floatformat:0 }}%;
+                 background:{% cycle '#4b8cff' '#f4626c' '#ffd54f' '#53d258' '#818cf8' '#2fd8c8' %}"></div>
           </div>
-          <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:7px">
-            <span style="font-size:10.5px;color:var(--text-muted)">{{ m.nota_plan }}</span>
-            {% if not m.esta_completa %}
-            <button class="btn btn-green btn-sm" data-open="#meta{{ m.pk }}">Aportar</button>
-            {% else %}
-            <span class="badge badge-green">Lista</span>
-            {% endif %}
-          </div>
-        </div>
+        </a>
         {% endfor %}
       </div>
-    </div>
-    {% endif %}
+    </div>    {% endif %}
 </div>
 
 {% endblock %}
@@ -698,7 +754,7 @@
         <label class="label" for="id_nota_meta_{{ m.pk }}">Nota (opcional)</label>
         <input type="text" name="nota" id="id_nota_meta_{{ m.pk }}" placeholder="Ej: sobró del mes">
       </div>
-      <button type="submit" class="btn btn-block" style="background:linear-gradient(135deg,#059669,#34d399);color:#04291d;font-weight:700;box-shadow:0 10px 30px rgba(5,150,105,.4)">Guardar aporte</button>
+      <button type="submit" class="btn btn-block" style="background:var(--green);color:#04291d;font-weight:700;box-shadow:0 10px 30px rgba(83,210,88,.35)">Guardar aporte</button>
     </form>
   </div>
 </div>
@@ -716,13 +772,13 @@
   if (typeof Chart === 'undefined') return;
 
   var GRID = 'rgba(255,255,255,.055)';
-  var TICK = 'rgba(241,240,255,.42)';
-  var FONT = "'DM Sans', sans-serif";
+  var TICK = 'var(--text-muted)';
+  var FONT = "'Manrope', sans-serif";
 
   var tooltip = {
-    backgroundColor: 'rgba(20,19,38,.94)',
-    borderColor: 'rgba(167,139,250,.28)', borderWidth: 1,
-    titleFont: { family: "'Sora', sans-serif", size: 12, weight: '600' },
+    backgroundColor: 'rgba(33,33,33,.96)',
+    borderColor: 'rgba(255,170,44,.28)', borderWidth: 1,
+    titleFont: { family: "'Manrope', sans-serif", size: 12, weight: '600' },
     bodyFont: { family: FONT, size: 12 },
     padding: 13, cornerRadius: 14, boxPadding: 5, usePointStyle: true,
     callbacks: {
@@ -827,8 +883,8 @@
       activa = (activa === i) ? null : i;
       document.querySelectorAll('.cat-row').forEach(function (r) {
         var on = activa !== null && Number(r.dataset.indice) === activa;
-        r.style.background = on ? 'rgba(167,139,250,.14)' : 'none';
-        r.style.borderColor = on ? 'rgba(167,139,250,.24)' : 'transparent';
+        r.style.background = on ? 'rgba(255,170,44,.14)' : 'none';
+        r.style.borderColor = on ? 'rgba(255,170,44,.24)' : 'transparent';
       });
       dona.data.datasets[0].backgroundColor = catColores.map(function (c, k) {
         return (activa === null || k === activa) ? c : 'rgba(255,255,255,.07)';

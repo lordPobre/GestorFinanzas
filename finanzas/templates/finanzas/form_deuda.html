@@ -1,144 +1,123 @@
 {% extends 'finanzas/base.html' %}
+{% load humanize %}
+{% block title %}{% if editar %}Editar compra{% else %}Nueva compra en cuotas{% endif %} · FinApp{% endblock %}
+{% block topbar_sub %}{% if editar %}Ajustar una compra a plazo{% else %}Registrar una compra a plazo{% endif %}{% endblock %}
+
+{% block topbar_actions %}
+<a href="{% url 'deudas' %}" class="btn btn-glass"><i class="fas fa-arrow-left" style="font-size:11px"></i>Volver</a>
+{% endblock %}
+
 {% block content %}
-<div style="min-height:70vh;display:flex;align-items:center;justify-content:center;padding:16px 0">
-<div style="width:100%;max-width:480px">
-
-  <!-- EXPLICACIÓN CONTEXTUAL: ¿qué es una cuota? -->
-  {% if not editar %}
-  <div style="background:rgba(251,146,60,0.08);border:1px solid rgba(251,146,60,0.18);border-radius:16px;padding:16px 18px;margin-bottom:20px;display:flex;gap:12px;align-items:flex-start">
-    <div style="flex-shrink:0;margin-top:1px;color:var(--orange)"><i class="fas fa-credit-card" style="font-size:18px"></i></div>
-    <div>
-      <div style="font-size:13px;font-weight:600;color:var(--orange);margin-bottom:4px">¿Cuándo usar esto?</div>
-      <div style="font-size:12px;color:var(--text-muted);line-height:1.6">
-        Usa este formulario para deudas que pagas en cuotas mes a mes: tarjeta de crédito, préstamo, cuotas de un auto, etc.<br>
-        <span style="color:rgba(241,240,255,0.55);margin-top:4px;display:block">
-          Si pagaste algo de una sola vez (supermercado, bencina), usa
-          <a href="{% url 'registrar_transaccion' %}?tipo=EGRESO" style="color:var(--purple);text-decoration:none;font-weight:500">registrar gasto</a> en cambio.
-        </span>
+<div style="max-width:460px">
+  <div class="glass card-lg" data-spot>
+    <div style="display:flex;align-items:center;gap:13px;margin-bottom:6px">
+      <span class="icon-tile orange" style="width:40px;height:40px;border-radius:14px">
+        <i class="fas fa-credit-card" style="font-size:15px"></i>
+      </span>
+      <div class="page-title" style="font-size:19px">
+        {% if editar %}Editar compra{% else %}Nueva compra en cuotas{% endif %}
       </div>
     </div>
-  </div>
-  {% endif %}
-
-  <div class="glass" style="padding:28px">
-    <div style="margin-bottom:24px">
-      <div class="label" style="margin-bottom:5px">Cuotas fijas</div>
-      <h2 style="font-size:20px;font-weight:600;color:var(--text-primary);margin:0">
-        {% if editar %}Editar deuda{% else %}Nueva cuota mensual{% endif %}
-      </h2>
-      <p style="font-size:12px;color:var(--text-muted);margin-top:4px">
-        {% if editar %}Modifica "{{ deuda.acreedor }}"{% else %}Algo que pagas fijo todos los meses{% endif %}
-      </p>
+    <div class="hint" style="margin-bottom:22px">
+      Pon el precio total de la compra, no el valor de la cuota. Nosotros la dividimos.
     </div>
 
-    <form method="POST" style="display:flex;flex-direction:column;gap:18px">
+    <form method="post">
       {% csrf_token %}
+      <input type="hidden" name="next" value="{% url 'deudas' %}">
 
-      <!-- Acreedor -->
-      <div>
-        <label class="field-label">
-          ¿A quién le pagas?
-        </label>
+      <div class="field">
+        <label class="label" for="{{ form.acreedor.id_for_label }}">{{ form.acreedor.label }}</label>
         {{ form.acreedor }}
-        <div style="font-size:11px;color:var(--text-muted);margin-top:5px;opacity:0.7">
-          Ej: Tarjeta Banco Estado, Préstamo auto, Arriendo...
-        </div>
-        {% if form.acreedor.errors %}<p style="font-size:11px;color:var(--red);margin-top:3px">{{ form.acreedor.errors.0 }}</p>{% endif %}
+        {% for e in form.acreedor.errors %}<div class="hint" style="color:var(--coral);font-size:11px;margin-top:5px">{{ e }}</div>{% endfor %}
       </div>
 
-      <!-- Monto total -->
-      <div>
-        <label class="field-label">
-          Monto total de la deuda ($)
-        </label>
-        {{ form.monto_total }}
-        <div style="font-size:11px;color:var(--text-muted);margin-top:5px;opacity:0.7">
-          Si no sabes el total, multiplica tu cuota mensual × número de cuotas que quedan
-        </div>
-        {% if form.monto_total.errors %}<p style="font-size:11px;color:var(--red);margin-top:3px">{{ form.monto_total.errors.0 }}</p>{% endif %}
-      </div>
-
-      <!-- Categoría -->
-      <div>
-        <label class="field-label">
-          Categoría
-        </label>
+      <div class="field">
+        <label class="label" for="{{ form.categoria.id_for_label }}">¿Qué compraste?</label>
         {{ form.categoria }}
       </div>
 
-      <!-- Cuotas totales -->
-      <div>
-        <label class="field-label">
-          ¿En cuántas cuotas? (total)
-        </label>
-        {{ form.cuotas_totales }}
-        <div style="font-size:11px;color:var(--text-muted);margin-top:5px;opacity:0.7">
-          Ej: si debes 12 cuotas en total, escribe 12
+      <div class="form-row">
+        <div style="flex:1.5">
+          <label class="label" for="{{ form.monto_total.id_for_label }}">{{ form.monto_total.label }}</label>
+          {{ form.monto_total }}
+          <div class="hint" style="font-size:10.5px;margin-top:5px">{{ form.monto_total.help_text }}</div>
+          {% for e in form.monto_total.errors %}<div class="hint" style="color:var(--coral);font-size:11px;margin-top:5px">{{ e }}</div>{% endfor %}
         </div>
-        {% if form.cuotas_totales.errors %}<p style="font-size:11px;color:var(--red);margin-top:3px">{{ form.cuotas_totales.errors.0 }}</p>{% endif %}
+        <div style="flex:1">
+          <label class="label" for="{{ form.cuotas_totales.id_for_label }}">{{ form.cuotas_totales.label }}</label>
+          {{ form.cuotas_totales }}
+          {% for e in form.cuotas_totales.errors %}<div class="hint" style="color:var(--coral);font-size:11px;margin-top:5px">{{ e }}</div>{% endfor %}
+        </div>
       </div>
 
-      <!-- Fecha inicio — explicada en lenguaje humano -->
-      <div>
-        <label class="field-label">
-          ¿Cuándo fue (o es) tu primer pago?
-        </label>
+      <div class="field">
+        <label class="label" for="{{ form.fecha_inicio.id_for_label }}">{{ form.fecha_inicio.label }}</label>
         {{ form.fecha_inicio }}
-        <div style="font-size:11px;color:var(--text-muted);margin-top:5px;opacity:0.7">
-          Esta fecha nos permite calcular cuándo vencen las cuotas siguientes en el calendario.
-          Si ya llevas varios meses pagando, pon la fecha del primer pago que hiciste.
+        <div class="hint" style="font-size:10.5px;margin-top:6px">{{ form.fecha_inicio.help_text }}</div>
+        {% for e in form.fecha_inicio.errors %}<div class="hint" style="color:var(--coral);font-size:11px;margin-top:5px">{{ e }}</div>{% endfor %}
+      </div>
+
+      <div class="preview-box" id="cajaCuota" style="display:none">
+        <div class="label" style="color:var(--amber);margin-bottom:9px">Quedaría así</div>
+        <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:5px">
+          <span style="font-size:12px;color:var(--text-secondary)">Cada cuota</span>
+          <span class="display" style="font-size:19px;color:var(--amber)" id="cuotaMonto">$0</span>
         </div>
-        {% if form.fecha_inicio.errors %}<p style="font-size:11px;color:var(--red);margin-top:3px">{{ form.fecha_inicio.errors.0 }}</p>{% endif %}
+        <div style="font-size:11.5px;color:var(--text-muted)" id="cuotaFin"></div>
       </div>
 
-      <!-- Preview cuota calculada en tiempo real -->
-      <div id="preview-cuota" style="display:none;background:rgba(167,139,250,0.08);border:1px solid rgba(167,139,250,0.2);border-radius:12px;padding:14px">
-        <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:0.06em;font-weight:500">Tu cuota mensual</div>
-        <div class="mono" id="valor-cuota" style="font-size:22px;font-weight:600;color:var(--purple)"></div>
-        <div style="font-size:11px;color:var(--text-muted);margin-top:3px" id="txt-cuota"></div>
-      </div>
-
-      {% if editar %}
-      <div style="background:rgba(251,146,60,0.08);border:1px solid rgba(251,146,60,0.2);border-radius:12px;padding:11px;font-size:12px;color:var(--orange)">
-        <i class="fas fa-exclamation-triangle" style="margin-right:5px"></i>
-        Cuotas ya pagadas: <strong>{{ deuda.cuotas_pagadas }}</strong> — solo edita si necesitas corregir un error
-      </div>
-      {% endif %}
-
-      <div style="display:flex;gap:10px;margin-top:4px">
-        <a href="{% url 'dashboard' %}" class="btn btn-glass" style="flex:1;justify-content:center">Cancelar</a>
-        <button type="submit" class="btn btn-purple" style="flex:1;justify-content:center;cursor:pointer;font-family:'DM Sans',sans-serif;border:none">
-          {% if editar %}Guardar cambios{% else %}Guardar cuota{% endif %}
+      <div style="display:flex;gap:10px">
+        <button type="submit" class="btn btn-purple" style="flex:1;padding:15px;font-size:13.5px">
+          {% if editar %}Guardar cambios{% else %}Agregar compra{% endif %}
         </button>
+        <a href="{% url 'deudas' %}" class="btn btn-glass" style="padding:15px 18px">Cancelar</a>
       </div>
     </form>
+
+    {% if editar %}
+    <form method="post" action="{% url 'eliminar_deuda' deuda.pk %}" style="margin-top:12px"
+          data-confirm="¿Eliminar {{ deuda.acreedor }}? Se borran también sus pagos registrados.">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-glass btn-block" style="color:var(--coral)">
+        <i class="fas fa-trash-can" style="font-size:11px"></i>Eliminar esta compra
+      </button>
+    </form>
+    {% endif %}
   </div>
 </div>
-</div>
+{% endblock %}
 
+{% block extra_js %}
 <script>
-// Preview de cuota en tiempo real
-const inputMonto  = document.getElementById('id_monto_total');
-const inputCuotas = document.getElementById('id_cuotas_totales');
-const preview     = document.getElementById('preview-cuota');
-const valorEl     = document.getElementById('valor-cuota');
-const txtEl       = document.getElementById('txt-cuota');
+/* El valor de la cuota y el mes final, en vivo. Es lo que evita que alguien
+   confunda el total con la cuota: se ve el resultado antes de guardar. */
+(function () {
+  var total = document.getElementById('{{ form.monto_total.id_for_label }}');
+  var cuotas = document.getElementById('{{ form.cuotas_totales.id_for_label }}');
+  var inicio = document.getElementById('{{ form.fecha_inicio.id_for_label }}');
+  var caja = document.getElementById('cajaCuota');
+  var monto = document.getElementById('cuotaMonto');
+  var fin = document.getElementById('cuotaFin');
+  var MESES = ['enero','febrero','marzo','abril','mayo','junio','julio',
+               'agosto','septiembre','octubre','noviembre','diciembre'];
+  if (!total || !cuotas) return;
 
-function actualizarPreview() {
-  const monto  = parseFloat(inputMonto?.value)  || 0;
-  const cuotas = parseInt(inputCuotas?.value) || 0;
-  if (monto > 0 && cuotas > 0) {
-    const cuota = monto / cuotas;
-    valorEl.textContent = '$' + Math.round(cuota).toLocaleString('es-CL');
-    txtEl.textContent   = `${cuotas} cuotas de $${Math.round(cuota).toLocaleString('es-CL')} cada mes`;
-    preview.style.display = 'block';
-  } else {
-    preview.style.display = 'none';
+  function pintar() {
+    var t = Number(total.value || 0), n = Number(cuotas.value || 0);
+    if (t <= 0 || n <= 0) { caja.style.display = 'none'; return; }
+    caja.style.display = 'block';
+    monto.textContent = '$' + Math.round(t / n).toLocaleString('es-CL');
+    var texto = n + ' cuota' + (n === 1 ? '' : 's');
+    if (inicio && inicio.value) {
+      var f = new Date(inicio.value + 'T00:00:00');
+      f.setMonth(f.getMonth() + n - 1);
+      texto += ' · terminas en ' + MESES[f.getMonth()] + ' ' + f.getFullYear();
+    }
+    fin.textContent = texto;
   }
-}
-
-inputMonto?.addEventListener('input', actualizarPreview);
-inputCuotas?.addEventListener('input', actualizarPreview);
-actualizarPreview();
+  [total, cuotas, inicio].forEach(function (el) { if (el) el.addEventListener('input', pintar); });
+  pintar();
+})();
 </script>
 {% endblock %}

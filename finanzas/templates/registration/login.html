@@ -20,7 +20,7 @@
   <div class="field">
     <label class="label" for="{{ form.username.id_for_label }}">Usuario</label>
     <div style="position:relative">
-      <i class="fas fa-user" style="position:absolute;left:15px;top:50%;transform:translateY(-50%);font-size:11px;color:rgba(241,240,255,.32);pointer-events:none"></i>
+      <i class="fas fa-user" style="position:absolute;left:15px;top:50%;transform:translateY(-50%);font-size:11px;color:var(--text-muted);pointer-events:none"></i>
       <input type="text" name="username" id="{{ form.username.id_for_label }}"
              style="padding-left:38px" placeholder="tu usuario" autocomplete="username" required autofocus>
     </div>
@@ -29,7 +29,7 @@
   <div class="field" style="margin-bottom:22px">
     <label class="label" for="{{ form.password.id_for_label }}">Contraseña</label>
     <div style="position:relative">
-      <i class="fas fa-lock" style="position:absolute;left:15px;top:50%;transform:translateY(-50%);font-size:11px;color:rgba(241,240,255,.32);pointer-events:none"></i>
+      <i class="fas fa-lock" style="position:absolute;left:15px;top:50%;transform:translateY(-50%);font-size:11px;color:var(--text-muted);pointer-events:none"></i>
       <input type="password" name="password" id="{{ form.password.id_for_label }}"
              style="padding-left:38px;padding-right:42px" placeholder="••••••••" autocomplete="current-password" required>
       <button type="button" class="icon-btn" id="verPass"
@@ -44,7 +44,7 @@
   <button type="submit" class="btn btn-purple btn-block">Entrar</button>
 </form>
 
-<div style="text-align:center;font-size:12px;color:rgba(241,240,255,.42);margin-top:16px">
+<div style="text-align:center;font-size:12px;color:var(--text-muted);margin-top:16px">
   ¿Primera vez? <a href="{% url 'registro' %}">Crea tu cuenta</a>
 </div>
 {% endblock %}

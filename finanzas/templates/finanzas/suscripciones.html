@@ -1,5 +1,6 @@
 {% extends 'finanzas/base.html' %}
 {% load humanize %}
+{% block search_placeholder %}Filtrar suscripciones{% endblock %}
 {% block title %}Suscripciones · FinApp{% endblock %}
 
 {% block content %}
@@ -23,14 +24,14 @@
     </div>
     {% else %}
     <div class="glass-green" style="padding:13px 18px;border-radius:16px">
-      <div class="label" style="color:rgba(52,211,153,.75);margin-bottom:5px">Este mes</div>
+      <div class="label" style="color:var(--green);margin-bottom:5px">Este mes</div>
       <div class="display" style="font-size:20px;color:var(--green)">Al día</div>
       <div style="font-size:10.5px;color:var(--text-muted);margin-top:3px">${{ monto_pagado_mes|intcomma }} pagados</div>
     </div>
     {% endif %}
 
     <div class="glass-purple" style="padding:13px 18px;border-radius:16px">
-      <div class="label" style="color:rgba(167,139,250,.8);margin-bottom:5px">Total activo al mes</div>
+      <div class="label" style="color:var(--amber);margin-bottom:5px">Total activo al mes</div>
       <div class="display" style="font-size:20px;color:var(--purple)">${{ total_mensual|intcomma }}</div>
       <div style="font-size:10.5px;color:var(--text-muted);margin-top:3px">${{ total_anual|intcomma }} al año</div>
     </div>
@@ -56,8 +57,8 @@
   <div class="sub-row" data-searchable {% if not s.activa %}style="opacity:.55"{% endif %}>
 
     <span style="width:36px;height:36px;border-radius:12px;flex-shrink:0;display:flex;align-items:center;justify-content:center;
-                 font-family:'Sora',sans-serif;font-size:14px;font-weight:600;
-                 background:rgba(167,139,250,.13);border:1px solid rgba(167,139,250,.26);color:#c4b5fd">{{ s.inicial }}</span>
+                 font-family:'Manrope',sans-serif;font-size:14px;font-weight:600;
+                 background:rgba(255,170,44,.13);border:1px solid rgba(255,170,44,.26);color:var(--amber-claro)">{{ s.inicial }}</span>
 
     <div class="row-main">
       <div class="row-title" style="font-size:13px;{% if not s.activa %}text-decoration:line-through;color:var(--text-muted){% endif %}">
@@ -69,7 +70,7 @@
     </div>
 
     <div class="sub-monto" style="text-align:right">
-      <div class="mono" style="font-size:13px;{% if not s.activa %}color:rgba(241,240,255,.3){% endif %}">${{ s.monto|floatformat:0|intcomma }}</div>
+      <div class="mono" style="font-size:13px;{% if not s.activa %}color:var(--text-muted){% endif %}">${{ s.monto|floatformat:0|intcomma }}</div>
       <div style="font-size:10px;color:var(--text-muted);margin-top:2px">al mes</div>
     </div>
 
@@ -191,12 +192,12 @@
       </div>
 
       <div class="preview-box">
-        <div class="label" style="color:rgba(167,139,250,.8);margin-bottom:9px">Lo que te costaría</div>
+        <div class="label" style="color:var(--amber);margin-bottom:9px">Lo que te costaría</div>
         <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:5px">
           <span style="font-size:12px;color:var(--text-secondary)">Al año</span>
           <span class="display" style="font-size:19px;color:var(--purple)" id="subAnual">$0</span>
         </div>
-        <div style="font-size:11.5px;color:rgba(241,240,255,.45)" id="subNota">
+        <div style="font-size:11.5px;color:var(--text-muted)" id="subNota">
           Se suma a tus ${{ total_mensual|intcomma }} mensuales actuales.
         </div>
       </div>

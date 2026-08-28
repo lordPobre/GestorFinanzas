@@ -1,69 +1,98 @@
 {% extends 'finanzas/base.html' %}
-{% block nav_prestamos %}active{% endblock %}
-{% block nav_prestamos_m %}active{% endblock %}
+{% load humanize %}
+{% block title %}Nuevo préstamo · FinApp{% endblock %}
+{% block topbar_sub %}Un préstamo a {{ persona.nombre }}{% endblock %}
+
+{% block topbar_actions %}
+<a href="{% url 'detalle_persona' persona.pk %}" class="btn btn-glass">
+  <i class="fas fa-arrow-left" style="font-size:11px"></i>Volver
+</a>
+{% endblock %}
 
 {% block content %}
-<div style="width:100%;max-width:480px;margin:0 auto">
-    <a href="{% url 'detalle_persona' persona.id %}" class="btn btn-glass" style="margin-bottom:24px;display:inline-flex">
-        <i class="fas fa-arrow-left" style="font-size:12px"></i> Volver
-    </a>
-
-    <div class="glass" style="padding:28px">
-        <h1 style="font-size:20px;font-weight:600;color:var(--text-primary);margin:0 0 6px">Nuevo préstamo</h1>
-        <p style="font-size:13px;color:var(--text-muted);margin:0 0 24px">Para <strong style="color:var(--purple)">{{ persona.nombre }}</strong></p>
-
-        <form method="POST">
-            {% csrf_token %}
-
-            <div class="field-group">
-                <label class="field-label">¿Qué le prestaste? <span style="color:var(--red)">*</span></label>
-                <input type="text" name="descripcion" class="field-input" placeholder="Ej: Préstamo efectivo, entrada concierto..." required autofocus>
-            </div>
-
-            <div class="field-group">
-                <label class="field-label">Monto <span style="color:var(--red)">*</span></label>
-                <input type="number" name="monto" class="field-input" placeholder="Ej: 50000" min="1" required>
-            </div>
-
-            <div class="field-group">
-                <label class="field-label">¿Cómo te lo pagará?</label>
-                <select name="tipo" id="tipoPrestamo" class="field-input" onchange="toggleCuotas()">
-                    <option value="UNICO">De una vez (pago único)</option>
-                    <option value="CUOTAS">En cuotas</option>
-                </select>
-            </div>
-
-            <div class="field-group" id="cuotasWrap" style="display:none">
-                <label class="field-label">¿En cuántas cuotas?</label>
-                <input type="number" name="cuotas_totales" class="field-input" placeholder="Ej: 3" min="2" value="2">
-                <div class="field-help" id="cuotaPreview"></div>
-            </div>
-
-            <button type="submit" class="btn btn-purple" style="width:100%;justify-content:center;padding:12px">
-                <i class="fas fa-plus" style="font-size:13px"></i> Registrar préstamo
-            </button>
-        </form>
+<div style="max-width:440px">
+  <div class="glass card-lg" data-spot>
+    <div style="display:flex;align-items:center;gap:13px;margin-bottom:6px">
+      <span class="avatar">{{ persona.inicial }}</span>
+      <div>
+        <div class="page-title" style="font-size:19px">Nuevo préstamo</div>
+        <div class="hint" style="font-size:12px">a {{ persona.nombre }}</div>
+      </div>
     </div>
-</div>
+    <div class="hint" style="margin: 14px 0 22px">
+      Esto no toca tu balance: es plata que sale y vuelve.
+    </div>
 
+    <form method="post" action="{% url 'crear_prestamo' persona.pk %}">
+      {% csrf_token %}
+
+      <div class="field">
+        <label class="label" for="id_pr_desc">Para qué fue</label>
+        <input type="text" name="descripcion" id="id_pr_desc" placeholder="Ej: Arriendo de mayo" required autofocus>
+      </div>
+
+      <div class="label" style="margin-bottom:9px">Cómo te lo va a devolver</div>
+      <input type="hidden" name="tipo" id="id_pr_tipo" value="UNICO">
+      <div class="seg" data-field="#id_pr_tipo" id="segTipoPr" style="margin-bottom:16px">
+        <button type="button" class="on" data-value="UNICO">De una vez</button>
+        <button type="button" data-value="CUOTAS">En cuotas</button>
+      </div>
+
+      <div class="form-row">
+        <div style="flex:1.5">
+          <label class="label" for="id_pr_monto">Monto prestado</label>
+          <input type="number" name="monto" id="id_pr_monto" class="mono" placeholder="180000" min="1" required>
+        </div>
+        <div style="flex:1;display:none" id="campoCuotasPr">
+          <label class="label" for="id_pr_cuotas">En cuántas</label>
+          <input type="number" name="cuotas_totales" id="id_pr_cuotas" class="mono" min="1" value="3">
+        </div>
+      </div>
+
+      <div class="preview-box" id="cajaPr" style="display:none">
+        <div class="label" style="color:var(--amber);margin-bottom:9px">Te devolvería</div>
+        <div style="display:flex;justify-content:space-between;align-items:baseline">
+          <span style="font-size:12px;color:var(--text-secondary)">Cada cuota</span>
+          <span class="display" style="font-size:19px;color:var(--green)" id="prCuota">$0</span>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:10px">
+        <button type="submit" class="btn btn-purple" style="flex:1;padding:15px;font-size:13.5px">
+          Registrar préstamo
+        </button>
+        <a href="{% url 'detalle_persona' persona.pk %}" class="btn btn-glass" style="padding:15px 18px">Cancelar</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
 <script>
-function toggleCuotas() {
-    const tipo = document.getElementById('tipoPrestamo').value;
-    document.getElementById('cuotasWrap').style.display = tipo === 'CUOTAS' ? 'block' : 'none';
-    actualizarPreview();
-}
-function actualizarPreview() {
-    const monto = parseFloat(document.querySelector('[name=monto]').value) || 0;
-    const cuotas = parseInt(document.querySelector('[name=cuotas_totales]').value) || 0;
-    const prev = document.getElementById('cuotaPreview');
-    if (monto > 0 && cuotas > 1) {
-        const porCuota = Math.round(monto / cuotas);
-        prev.textContent = `Cada cuota sería de {{ simbolo_moneda }}${porCuota.toLocaleString('es-CL')}`;
-    } else {
-        prev.textContent = '';
-    }
-}
-document.querySelector('[name=monto]').addEventListener('input', actualizarPreview);
-document.querySelector('[name=cuotas_totales]').addEventListener('input', actualizarPreview);
+(function () {
+  var seg = document.getElementById('segTipoPr');
+  var campo = document.getElementById('campoCuotasPr');
+  var monto = document.getElementById('id_pr_monto');
+  var cuotas = document.getElementById('id_pr_cuotas');
+  var caja = document.getElementById('cajaPr');
+  var valor = document.getElementById('prCuota');
+  if (!seg) return;
+
+  function pintar() {
+    var enCuotas = document.getElementById('id_pr_tipo').value === 'CUOTAS';
+    var m = Number(monto.value || 0), n = Number(cuotas.value || 0);
+    if (!enCuotas || m <= 0 || n <= 0) { caja.style.display = 'none'; return; }
+    caja.style.display = 'block';
+    valor.textContent = '$' + Math.round(m / n).toLocaleString('es-CL');
+  }
+
+  seg.addEventListener('click', function (e) {
+    var b = e.target.closest('button'); if (!b) return;
+    campo.style.display = b.dataset.value === 'CUOTAS' ? 'block' : 'none';
+    pintar();
+  });
+  [monto, cuotas].forEach(function (el) { if (el) el.addEventListener('input', pintar); });
+})();
 </script>
 {% endblock %}

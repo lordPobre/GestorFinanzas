@@ -14,7 +14,7 @@
   </div>
   <div style="display:flex;gap:12px;flex-wrap:wrap">
     <div class="glass-green" style="padding:13px 18px;border-radius:16px">
-      <div class="label" style="color:rgba(52,211,153,.75);margin-bottom:5px">Total por cobrar</div>
+      <div class="label" style="color:var(--green);margin-bottom:5px">Total por cobrar</div>
       <div class="display" style="font-size:20px;color:var(--green)">${{ total_por_cobrar|floatformat:0|intcomma }}</div>
     </div>
     <div class="glass" style="padding:13px 18px;border-radius:16px">
@@ -22,7 +22,7 @@
       <div class="display" style="font-size:20px">${{ total_prestado|floatformat:0|intcomma }}</div>
     </div>
     <div class="glass-purple" style="padding:13px 18px;border-radius:16px">
-      <div class="label" style="color:rgba(167,139,250,.8);margin-bottom:5px">Ya recuperado</div>
+      <div class="label" style="color:var(--amber);margin-bottom:5px">Ya recuperado</div>
       <div class="display" style="font-size:20px;color:var(--purple)">${{ total_recuperado|floatformat:0|intcomma }}</div>
     </div>
   </div>
@@ -41,7 +41,7 @@
           <span class="row-title" style="display:block">{{ p.nombre }}</span>
           <span class="row-meta" style="display:block">{{ p.resumen_meta }}</span>
         </span>
-        <span class="mono" style="font-size:12px;color:{% if p.total_pendiente %}var(--green){% else %}rgba(167,139,250,.9){% endif %}">
+        <span class="mono" style="font-size:12px;color:{% if p.total_pendiente %}var(--green){% else %}var(--amber){% endif %}">
           {% if p.total_pendiente %}${{ p.total_pendiente|floatformat:0|intcomma }}{% else %}Al día{% endif %}
         </span>
       </a>
@@ -72,12 +72,12 @@
 
     <div class="grid-metrics" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:22px">
       <div class="glass-green" style="padding:13px 15px;border-radius:15px">
-        <div class="label" style="color:rgba(52,211,153,.75);margin-bottom:5px">Te debe en total</div>
+        <div class="label" style="color:var(--green);margin-bottom:5px">Te debe en total</div>
         <div class="mono" style="font-size:15px;color:var(--green)">${{ persona.total_pendiente|floatformat:0|intcomma }}</div>
       </div>
       <div class="glass-purple" style="padding:13px 15px;border-radius:15px">
-        <div class="label" style="color:rgba(167,139,250,.8);margin-bottom:5px">Cuotas al mes</div>
-        <div class="mono" style="font-size:15px;color:#c4b5fd">${{ persona.cuotas_del_mes|floatformat:0|intcomma }}</div>
+        <div class="label" style="color:var(--amber);margin-bottom:5px">Cuotas al mes</div>
+        <div class="mono" style="font-size:15px;color:var(--amber-claro)">${{ persona.cuotas_del_mes|floatformat:0|intcomma }}</div>
       </div>
       <div class="glass" style="padding:13px 15px;border-radius:15px;box-shadow:none">
         <div class="label" style="margin-bottom:5px">Pagos únicos</div>
@@ -201,7 +201,7 @@
           </div>
 
           <div class="preview-box" style="margin-bottom:0">
-            <div class="label" style="color:rgba(52,211,153,.75);margin-bottom:7px">Te devolvería</div>
+            <div class="label" style="color:var(--green);margin-bottom:7px">Te devolvería</div>
             <div class="display" style="font-size:17px;color:var(--green)" id="personaPreview">$0</div>
           </div>
         </div>
@@ -251,7 +251,7 @@
       </div>
 
       <div class="preview-box" style="background:rgba(52,211,153,.09);border-color:rgba(52,211,153,.22)">
-        <div class="label" style="color:rgba(52,211,153,.75);margin-bottom:8px">Te devolvería</div>
+        <div class="label" style="color:var(--green);margin-bottom:8px">Te devolvería</div>
         <div class="display" style="font-size:16px;font-weight:500;color:var(--green)" id="prestamoPreview">$0</div>
       </div>
 
@@ -293,7 +293,7 @@
         <input type="text" name="nota" id="id_nota_abono_{{ x.pk }}" placeholder="Ej: transferencia, adelantó una cuota">
       </div>
 
-      <button type="submit" class="btn btn-block" style="background:linear-gradient(135deg,#059669,#34d399);color:#04291d;font-weight:700;box-shadow:0 10px 30px rgba(5,150,105,.4)">Guardar abono</button>
+      <button type="submit" class="btn btn-block" style="background:var(--green);color:#04291d;font-weight:700;box-shadow:0 10px 30px rgba(83,210,88,.35)">Guardar abono</button>
     </form>
   </div>
 </div>

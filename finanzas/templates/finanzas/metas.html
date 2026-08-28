@@ -1,0 +1,274 @@
+{% extends 'finanzas/base.html' %}
+{% load humanize %}
+{% block title %}Metas · FinApp{% endblock %}
+{% block topbar_sub %}Para qué estás ahorrando{% endblock %}
+{% block search_placeholder %}Filtrar metas{% endblock %}
+
+{% block content %}
+
+<div class="section-head" style="margin-top:0">
+  <div>
+    <h1 class="section-title" style="font-size:22px">Metas de ahorro</h1>
+    <div class="hint" style="margin-top:4px">
+      Las barras muestran lo que aportaste cada mes, no solo cuánto falta.
+    </div>
+  </div>
+  <button class="btn btn-purple" data-open="#modalMeta">
+    <i class="fas fa-plus" style="font-size:11px"></i>Nueva meta
+  </button>
+</div>
+
+{% if metas_datos %}
+<div class="balance-card" style="margin-bottom:18px">
+  <div class="label" style="margin-bottom:6px">Llevas ahorrado</div>
+  <div class="display" style="font-size:32px">${{ total_ahorrado|intcomma }}</div>
+  <div style="display:flex;gap:20px;margin-top:16px;flex-wrap:wrap">
+    <div>
+      <div class="label" style="margin-bottom:2px">De un total de</div>
+      <div class="mono" style="font-size:14px;font-weight:600">${{ total_meta|intcomma }}</div>
+    </div>
+    <div>
+      <div class="label" style="margin-bottom:2px">Te falta</div>
+      <div class="mono" style="font-size:14px;font-weight:600">${{ total_faltante|intcomma }}</div>
+    </div>
+    {% if completas %}
+    <div>
+      <div class="label" style="margin-bottom:2px">Cumplidas</div>
+      <div class="mono" style="font-size:14px;font-weight:600">{{ completas }}</div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<div class="grid-cards">
+  {% for d in metas_datos %}
+  <div class="glass card-lg glass-lift" data-spot data-searchable
+       {% if d.meta.esta_completa %}style="border-color:rgba(83,210,88,.28)"{% endif %}>
+
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:16px">
+      <div style="min-width:0">
+        <div class="row-title" style="font-size:15px;font-weight:700">{{ d.meta.nombre }}</div>
+        <div class="row-meta">
+          {% if d.meta.esta_completa %}
+            Meta cumplida
+          {% elif d.meta.fecha_limite %}
+            Para el {{ d.meta.fecha_limite|date:"j M Y" }}
+          {% else %}
+            Sin fecha límite
+          {% endif %}
+        </div>
+      </div>
+      {% if d.meta.esta_completa %}
+        <span class="badge badge-green"><i class="fas fa-check" style="font-size:9px"></i>Lista</span>
+      {% elif d.meses_quieta and d.meses_quieta >= 2 %}
+        {% comment %}
+          El aviso que faltaba: una meta sin aportes en meses está abandonada,
+          y la barra de avance sola no lo dice.
+        {% endcomment %}
+        <span class="badge badge-orange">Quieta {{ d.meses_quieta }} meses</span>
+      {% endif %}
+    </div>
+
+    <div style="display:flex;align-items:baseline;gap:7px;margin-bottom:10px">
+      <span class="display" style="font-size:24px">${{ d.meta.monto_actual|floatformat:0|intcomma }}</span>
+      <span style="font-size:12px;color:var(--text-muted)">de ${{ d.meta.monto_meta|floatformat:0|intcomma }}</span>
+    </div>
+
+    <div class="progress-bar" style="height:9px">
+      <div class="progress-fill {% if d.meta.esta_completa %}green{% endif %}"
+           style="width:{{ d.meta.porcentaje|floatformat:0 }}%"></div>
+    </div>
+    <div style="display:flex;justify-content:space-between;margin-top:7px;font-size:10.5px;color:var(--text-muted)">
+      <span>{{ d.meta.porcentaje|floatformat:0 }}% logrado</span>
+      {% if not d.meta.esta_completa %}<span>faltan ${{ d.meta.monto_faltante|floatformat:0|intcomma }}</span>{% endif %}
+    </div>
+
+    {# ---------- Avance mes a mes ---------- #}
+    <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--line)">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:12px">
+        <span class="label">Aportes por mes</span>
+        <span class="mono" style="font-size:11px;color:var(--text-secondary)">
+          ${{ d.aportado_6m|intcomma }} en 6 meses
+        </span>
+      </div>
+
+      <div style="display:flex;align-items:flex-end;gap:6px;height:64px">
+        {% for s in d.serie %}
+        <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:5px;height:100%;justify-content:flex-end"
+             title="{{ s.label }}: ${{ s.monto|intcomma }}">
+          {% comment %}
+            Un mes sin aportes deja una marca fina en vez de nada: así se ve
+            el hueco. Con altura cero la barra desaparecía y parecía que ese
+            mes no existía.
+          {% endcomment %}
+          <div style="width:100%;border-radius:6px 6px 3px 3px;transition:height .5s var(--ease-out);
+                      {% if s.monto %}height:{{ s.alto }}%;min-height:8px;background:var(--amber);
+                      {% else %}height:3px;background:var(--surface-3);{% endif %}"></div>
+          <span style="font-size:9.5px;color:var(--text-muted)">{{ s.label }}</span>
+        </div>
+        {% endfor %}
+      </div>
+
+      {% if d.promedio_mes %}
+      <div class="hint" style="font-size:11px;margin-top:11px">
+        Promedio de ${{ d.promedio_mes|intcomma }} en los meses que aportaste.
+        {% if d.meta.ahorro_mensual_sugerido %}
+          Necesitas ${{ d.meta.ahorro_mensual_sugerido|floatformat:0|intcomma }} al mes para llegar a tiempo.
+        {% endif %}
+      </div>
+      {% else %}
+      <div class="hint" style="font-size:11px;margin-top:11px">
+        Todavía no registras aportes a esta meta.
+      </div>
+      {% endif %}
+    </div>
+
+    {# ---------- Acciones ---------- #}
+    <div style="display:flex;gap:8px;margin-top:18px">
+      {% if not d.meta.esta_completa %}
+      <button class="btn btn-green btn-sm" style="flex:1" data-open="#modalAporte{{ d.meta.pk }}">
+        <i class="fas fa-plus" style="font-size:10px"></i>Aportar
+      </button>
+      {% endif %}
+      <a href="{% url 'editar_meta' d.meta.pk %}" class="btn btn-glass btn-sm">
+        <i class="fas fa-pen" style="font-size:10px"></i>Editar
+      </a>
+      <form method="post" action="{% url 'eliminar_meta' d.meta.pk %}" style="margin:0"
+            data-confirm="¿Eliminar la meta {{ d.meta.nombre }}?">
+        {% csrf_token %}
+        <input type="hidden" name="next" value="{% url 'metas' %}">
+        <button type="submit" class="icon-btn" title="Eliminar">
+          <i class="fas fa-trash-can" style="font-size:10px"></i>
+        </button>
+      </form>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+{% else %}
+<div class="glass empty">
+  <i class="fas fa-bullseye"></i>
+  <div class="empty-title">Todavía no tienes metas</div>
+  <div class="empty-text">
+    Una meta le pone nombre a tu ahorro. Con una fecha, la app calcula cuánto
+    aportar cada mes para llegar.
+  </div>
+  <button class="btn btn-purple" data-open="#modalMeta">Crear mi primera meta</button>
+</div>
+{% endif %}
+
+{% endblock %}
+
+
+{% block modals %}
+<div class="modal-overlay" id="modalMeta">
+  <div class="modal-box" style="max-width:420px">
+    <div class="modal-head">
+      <div>
+        <div class="modal-title">Nueva meta</div>
+        <div class="modal-sub">Con fecha calculamos cuánto aportar al mes.</div>
+      </div>
+      <button class="modal-close" data-close>✕</button>
+    </div>
+
+    <form method="post" action="{% url 'crear_meta' %}">
+      {% csrf_token %}
+      <input type="hidden" name="next" value="{% url 'metas' %}">
+
+      <div class="field">
+        <label class="label" for="{{ form.nombre.id_for_label }}">{{ form.nombre.label }}</label>
+        {{ form.nombre }}
+      </div>
+
+      <div class="form-row">
+        <div style="flex:1.4">
+          <label class="label" for="{{ form.monto_meta.id_for_label }}">{{ form.monto_meta.label }}</label>
+          {{ form.monto_meta }}
+        </div>
+        <div style="flex:1">
+          <label class="label" for="{{ form.monto_actual.id_for_label }}">{{ form.monto_actual.label }}</label>
+          {{ form.monto_actual }}
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="label" for="{{ form.fecha_limite.id_for_label }}">{{ form.fecha_limite.label }}</label>
+        {{ form.fecha_limite }}
+        <div class="hint" style="font-size:10.5px;margin-top:6px">{{ form.fecha_limite.help_text }}</div>
+      </div>
+
+      <button type="submit" class="btn btn-purple btn-block">Crear meta</button>
+    </form>
+  </div>
+</div>
+
+{% for d in metas_datos %}{% if not d.meta.esta_completa %}
+<div class="modal-overlay" id="modalAporte{{ d.meta.pk }}">
+  <div class="modal-box" style="max-width:380px">
+    <div class="modal-head">
+      <div>
+        <div class="modal-title">Aportar a {{ d.meta.nombre }}</div>
+        <div class="modal-sub">Faltan ${{ d.meta.monto_faltante|floatformat:0|intcomma }} para llegar.</div>
+      </div>
+      <button class="modal-close" data-close>✕</button>
+    </div>
+
+    <form method="post" action="{% url 'aportar_meta' d.meta.pk %}">
+      {% csrf_token %}
+      <input type="hidden" name="next" value="{% url 'metas' %}">
+
+      {% if d.meta.ahorro_mensual_sugerido or d.promedio_mes %}
+      <div class="label" style="margin-bottom:9px">Montos sugeridos</div>
+      <div class="chips" style="margin-bottom:16px" data-montos="#id_aporte_{{ d.meta.pk }}">
+        {% if d.meta.ahorro_mensual_sugerido %}
+        <button type="button" class="chip" data-monto="{{ d.meta.ahorro_mensual_sugerido|floatformat:0 }}">
+          Lo que necesitas · ${{ d.meta.ahorro_mensual_sugerido|floatformat:0|intcomma }}
+        </button>
+        {% endif %}
+        {% if d.promedio_mes %}
+        <button type="button" class="chip" data-monto="{{ d.promedio_mes }}">
+          Tu promedio · ${{ d.promedio_mes|intcomma }}
+        </button>
+        {% endif %}
+        <button type="button" class="chip" data-monto="{{ d.meta.monto_faltante|floatformat:0 }}">
+          Todo lo que falta
+        </button>
+      </div>
+      {% endif %}
+
+      <div class="field">
+        <label class="label" for="id_aporte_{{ d.meta.pk }}">Cuánto aportas</label>
+        <input type="number" name="monto" id="id_aporte_{{ d.meta.pk }}" class="input-amount"
+               style="color:var(--green)" min="1" required>
+      </div>
+
+      <div class="field">
+        <label class="label" for="id_nota_{{ d.meta.pk }}">Nota (opcional)</label>
+        <input type="text" name="nota" id="id_nota_{{ d.meta.pk }}" placeholder="Ej: sueldo de agosto">
+      </div>
+
+      <button type="submit" class="btn btn-green btn-block">Registrar aporte</button>
+    </form>
+  </div>
+</div>
+{% endif %}{% endfor %}
+{% endblock %}
+
+
+{% block extra_js %}
+<script>
+/* Los montos sugeridos llenan el campo. Sin esto el chip se veía interactivo
+   y no hacía nada al tocarlo. */
+document.addEventListener('click', function (e) {
+  var chip = e.target.closest('[data-montos] > button');
+  if (!chip) return;
+  e.preventDefault();
+  var grupo = chip.parentElement;
+  var campo = document.querySelector(grupo.dataset.montos);
+  grupo.querySelectorAll('button').forEach(function (b) { b.classList.remove('on'); });
+  chip.classList.add('on');
+  if (campo) { campo.value = chip.dataset.monto; campo.focus(); }
+});
+</script>
+{% endblock %}

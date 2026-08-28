@@ -1,847 +1,1010 @@
 /* ============================================================
-   FinApp · Capa visual "glass" (reemplaza base.css + polish.css)
-   Mismos nombres de clase que ya usas: .glass, .btn, .label,
-   .mono, .nav-item, .progress-*, .badge-*, .modal-*, .toast.
-   Más clases nuevas para las piezas del rediseño.
+   FinApp · Hoja de estilo
+   Rediseño sobre la referencia de Figma: fondo neutro cálido,
+   acento ámbar, superficies planas y esquinas muy redondeadas.
+
+   Se mantienen los nombres de clase de las plantillas: cambia el
+   lenguaje visual, no el marcado. Por eso .glass ya no lleva blur
+   ni borde translúcido — es una superficie sólida.
    ============================================================ */
 
-:root {
-  /* Marca */
-  --purple: #a78bfa;
-  --purple-dim: #7c3aed;
-  --purple-glow: rgba(167, 139, 250, .15);
-  --purple-border: rgba(167, 139, 250, .28);
-  --coral: #fb7185;
-  --green: #34d399;
-  --red: #f87171;
-  --orange: #fb923c;
-  --blue: #60a5fa;
-  --amber: #fbbf24;
-  --cyan: #22d3ee;
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
-  /* Superficies */
-  --surface: #0b0b16;
-  --glass-bg: rgba(255, 255, 255, .045);
-  --glass-border: rgba(255, 255, 255, .085);
-  --glass-hover: rgba(255, 255, 255, .07);
-  --glass-inset: inset 0 1px 0 rgba(255, 255, 255, .07);
-  --blur: 26px;
+:root {
+  /* Fondo y superficies. Neutro cálido, no azulado ni morado. */
+  --bg:            #191919;
+  --bg-elev:       #212121;
+  --surface:       #383838;   /* el color de tarjeta de la plantilla */
+  --surface-2:     #454545;   /* rellenos dentro de una tarjeta */
+  --surface-3:     #525252;   /* pistas de barras, teclas */
+  --line:          rgba(255, 255, 255, .07);
+  --line-fuerte:   rgba(255, 255, 255, .13);
+
+  /* Acento */
+  --amber:         #ffaa2c;
+  --amber-claro:   #ffbb56;
+  --amber-oscuro:  #f09000;
+  --amber-tenue:   rgba(255, 170, 44, .14);
+
+  /* Estados */
+  --green:         #53d258;
+  --green-tenue:   rgba(83, 210, 88, .14);
+  --coral:         #e25c5c;
+  --coral-tenue:   rgba(226, 92, 92, .14);
+  --blue:          #4b8cff;
+  --yellow:        #ffd54f;
+  --pink:          #f4626c;
+  --teal:          #2fd8c8;
+  --purple:        var(--amber);     /* compatibilidad con marcado viejo */
+  --purple-dim:    var(--amber-oscuro);
+  --orange:        var(--amber);
 
   /* Texto */
-  --text-primary: #f1f0ff;
-  --text-secondary: rgba(241, 240, 255, .6);
-  --text-muted: rgba(241, 240, 255, .38);
+  --text-primary:   #f5f5f5;
+  --text-secondary: rgba(245, 245, 245, .72);
+  --text-muted:     rgba(245, 245, 245, .42);
 
-  /* Formas */
-  --r-card: 24px;
-  --r-card-sm: 22px;
-  --r-control: 13px;
-  --r-pill: 999px;
+  /* Compatibilidad con el marcado que aún nombra "glass" */
+  --glass-border:  var(--line);
 
-  /* Movimiento */
-  --ease-out: cubic-bezier(.16, 1, .3, 1);
+  /* Forma */
+  --r-xl: 26px;
+  --r-lg: 22px;
+  --r-md: 16px;
+  --r-sm: 12px;
+
+  --ease-out:    cubic-bezier(.22, 1, .36, 1);
   --ease-spring: cubic-bezier(.34, 1.56, .64, 1);
 
-  --sidebar-w: 250px;
-  --bottombar-h: 68px;
+  --sidebar-w:   250px;
+  --bottombar-h: 72px;
 }
 
-* { box-sizing: border-box; margin: 0; padding: 0; }
+* { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
 
 body {
-  font-family: 'DM Sans', sans-serif;
-  background: var(--surface);
-  color: var(--text-primary);
+  margin: 0;
   min-height: 100vh;
-  overflow-x: hidden;
+  background: var(--bg);
+  color: var(--text-primary);
+  font-family: 'Manrope', system-ui, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
   -webkit-font-smoothing: antialiased;
+  text-wrap: pretty;
 }
 
-a { color: var(--purple); text-decoration: none; }
-a:hover { color: #c4b5fd; }
+a { color: var(--amber); text-decoration: none; }
+a:hover { color: var(--amber-claro); }
 
-/* ===== Fondo: aurora + grano ===== */
-.aurora { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
-.aurora span { position: absolute; display: block; border-radius: 50%; }
-.aurora .a1 { top: -18%; left: -10%; width: 70%; height: 70%; filter: blur(30px);
-  background: radial-gradient(closest-side, rgba(124, 58, 237, .30), transparent 70%); animation: drift 26s ease-in-out infinite; }
-.aurora .a2 { bottom: -25%; right: -8%; width: 62%; height: 66%; filter: blur(34px);
-  background: radial-gradient(closest-side, rgba(251, 113, 133, .14), transparent 70%); animation: drift 34s ease-in-out infinite reverse; }
-.aurora .a3 { top: 32%; right: 26%; width: 34%; height: 40%; filter: blur(40px);
-  background: radial-gradient(closest-side, rgba(34, 211, 238, .10), transparent 70%); animation: drift 44s ease-in-out infinite; }
-.aurora .grain { inset: 0; width: 100%; height: 100%; border-radius: 0; opacity: .35;
-  background-image: radial-gradient(rgba(255, 255, 255, .055) 1px, transparent 1px); background-size: 3px 3px; }
+h1, h2, h3, h4 { margin: 0; font-weight: 700; letter-spacing: -.015em; }
 
-@keyframes drift {
-  0%   { transform: translate3d(0, 0, 0) scale(1); }
-  50%  { transform: translate3d(4%, -3%, 0) scale(1.08); }
-  100% { transform: translate3d(0, 0, 0) scale(1); }
-}
+/* El fondo decorativo del diseño anterior. La referencia usa un fondo
+   plano, así que se apagan en vez de borrarlos del marcado. */
+.aurora, .a1, .a2, .a3, .grain { display: none; }
 
-/* ===== Layout ===== */
-.layout { display: flex; min-height: 100vh; position: relative; z-index: 1; }
-
-.sidebar {
-  width: var(--sidebar-w); flex-shrink: 0;
-  position: sticky; top: 0; height: 100vh;
-  padding: 22px 16px;
-  display: flex; flex-direction: column; gap: 26px;
-  background: linear-gradient(180deg, rgba(18, 17, 34, .72), rgba(11, 11, 22, .55));
-  border-right: 1px solid rgba(255, 255, 255, .07);
-  backdrop-filter: blur(var(--blur)); -webkit-backdrop-filter: blur(var(--blur));
-  z-index: 50;
+/* ===== Tipografía utilitaria ===== */
+.display {
+  font-family: 'Manrope', sans-serif;
+  font-weight: 800; letter-spacing: -.03em;
+  font-variant-numeric: tabular-nums;
 }
-
-.brand { display: flex; align-items: center; gap: 11px; padding: 4px 6px; }
-.brand-mark {
-  width: 36px; height: 36px; border-radius: 12px; flex-shrink: 0;
-  background: linear-gradient(140deg, var(--purple-dim), var(--purple));
-  display: flex; align-items: center; justify-content: center;
-  color: #fff; font-size: 14px;
-  box-shadow: 0 6px 20px rgba(124, 58, 237, .45);
+.mono {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-weight: 500; font-variant-numeric: tabular-nums;
+  letter-spacing: -.02em;
 }
-.brand-name { font-family: 'Sora', sans-serif; font-size: 15px; font-weight: 600; letter-spacing: -.01em; }
-.brand-sub { font-size: 10.5px; color: var(--text-muted); }
-
-.nav-group { display: flex; flex-direction: column; gap: 3px; }
-.nav-title {
-  font-size: 10px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase;
-  color: rgba(241, 240, 255, .3); padding: 0 8px 6px;
+.label {
+  font-size: 11px; font-weight: 600; letter-spacing: .01em;
+  color: var(--text-muted);
 }
-.nav-item {
-  display: flex; align-items: center; gap: 11px;
-  width: 100%; padding: 10px 11px;
-  border-radius: var(--r-control); border: 1px solid transparent;
-  background: none; color: var(--text-secondary);
-  font-family: 'DM Sans', sans-serif; font-size: 12.5px; font-weight: 500;
-  text-align: left; text-decoration: none; cursor: pointer;
-  transition: all .2s var(--ease-out);
-}
-.nav-item i { width: 17px; flex: 0 0 17px; text-align: center; font-size: 13.5px; }
-/* Solo la etiqueta crece. El badge heredaba flex:1 y se estiraba
-   hasta el borde del menú. */
-.nav-item > span { flex: 1; min-width: 0; text-wrap: pretty; }
-.nav-item > .nav-count { flex: 0 0 auto; }
-.nav-item:hover { background: var(--glass-hover); color: var(--text-primary); }
-.nav-item.active {
-  background: linear-gradient(100deg, rgba(124, 58, 237, .32), rgba(167, 139, 250, .1));
-  border-color: rgba(167, 139, 250, .34); color: var(--text-primary);
-  box-shadow: 0 6px 20px rgba(124, 58, 237, .22);
-}
-.nav-count {
-  display: inline-flex; align-items: center; justify-content: center;
-  min-width: 19px; height: 19px; padding: 0 6px;
-  font-family: 'DM Mono', monospace; font-size: 10px; line-height: 1;
-  border-radius: var(--r-pill);
-  background: rgba(251, 113, 133, .16); border: 1px solid rgba(251, 113, 133, .26);
-  color: var(--coral);
-}
-.nav-item.active .nav-count { background: rgba(251, 113, 133, .2); }
-
-.sidebar-foot { margin-top: auto; }
-.health { padding: 14px; border-radius: 18px; background: var(--glass-bg); border: 1px solid var(--glass-border); box-shadow: var(--glass-inset); }
-
-/* Topbar */
-.topbar {
-  position: sticky; top: 0; z-index: 30;
-  display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
-  padding: 16px 30px;
-  background: rgba(11, 11, 22, .6);
-  border-bottom: 1px solid rgba(255, 255, 255, .06);
-  backdrop-filter: blur(var(--blur)); -webkit-backdrop-filter: blur(var(--blur));
-}
-.topbar .spacer { flex: 1; }
-
-.pill-group {
-  display: flex; align-items: center; gap: 2px; padding: 4px;
-  border-radius: var(--r-control); background: var(--glass-bg); border: 1px solid var(--glass-border);
-}
-.pill-group .month { font-family: 'Sora', sans-serif; font-size: 12.5px; font-weight: 500; padding: 0 10px; }
-.icon-btn {
-  width: 28px; height: 28px; border: none; background: none; color: var(--text-muted);
-  border-radius: 9px; cursor: pointer; transition: all .2s;
-}
-.icon-btn:hover { background: var(--glass-hover); color: var(--text-primary); }
-
-.search {
-  flex: 1; max-width: 330px; display: flex; align-items: center; gap: 9px;
-  padding: 9px 14px; border-radius: var(--r-control);
-  background: rgba(255, 255, 255, .04); border: 1px solid var(--glass-border);
-}
-.search input { flex: 1; border: none; background: none; color: var(--text-primary); font-size: 12.5px; outline: none; }
-.search .kbd {
-  font-family: 'DM Mono', monospace; font-size: 10px; color: rgba(241, 240, 255, .3);
-  border: 1px solid rgba(255, 255, 255, .1); border-radius: 6px; padding: 2px 5px;
-}
-
-.main { flex: 1; min-width: 0; padding: 26px 30px 60px; max-width: 1240px; width: 100%; }
-.main > * { animation: rise .45s var(--ease-out) both; }
-@keyframes rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
-
-/* ===== Suscripciones: fila que se reordena en móvil ===== */
-.sub-row {
-  display: grid; align-items: center; gap: 13px;
-  grid-template-columns: 36px 1fr auto auto auto auto auto;
-  padding: 15px 20px;
-  border-bottom: 1px solid rgba(255, 255, 255, .05);
-  transition: background .2s var(--ease-out);
-}
-.sub-row:last-child { border-bottom: none; }
-.sub-row:hover { background: rgba(255, 255, 255, .045); }
-.sub-acciones { display: flex; align-items: center; gap: 8px; }
-
-/* Bottom nav móvil */
-.bottomnav {
-  display: none; position: fixed; bottom: 0; left: 0; right: 0; z-index: 50;
-  height: var(--bottombar-h); padding: 0;
-  align-items: center; justify-content: space-around;
-  background: rgba(11, 11, 22, .82);
-  border-top: 1px solid rgba(255, 255, 255, .07);
-  backdrop-filter: blur(22px); -webkit-backdrop-filter: blur(22px);
-}
-/* Seis destinos repartidos en partes iguales. El botón de registrar salió
-   de la fila (ahora flota arriba a la derecha): tener un hueco al centro
-   dejaba los ítems desalineados y sin espacio para Perfil. */
-.bottomnav .nav-item {
-  flex: 1 1 0; min-width: 0; flex-direction: column; gap: 4px;
-  padding: 9px 2px 8px; justify-content: center; text-align: center;
-  border: none; background: none; border-radius: 0;
-}
-.bottomnav .nav-item i { width: auto; font-size: 16px; opacity: .6; transition: opacity .18s var(--ease-out), color .18s var(--ease-out); }
-.bottomnav .nav-item span { opacity: .55; transition: opacity .18s var(--ease-out); }
-
-/* Activo: una marca arriba y el icono encendido. Antes heredaba la píldora
-   del sidebar, que con flex:1 se estiraba y descuadraba la fila. */
-.bottomnav .nav-item.active { background: none; color: var(--purple); }
-.bottomnav .nav-item.active i { opacity: 1; color: var(--purple); }
-.bottomnav .nav-item.active span { opacity: 1; color: var(--purple); }
-.bottomnav .nav-item.active::before {
-  content: ''; position: absolute; top: 0; left: 50%; transform: translateX(-50%);
-  width: 22px; height: 2.5px; border-radius: 0 0 3px 3px;
-  background: var(--purple); box-shadow: 0 0 12px rgba(167, 139, 250, .8);
-}
-.bottomnav .nav-item { position: relative; }
-.bottomnav .nav-item > span:not(.nav-count) {
-  flex: none; font-size: 9px; letter-spacing: .02em;
-  max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-}
-/* Igual que en el sidebar estrecho: el número no cabe, el punto sí */
-.bottomnav .nav-item > .nav-count {
-  position: absolute; top: 7px; left: 50%; margin-left: 7px;
-  min-width: 7px; width: 7px; height: 7px; padding: 0;
-  font-size: 0; border-radius: 50%;
-  background: var(--coral); border-color: transparent;
-  box-shadow: 0 0 0 2px rgba(15, 14, 30, .95);
-}
-/* Etiqueta solo para lectores de pantalla */
+.hint { font-size: 12.5px; color: var(--text-secondary); line-height: 1.55; }
+.page-title { font-family: 'Manrope', sans-serif; font-size: 22px; font-weight: 800; letter-spacing: -.025em; }
+.hero-line { font-size: 20px; font-weight: 600; line-height: 1.35; letter-spacing: -.015em; }
+.hero-line b { font-weight: 800; color: var(--amber); }
+.stat-value { font-family: 'Manrope', sans-serif; font-size: 26px; font-weight: 800; letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
+.stat-note { font-size: 11.5px; color: var(--text-muted); margin-top: 7px; line-height: 1.5; }
 .visually-hidden {
   position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
   overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
 }
 
-/* Par de botones flotantes: gasto (grande) e ingreso (chico) */
+/* ===== Superficies =====
+   Planas y muy redondeadas. Sin blur: la referencia no lo usa, y el
+   backdrop-filter costaba caro en móvil sin aportar nada al fondo liso. */
+.glass {
+  position: relative;
+  background: var(--surface);
+  border: 1px solid transparent;
+  border-radius: var(--r-lg);
+}
+.card    { padding: 20px; }
+.card-lg { padding: 24px; border-radius: var(--r-xl); }
+
+.glass-lift { transition: transform .22s var(--ease-out), background .22s var(--ease-out); }
+.glass-lift:hover { transform: translateY(-2px); background: var(--surface-2); }
+
+.glass-purple, .glass-orange { background: var(--surface); border-color: rgba(255, 170, 44, .22); }
+.glass-green  { background: var(--surface); border-color: rgba(83, 210, 88, .22); }
+.glass-coral  { background: var(--surface); border-color: rgba(226, 92, 92, .22); }
+
+/* La luz que sigue el cursor: mucho más sutil que antes, porque sobre
+   una superficie plana un halo fuerte se ve como una mancha. */
+[data-spot] { --spot-opacity: 0; }
+[data-spot]::after {
+  content: ''; position: absolute; inset: 0; pointer-events: none; z-index: 0;
+  border-radius: inherit;
+  background: radial-gradient(420px circle at var(--mx, 50%) var(--my, 50%),
+              rgba(255, 170, 44, .06), transparent 45%);
+  opacity: var(--spot-opacity); transition: opacity .25s var(--ease-out);
+}
+[data-spot] > * { position: relative; z-index: 1; }
+
+/* ===== Tarjeta de saldo =====
+   El elemento firma de la referencia: ámbar, muy redondeada, con una
+   curva de luz en diagonal. */
+.balance-card {
+  position: relative; overflow: hidden;
+  padding: 22px 24px; border-radius: var(--r-xl);
+  background: linear-gradient(115deg, var(--amber) 0%, var(--amber-claro) 100%);
+  color: #1a1200;
+}
+.balance-card::after {
+  content: ''; position: absolute; right: -30%; bottom: -60%;
+  width: 120%; height: 150%; border-radius: 50%;
+  background: rgba(255, 255, 255, .16);
+  pointer-events: none;
+}
+.balance-card > * { position: relative; z-index: 1; }
+.balance-card .label { color: rgba(26, 18, 0, .6); }
+.balance-card .display { color: #1a1200; }
+
+/* ===== Botones ===== */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  padding: 11px 18px; border-radius: 100px; border: 1px solid transparent;
+  font-family: 'Manrope', sans-serif; font-size: 13px; font-weight: 700;
+  cursor: pointer; white-space: nowrap;
+  transition: transform .16s var(--ease-out), background .18s var(--ease-out), opacity .18s;
+}
+.btn:active { transform: scale(.96); }
+.btn-sm { padding: 8px 14px; font-size: 12px; }
+.btn-block { width: 100%; padding: 15px; font-size: 14px; }
+
+.btn-purple, .btn-amber {
+  background: var(--amber); color: #1a1200; border-color: var(--amber);
+}
+.btn-purple:hover, .btn-amber:hover { background: var(--amber-claro); }
+
+.btn-green { background: var(--green); color: #062b08; border-color: var(--green); }
+.btn-green:hover { filter: brightness(1.08); }
+.btn-red    { background: var(--coral); color: #2b0606; border-color: var(--coral); }
+.btn-orange { background: var(--amber); color: #1a1200; border-color: var(--amber); }
+
+.btn-soft  { background: var(--amber-tenue); color: var(--amber); border-color: transparent; }
+.btn-soft:hover { background: rgba(255, 170, 44, .22); }
+.btn-glass { background: var(--surface-2); color: var(--text-primary); border-color: transparent; }
+.btn-glass:hover { background: var(--surface-3); }
+.btn-dashed {
+  background: none; border: 1.5px dashed var(--line-fuerte); color: var(--amber);
+  border-radius: var(--r-md);
+}
+.btn-dashed:hover { border-color: var(--amber); background: var(--amber-tenue); }
+
+.icon-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 32px; height: 32px; flex-shrink: 0;
+  border-radius: 50%; border: none; cursor: pointer;
+  background: var(--surface-2); color: var(--text-secondary);
+  transition: background .18s var(--ease-out), color .18s;
+}
+.icon-btn:hover { background: var(--surface-3); color: var(--text-primary); }
+
+/* ===== Fichas de icono ===== */
+.icon-tile {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 38px; height: 38px; flex-shrink: 0;
+  border-radius: 13px; font-size: 14px;
+  background: #fff; color: #1a1a1a;
+}
+.icon-tile.green  { background: var(--green-tenue); color: var(--green); }
+.icon-tile.coral  { background: var(--coral-tenue); color: var(--coral); }
+.icon-tile.orange { background: var(--amber-tenue); color: var(--amber); }
+.icon-tile.blue   { background: rgba(75, 140, 255, .14); color: var(--blue); }
+
+/* ===== Filas ===== */
+.row-list { display: flex; flex-direction: column; }
+.row {
+  display: flex; align-items: center; gap: 13px;
+  padding: 13px 0; border-bottom: 1px solid var(--line);
+  border-radius: 0;
+}
+.row:last-child { border-bottom: none; }
+.row-main  { flex: 1; min-width: 0; }
+.row-title { font-size: 13.5px; font-weight: 600; }
+.row-meta  { font-size: 11.5px; color: var(--text-muted); margin-top: 2px; }
+
+/* En una lista dentro de tarjeta, las filas no llevan fondo propio:
+   la referencia separa con una línea fina, no con cajas anidadas. */
+.row-list .row { padding-left: 0; padding-right: 0; }
+
+/* Lista de categorías: grilla en vez de flex, para que el monto caiga
+   siempre en la misma columna exista o no el botón de editar. */
+.cat-list .row {
+  display: grid;
+  grid-template-columns: 34px 1fr auto 32px;
+  align-items: center;
+}
+
+/* ============================================================
+   MÓVIL · calcado de la plantilla
+   La referencia es una app de teléfono, así que en móvil no se adapta
+   el escritorio: se reemplazan los componentes por los suyos.
+   ============================================================ */
+
+/* --- Tarjeta de saludo: avatar, "Buenos días", nombre y campana --- */
+.saludo-card { display: none; }
+
+/* --- Carrusel de tarjetas de saldo --- */
+.balance-carrusel {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px;
+  margin-bottom: 18px; align-items: stretch;
+}
+.balance-dots { display: none; }
+.balance-carrusel > * { min-width: 0; }
+/* Bajo 900px las tres tarjetas no caben en fila: pasan a carrusel que se
+   desliza con el dedo y encaja en cada una. */
+@media (max-width: 900px) {
+  .balance-carrusel {
+    display: flex; grid-template-columns: none;
+    gap: 12px; overflow-x: auto; scroll-snap-type: x mandatory;
+    margin: 0 -16px 0; padding: 0 16px 4px;
+    scrollbar-width: none;
+  }
+  .balance-carrusel::-webkit-scrollbar { display: none; }
+  .balance-carrusel > * { flex: 0 0 calc(100% - 40px); scroll-snap-align: center; }
+  .balance-dots { display: flex; justify-content: center; gap: 6px; margin: 12px 0 18px; }
+  .balance-dots > span {
+    width: 7px; height: 7px; border-radius: 100px;
+    background: var(--surface-3); transition: all .25s var(--ease-out);
+  }
+  .balance-dots > span.on { width: 22px; background: var(--amber); }
+}
+
+/* --- Fila partida: ingresos | egresos --- */
+.split-card {
+  display: flex; align-items: center;
+  background: var(--surface); border-radius: var(--r-lg); padding: 18px 20px;
+}
+.split-card > div { flex: 1; display: flex; align-items: center; gap: 12px; }
+.split-card > .divisor { flex: 0 0 1px; width: 1px; height: 40px; background: var(--line-fuerte); }
+.split-flecha { font-size: 20px; }
+
+/* --- Ficha de icono blanca, como en la plantilla --- */
+.tile-blanco {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 46px; height: 46px; flex-shrink: 0;
+  border-radius: 14px; background: #fff; font-size: 18px;
+}
+
+/* --- Lista de movimientos: divisor recortado tras el icono --- */
+.mov-list .row { border-bottom: none; padding: 14px 0; position: relative; }
+.mov-list .row + .row::before {
+  content: ''; position: absolute; top: 0; left: 59px; right: 0;
+  height: 1px; background: var(--line);
+}
+
+/* --- Tarjetas de meta en dos columnas --- */
+.metas-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.meta-mini {
+  background: var(--surface); border-radius: var(--r-md); padding: 15px 16px;
+  text-decoration: none; color: var(--text-primary); display: block;
+}
+.meta-mini-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.meta-mini-nombre {
+  font-size: 12.5px; font-weight: 500;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.meta-mini-monto {
+  font-family: 'Manrope', sans-serif; font-weight: 800; font-size: 19px;
+  letter-spacing: -.03em; margin: 8px 0 12px; font-variant-numeric: tabular-nums;
+}
+
+
+
+/* ===== Insignias ===== */
+.badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 4px 10px; border-radius: 100px;
+  font-size: 11px; font-weight: 700;
+  background: var(--surface-2); color: var(--text-secondary);
+}
+.badge-green  { background: var(--green-tenue); color: var(--green); }
+.badge-coral  { background: var(--coral-tenue); color: var(--coral); }
+.badge-orange, .badge-purple { background: var(--amber-tenue); color: var(--amber); }
+.badge-blue   { background: rgba(75, 140, 255, .14); color: var(--blue); }
+.badge-mute   { background: var(--surface-2); color: var(--text-muted); }
+
+/* ===== Barras de progreso ===== */
+.progress-bar {
+  height: 7px; border-radius: 100px; overflow: hidden;
+  background: var(--surface-3);
+}
+.progress-fill {
+  height: 100%; border-radius: 100px;
+  background: var(--amber);
+  transition: width .6s var(--ease-out);
+}
+.progress-fill.green { background: var(--green); }
+.progress-fill.cyan  { background: var(--teal); }
+.progress-fill.blue  { background: var(--blue); }
+.progress-fill.shine { background: linear-gradient(90deg, var(--amber-oscuro), var(--amber-claro)); }
+
+/* Barra de tres tramos: gastado · por pagar · disponible */
+.split-bar {
+  display: flex; height: 9px; border-radius: 100px; overflow: hidden;
+  background: var(--surface-3); gap: 2px;
+}
+.split-bar > span { display: block; height: 100%; }
+
+/* ===== Marcas de cuota ===== */
+.pips { display: flex; gap: 4px; flex-wrap: wrap; }
+.pip {
+  flex: 1; min-width: 7px; height: 5px; border-radius: 100px;
+  background: var(--surface-3);
+}
+.pip.paid { background: var(--green); }
+.pip.next { background: var(--amber); }
+.pip.late { background: var(--coral); }
+
+/* ===== Formularios ===== */
+.field { margin-bottom: 16px; }
+.form-row { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
+.form-row > div { flex: 1; min-width: 120px; }
+
+input:not([type=checkbox]):not([type=radio]), select, textarea {
+  width: 100%; padding: 13px 15px;
+  border-radius: var(--r-md); border: 1px solid transparent;
+  background: var(--surface-2); color: var(--text-primary);
+  font-family: 'Manrope', sans-serif; font-size: 13.5px;
+  transition: border-color .18s var(--ease-out), background .18s;
+}
+input::placeholder, textarea::placeholder { color: var(--text-muted); }
+input:focus, select:focus, textarea:focus {
+  outline: none; border-color: var(--amber); background: var(--surface);
+}
+input[type=number].mono, input.mono { font-family: 'JetBrains Mono', monospace; }
+input[type=date] { color-scheme: dark; }
+select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' fill='none'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23999' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 15px center;
+  padding-right: 36px;
+}
+.input-amount {
+  font-family: 'JetBrains Mono', monospace; font-size: 22px; font-weight: 600;
+  text-align: center; padding: 16px;
+}
+label { display: block; }
+
+/* ===== Segmentado ===== */
+.seg {
+  display: flex; gap: 4px; padding: 4px;
+  background: var(--surface-2); border-radius: 100px;
+}
+.seg > button, .seg > a {
+  flex: 1; padding: 10px 14px; border: none; border-radius: 100px;
+  background: none; color: var(--text-muted); cursor: pointer;
+  font-family: 'Manrope', sans-serif; font-size: 12.5px; font-weight: 700;
+  text-align: center; text-decoration: none;
+  transition: background .18s var(--ease-out), color .18s;
+}
+.seg > button:hover { color: var(--text-secondary); }
+.seg > button.on, .seg > a.on { background: var(--amber); color: #1a1200; }
+.seg > button.on-green { background: var(--green); color: #062b08; }
+.seg > button.on-coral { background: var(--coral); color: #2b0606; }
+
+/* ===== Fichas de categoría ===== */
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip {
+  padding: 9px 15px; border-radius: 100px; cursor: pointer;
+  border: 1px solid var(--line-fuerte); background: none;
+  color: var(--text-secondary);
+  font-family: 'Manrope', sans-serif; font-size: 12.5px; font-weight: 600;
+  transition: all .18s var(--ease-out);
+}
+.chip:hover { border-color: var(--line-fuerte); background: var(--surface-2); }
+.chip.on {
+  background: var(--amber); border-color: var(--amber); color: #1a1200;
+}
+
+/* ===== Interruptor ===== */
+.switch {
+  position: relative; width: 44px; height: 26px; flex-shrink: 0;
+  border-radius: 100px; border: none; cursor: pointer; padding: 0;
+  background: var(--surface-3);
+  transition: background .22s var(--ease-out);
+}
+.switch .knob {
+  position: absolute; top: 3px; left: 3px;
+  width: 20px; height: 20px; border-radius: 50%;
+  background: #f5f5f5;
+  transition: transform .22s var(--ease-spring);
+}
+.switch.on { background: var(--green); }
+.switch.on .knob { transform: translateX(18px); }
+
+/* ===== Vista previa dentro de formularios ===== */
+.preview-box {
+  padding: 16px; margin-bottom: 18px;
+  border-radius: var(--r-md);
+  background: var(--surface-2);
+}
+
+/* ===== Estado vacío ===== */
+.empty { text-align: center; padding: 44px 20px; }
+.empty i { font-size: 30px; color: var(--text-muted); margin-bottom: 14px; display: block; }
+.empty-title { font-family: 'Manrope', sans-serif; font-size: 15px; font-weight: 700; margin-bottom: 6px; }
+.empty-text { font-size: 12.5px; color: var(--text-muted); max-width: 340px; margin: 0 auto 18px; line-height: 1.55; }
+
+/* ===== Encabezados de sección ===== */
+.section-head {
+  display: flex; align-items: baseline; justify-content: space-between;
+  gap: 12px; flex-wrap: wrap; margin: 28px 2px 13px;
+}
+.section-head:first-child { margin-top: 0; }
+.section-title {
+  font-family: 'Manrope', sans-serif; font-size: 17px; font-weight: 800;
+  letter-spacing: -.02em; color: var(--text-primary); margin: 0;
+}
+/* "Ver mas" a la derecha, en ámbar — el patrón de la referencia */
+.section-sub {
+  font-size: 12.5px; font-weight: 700; color: var(--amber); cursor: pointer;
+}
+
+/* ===== Cuadrículas ===== */
+.grid-metrics {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 14px; margin-bottom: 18px;
+}
+.grid-chart   { display: grid; grid-template-columns: 1.5fr 1fr; gap: 16px; margin-bottom: 18px; align-items: start; }
+.grid-pagos   { display: grid; grid-template-columns: 1.5fr 1fr; gap: 16px; margin-bottom: 18px; align-items: start; }
+.grid-registro{ display: grid; grid-template-columns: 1.35fr 1fr; gap: 16px; align-items: start; }
+.grid-cards   { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
+.grid-detail  { display: grid; grid-template-columns: 320px 1fr; gap: 16px; align-items: start; }
+.grid-bottom  { display: grid; grid-template-columns: 1fr 1.2fr; gap: 16px; }
+.grid-registro > :only-child { grid-column: 1 / -1; }
+
+@media (max-width: 1100px) {
+  .grid-chart, .grid-pagos, .grid-registro, .grid-detail, .grid-bottom {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ===== Estructura ===== */
+.layout { display: flex; min-height: 100vh; }
+
+.sidebar {
+  width: var(--sidebar-w); flex-shrink: 0;
+  padding: 22px 16px; display: flex; flex-direction: column; gap: 8px;
+  background: var(--bg-elev);
+  position: sticky; top: 0; height: 100vh; overflow-y: auto; overflow-x: hidden;
+}
+.brand { display: flex; align-items: center; gap: 11px; padding: 4px 8px 20px; }
+.brand-mark {
+  width: 38px; height: 38px; border-radius: 13px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--amber); color: #1a1200; font-size: 15px;
+}
+.brand-name { font-family: 'Manrope', sans-serif; font-size: 15px; font-weight: 800; letter-spacing: -.02em; }
+.brand-sub  { font-size: 10.5px; color: var(--text-muted); }
+
+.nav-group { display: flex; flex-direction: column; gap: 3px; }
+.nav-title {
+  font-size: 10px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+  color: var(--text-muted); padding: 14px 12px 7px;
+}
+.nav-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 14px; border-radius: var(--r-md);
+  color: var(--text-secondary); text-decoration: none;
+  font-family: 'Manrope', sans-serif; font-size: 13.5px; font-weight: 600;
+  border: none; background: none; cursor: pointer; text-align: left;
+  transition: background .18s var(--ease-out), color .18s;
+  position: relative;
+}
+.nav-item i { width: 18px; text-align: center; font-size: 14px; }
+.nav-item:hover { background: var(--surface); color: var(--text-primary); }
+/* Activo: relleno ámbar sólido, como en la referencia */
+.nav-item.active { background: var(--amber); color: #1a1200; }
+.nav-item.active:hover { background: var(--amber-claro); color: #1a1200; }
+
+.nav-count {
+  margin-left: auto; min-width: 20px; padding: 2px 7px;
+  border-radius: 100px; text-align: center;
+  font-family: 'JetBrains Mono', monospace; font-size: 10.5px; font-weight: 600;
+  background: var(--coral); color: #fff;
+}
+.nav-item.active .nav-count { background: rgba(26, 18, 0, .22); color: #1a1200; }
+
+.sidebar-foot {
+  margin-top: auto; padding: 16px;
+  border-radius: var(--r-lg); background: var(--surface);
+}
+
+.main { flex: 1; min-width: 0; padding: 26px 30px 40px; max-width: 1400px; }
+
+.topbar {
+  display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+  margin-bottom: 22px;
+}
+.spacer { flex: 1; }
+
+/* Encabezado de saludo: avatar + nombre en una píldora */
+.pill-group {
+  display: flex; align-items: center; gap: 4px;
+  padding: 4px; border-radius: 100px; background: var(--surface);
+}
+.month {
+  padding: 0 14px; font-family: 'Manrope', sans-serif;
+  font-size: 12.5px; font-weight: 700;
+}
+.avatar {
+  display: flex; align-items: center; justify-content: center;
+  width: 38px; height: 38px; border-radius: 50%; flex-shrink: 0;
+  background: var(--amber); color: #1a1200;
+  font-family: 'Manrope', sans-serif; font-size: 15px; font-weight: 800;
+}
+.avatar-lg { width: 64px; height: 64px; font-size: 24px; border-radius: 22px; }
+
+.search {
+  display: flex; align-items: center; gap: 9px;
+  padding: 10px 15px; border-radius: 100px;
+  background: var(--surface); min-width: 200px;
+}
+.search input {
+  border: none; background: none; padding: 0; flex: 1;
+  font-size: 12.5px; color: var(--text-primary);
+}
+.search input:focus { outline: none; background: none; }
+.kbd {
+  padding: 2px 7px; border-radius: 6px;
+  background: var(--surface-2); color: var(--text-muted);
+  font-family: 'JetBrains Mono', monospace; font-size: 10px;
+}
+
+/* ===== Calendario ===== */
+.cal-head, .cal-week {
+  display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px;
+}
+.cal-head > div {
+  text-align: center; font-size: 10px; font-weight: 700;
+  color: var(--text-muted); padding-bottom: 4px;
+}
+.cal-day {
+  position: relative; aspect-ratio: 1;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
+  border-radius: var(--r-sm); border: none; background: none; cursor: default;
+  color: var(--text-secondary);
+  font-family: 'JetBrains Mono', monospace; font-size: 12px;
+  transition: background .18s var(--ease-out);
+}
+.cal-day.has { cursor: pointer; background: var(--surface-2); color: var(--text-primary); }
+.cal-day.has:hover { background: var(--surface-3); }
+.cal-day.on { background: var(--amber); color: #1a1200; font-weight: 700; }
+.cal-day .dot {
+  width: 5px; height: 5px; border-radius: 50%; background: var(--amber);
+}
+.cal-day .dot.paid { background: var(--green); }
+.cal-day.on .dot { background: #1a1200; }
+
+/* ===== Modales ===== */
+.modal-overlay {
+  position: fixed; inset: 0; z-index: 200;
+  display: none; align-items: center; justify-content: center; padding: 20px;
+  background: rgba(0, 0, 0, .72);
+  animation: fadeIn .2s var(--ease-out);
+}
+.modal-overlay.open { display: flex; }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+.modal-box {
+  width: 100%; max-width: 460px; max-height: 88vh; overflow-y: auto;
+  padding: 24px; border-radius: var(--r-xl);
+  background: var(--bg-elev);
+  animation: modalUp .28s var(--ease-out);
+}
+@keyframes modalUp {
+  from { opacity: 0; transform: translateY(18px) scale(.98); }
+  to { opacity: 1; transform: none; }
+}
+.modal-head {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  gap: 14px; margin-bottom: 20px;
+}
+.modal-title { font-family: 'Manrope', sans-serif; font-size: 18px; font-weight: 800; letter-spacing: -.02em; }
+.modal-sub { font-size: 12px; color: var(--text-muted); margin-top: 3px; }
+.modal-close {
+  width: 34px; height: 34px; flex-shrink: 0; border-radius: 50%;
+  border: none; cursor: pointer;
+  background: var(--surface-2); color: var(--text-secondary); font-size: 14px;
+}
+.modal-close:hover { background: var(--surface-3); color: var(--text-primary); }
+
+/* ===== Hoja inferior =====
+   En un teléfono un diálogo centrado queda lejos del pulgar. La hoja sube
+   desde el borde inferior, que es donde está la mano. */
+.hoja-overlay { align-items: flex-end; padding: 0; }
+.hoja-box {
+  max-width: none; width: 100%; max-height: 82vh;
+  border-radius: var(--r-xl) var(--r-xl) 0 0;
+  padding: 22px 20px calc(24px + env(safe-area-inset-bottom));
+  animation: hojaSube .3s var(--ease-out);
+}
+@keyframes hojaSube { from { transform: translateY(100%); } to { transform: none; } }
+.hoja-box::before {
+  content: ''; display: block; width: 38px; height: 4px; border-radius: 100px;
+  background: var(--surface-3); margin: -8px auto 16px;
+}
+.hoja-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
+.hoja-item {
+  display: flex; align-items: center; gap: 11px;
+  padding: 14px; border-radius: var(--r-md);
+  background: var(--surface); color: var(--text-primary); text-decoration: none;
+  font-size: 12.5px; font-weight: 600;
+}
+.hoja-item:hover { background: var(--surface-2); color: var(--text-primary); }
+.hoja-item .icon-tile { width: 32px; height: 32px; border-radius: 11px; font-size: 12px; }
+
+/* En escritorio se comporta como un diálogo normal: la hoja pegada abajo
+   en una pantalla grande deja la mitad de la ventana vacía. */
+@media (min-width: 721px) {
+  .hoja-overlay { align-items: center; padding: 20px; }
+  .hoja-box {
+    max-width: 420px; border-radius: var(--r-xl);
+    animation: modalUp .28s var(--ease-out);
+  }
+  .hoja-box::before { display: none; }
+}
+
+/* ===== Teclado numérico ===== */
+.amount-display {
+  text-align: center; padding: 22px 0;
+  font-family: 'Manrope', sans-serif; font-size: 38px; font-weight: 800;
+  letter-spacing: -.035em; font-variant-numeric: tabular-nums;
+}
+.keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.keypad button {
+  padding: 16px 0; border-radius: var(--r-md); border: none; cursor: pointer;
+  background: var(--surface-2); color: var(--text-primary);
+  font-family: 'JetBrains Mono', monospace; font-size: 18px; font-weight: 500;
+  transition: background .14s var(--ease-out), transform .1s;
+}
+.keypad button:hover { background: var(--surface-3); }
+.keypad button:active { transform: scale(.94); }
+
+/* ===== Avisos ===== */
+.toast-container {
+  position: fixed; top: 20px; right: 20px; z-index: 300;
+  display: flex; flex-direction: column; gap: 9px; max-width: 340px;
+}
+.toast {
+  display: flex; align-items: center; gap: 11px;
+  padding: 14px 17px; border-radius: var(--r-md);
+  background: var(--surface-2); color: var(--text-primary);
+  font-size: 12.5px; box-shadow: 0 12px 32px rgba(0, 0, 0, .5);
+  animation: toastIn .3s var(--ease-out);
+}
+@keyframes toastIn { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: none; } }
+.toast.success { border-left: 3px solid var(--green); }
+.toast.error, .toast.danger { border-left: 3px solid var(--coral); }
+.toast.warning { border-left: 3px solid var(--amber); }
+
+/* ===== Panel de deuda ===== */
+.deuda-panel { position: relative; overflow: hidden; }
+.deuda-cabecera { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 22px; }
+.deuda-datos { display: flex; gap: 10px; flex-wrap: wrap; }
+.deuda-dato {
+  padding: 13px 17px; border-radius: var(--r-md); min-width: 116px;
+  background: var(--surface-2);
+}
+.deuda-lista {
+  margin-top: 20px; padding-top: 18px; border-top: 1px solid var(--line);
+  display: flex; flex-direction: column; gap: 7px;
+}
+.deuda-item { border-radius: var(--r-md); transition: background .2s var(--ease-out); }
+.deuda-item:hover { background: var(--surface-2); }
+.deuda-item[open] { background: var(--surface-2); }
+.deuda-item > summary { display: flex; align-items: center; gap: 13px; padding: 12px 14px; cursor: pointer; }
+.deuda-item-main { flex: 1; min-width: 0; display: block; }
+.deuda-item-nombre {
+  display: block; font-size: 13.5px; font-weight: 600; margin-bottom: 3px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.deuda-item-main .row-meta { display: block; }
+.deuda-item-barra {
+  display: block; height: 5px; margin-top: 8px; border-radius: 100px;
+  background: var(--surface-3); overflow: hidden;
+}
+.deuda-item-barra > span { display: block; height: 100%; border-radius: 100px; transition: width .5s var(--ease-out); }
+.deuda-item-monto { text-align: right; flex-shrink: 0; }
+.deuda-item-monto .mono { display: block; font-size: 14px; }
+.deuda-item-monto .row-meta { display: block; }
+.deuda-item-flecha { font-size: 9px; color: var(--text-muted); flex-shrink: 0; transition: transform .2s var(--ease-out); }
+.deuda-item[open] .deuda-item-flecha { transform: rotate(180deg); }
+.deuda-item-detalle { padding: 2px 14px 15px 65px; animation: deudaAbre .22s var(--ease-out); }
+@keyframes deudaAbre { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+.deuda-item-nums { display: grid; grid-template-columns: repeat(auto-fit, minmax(84px, 1fr)); gap: 12px; }
+.deuda-item-nums > div { display: flex; flex-direction: column; gap: 3px; }
+.deuda-item-nums .mono { font-size: 13px; }
+.deuda-item-detalle .pips { justify-content: flex-start; }
+.deuda-item-detalle .pip { max-width: 26px; }
+
+/* ===== Suscripciones ===== */
+.sub-row {
+  display: grid; align-items: center; gap: 13px;
+  grid-template-columns: 38px 1fr auto auto auto;
+  padding: 15px 0; border-bottom: 1px solid var(--line);
+}
+.sub-row:last-child { border-bottom: none; }
+.sub-acciones { display: flex; align-items: center; gap: 8px; }
+
+/* ===== Plegables ===== */
+summary { list-style: none; }
+summary::-webkit-details-marker { display: none; }
+summary::marker { content: ''; }
+details[open] summary .fa-chevron-down { transform: rotate(180deg); }
+summary .fa-chevron-down { transition: transform .2s var(--ease-out); }
+
+/* ===== Foco ===== */
+a:focus-visible, button:focus-visible, input:focus-visible,
+select:focus-visible, textarea:focus-visible, [tabindex]:focus-visible {
+  outline: 2px solid var(--amber); outline-offset: 2px; border-radius: var(--r-sm);
+}
+.nav-item:focus-visible { outline-offset: -2px; }
+
+@media (pointer: coarse) {
+  .icon-btn { min-width: 40px; min-height: 40px; }
+  .btn-sm { min-height: 38px; }
+  .chip { min-height: 38px; }
+}
+
+/* ===== Barra inferior ===== */
+.bottomnav {
+  display: none; position: fixed; bottom: 0; left: 0; right: 0; z-index: 50;
+  height: var(--bottombar-h); padding: 0 6px;
+  align-items: center; justify-content: space-around;
+  background: var(--bg-elev);
+  border-top: 1px solid var(--line);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+.bottomnav .nav-item {
+  flex: 1 1 0; min-width: 0; flex-direction: column; gap: 4px;
+  padding: 8px 2px; justify-content: center; text-align: center;
+  border-radius: var(--r-sm); background: none;
+  font-size: 10px; font-weight: 600;
+}
+.bottomnav .nav-item i { width: auto; font-size: 17px; opacity: .55; transition: opacity .18s, color .18s; }
+.bottomnav .nav-item span { opacity: .6; }
+.bottomnav .nav-item.active { background: none; color: var(--amber); }
+.bottomnav .nav-item.active i { opacity: 1; color: var(--amber); }
+.bottomnav .nav-item.active span { opacity: 1; }
+.bottomnav .nav-item > .nav-count {
+  position: absolute; top: 5px; left: 50%; margin-left: 7px;
+  min-width: 16px; padding: 1px 5px; font-size: 9px;
+}
+
+/* Botón flotante */
 .fab-group {
   display: none; position: fixed; right: 16px; z-index: 55;
   bottom: calc(var(--bottombar-h) + 16px);
   flex-direction: column; align-items: center; gap: 10px;
 }
-.fab-mini {
-  position: static; width: 42px; height: 42px; border-radius: 15px;
-  background: linear-gradient(135deg, #059669, #34d399);
-  box-shadow: 0 6px 18px rgba(5, 150, 105, .45);
-  color: #04291d;
-}
-
-/* Botón flotante, fuera de la fila */
 .fab {
-  display: none; position: fixed; right: 16px; z-index: 55;
-  bottom: calc(var(--bottombar-h) + 16px);
-  width: 54px; height: 54px; border-radius: 19px; flex-shrink: 0;
+  display: none; width: 56px; height: 56px; border-radius: 50%; flex-shrink: 0;
   align-items: center; justify-content: center;
-  border: none; cursor: pointer; color: #fff;
-  background: linear-gradient(135deg, var(--purple-dim), var(--purple));
-  box-shadow: 0 10px 26px rgba(124, 58, 237, .55);
+  border: none; cursor: pointer; color: #1a1200;
+  background: var(--amber);
+  box-shadow: 0 8px 24px rgba(255, 170, 44, .38);
   transition: transform .18s var(--ease-spring);
 }
 .fab:active { transform: scale(.93); }
-
-/* La luz que sigue el cursor vive acá, en su propia capa.
-   ANTES el JS escribía backgroundImage inline y borraba los degradados
-   que algunas tarjetas declaran en su style. */
-[data-spot] { --spot-opacity: 0; }
-[data-spot]::after {
-  content: ''; position: absolute; inset: 0; pointer-events: none; z-index: 0;
-  border-radius: inherit;
-  background: radial-gradient(480px circle at var(--mx, 50%) var(--my, 50%),
-              rgba(167, 139, 250, .13), transparent 45%);
-  opacity: var(--spot-opacity); transition: opacity .25s var(--ease-out);
+.fab-mini {
+  width: 44px; height: 44px;
+  background: var(--green); color: #062b08;
+  box-shadow: 0 6px 18px rgba(83, 210, 88, .34);
 }
-[data-spot] > * { position: relative; z-index: 1; }
 
-/* ===== Tarjetas glass ===== */
-.glass {
-  position: relative; overflow: hidden;
-  background: var(--glass-bg);
-  border: 1px solid var(--glass-border);
-  border-radius: var(--r-card);
-  box-shadow: var(--glass-inset);
-  backdrop-filter: blur(var(--blur)); -webkit-backdrop-filter: blur(var(--blur));
-  transition: transform .25s var(--ease-out), border-color .25s var(--ease-out), box-shadow .25s var(--ease-out);
+/* ===== Cajón lateral en móvil ===== */
+.drawer-overlay {
+  position: fixed; inset: 0; z-index: 150; display: none;
+  background: rgba(0, 0, 0, .6);
 }
-.glass-lift:hover { transform: translateY(-4px); box-shadow: var(--glass-inset), 0 14px 36px rgba(0, 0, 0, .34); }
-.glass-purple { background: rgba(124, 58, 237, .11); border-color: var(--purple-border); }
-.glass-green  { background: rgba(52, 211, 153, .09);  border-color: rgba(52, 211, 153, .22); }
-.glass-orange { background: rgba(251, 146, 60, .08);  border-color: rgba(251, 146, 60, .22); }
-.glass-coral  { background: rgba(251, 113, 133, .09); border-color: rgba(251, 113, 133, .24); }
-
-/* Luz que sigue el cursor (la aplica finapp.js sobre [data-spot]) */
-[data-spot] { background-image: none; transition: background-image .2s; }
-
-.card { padding: 20px; }
-.card-lg { padding: 24px 26px; border-radius: 26px; }
-.hero-line { font-family: 'Sora', sans-serif; font-size: 26px; font-weight: 500; line-height: 1.35; letter-spacing: -.02em; text-wrap: pretty; }
-.hero-line b { color: var(--purple); font-weight: 600; }
-.hint { font-size: 12.5px; color: rgba(241, 240, 255, .5); line-height: 1.6; text-wrap: pretty; }
-
-/* ===== Tipografía ===== */
-.mono { font-family: 'DM Mono', monospace; }
-.display { font-family: 'Sora', sans-serif; letter-spacing: -.02em; font-weight: 600; }
-.label { font-size: 10.5px; color: var(--text-muted); text-transform: uppercase; letter-spacing: .08em; font-weight: 500; }
-.page-title { font-family: 'Sora', sans-serif; font-size: 22px; font-weight: 600; letter-spacing: -.02em; }
-.stat-value { font-family: 'Sora', sans-serif; font-size: 25px; font-weight: 600; letter-spacing: -.02em; }
-.stat-note { font-size: 11px; color: rgba(241, 240, 255, .42); margin-top: 7px; line-height: 1.45; }
-
-/* ===== Grids ===== */
-.grid-metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(215px, 1fr)); gap: 14px; margin-bottom: 18px; }
-.grid-chart   { display: grid; grid-template-columns: 1.55fr 1fr; gap: 16px; margin-bottom: 16px; }
-.grid-bottom  { display: grid; grid-template-columns: 1fr 1.15fr; gap: 16px; align-items: start; }
-.grid-cards   { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 14px; }
-.grid-detail  { display: grid; grid-template-columns: 290px 1fr; gap: 16px; align-items: start; }
-
-/* ===== Badges ===== */
-.badge { display: inline-flex; align-items: center; gap: 5px; font-size: 10.5px; font-weight: 600; padding: 4px 10px; border-radius: 9px; }
-.badge-green  { background: rgba(52, 211, 153, .12); color: var(--green);  border: 1px solid rgba(52, 211, 153, .24); }
-.badge-red    { background: rgba(248, 113, 113, .12); color: var(--red);   border: 1px solid rgba(248, 113, 113, .24); }
-.badge-coral  { background: rgba(251, 113, 133, .12); color: var(--coral); border: 1px solid rgba(251, 113, 133, .24); }
-.badge-orange { background: rgba(251, 146, 60, .12); color: var(--orange); border: 1px solid rgba(251, 146, 60, .24); }
-.badge-purple { background: var(--purple-glow); color: var(--purple); border: 1px solid var(--purple-border); }
-.badge-blue   { background: rgba(96, 165, 250, .14); color: var(--blue);  border: 1px solid rgba(96, 165, 250, .28); }
-.badge-mute   { background: rgba(255, 255, 255, .05); color: var(--text-muted); border: 1px solid var(--glass-border); }
-
-/* ===== Botones ===== */
-.btn {
-  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-  padding: 11px 17px; border-radius: var(--r-control);
-  font-family: 'DM Sans', sans-serif; font-size: 12.5px; font-weight: 600;
-  border: 1px solid transparent; text-decoration: none; cursor: pointer;
-  transition: all .2s var(--ease-out);
-}
-.btn:active { transform: scale(.98); }
-.btn-purple { background: linear-gradient(135deg, var(--purple-dim), var(--purple)); color: #fff; box-shadow: 0 8px 24px rgba(124, 58, 237, .42); }
-.btn-purple:hover { transform: translateY(-1px); box-shadow: 0 12px 30px rgba(124, 58, 237, .55); color: #fff; }
-.btn-soft { background: rgba(167, 139, 250, .12); border-color: var(--purple-border); color: #c4b5fd; }
-.btn-soft:hover { background: rgba(167, 139, 250, .22); }
-.btn-glass { background: rgba(255, 255, 255, .04); border-color: var(--glass-border); color: var(--text-secondary); }
-.btn-glass:hover { background: var(--glass-hover); color: var(--text-primary); }
-.btn-green { background: rgba(52, 211, 153, .13); border-color: rgba(52, 211, 153, .28); color: var(--green); }
-.btn-green:hover { background: rgba(52, 211, 153, .22); transform: translateY(-1px); }
-.btn-red { background: rgba(248, 113, 113, .13); border-color: rgba(248, 113, 113, .28); color: var(--red); }
-.btn-red:hover { background: rgba(248, 113, 113, .22); }
-.btn-orange { background: rgba(251, 146, 60, .12); border-color: rgba(251, 146, 60, .28); color: var(--orange); }
-.btn-orange:hover { background: rgba(251, 146, 60, .2); }
-.btn-dashed { background: none; border: 1px dashed rgba(167, 139, 250, .32); color: #c4b5fd; }
-.btn-dashed:hover { background: rgba(167, 139, 250, .1); }
-.btn-block { width: 100%; padding: 15px; border-radius: 15px; font-size: 13.5px; }
-.btn-sm { padding: 8px 13px; font-size: 11.5px; border-radius: 11px; }
-.btn[disabled] { opacity: .45; cursor: default; transform: none; }
-
-/* Segmentado */
-.seg { display: flex; gap: 4px; padding: 4px; border-radius: 14px; background: rgba(255, 255, 255, .05); border: 1px solid var(--glass-border); }
-.seg button {
-  flex: 1; padding: 11px; border: none; border-radius: 11px; background: none;
-  color: var(--text-muted); font-family: 'DM Sans', sans-serif; font-size: 12.5px; font-weight: 600;
-  cursor: pointer; transition: all .2s;
-}
-.seg button.on { background: rgba(167, 139, 250, .2); color: #c4b5fd; }
-.seg button.on-green { background: rgba(52, 211, 153, .18); color: var(--green); }
-.seg button.on-coral { background: rgba(251, 113, 133, .18); color: var(--coral); }
-
-/* Chips */
-.chips { display: flex; flex-wrap: wrap; gap: 7px; }
-.chip {
-  padding: 8px 13px; border-radius: 11px; cursor: pointer;
-  font-family: 'DM Sans', sans-serif; font-size: 11.5px; font-weight: 500;
-  background: rgba(255, 255, 255, .045); border: 1px solid var(--glass-border); color: var(--text-secondary);
-  transition: all .2s;
-}
-.chip:hover { background: rgba(167, 139, 250, .14); color: var(--text-primary); }
-.chip.on { background: rgba(167, 139, 250, .2); border-color: rgba(167, 139, 250, .4); color: var(--text-primary); }
-
-/* ===== Formularios ===== */
-.field { margin-bottom: 16px; }
-.field > .label { display: block; margin-bottom: 7px; }
-input[type="text"], input[type="number"], input[type="date"], input[type="password"],
-input[type="email"], select, textarea {
-  width: 100%;
-  padding: 13px 15px;
-  border-radius: 14px;
-  background: rgba(255, 255, 255, .04) !important;
-  border: 1px solid var(--glass-border) !important;
-  color: var(--text-primary) !important;
-  font-family: 'DM Sans', sans-serif !important;
-  font-size: 13px !important;
-  outline: none !important;
-  transition: border-color .2s, box-shadow .2s, background .2s;
-}
-input:focus, select:focus, textarea:focus {
-  border-color: rgba(167, 139, 250, .45) !important;
-  box-shadow: 0 0 0 3px rgba(167, 139, 250, .12);
-  background: rgba(124, 58, 237, .06) !important;
-}
-input.mono, .input-amount { font-family: 'DM Mono', monospace !important; }
-.input-amount { font-size: 17px !important; }
-select option { background: #16162a; color: var(--text-primary); }
-.form-row { display: flex; gap: 12px; }
-.form-row > * { flex: 1; }
-
-/* Teclado numérico */
-.keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-.keypad button {
-  padding: 14px 0; border-radius: 14px;
-  background: rgba(255, 255, 255, .045); border: 1px solid var(--glass-border);
-  color: var(--text-primary); font-family: 'DM Mono', monospace; font-size: 16px;
-  cursor: pointer; transition: all .15s;
-}
-.keypad button:hover { background: rgba(167, 139, 250, .16); border-color: rgba(167, 139, 250, .3); }
-.keypad button:active { transform: scale(.95); }
-.amount-display { font-family: 'Sora', sans-serif; font-size: 40px; font-weight: 600; letter-spacing: -.03em; text-align: center; }
-
-/* ===== Progreso y cuotas ===== */
-.progress-bar { width: 100%; height: 6px; background: rgba(255, 255, 255, .06); border-radius: 6px; overflow: hidden; }
-.progress-fill { height: 100%; border-radius: 6px; background: linear-gradient(90deg, var(--purple-dim), var(--purple)); transition: width .9s var(--ease-out); position: relative; overflow: hidden; }
-.progress-fill.green  { background: linear-gradient(90deg, #059669, var(--green)); }
-.progress-fill.red    { background: linear-gradient(90deg, #dc2626, var(--red)); }
-.progress-fill.orange { background: linear-gradient(90deg, #ea580c, var(--orange)); }
-.progress-fill.cyan   { background: linear-gradient(90deg, #0e7490, var(--cyan)); }
-.progress-fill.shine::after {
-  content: ''; position: absolute; inset: 0;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .45), transparent);
-  animation: shine 2.8s ease-in-out infinite;
-}
-@keyframes shine { 0% { transform: translateX(-110%); } 100% { transform: translateX(240%); } }
-
-.split-bar { display: flex; height: 7px; border-radius: 7px; overflow: hidden; background: rgba(255, 255, 255, .06); }
-.split-bar > span { display: block; height: 100%; }
-
-/* Una marca por cuota */
-.pips { display: flex; gap: 2px; }
-.pip { height: 7px; flex: 1; min-width: 3px; border-radius: 4px; background: rgba(255, 255, 255, .07); transition: all .35s var(--ease-out); }
-.pip.paid { background: linear-gradient(180deg, var(--purple), var(--purple-dim)); }
-/* Cuota cuyo mes ya pasó y sigue impaga */
-.pip.late {
-  background: rgba(248, 113, 113, .5);
-  box-shadow: 0 0 0 1px rgba(248, 113, 113, .3);
-}
-.pip.next { background: rgba(167, 139, 250, .42); box-shadow: 0 0 8px rgba(167, 139, 250, .6); }
-
-/* Urgencia del próximo vencimiento */
-.urg { font-size: 10.5px; font-weight: 600; padding: 4px 10px; border-radius: 9px; white-space: nowrap; }
-.urg-vencida { background: rgba(248, 113, 113, .14); border: 1px solid rgba(248, 113, 113, .32); color: var(--red); }
-.urg-critica { background: rgba(251, 113, 133, .14); border: 1px solid rgba(251, 113, 133, .32); color: var(--coral); }
-.urg-proxima { background: rgba(251, 146, 60, .14); border: 1px solid rgba(251, 146, 60, .3); color: var(--orange); }
-.urg-normal  { background: rgba(255, 255, 255, .05); border: 1px solid var(--glass-border); color: var(--text-muted); }
-.urg-saldada { background: rgba(52, 211, 153, .13); border: 1px solid rgba(52, 211, 153, .28); color: var(--green); }
-
-/* ===== Filas de lista ===== */
-.row {
-  display: flex; align-items: center; gap: 12px;
-  padding: 12px 14px; border-radius: 16px;
-  background: rgba(255, 255, 255, .035); border: 1px solid rgba(255, 255, 255, .07);
-  color: var(--text-primary); text-decoration: none;
-  transition: all .22s var(--ease-out);
-}
-.row:hover { background: var(--glass-hover); border-color: rgba(167, 139, 250, .24); color: var(--text-primary); }
-.row.on { background: rgba(124, 58, 237, .2); border-color: rgba(167, 139, 250, .34); }
-.row-main { flex: 1; min-width: 0; }
-.row-title { font-size: 12.5px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.row-meta { font-size: 10.5px; color: var(--text-muted); margin-top: 2px; }
-.row-list { display: flex; flex-direction: column; gap: 6px; }
-
-.avatar {
-  width: 38px; height: 38px; border-radius: 13px; flex-shrink: 0;
-  display: flex; align-items: center; justify-content: center;
-  font-family: 'Sora', sans-serif; font-size: 15px; font-weight: 600;
-  background: linear-gradient(140deg, rgba(167, 139, 250, .3), rgba(124, 58, 237, .14));
-  border: 1px solid rgba(167, 139, 250, .3); color: #c4b5fd;
-}
-.avatar-lg { width: 48px; height: 48px; border-radius: 16px; font-size: 19px; }
-
-.icon-tile {
-  width: 30px; height: 30px; border-radius: 10px; flex-shrink: 0;
-  display: flex; align-items: center; justify-content: center; font-size: 11px;
-  background: rgba(167, 139, 250, .12); color: #c4b5fd;
-}
-.icon-tile.green  { background: rgba(52, 211, 153, .13); color: var(--green); }
-.icon-tile.coral  { background: rgba(251, 113, 133, .14); color: var(--coral); }
-.icon-tile.blue   { background: rgba(96, 165, 250, .13); color: var(--blue); }
-.icon-tile.orange { background: rgba(251, 146, 60, .16); color: var(--orange); }
-
-/* Interruptor */
-.switch { position: relative; width: 40px; height: 23px; border-radius: 23px; flex-shrink: 0; cursor: pointer;
-  background: rgba(255, 255, 255, .06); border: 1px solid rgba(255, 255, 255, .12); transition: all .25s; }
-.switch .knob { position: absolute; top: 2px; left: 2px; width: 17px; height: 17px; border-radius: 50%; background: #fff; transition: left .25s var(--ease-spring); }
-.switch.on { background: rgba(124, 58, 237, .5); border-color: rgba(167, 139, 250, .45); }
-.switch.on .knob { left: 19px; }
-.switch.on-green { background: rgba(5, 150, 105, .5); border-color: rgba(52, 211, 153, .45); }
-
-/* ===== Calendario ===== */
-.cal-head, .cal-week { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
-.cal-head div { text-align: center; font-size: 9.5px; font-weight: 600; color: rgba(241, 240, 255, .3); }
-.cal-day {
-  position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
-  height: 38px; border-radius: 11px; border: 1px solid transparent; background: none;
-  font-family: 'DM Mono', monospace; font-size: 11.5px; color: rgba(241, 240, 255, .3);
-  cursor: default; transition: all .2s var(--ease-out);
-}
-.cal-day.has { background: rgba(255, 255, 255, .05); border-color: rgba(251, 146, 60, .28); color: var(--text-primary); cursor: pointer; }
-.cal-day.has:hover, .cal-day.on { background: rgba(167, 139, 250, .26); border-color: rgba(167, 139, 250, .5); transform: scale(1.06); }
-.cal-day .dot { width: 4px; height: 4px; border-radius: 50%; background: var(--orange); }
-.cal-day .dot.paid { background: var(--green); }
-
-/* ===== Modal y panel lateral ===== */
-.modal-overlay {
-  position: fixed; inset: 0; z-index: 90; display: none;
-  align-items: center; justify-content: center; padding: 20px;
-  background: rgba(4, 4, 10, .62);
-  backdrop-filter: blur(7px); -webkit-backdrop-filter: blur(7px);
-}
-.modal-overlay.open { display: flex; }
-.modal-box {
-  width: 100%; max-width: 440px; max-height: 92vh; overflow-y: auto; padding: 26px;
-  border-radius: 26px;
-  background: linear-gradient(180deg, rgba(28, 26, 52, .94), rgba(15, 14, 30, .96));
-  border: 1px solid rgba(255, 255, 255, .11);
-  box-shadow: 0 30px 80px rgba(0, 0, 0, .55);
-  backdrop-filter: blur(28px);
-  animation: popIn .26s var(--ease-spring) both;
-}
-@keyframes popIn { from { opacity: 0; transform: scale(.96); } to { opacity: 1; transform: scale(1); } }
-
-.drawer-overlay { justify-content: flex-end; padding: 16px; }
+.drawer-overlay.open { display: block; }
 .drawer-box {
-  width: 100%; max-width: 412px; height: 100%; overflow-y: auto; padding: 24px;
-  border-radius: 26px;
-  background: linear-gradient(180deg, rgba(28, 26, 52, .92), rgba(15, 14, 30, .94));
-  border: 1px solid rgba(255, 255, 255, .11);
-  box-shadow: 0 30px 80px rgba(0, 0, 0, .55);
-  backdrop-filter: blur(28px);
-  animation: sheetIn .32s var(--ease-out) both;
+  position: absolute; top: 0; left: 0; bottom: 0; width: 270px;
+  padding: 22px 16px; overflow-y: auto;
+  background: var(--bg-elev);
+  animation: drawerIn .26s var(--ease-out);
 }
-@keyframes sheetIn { from { opacity: 0; transform: translateX(40px); } to { opacity: 1; transform: translateX(0); } }
-.modal-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 20px; }
-.modal-title { font-family: 'Sora', sans-serif; font-size: 17px; font-weight: 600; }
-.modal-sub { font-size: 11.5px; color: rgba(241, 240, 255, .45); margin-top: 4px; }
-.modal-close {
-  width: 30px; height: 30px; flex-shrink: 0; border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, .1); background: rgba(255, 255, 255, .05);
-  color: var(--text-secondary); cursor: pointer;
-}
-.preview-box { padding: 16px; border-radius: 18px; background: rgba(124, 58, 237, .11); border: 1px solid rgba(167, 139, 250, .24); margin-bottom: 18px; }
+@keyframes drawerIn { from { transform: translateX(-100%); } to { transform: none; } }
 
-/* ===== Toasts ===== */
-.toast-container { position: fixed; top: 20px; right: 20px; z-index: 120; display: flex; flex-direction: column; gap: 8px; max-width: calc(100vw - 40px); }
-.toast {
-  display: flex; align-items: center; gap: 10px;
-  padding: 13px 18px; border-radius: 15px;
-  font-size: 12.5px; font-weight: 500;
-  backdrop-filter: blur(20px); box-shadow: 0 14px 40px rgba(0, 0, 0, .4);
-  animation: sheetIn .3s var(--ease-spring) both;
-}
-.toast-success { background: rgba(52, 211, 153, .14); border: 1px solid rgba(52, 211, 153, .32); color: var(--green); }
-.toast-warning { background: rgba(251, 146, 60, .14); border: 1px solid rgba(251, 146, 60, .32); color: var(--orange); }
-.toast-error   { background: rgba(248, 113, 113, .14); border: 1px solid rgba(248, 113, 113, .32); color: var(--red); }
-
-/* Tooltip de gráfico */
-.chart-tip {
-  position: absolute; top: 0; transform: translateX(-50%);
-  min-width: 180px; padding: 13px 15px; border-radius: 16px; pointer-events: none; z-index: 5;
-  background: rgba(20, 19, 38, .94); border: 1px solid var(--purple-border);
-  box-shadow: 0 18px 44px rgba(0, 0, 0, .5); backdrop-filter: blur(18px);
-  animation: popIn .18s ease both;
-}
-.tip-row { display: flex; align-items: center; gap: 7px; font-size: 11.5px; margin-bottom: 4px; }
-.tip-row .dot { width: 7px; height: 7px; border-radius: 2px; }
-.tip-row .v { font-family: 'DM Mono', monospace; margin-left: auto; }
-
-/* Estado vacío */
-.empty { padding: 48px 24px; text-align: center; }
-.empty i { font-size: 34px; color: var(--purple); }
-.empty-title { font-family: 'Sora', sans-serif; font-size: 16px; font-weight: 600; margin: 16px 0 8px; }
-.empty-text { font-size: 12.5px; color: var(--text-muted); max-width: 360px; margin: 0 auto 20px; line-height: 1.6; }
-
-/* Scrollbar */
-::-webkit-scrollbar { width: 5px; height: 5px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, .12); border-radius: 9px; }
-
-/* ===== Responsive ===== */
-@media (max-width: 1080px) {
-  /* !important porque varios bloques declaran grid-template-columns inline y
-     un estilo inline gana a la media query. */
-  .grid-chart, .grid-bottom, .grid-detail,
-  .grid-metrics { grid-template-columns: 1fr !important; }
-}
-@media (min-width: 641px) and (max-width: 1080px) {
-  /* En tablet las métricas sí caben en dos columnas */
-  .grid-metrics { grid-template-columns: repeat(2, 1fr) !important; }
-}
-@media (max-width: 900px) {
-  :root { --sidebar-w: 72px; }
+/* ===== Adaptación ===== */
+@media (max-width: 1000px) {
+  :root { --sidebar-w: 76px; }
   .sidebar { padding: 20px 10px; align-items: center; }
-
-  /* Se ocultan las etiquetas, NO el badge: antes .nav-item span los tomaba
-     a los dos y los contadores desaparecían justo donde más se necesitan. */
   .brand-name, .brand-sub, .nav-title,
   .sidebar .nav-item > span:not(.nav-count) { display: none; }
 
-  .nav-group { width: 100%; }
-  .sidebar .nav-item { justify-content: center; padding: 13px 0; position: relative; }
-  .sidebar .nav-item i { width: auto; font-size: 15px; }
+  /* El logo queda solo: sin quitarle el gap y el padding lateral, la fila
+     seguía midiendo 65px en una caja de 56px y era la que desbordaba. */
+  .brand { gap: 0; padding: 4px 0 20px; justify-content: center; width: 100%; }
+  .brand > span:last-child { display: none; }
 
-  /* El contador pasa a ser un punto sobre el icono. El número no cabe, pero
-     la señal de "acá hay algo pendiente" sí. */
+  /* Ambos hijos ocupan el ancho: .sidebar-foot dimensionaba por contenido
+     y se salía por los dos lados. */
+  .nav-group, .sidebar-foot { width: 100%; }
+  .sidebar-foot { padding: 12px 8px; }
+
+  /* La barra de scroll se dibujaba dentro del riel y dejaba los iconos
+     centrados en 61px en vez de 76. Sigue desplazándose con la rueda. */
+  .sidebar { scrollbar-width: none; }
+  .sidebar::-webkit-scrollbar { display: none; }
+  .sidebar .nav-item { justify-content: center; padding: 13px 0; }
+  .sidebar .nav-item i { width: auto; font-size: 16px; }
   .sidebar .nav-item > .nav-count {
-    position: absolute; top: 7px; right: 12px;
-    min-width: 7px; width: 7px; height: 7px; padding: 0;
+    position: absolute; top: 6px; right: 11px;
+    min-width: 8px; width: 8px; height: 8px; padding: 0;
     font-size: 0; border-radius: 50%;
-    background: var(--coral); border-color: transparent;
-    box-shadow: 0 0 0 2px rgba(15, 14, 30, .9);
+    box-shadow: 0 0 0 2px var(--bg-elev);
   }
-
-  /* Etiqueta al pasar el cursor: sin esto el menú es siete iconos a ciegas */
   .sidebar .nav-item[data-label]::after {
     content: attr(data-label);
     position: absolute; left: calc(100% + 10px); top: 50%;
     transform: translateY(-50%) translateX(-4px);
-    padding: 6px 10px; border-radius: 9px; white-space: nowrap;
-    font-family: 'DM Sans', sans-serif; font-size: 11.5px; color: var(--text-primary);
-    background: rgba(20, 19, 38, .96); border: 1px solid rgba(167, 139, 250, .24);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, .45);
+    padding: 7px 11px; border-radius: 9px; white-space: nowrap;
+    font-size: 11.5px; font-weight: 600; color: var(--text-primary);
+    background: var(--surface-2);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, .5);
     opacity: 0; pointer-events: none; z-index: 60;
     transition: opacity .16s var(--ease-out), transform .16s var(--ease-out);
   }
   .sidebar .nav-item[data-label]:hover::after { opacity: 1; transform: translateY(-50%) translateX(0); }
-
-  /* La salud del mes se reduce al número, en vez de desaparecer */
-  .health { padding: 10px 6px; text-align: center; }
-  .health .label, .health .progress-bar, .health .health-nota,
-  .health .health-detalle { display: none; }
-  .health .display { font-size: 19px !important; }
-
+  .health .label, .health .progress-bar,
+  .health .health-nota, .health .health-detalle { display: none; }
+  /* Respaldo: si la clase quedara en el contenedor en vez del texto, se
+     esconde su contenido y no el bloque entero. */
+  .health.health-nota > div:not(.label) { display: none; }
+  .health { text-align: center; padding: 12px 6px; }
   .main { padding: 22px; }
+
+  /* El topbar caía en cinco filas: el buscador con min-width:200px, la
+     píldora de mes y dos botones no caben en una línea a este ancho.
+     El buscador cede ancho y el saludo se queda con el nombre. */
+  .topbar { gap: 10px; }
+  .search { min-width: 0; flex: 1 1 150px; }
+  .search .kbd { display: none; }
+  /* Con la píldora de mes del dashboard, el saludo + buscador + dos botones
+     con texto no caben y uno se caía a una segunda fila. Los botones quedan
+     en icono (el title los explica) y todo entra en una línea. */
+  .topbar > .btn > span,
+  .topbar .saludo-sub { display: none; }
+  .topbar > .btn { padding: 11px 14px; }
 }
-@media (max-width: 640px) {
+
+@media (max-width: 720px) {
   .sidebar { display: none; }
-
-  /* Los títulos de tarjeta se partían en dos o tres líneas y empujaban todo
-     el contenido hacia abajo. */
-  .page-title { font-size: 20px; }
-  .hero-line { font-size: 19px; }
-  .modal-title { font-size: 14px !important; }
-  .display { font-size: 20px; }
-  .stat-value { font-size: 21px; }
-  .card, .card-lg { padding: 17px !important; }
-
-  /* Filas con muchas columnas: el contenido manda, no un mínimo fijo */
-  .row [style*='min-width'] { min-width: 0 !important; }
+  .main { padding: 18px 16px calc(var(--bottombar-h) + 26px); }
   .bottomnav { display: flex; }
   .fab-group { display: flex; }
-  .fab-group .fab { position: static; display: flex; }
-  .main { padding: 16px 16px calc(var(--bottombar-h) + 20px); }
-  .topbar { padding: 12px 16px; gap: 10px; }
-  .topbar .search { order: 3; max-width: none; flex-basis: 100%; }
-  .grid-metrics { grid-template-columns: repeat(2, 1fr); gap: 12px; }
-  .grid-cards { grid-template-columns: 1fr; }
-  .card-lg { padding: 20px; }
-  .hero-line { font-size: 21px; }
-  .stat-value { font-size: 21px; }
-  .glass { border-radius: 20px; }
-  .modal-box, .drawer-box { border-radius: 22px; padding: 20px; }
-  .drawer-overlay { align-items: flex-end; padding: 0; }
-  .drawer-box { max-width: none; height: auto; max-height: 92vh; border-radius: 26px 26px 0 0; animation: sheetUp .3s var(--ease-out) both; }
-  @keyframes sheetUp { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: translateY(0); } }
+  .fab-group .fab { display: flex; }
+  .grid-metrics { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
   .hide-mobile { display: none !important; }
+  .page-title { font-size: 19px; }
+  .stat-value { font-size: 22px; }
+  .card, .card-lg { padding: 18px; }
+  .modal-box { padding: 20px; border-radius: var(--r-lg); }
+  .amount-display { font-size: 32px; }
+  .toast-container { top: auto; bottom: calc(var(--bottombar-h) + 14px); left: 14px; right: 14px; max-width: none; }
 
-  /* El badge se salía de la tarjeta cuando el título ocupaba tres líneas */
-  .badge { flex-shrink: 0; }
-
-  /* La fila de suscripción pasa a dos líneas: datos arriba, acciones abajo.
-     Antes eran siete elementos en una sola fila y en 375px se apretaban
-     hasta que el botón de pagar quedaba de 20px. */
   .sub-row {
-    grid-template-columns: 36px 1fr auto;
-    grid-template-areas:
-      'avatar nombre monto'
-      'acciones acciones acciones';
-    row-gap: 12px; padding: 15px 16px;
+    grid-template-columns: 38px 1fr auto;
+    grid-template-areas: 'avatar nombre monto' 'acciones acciones acciones';
+    row-gap: 12px;
   }
   .sub-row > :nth-child(1) { grid-area: avatar; }
   .sub-row > .row-main { grid-area: nombre; }
   .sub-row > .sub-monto { grid-area: monto; }
   .sub-row > .sub-acciones {
     grid-area: acciones; justify-content: space-between;
-    padding-top: 11px; border-top: 1px solid rgba(255, 255, 255, .05);
+    padding-top: 11px; border-top: 1px solid var(--line);
   }
-  /* Los toques mínimos de 44px que pide una pantalla táctil */
-  .sub-acciones .btn { min-height: 40px; padding: 0 16px; }
-  .sub-acciones .icon-btn { width: 40px; height: 40px; }
-}
-
-/* ===== Encabezados de sección =====
-   El dashboard era una pila de tarjetas sin jerarquía: todo pesaba igual y
-   nada decía por qué una cosa venía después de otra. Cada bloque ahora
-   arranca con un título, así la página se puede leer de arriba abajo como
-   un relato: cuánto te queda → de dónde sale → qué pagar → cómo vienes. */
-.section-head {
-  display: flex; align-items: baseline; justify-content: space-between;
-  gap: 12px; flex-wrap: wrap;
-  margin: 26px 2px 12px;
-}
-.section-head:first-child { margin-top: 0; }
-.section-title {
-  font-family: 'Sora', sans-serif; font-size: 13px; font-weight: 500;
-  letter-spacing: .01em; color: var(--text-primary); margin: 0;
-}
-.section-sub {
-  font-family: 'DM Sans', sans-serif; font-size: 11.5px;
-  color: var(--text-muted);
-}
-
-/* Lista de pagos + calendario, lado a lado. La lista manda: es donde se
-   actúa. El calendario acompaña. */
-.grid-pagos {
-  display: grid; grid-template-columns: 1.5fr 1fr; gap: 16px;
-  margin-bottom: 18px; align-items: start;
-}
-.grid-registro {
-  display: grid; grid-template-columns: 1.35fr 1fr; gap: 16px;
-  align-items: start;
-}
-/* Sin metas, los movimientos ocupan el ancho completo en vez de dejar
-   media pantalla vacía. */
-.grid-registro > :only-child { grid-column: 1 / -1; }
-@media (max-width: 1100px) {
-  .grid-pagos, .grid-registro { grid-template-columns: 1fr; }
-}
-
-/* ===== Panel de deuda total ===== */
-.deuda-panel { position: relative; overflow: hidden; }
-.deuda-cabecera {
-  display: flex; flex-wrap: wrap; align-items: flex-end;
-  justify-content: space-between; gap: 22px;
-}
-.deuda-datos { display: flex; gap: 10px; flex-wrap: wrap; }
-.deuda-dato {
-  padding: 12px 16px; border-radius: 15px; min-width: 116px;
-  background: rgba(255, 255, 255, .04); border: 1px solid var(--glass-border);
-}
-
-.deuda-lista {
-  margin-top: 20px; padding-top: 18px;
-  border-top: 1px solid rgba(255, 255, 255, .06);
-  display: flex; flex-direction: column; gap: 7px;
-}
-
-/* Cada compra es una fila que se abre. Cerrada da el titular; abierta, el
-   detalle y el botón de pago — sin cambiar de pantalla. */
-.deuda-item {
-  border-radius: var(--r-md); border: 1px solid transparent;
-  transition: background .2s var(--ease-out), border-color .2s var(--ease-out);
-}
-.deuda-item:hover { background: rgba(255, 255, 255, .035); }
-.deuda-item[open] {
-  background: rgba(255, 255, 255, .04);
-  border-color: var(--glass-border);
-}
-.deuda-item > summary {
-  display: flex; align-items: center; gap: 13px;
-  padding: 12px 14px; cursor: pointer;
-}
-.deuda-item-main { flex: 1; min-width: 0; display: block; }
-.deuda-item-nombre {
-  display: block; font-size: 13px; color: var(--text-primary);
-  margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-}
-.deuda-item-main .row-meta { display: block; }
-
-/* Barra de avance dentro de la fila: se ve el progreso sin abrir nada */
-.deuda-item-barra {
-  display: block; height: 4px; margin-top: 8px; border-radius: 3px;
-  background: rgba(255, 255, 255, .07); overflow: hidden;
-}
-.deuda-item-barra > span {
-  display: block; height: 100%; border-radius: 3px;
-  transition: width .5s var(--ease-out);
-}
-
-.deuda-item-monto { text-align: right; flex-shrink: 0; }
-.deuda-item-monto .mono { display: block; font-size: 13.5px; }
-.deuda-item-monto .row-meta { display: block; }
-.deuda-item-flecha {
-  font-size: 9px; color: var(--text-muted); flex-shrink: 0;
-  transition: transform .2s var(--ease-out);
-}
-.deuda-item[open] .deuda-item-flecha { transform: rotate(180deg); }
-
-.deuda-item-detalle {
-  padding: 2px 14px 15px 63px;
-  animation: deudaAbre .22s var(--ease-out);
-}
-@keyframes deudaAbre {
-  from { opacity: 0; transform: translateY(-4px); }
-  to { opacity: 1; transform: none; }
-}
-.deuda-item-nums {
-  display: grid; grid-template-columns: repeat(auto-fit, minmax(84px, 1fr)); gap: 12px;
-}
-.deuda-item-nums > div { display: flex; flex-direction: column; gap: 3px; }
-.deuda-item-nums .mono { font-size: 12.5px; }
-.deuda-item-detalle .pips { justify-content: flex-start; }
-.deuda-item-detalle .pip { max-width: 26px; }
-
-@media (max-width: 640px) {
   .deuda-item > summary { gap: 10px; padding: 12px 10px; }
   .deuda-item-detalle { padding-left: 14px; }
   .deuda-datos { width: 100%; }
   .deuda-dato { flex: 1; min-width: 104px; }
 }
 
-/* Panel plegable (details/summary) */
-summary { list-style: none; }
-summary::-webkit-details-marker { display: none; }
-summary::marker { content: ''; }
-summary:hover { background: rgba(255, 255, 255, .03); }
-summary .fa-chevron-down { transition: transform .2s var(--ease-out); }
-details[open] summary .fa-chevron-down { transform: rotate(180deg); }
+@media (max-width: 720px) {
+  /* El saludo del topbar pasa a ser la tarjeta de la plantilla */
+  .topbar { display: none; }
+  .saludo-card {
+    display: flex; align-items: center; gap: 13px;
+    background: var(--surface); border-radius: var(--r-lg);
+    padding: 14px 16px; margin-bottom: 18px;
+  }
+  .saludo-card .avatar { width: 46px; height: 46px; font-size: 18px; }
+  .saludo-card .saludo-txt { flex: 1; min-width: 0; }
+  .saludo-card .saludo-hola { font-size: 13px; color: var(--text-secondary); }
+  .saludo-card .saludo-nombre {
+    font-family: 'Manrope', sans-serif; font-size: 18px; font-weight: 800;
+    letter-spacing: -.025em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .saludo-campana {
+    position: relative; width: 34px; height: 34px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    background: none; border: none; color: var(--text-primary); font-size: 18px;
+  }
+  .saludo-campana .punto {
+    position: absolute; top: 4px; right: 5px;
+    width: 8px; height: 8px; border-radius: 50%; background: var(--coral);
+    box-shadow: 0 0 0 2px var(--surface);
+  }
 
-/* ===== Foco visible =====
-   Los estilos base quitaban el outline del navegador sin poner nada en su
-   lugar, así que navegar con teclado era completamente a ciegas. */
-a:focus-visible, button:focus-visible, input:focus-visible,
-select:focus-visible, textarea:focus-visible, [tabindex]:focus-visible {
-  outline: 2px solid var(--purple);
-  outline-offset: 2px;
-  border-radius: var(--r-sm);
-}
-.nav-item:focus-visible { outline-offset: -2px; }
 
-/* Toque mínimo cómodo en pantallas táctiles */
-@media (pointer: coarse) {
-  .icon-btn { min-width: 40px; min-height: 40px; }
-  .btn-sm { min-height: 38px; }
-  .chip { min-height: 36px; }
+  /* --- Barra inferior flotante, con el botón encima --- */
+  .bottomnav {
+    left: 14px; right: 14px; bottom: 14px;
+    height: 66px; padding: 0 4px;
+    border-radius: 24px; border: none;
+    background: var(--surface);
+    box-shadow: 0 10px 34px rgba(0, 0, 0, .5);
+    padding-bottom: 0;
+    margin-bottom: env(safe-area-inset-bottom);
+  }
+  .bottomnav .nav-item { gap: 3px; padding: 8px 2px; font-size: 10.5px; }
+  .bottomnav .nav-item i { font-size: 18px; }
+
+  /* El hueco del botón central: dos ítems a cada lado */
+  .bottomnav .nav-hueco { flex: 0 0 66px; }
+
+  /* El botón sale de la barra y la monta por arriba, con su halo ámbar */
+  .fab-group {
+    right: 50%; bottom: 34px;
+    transform: translateX(50%);
+    flex-direction: row-reverse; gap: 0;
+  }
+  .fab {
+    width: 62px; height: 62px;
+    background: var(--bg-elev); color: var(--amber);
+    border: 3px solid var(--bg);
+    box-shadow: 0 0 0 2px rgba(255, 170, 44, .5), 0 0 22px rgba(255, 170, 44, .35);
+  }
+  /* Un solo botón, como la plantilla. El segundo se montaba sobre la barra
+     y tapaba "Más"; el panel que abre el central ya trae el selector
+     Gasto/Ingreso arriba, así que el ingreso sigue a un toque. */
+  .fab-group .fab-mini { display: none; }
+
+  .main { padding-bottom: calc(66px + 40px); }
+
+  /* Las secciones se ven como en la plantilla: título grande, "Ver mas" */
+  .section-title { font-size: 19px; }
+  .section-head { margin: 24px 0 12px; }
+
+  /* La lista de movimientos va en una sola tarjeta */
+  .mov-list .row + .row::before { left: 59px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+  *, *::before, *::after {
+    animation-duration: .01ms !important; transition-duration: .01ms !important;
+  }
+}
+
+@media print {
+  .sidebar, .topbar, .bottomnav, .fab-group, .toast-container { display: none !important; }
+  body { background: #fff; color: #000; }
+  .glass { background: #fff; border: 1px solid #ddd; }
 }

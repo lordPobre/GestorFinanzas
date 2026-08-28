@@ -11,13 +11,13 @@ from django.contrib import messages
 from django.contrib.auth import login, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import PasswordChangeForm, UserCreationForm
-from django.db.models import F, Sum
+from django.db.models import Count, F, Sum
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
 from .forms import DeudaForm, MetaAhorroForm, TransaccionForm
-from .models import (AbonoPrestamo, AporteMeta, Deuda, GastoPendiente,
+from .models import (AbonoPrestamo, AporteMeta, Categoria, Deuda, GastoPendiente,
                      MetaAhorro, PagoCuota, PagoServicio, Persona, Prestamo,
                      Presupuesto, Suscripcion, Transaccion, UserProfile)
 
@@ -773,6 +773,17 @@ def dashboard(request):
         'cat_data_json': json.dumps([c['total'] for c in categorias]),
         'cat_colores_json': json.dumps([c['color'] for c in categorias]),
     }
+    # La tarjeta "Te deben" del carrusel: antes este total solo existía en la
+    # pantalla de préstamos, así que en el dashboard salía vacío.
+    personas = Persona.objects.filter(usuario=request.user).prefetch_related('prestamos__abonos')
+    context['total_por_cobrar'] = round(sum(p.total_pendiente for p in personas))
+
+    # La fecha larga bajo "Puedes gastar", como en la plantilla.
+    dias_semana = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo']
+    context['hoy_texto'] = (f'{dias_semana[hoy.weekday()]}, {hoy.day} '
+                            f'{MESES_LARGOS[hoy.month - 1]} {hoy.year}')
+
+    context['mapa_categorias'] = Categoria.mapa(request.user)
     context.update(contadores(request.user))
     return render(request, 'finanzas/dashboard.html', context)
 
@@ -1006,7 +1017,7 @@ def eliminar_deuda(request, deuda_id):
 def registrar_transaccion(request):
     tipo_inicial = request.GET.get('tipo', 'INGRESO')
     if request.method == 'POST':
-        form = TransaccionForm(request.POST)
+        form = TransaccionForm(request.POST, usuario=request.user)
         if form.is_valid():
             t = form.save(commit=False)
             t.usuario = request.user
@@ -1051,13 +1062,13 @@ def registrar_transaccion(request):
 def editar_transaccion(request, transaccion_id):
     t = get_object_or_404(Transaccion, id=transaccion_id, usuario=request.user)
     if request.method == 'POST':
-        form = TransaccionForm(request.POST, instance=t)
+        form = TransaccionForm(request.POST, instance=t, usuario=request.user)
         if form.is_valid():
             form.save()
             messages.success(request, 'Movimiento actualizado.')
             return _redirigir(request)
     else:
-        form = TransaccionForm(instance=t)
+        form = TransaccionForm(instance=t, usuario=request.user)
     context = {'form': form, 'editar': True, 'tipo_inicial': t.tipo}
     context.update(contadores(request.user))
     return render(request, 'finanzas/form_transaccion.html', context)
@@ -1843,6 +1854,203 @@ def eliminar_suscripcion(request, sub_id):
         sub.delete()
         messages.success(request, 'Suscripción eliminada.')
     return redirect('suscripciones')
+
+
+
+# ============================================================
+#  CATEGORÍAS
+# ============================================================
+
+@login_required(login_url='/login/')
+def categorias(request):
+    """Gestión de categorías: las base y las propias, con lo gastado en cada
+    una este mes.
+
+    El número al lado de cada categoría es lo que hace útil la pantalla: sin
+    él es una lista de etiquetas, con él se ve de inmediato cuáles usas y
+    cuáles no sirven de nada.
+    """
+    hoy = date.today()
+    _, ultimo = calendar.monthrange(hoy.year, hoy.month)
+    inicio, fin = date(hoy.year, hoy.month, 1), date(hoy.year, hoy.month, ultimo)
+
+    gastado = {
+        x['categoria']: float(x['total'])
+        for x in Transaccion.objects.filter(
+            usuario=request.user, fecha__gte=inicio, fecha__lte=fin,
+        ).values('categoria').annotate(total=Sum('monto'))
+    }
+    # Cuántos movimientos tiene cada una: decide si se puede borrar sin
+    # dejar movimientos huérfanos.
+    usos = {
+        x['categoria']: x['n']
+        for x in Transaccion.objects.filter(usuario=request.user)
+                                    .values('categoria').annotate(n=Count('id'))
+    }
+
+    mapa = Categoria.mapa(request.user)
+    propias_qs = list(Categoria.objects.filter(usuario=request.user))
+    propias_slugs = {c.slug for c in propias_qs}
+
+    def fila(slug, datos, obj=None):
+        return {
+            'slug': slug, 'label': datos['label'], 'color': datos['color'],
+            'icono': datos['icono'], 'propia': datos['propia'],
+            'gastado': round(gastado.get(slug, 0)),
+            'usos': usos.get(slug, 0),
+            'obj': obj,
+        }
+
+    de_gasto, de_ingreso = [], []
+    slugs_ingreso = {c[0] for c in Transaccion.CATEGORIAS_INGRESO}
+
+    for slug, datos in mapa.items():
+        if slug in propias_slugs:
+            continue
+        destino = de_ingreso if slug in slugs_ingreso else de_gasto
+        destino.append(fila(slug, datos))
+
+    for c in propias_qs:
+        destino = de_ingreso if c.tipo == "INGRESO" else de_gasto
+        destino.append(fila(c.slug, mapa[c.slug], obj=c))
+
+    # Lo más usado arriba: es lo que el usuario quiere revisar.
+    de_gasto.sort(key=lambda x: -x["gastado"])
+    de_ingreso.sort(key=lambda x: -x["gastado"])
+
+    context = {
+        'de_gasto': de_gasto,
+        'de_ingreso': de_ingreso,
+        'total_propias': len(propias_qs),
+        'sin_usar': [c for c in de_gasto + de_ingreso if c['usos'] == 0],
+        'paleta': Categoria.PALETA,
+        'iconos': Categoria.ICONOS,
+        'nombre_mes': nombre_mes_es(hoy.year, hoy.month),
+    }
+    context.update(contadores(request.user))
+    return render(request, 'finanzas/categorias.html', context)
+
+
+@login_required(login_url='/login/')
+def crear_categoria(request):
+    if request.method != 'POST':
+        return redirect('categorias')
+
+    nombre = request.POST.get('nombre', '').strip()
+    if not nombre:
+        messages.warning(request, 'Ponle un nombre a la categoría.')
+        return redirect('categorias')
+
+    Categoria.objects.create(
+        usuario=request.user, nombre=nombre,
+        tipo=request.POST.get('tipo', 'EGRESO'),
+        color=request.POST.get('color', '#ffaa2c'),
+        icono=request.POST.get('icono', 'fa-tag'),
+    )
+    messages.success(request, 'Categoría "' + nombre + '" creada.')
+    return redirect('categorias')
+
+
+@login_required(login_url='/login/')
+def editar_categoria(request, cat_id):
+    cat = get_object_or_404(Categoria, id=cat_id, usuario=request.user)
+    if request.method == 'POST':
+        nombre = request.POST.get('nombre', '').strip()
+        if nombre:
+            cat.nombre = nombre
+        cat.color = request.POST.get('color', cat.color)
+        cat.icono = request.POST.get('icono', cat.icono)
+        cat.save(update_fields=['nombre', 'color', 'icono'])
+        messages.success(request, 'Categoría actualizada.')
+    return redirect('categorias')
+
+
+@login_required(login_url='/login/')
+def eliminar_categoria(request, cat_id):
+    """Borra una categoría propia y mueve sus movimientos a "Otros".
+
+    Si se borrara sin más, los movimientos quedarían con un slug que ya no
+    existe: aparecerían sin nombre ni color en toda la app.
+    """
+    cat = get_object_or_404(Categoria, id=cat_id, usuario=request.user)
+    if request.method == 'POST':
+        nombre = cat.nombre
+        destino = 'Otros_Ingresos' if cat.tipo == 'INGRESO' else 'Otros'
+        movidos = Transaccion.objects.filter(
+            usuario=request.user, categoria=cat.slug,
+        ).update(categoria=destino)
+        cat.delete()
+        if movidos:
+            messages.success(
+                request, '"' + nombre + '" eliminada. "' + str(movidos)
+                + ' movimiento(s) pasaron a Otros.')
+        else:
+            messages.success(request, '"' + nombre + '" eliminada.')
+    return redirect('categorias')
+
+
+# ============================================================
+#  METAS DE AHORRO
+# ============================================================
+
+@login_required(login_url='/login/')
+def metas(request):
+    """Pantalla propia para las metas, con el avance mes a mes.
+
+    Antes las metas solo se veían como barras en el dashboard: se sabía
+    cuánto falta, pero no si se está aportando o si la meta lleva meses
+    quieta — que es la diferencia entre una meta viva y una abandonada.
+    """
+    hoy = date.today()
+    lista = list(MetaAhorro.objects.filter(usuario=request.user)
+                                   .prefetch_related('aportes'))
+
+    # Los seis meses del gráfico, con los aportes de cada meta por mes.
+    meses = []
+    for i in range(5, -1, -1):
+        f = date(hoy.year, hoy.month, 1) - relativedelta(months=i)
+        meses.append({'clave': f.year * 100 + f.month,
+                      'label': NOMBRES_MESES[f.month - 1]})
+
+    datos = []
+    for meta in lista:
+        por_mes = {}
+        for ap in meta.aportes.all():
+            k = ap.fecha.year * 100 + ap.fecha.month
+            por_mes[k] = por_mes.get(k, 0) + float(ap.monto)
+
+        serie = [por_mes.get(m['clave'], 0) for m in meses]
+        techo = max(serie) or 1
+        # El último aporte dice si la meta sigue viva.
+        ultimo = meta.aportes.first()
+        datos.append({
+            'meta': meta,
+            'serie': [{'label': meses[i]['label'],
+                       'monto': round(serie[i]),
+                       'alto': round(serie[i] / techo * 100)}
+                      for i in range(len(meses))],
+            'aportado_6m': round(sum(serie)),
+            'promedio_mes': round(sum(serie) / len([s for s in serie if s]) ) if any(serie) else 0,
+            'ultimo_aporte': ultimo,
+            'meses_quieta': (((hoy.year - ultimo.fecha.year) * 12
+                              + hoy.month - ultimo.fecha.month)
+                             if ultimo else None),
+        })
+
+    # Las completas al final: ya no hay nada que hacer con ellas.
+    datos.sort(key=lambda d: (d['meta'].esta_completa, -float(d['meta'].porcentaje)))
+
+    context = {
+        'metas_datos': datos,
+        'labels_meses': [m['label'] for m in meses],
+        'total_ahorrado': round(sum(float(m.monto_actual) for m in lista)),
+        'total_meta': round(sum(float(m.monto_meta) for m in lista)),
+        'total_faltante': round(sum(float(m.monto_faltante) for m in lista)),
+        'completas': len([m for m in lista if m.esta_completa]),
+        'form': MetaAhorroForm(),
+    }
+    context.update(contadores(request.user))
+    return render(request, 'finanzas/metas.html', context)
 
 
 # ============================================================

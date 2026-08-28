@@ -6,7 +6,7 @@ desde el admin cuando algo salía mal en producción.
 """
 from django.contrib import admin
 
-from .models import (AbonoPrestamo, AporteMeta, Deuda, GastoPendiente,
+from .models import (AbonoPrestamo, AporteMeta, Categoria, Deuda, GastoPendiente,
                      MetaAhorro, PagoCuota, PagoServicio, Persona, Prestamo,
                      Presupuesto, Suscripcion, Transaccion, UserProfile)
 
@@ -154,6 +154,14 @@ class UserProfileAdmin(admin.ModelAdmin):
     list_display = ('usuario', 'nombre_completo', 'moneda', 'onboarding_completado')
     list_filter = ('moneda', 'onboarding_completado')
     search_fields = ('usuario__username', 'nombre_completo')
+
+
+@admin.register(Categoria)
+class CategoriaAdmin(admin.ModelAdmin):
+    list_display = ('nombre', 'usuario', 'tipo', 'slug', 'color', 'activa')
+    list_filter = ('tipo', 'activa', 'usuario')
+    search_fields = ('nombre', 'slug')
+    prepopulated_fields = {'slug': ('nombre',)}
 
 
 admin.site.register(Presupuesto)

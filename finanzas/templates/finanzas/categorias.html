@@ -1,0 +1,302 @@
+{% extends 'finanzas/base.html' %}
+{% load humanize %}
+{% block title %}Categorías · FinApp{% endblock %}
+{% block topbar_sub %}Cómo se ordenan tus movimientos{% endblock %}
+{% block search_placeholder %}Filtrar categorías{% endblock %}
+
+{% block content %}
+
+<div class="section-head" style="margin-top:0">
+  <div>
+    <h1 class="section-title" style="font-size:22px">Categorías</h1>
+    <div class="hint" style="margin-top:4px;max-width:520px">
+      Los montos son de {{ nombre_mes }}. Puedes crear las tuyas y cambiar el color
+      de cualquiera; las que vienen con la app no se borran.
+    </div>
+  </div>
+  <button class="btn btn-purple" data-open="#modalCat">
+    <i class="fas fa-plus" style="font-size:11px"></i>Nueva categoría
+  </button>
+</div>
+
+{% if sin_usar|length > 6 %}
+<div class="glass card" style="margin-bottom:16px;display:flex;align-items:flex-start;gap:12px;border-color:rgba(255,170,44,.22)">
+  <span class="icon-tile orange" style="width:32px;height:32px"><i class="fas fa-broom" style="font-size:12px"></i></span>
+  <div>
+    <div style="font-size:12.5px;font-weight:600;margin-bottom:3px">
+      {{ sin_usar|length }} categorías sin usar
+    </div>
+    <div class="hint" style="font-size:11.5px">
+      Nunca has registrado nada en ellas. Las que creaste tú se pueden borrar;
+      las de la app simplemente no aparecerán en tus gráficos.
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<div class="grid-chart" style="grid-template-columns:1fr 1fr">
+
+  {# ---------- Gastos ---------- #}
+  <div>
+    <div class="section-head" style="margin-top:0">
+      <h2 class="section-title" style="font-size:15px">En qué gastas</h2>
+      <span class="label">{{ de_gasto|length }} categorías</span>
+    </div>
+    <div class="glass card">
+      <div class="row-list cat-list">
+        {% for c in de_gasto %}
+        <div class="row" data-searchable>
+          <span class="icon-tile" style="width:34px;height:34px;background:{{ c.color }}22;color:{{ c.color }}">
+            <i class="fas {{ c.icono }}" style="font-size:13px"></i>
+          </span>
+          <div class="row-main">
+            <div class="row-title">
+              {{ c.label }}
+              {% if c.propia %}<span class="badge badge-orange" style="font-size:9.5px;margin-left:5px">tuya</span>{% endif %}
+            </div>
+            <div class="row-meta">
+              {% if c.usos %}{{ c.usos }} movimiento{{ c.usos|pluralize:"s" }}{% else %}Sin usar{% endif %}
+            </div>
+          </div>
+          <div style="text-align:right">
+            <div class="mono" style="font-size:13px;{% if not c.gastado %}color:var(--text-muted){% endif %}">
+              ${{ c.gastado|intcomma }}
+            </div>
+            <div class="row-meta">este mes</div>
+          </div>
+
+          {% if c.propia %}
+          <button class="icon-btn" title="Editar {{ c.label }}"
+                  data-open="#modalEdit{{ c.obj.pk }}"><i class="fas fa-pen" style="font-size:10px"></i></button>
+          {% else %}
+          <span aria-hidden="true"></span>
+          {% endif %}
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  {# ---------- Ingresos ---------- #}
+  <div>
+    <div class="section-head" style="margin-top:0">
+      <h2 class="section-title" style="font-size:15px">De dónde entra</h2>
+      <span class="label">{{ de_ingreso|length }} categorías</span>
+    </div>
+    <div class="glass card">
+      <div class="row-list cat-list">
+        {% for c in de_ingreso %}
+        <div class="row" data-searchable>
+          <span class="icon-tile" style="width:34px;height:34px;background:{{ c.color }}22;color:{{ c.color }}">
+            <i class="fas {{ c.icono }}" style="font-size:13px"></i>
+          </span>
+          <div class="row-main">
+            <div class="row-title">
+              {{ c.label }}
+              {% if c.propia %}<span class="badge badge-orange" style="font-size:9.5px;margin-left:5px">tuya</span>{% endif %}
+            </div>
+            <div class="row-meta">
+              {% if c.usos %}{{ c.usos }} movimiento{{ c.usos|pluralize:"s" }}{% else %}Sin usar{% endif %}
+            </div>
+          </div>
+          <div style="text-align:right">
+            <div class="mono" style="font-size:13px;{% if c.gastado %}color:var(--green){% else %}color:var(--text-muted){% endif %}">
+              ${{ c.gastado|intcomma }}
+            </div>
+            <div class="row-meta">este mes</div>
+          </div>
+
+          {% if c.propia %}
+          <button class="icon-btn" title="Editar {{ c.label }}"
+                  data-open="#modalEdit{{ c.obj.pk }}"><i class="fas fa-pen" style="font-size:10px"></i></button>
+          {% else %}
+          <span aria-hidden="true"></span>
+          {% endif %}
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+
+{% block modals %}
+{# ---------- Crear ---------- #}
+<div class="modal-overlay" id="modalCat">
+  <div class="modal-box" style="max-width:420px">
+    <div class="modal-head">
+      <div>
+        <div class="modal-title">Nueva categoría</div>
+        <div class="modal-sub">Aparecerá al registrar movimientos.</div>
+      </div>
+      <button class="modal-close" data-close>✕</button>
+    </div>
+
+    <form method="post" action="{% url 'crear_categoria' %}">
+      {% csrf_token %}
+
+      <div class="field">
+        <label class="label" for="id_cat_nombre">Nombre</label>
+        <input type="text" name="nombre" id="id_cat_nombre" placeholder="Ej: Mascotas, Gimnasio" required autofocus>
+      </div>
+
+      <div class="label" style="margin-bottom:9px">¿Gasto o ingreso?</div>
+      <input type="hidden" name="tipo" id="id_cat_tipo" value="EGRESO">
+      <div class="seg" data-field="#id_cat_tipo" style="margin-bottom:18px">
+        <button type="button" class="on" data-value="EGRESO">Gasto</button>
+        <button type="button" data-value="INGRESO">Ingreso</button>
+      </div>
+
+      <div class="label" style="margin-bottom:9px">Color</div>
+      <input type="hidden" name="color" id="id_cat_color" value="#ffaa2c">
+      <div style="display:flex;gap:9px;flex-wrap:wrap;margin-bottom:18px" data-swatches="#id_cat_color">
+        {% for hex, nombre in paleta %}
+        <button type="button" title="{{ nombre }}" data-value="{{ hex }}"
+                class="swatch {% if forloop.first %}on{% endif %}"
+                style="width:32px;height:32px;border-radius:50%;cursor:pointer;background:{{ hex }};
+                       border:2px solid {% if forloop.first %}#f5f5f5{% else %}transparent{% endif %}"></button>
+        {% endfor %}
+      </div>
+
+      <div class="label" style="margin-bottom:9px">Icono</div>
+      <input type="hidden" name="icono" id="id_cat_icono" value="fa-tag">
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(42px,1fr));gap:8px;margin-bottom:20px"
+           data-icons="#id_cat_icono">
+        {% for clase, nombre in iconos %}
+        <button type="button" title="{{ nombre }}" data-value="{{ clase }}"
+                class="icono-op {% if forloop.first %}on{% endif %}"
+                style="aspect-ratio:1;border-radius:13px;cursor:pointer;font-size:14px;
+                       background:{% if forloop.first %}var(--amber){% else %}var(--surface-2){% endif %};
+                       color:{% if forloop.first %}#1a1200{% else %}var(--text-secondary){% endif %};
+                       border:none">
+          <i class="fas {{ clase }}"></i>
+        </button>
+        {% endfor %}
+      </div>
+
+      <button type="submit" class="btn btn-purple btn-block">Crear categoría</button>
+    </form>
+  </div>
+</div>
+
+{# ---------- Editar cada propia ---------- #}
+{% for c in de_gasto %}{% if c.propia %}
+<div class="modal-overlay" id="modalEdit{{ c.obj.pk }}">
+  <div class="modal-box" style="max-width:400px">
+    <div class="modal-head">
+      <div>
+        <div class="modal-title">{{ c.label }}</div>
+        <div class="modal-sub">{{ c.usos }} movimiento{{ c.usos|pluralize:"s" }} usan esta categoría.</div>
+      </div>
+      <button class="modal-close" data-close>✕</button>
+    </div>
+
+    <form method="post" action="{% url 'editar_categoria' c.obj.pk %}">
+      {% csrf_token %}
+      <div class="field">
+        <label class="label" for="id_e_nombre_{{ c.obj.pk }}">Nombre</label>
+        <input type="text" name="nombre" id="id_e_nombre_{{ c.obj.pk }}" value="{{ c.label }}" required>
+      </div>
+
+      <div class="label" style="margin-bottom:9px">Color</div>
+      <input type="hidden" name="color" id="id_e_color_{{ c.obj.pk }}" value="{{ c.color }}">
+      <div style="display:flex;gap:9px;flex-wrap:wrap;margin-bottom:20px" data-swatches="#id_e_color_{{ c.obj.pk }}">
+        {% for hex, nombre in paleta %}
+        <button type="button" title="{{ nombre }}" data-value="{{ hex }}" class="swatch {% if hex == c.color %}on{% endif %}"
+                style="width:32px;height:32px;border-radius:50%;cursor:pointer;background:{{ hex }};
+                       border:2px solid {% if hex == c.color %}#f5f5f5{% else %}transparent{% endif %}"></button>
+        {% endfor %}
+      </div>
+
+      <input type="hidden" name="icono" value="{{ c.icono }}">
+      <button type="submit" class="btn btn-purple btn-block" style="margin-bottom:10px">Guardar</button>
+    </form>
+
+    <form method="post" action="{% url 'eliminar_categoria' c.obj.pk %}"
+          data-confirm="¿Eliminar {{ c.label }}?{% if c.usos %} Sus {{ c.usos }} movimiento(s) pasarán a Otros.{% endif %}">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-glass btn-block" style="color:var(--coral)">
+        <i class="fas fa-trash-can" style="font-size:11px"></i>Eliminar categoría
+      </button>
+    </form>
+  </div>
+</div>
+{% endif %}{% endfor %}
+
+{% for c in de_ingreso %}{% if c.propia %}
+<div class="modal-overlay" id="modalEdit{{ c.obj.pk }}">
+  <div class="modal-box" style="max-width:400px">
+    <div class="modal-head">
+      <div>
+        <div class="modal-title">{{ c.label }}</div>
+        <div class="modal-sub">{{ c.usos }} movimiento{{ c.usos|pluralize:"s" }} usan esta categoría.</div>
+      </div>
+      <button class="modal-close" data-close>✕</button>
+    </div>
+    <form method="post" action="{% url 'editar_categoria' c.obj.pk %}">
+      {% csrf_token %}
+      <div class="field">
+        <label class="label" for="id_e_nombre_{{ c.obj.pk }}">Nombre</label>
+        <input type="text" name="nombre" id="id_e_nombre_{{ c.obj.pk }}" value="{{ c.label }}" required>
+      </div>
+      <div class="label" style="margin-bottom:9px">Color</div>
+      <input type="hidden" name="color" id="id_e_color_{{ c.obj.pk }}" value="{{ c.color }}">
+      <div style="display:flex;gap:9px;flex-wrap:wrap;margin-bottom:20px" data-swatches="#id_e_color_{{ c.obj.pk }}">
+        {% for hex, nombre in paleta %}
+        <button type="button" title="{{ nombre }}" data-value="{{ hex }}" class="swatch {% if hex == c.color %}on{% endif %}"
+                style="width:32px;height:32px;border-radius:50%;cursor:pointer;background:{{ hex }};
+                       border:2px solid {% if hex == c.color %}#f5f5f5{% else %}transparent{% endif %}"></button>
+        {% endfor %}
+      </div>
+      <input type="hidden" name="icono" value="{{ c.icono }}">
+      <button type="submit" class="btn btn-purple btn-block" style="margin-bottom:10px">Guardar</button>
+    </form>
+    <form method="post" action="{% url 'eliminar_categoria' c.obj.pk %}"
+          data-confirm="¿Eliminar {{ c.label }}?{% if c.usos %} Sus {{ c.usos }} movimiento(s) pasarán a Otros.{% endif %}">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-glass btn-block" style="color:var(--coral)">
+        <i class="fas fa-trash-can" style="font-size:11px"></i>Eliminar categoría
+      </button>
+    </form>
+  </div>
+</div>
+{% endif %}{% endfor %}
+{% endblock %}
+
+
+{% block extra_js %}
+<script>
+/* Selección de color y de icono. Se resuelve con delegación para que sirva
+   igual en el modal de crear y en los de editar, sin repetir código. */
+document.addEventListener('click', function (e) {
+  var sw = e.target.closest('[data-swatches] > button');
+  if (sw) {
+    e.preventDefault();
+    var grupo = sw.parentElement;
+    var campo = document.querySelector(grupo.dataset.swatches);
+    grupo.querySelectorAll('button').forEach(function (b) {
+      b.style.borderColor = 'transparent';
+    });
+    sw.style.borderColor = '#f5f5f5';
+    if (campo) campo.value = sw.dataset.value;
+    return;
+  }
+
+  var ic = e.target.closest('[data-icons] > button');
+  if (ic) {
+    e.preventDefault();
+    var g = ic.parentElement;
+    var c = document.querySelector(g.dataset.icons);
+    g.querySelectorAll('button').forEach(function (b) {
+      b.style.background = 'var(--surface-2)';
+      b.style.color = 'var(--text-secondary)';
+    });
+    ic.style.background = 'var(--amber)';
+    ic.style.color = '#1a1200';
+    if (c) c.value = ic.dataset.value;
+  }
+});
+</script>
+{% endblock %}

@@ -1,191 +1,131 @@
 {% extends 'finanzas/base.html' %}
-{% block nav_ingreso %}{% if tipo_inicial == 'INGRESO' %}active{% endif %}{% endblock %}
-{% block nav_gasto %}{% if tipo_inicial == 'EGRESO' %}active{% endif %}{% endblock %}
+{% block title %}{% if editar %}Editar movimiento{% else %}Registrar movimiento{% endif %} · FinApp{% endblock %}
+{% block topbar_sub %}{% if editar %}Corregir un movimiento{% else %}Anotar un ingreso o un gasto{% endif %}{% endblock %}
+
+{% block topbar_actions %}
+<a href="{% url 'dashboard' %}" class="btn btn-glass"><i class="fas fa-arrow-left" style="font-size:11px"></i>Volver</a>
+{% endblock %}
 
 {% block content %}
-<div style="min-height:70vh;display:flex;align-items:center;justify-content:center;padding:16px 0">
-<div style="width:100%;max-width:480px">
+<div style="max-width:440px">
+  <div class="glass card-lg" data-spot>
 
-  <!-- Selector Ingreso / Gasto -->
-  <div style="display:flex;border-radius:14px;overflow:hidden;border:1px solid var(--glass-border);margin-bottom:20px">
-    <a href="?tipo=INGRESO" style="flex:1;text-align:center;padding:13px;font-size:13px;font-weight:500;text-decoration:none;display:flex;align-items:center;justify-content:center;gap:7px;transition:all 0.2s;
-        {% if tipo_inicial == 'INGRESO' %}background:rgba(52,211,153,0.15);color:var(--green){% else %}background:var(--glass-bg);color:var(--text-muted){% endif %}">
-      <i class="fas fa-arrow-up" style="font-size:11px"></i> Ingreso
-    </a>
-    <a href="?tipo=EGRESO" style="flex:1;text-align:center;padding:13px;font-size:13px;font-weight:500;text-decoration:none;display:flex;align-items:center;justify-content:center;gap:7px;transition:all 0.2s;
-        {% if tipo_inicial == 'EGRESO' %}background:rgba(248,113,113,0.15);color:var(--red){% else %}background:var(--glass-bg);color:var(--text-muted){% endif %}">
-      <i class="fas fa-arrow-down" style="font-size:11px"></i> Gasto
-    </a>
-  </div>
-
-  <!-- EXPLICACIÓN: diferencia entre Gasto y Cuota -->
-  {% if tipo_inicial == 'EGRESO' and not editar %}
-  <div style="background:rgba(96,165,250,0.07);border:1px solid rgba(96,165,250,0.15);border-radius:16px;padding:16px 18px;margin-bottom:20px">
-    <div style="font-size:12px;font-weight:600;color:#60a5fa;margin-bottom:8px">¿Gasto o Cuota?</div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-      <div style="background:rgba(96,165,250,0.08);border:1px solid rgba(96,165,250,0.12);border-radius:10px;padding:10px">
-        <div style="font-size:11px;font-weight:600;color:#60a5fa;margin-bottom:4px;display:flex;align-items:center;gap:5px"><i class="fas fa-check" style="font-size:11px"></i> Usa Gasto para...</div>
-        <div style="font-size:11px;color:var(--text-muted);line-height:1.6">
-          Supermercado<br>Bencina<br>Salida a comer<br>Farmacia<br>Cualquier compra única
-        </div>
-      </div>
-      <div style="background:rgba(251,146,60,0.08);border:1px solid rgba(251,146,60,0.12);border-radius:10px;padding:10px">
-        <div style="font-size:11px;font-weight:600;color:var(--orange);margin-bottom:4px;display:flex;align-items:center;gap:5px"><i class="fas fa-credit-card" style="font-size:11px"></i> Usa Cuota para...</div>
-        <div style="font-size:11px;color:var(--text-muted);line-height:1.6">
-          Tarjeta de crédito<br>Préstamo del banco<br>Cuotas de un auto<br>Arriendo mensual<br>Pagos recurrentes fijos
-        </div>
-      </div>
-    </div>
-    <a href="{% url 'crear_deuda' %}" style="display:inline-flex;align-items:center;gap:5px;margin-top:10px;font-size:11px;color:var(--orange);text-decoration:none;font-weight:500">
-      Ir a registrar una cuota fija <i class="fas fa-arrow-right" style="font-size:9px"></i>
-    </a>
-  </div>
-  {% endif %}
-
-  {% if tipo_inicial == 'INGRESO' and not editar %}
-  <div style="background:rgba(52,211,153,0.07);border:1px solid rgba(52,211,153,0.15);border-radius:16px;padding:14px 18px;margin-bottom:20px">
-    <div style="font-size:12px;font-weight:600;color:var(--green);margin-bottom:4px;display:flex;align-items:center;gap:6px"><i class="fas fa-coins" style="font-size:12px"></i> ¿Qué registrar como Ingreso?</div>
-    <div style="font-size:11px;color:var(--text-muted);line-height:1.6">
-      Sueldo mensual, pago de cliente, venta de algo, bono, transferencia que recibiste, etc.<br>
-      <span style="opacity:0.7">Registra cada vez que te entra plata para saber cuánto tienes disponible.</span>
-    </div>
-  </div>
-  {% endif %}
-
-  <div class="glass" style="padding:28px">
-    <div style="margin-bottom:22px">
-      <div class="label" style="margin-bottom:5px">
-        {% if editar %}Editando movimiento{% elif tipo_inicial == 'INGRESO' %}Nuevo ingreso{% else %}Nuevo gasto{% endif %}
-      </div>
-      <h2 style="font-size:20px;font-weight:600;color:var(--text-primary);margin:0">
-        {% if editar %}
-          {% if tipo_inicial == 'INGRESO' %}Editar ingreso{% else %}Editar gasto{% endif %}
-        {% elif tipo_inicial == 'INGRESO' %}¿Cuánto entraste?
-        {% else %}¿En qué gastaste?{% endif %}
-      </h2>
+    <div class="page-title" style="font-size:19px;margin-bottom:18px">
+      {% if editar %}Editar movimiento{% else %}Registrar movimiento{% endif %}
     </div>
 
-    <form method="POST" style="display:flex;flex-direction:column;gap:16px">
+    <form method="post">
       {% csrf_token %}
+      <input type="hidden" name="next" value="{% url 'dashboard' %}">
+
+      {% comment %}
+        El tipo va primero: define de qué se está hablando y qué categorías
+        tienen sentido más abajo.
+      {% endcomment %}
       {{ form.tipo.as_hidden }}
-
-      <!-- Tipo cuando se edita -->
-      {% if editar %}
-      <div>
-        <label class="field-label">Tipo</label>
-        <select name="tipo" style="width:100%;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:12px 16px;color:#f1f0ff;font-family:'DM Sans',sans-serif;font-size:14px;outline:none">
-          <option value="INGRESO" {% if tipo_inicial == 'INGRESO' %}selected{% endif %}>↑ Ingreso</option>
-          <option value="EGRESO"  {% if tipo_inicial == 'EGRESO' %}selected{% endif %}>↓ Gasto</option>
-        </select>
+      <div class="seg" id="segTipoMov" style="margin-bottom:20px">
+        <button type="button" data-value="EGRESO"
+                class="{% if form.tipo.value != 'INGRESO' %}on-coral{% endif %}">Gasto</button>
+        <button type="button" data-value="INGRESO"
+                class="{% if form.tipo.value == 'INGRESO' %}on-green{% endif %}">Ingreso</button>
       </div>
-      {% endif %}
 
-      <!-- Monto -->
-      <div>
-        <label class="field-label">
-          Monto ($)
-        </label>
+      <div class="field">
+        <label class="label" for="{{ form.monto.id_for_label }}">{{ form.monto.label }}</label>
         {{ form.monto }}
-        {% if form.monto.errors %}<p style="font-size:11px;color:var(--red);margin-top:3px">{{ form.monto.errors.0 }}</p>{% endif %}
+        {% for e in form.monto.errors %}<div class="hint" style="color:var(--coral);font-size:11px;margin-top:5px">{{ e }}</div>{% endfor %}
       </div>
 
-      <!-- Categoría dinámica según tipo -->
-      <div>
-        <label class="field-label">
-          Categoría
-          <span style="text-transform:none;letter-spacing:0;font-weight:400;opacity:0.6;margin-left:4px">
-            {% if tipo_inicial == 'INGRESO' %}— ¿De dónde viene este ingreso?{% else %}— ¿A qué tipo de gasto pertenece?{% endif %}
-          </span>
-        </label>
-        {% if tipo_inicial == 'INGRESO' %}
-        <select name="categoria" style="width:100%;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:12px 16px;color:#f1f0ff;font-family:'DM Sans',sans-serif;font-size:14px;outline:none">
-            <option value="Sueldo"          {% if form.instance.categoria == 'Sueldo' %}selected{% endif %}>Sueldo o salario</option>
-            <option value="Freelance"       {% if form.instance.categoria == 'Freelance' %}selected{% endif %}>Trabajo freelance</option>
-            <option value="Negocio"         {% if form.instance.categoria == 'Negocio' %}selected{% endif %}>Negocio o emprendimiento</option>
-            <option value="Venta"           {% if form.instance.categoria == 'Venta' %}selected{% endif %}>Venta de algo</option>
-            <option value="Bono"            {% if form.instance.categoria == 'Bono' %}selected{% endif %}>Bono o aguinaldo</option>
-            <option value="Transferencia"   {% if form.instance.categoria == 'Transferencia' %}selected{% endif %}>Transferencia recibida</option>
-            <option value="Otros_Ingresos"  {% if form.instance.categoria == 'Otros_Ingresos' %}selected{% endif %}>Otros ingresos</option>
-        </select>
-        {% else %}
-        <select name="categoria" style="width:100%;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:12px 16px;color:#f1f0ff;font-family:'DM Sans',sans-serif;font-size:14px;outline:none">
-            <option value="Comida"      {% if form.instance.categoria == 'Comida' %}selected{% endif %}>Comida y Supermercado</option>
-            <option value="Transporte"  {% if form.instance.categoria == 'Transporte' %}selected{% endif %}>Transporte y Gasolina</option>
-            <option value="Servicios"   {% if form.instance.categoria == 'Servicios' %}selected{% endif %}>Luz, Agua, Internet</option>
-            <option value="Ocio"        {% if form.instance.categoria == 'Ocio' %}selected{% endif %}>Entretenimiento y Salidas</option>
-            <option value="Salud"       {% if form.instance.categoria == 'Salud' %}selected{% endif %}>Salud y Farmacia</option>
-            <option value="Otros"       {% if form.instance.categoria == 'Otros' or not form.instance.categoria %}selected{% endif %}>Otros Gastos</option>
-        </select>
-        {% endif %}
-        {% if form.categoria.errors %}<p style="font-size:11px;color:var(--red);margin-top:3px">{{ form.categoria.errors.0 }}</p>{% endif %}
+      <div class="field">
+        <label class="label" for="{{ form.categoria.id_for_label }}">{{ form.categoria.label }}</label>
+        {{ form.categoria }}
+        {% for e in form.categoria.errors %}<div class="hint" style="color:var(--coral);font-size:11px;margin-top:5px">{{ e }}</div>{% endfor %}
       </div>
 
-      <!-- Descripción -->
-      <div>
-        <label class="field-label">
-          Descripción <span style="text-transform:none;letter-spacing:0;font-weight:400;opacity:0.5">(opcional)</span>
-        </label>
+      <div class="field">
+        <label class="label" for="{{ form.descripcion.id_for_label }}">{{ form.descripcion.label }}</label>
         {{ form.descripcion }}
-        <div style="font-size:11px;color:var(--text-muted);margin-top:5px;opacity:0.65">
-          {% if tipo_inicial == 'EGRESO' %}Ej: Jumbo sábado, Bencina Shell, Cena cumpleaños...{% else %}Ej: Sueldo enero, Cliente Juan, Bono anual...{% endif %}
-        </div>
-        {% if form.descripcion.errors %}<p style="font-size:11px;color:var(--red);margin-top:3px">{{ form.descripcion.errors.0 }}</p>{% endif %}
       </div>
 
-      <!-- Fecha -->
-      <div>
-        <label class="field-label" id="label-fecha">
-          Fecha
-        </label>
+      <div class="field">
+        <label class="label" for="{{ form.fecha.id_for_label }}">{{ form.fecha.label }}</label>
         {{ form.fecha }}
-        <div style="font-size:11px;color:var(--text-muted);margin-top:5px;opacity:0.65" id="hint-fecha">
-          Puedes registrar gastos de días anteriores cambiando la fecha
-        </div>
-        {% if form.fecha.errors %}<p style="font-size:11px;color:var(--red);margin-top:3px">{{ form.fecha.errors.0 }}</p>{% endif %}
+        <div class="hint" style="font-size:10.5px;margin-top:6px">{{ form.fecha.help_text }}</div>
+        {% for e in form.fecha.errors %}<div class="hint" style="color:var(--coral);font-size:11px;margin-top:5px">{{ e }}</div>{% endfor %}
       </div>
 
-      {% if tipo_inicial == 'EGRESO' and not editar %}
-      <!-- Marcar como pendiente (solo para gastos) -->
-      <label id="wrap-pendiente" style="display:flex;align-items:flex-start;gap:10px;padding:14px;background:rgba(251,146,60,0.06);border:1px solid rgba(251,146,60,0.15);border-radius:12px;cursor:pointer;transition:all 0.2s">
-        <input type="checkbox" name="es_pendiente" id="chk-pendiente" value="1" style="width:18px;height:18px;margin-top:1px;accent-color:var(--orange);cursor:pointer;flex-shrink:0">
-        <div>
-          <div style="font-size:13px;font-weight:600;color:var(--orange);margin-bottom:2px">Aún no lo pago</div>
-          <div style="font-size:11px;color:var(--text-muted);line-height:1.5">Márcalo si es una cuenta pendiente (ej: luz, arriendo). Aparecerá en "Gastos pendientes" y la fecha de arriba será su vencimiento.</div>
+      {% comment %}
+        Solo para gastos: un ingreso no se "paga". El bloque se esconde al
+        elegir Ingreso.
+      {% endcomment %}
+      <div id="bloquePagoForm" style="margin-bottom:20px">
+        <div class="label" style="margin-bottom:9px">¿Ya la pagaste?</div>
+        <input type="hidden" name="es_pendiente" id="id_es_pendiente" value="">
+        <div class="seg" id="segPagoForm">
+          <button type="button" class="on-green" data-pendiente="0">Sí, ya salió</button>
+          <button type="button" data-pendiente="1">Aún la debo</button>
         </div>
-      </label>
-      {% endif %}
+        <div class="hint" style="font-size:10.5px;margin-top:8px" id="notaPagoForm">
+          Cuenta como gasto del mes en los dos casos. La diferencia es si la plata ya se fue.
+        </div>
+      </div>
 
-      <div style="display:flex;gap:10px;margin-top:4px">
-        <a href="{% url 'dashboard' %}" class="btn btn-glass" style="flex:1;justify-content:center">Cancelar</a>
-        <button type="submit" class="btn {% if tipo_inicial == 'EGRESO' %}btn-red{% else %}btn-green{% endif %}" style="flex:1;justify-content:center;cursor:pointer;font-family:'DM Sans',sans-serif;border:none">
-          Guardar
+      <div style="display:flex;gap:10px">
+        <button type="submit" class="btn btn-purple" style="flex:1;padding:15px;font-size:13.5px">
+          {% if editar %}Guardar cambios{% else %}Registrar{% endif %}
         </button>
+        <a href="{% url 'dashboard' %}" class="btn btn-glass" style="padding:15px 18px">Cancelar</a>
       </div>
     </form>
   </div>
+</div>
+{% endblock %}
 
-</div>
-</div>
+{% block extra_js %}
 <script>
-(function() {
-    const chk = document.getElementById('chk-pendiente');
-    if (!chk) return;
-    const labelFecha = document.getElementById('label-fecha');
-    const hintFecha = document.getElementById('hint-fecha');
-    const wrap = document.getElementById('wrap-pendiente');
-    chk.addEventListener('change', function() {
-        if (chk.checked) {
-            labelFecha.textContent = 'Fecha de vencimiento';
-            hintFecha.textContent = 'Cuándo hay que pagar esta cuenta. Contará como gasto en ese mes.';
-            wrap.style.background = 'rgba(251,146,60,0.14)';
-            wrap.style.borderColor = 'rgba(251,146,60,0.4)';
-        } else {
-            labelFecha.textContent = 'Fecha';
-            hintFecha.textContent = 'Puedes registrar gastos de días anteriores cambiando la fecha';
-            wrap.style.background = 'rgba(251,146,60,0.06)';
-            wrap.style.borderColor = 'rgba(251,146,60,0.15)';
-        }
+(function () {
+  var oculto = document.getElementById('{{ form.tipo.id_for_label }}');
+  var seg = document.getElementById('segTipoMov');
+  var bloque = document.getElementById('bloquePagoForm');
+  var monto = document.getElementById('{{ form.monto.id_for_label }}');
+  if (!seg || !oculto) return;
+
+  function aplicar(tipo) {
+    oculto.value = tipo;
+    var esGasto = tipo !== 'INGRESO';
+    seg.querySelectorAll('button').forEach(function (b) {
+      var activo = b.dataset.value === tipo;
+      b.className = activo ? (esGasto ? 'on-coral' : 'on-green') : '';
     });
+    if (bloque) bloque.style.display = esGasto ? 'block' : 'none';
+    if (monto) monto.style.color = esGasto ? 'var(--coral)' : 'var(--green)';
+  }
+
+  seg.addEventListener('click', function (e) {
+    var b = e.target.closest('button'); if (!b) return;
+    e.preventDefault();
+    aplicar(b.dataset.value);
+  });
+  aplicar(oculto.value || 'EGRESO');
+
+  /* Ya pagado / aún lo debo */
+  var segPago = document.getElementById('segPagoForm');
+  var campo = document.getElementById('id_es_pendiente');
+  var nota = document.getElementById('notaPagoForm');
+  if (segPago) {
+    segPago.addEventListener('click', function (e) {
+      var b = e.target.closest('button'); if (!b) return;
+      e.preventDefault();
+      var pendiente = b.dataset.pendiente === '1';
+      campo.value = pendiente ? '1' : '';
+      segPago.querySelectorAll('button').forEach(function (x) {
+        x.className = x === b ? (pendiente ? 'on-coral' : 'on-green') : '';
+      });
+      nota.textContent = pendiente
+        ? 'Queda en la lista de pagos del mes para marcarlo cuando lo pagues.'
+        : 'Cuenta como gasto del mes en los dos casos. La diferencia es si la plata ya se fue.';
+    });
+  }
 })();
 </script>
 {% endblock %}

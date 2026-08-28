@@ -2,7 +2,7 @@
 {% block title %}Crear cuenta · FinApp{% endblock %}
 
 {% block pitch %}
-<div style="font-family:'Sora',sans-serif;font-size:31px;font-weight:500;line-height:1.28;letter-spacing:-.025em;text-wrap:pretty">
+<div style="font-family:'Manrope',sans-serif;font-size:31px;font-weight:500;line-height:1.28;letter-spacing:-.025em;text-wrap:pretty">
   Dos minutos ahora, y dejas de adivinar a fin de mes.
 </div>
 <div class="hint" style="font-size:13px;margin-top:14px">
@@ -54,7 +54,7 @@
   <div class="field">
     <label class="label" for="{{ form.username.id_for_label }}">Usuario</label>
     <div style="position:relative">
-      <i class="fas fa-user" style="position:absolute;left:15px;top:50%;transform:translateY(-50%);font-size:11px;color:rgba(241,240,255,.32);pointer-events:none"></i>
+      <i class="fas fa-user" style="position:absolute;left:15px;top:50%;transform:translateY(-50%);font-size:11px;color:var(--text-muted);pointer-events:none"></i>
       <input type="text" name="username" id="{{ form.username.id_for_label }}"
              style="padding-left:38px" placeholder="con el que entras" autocomplete="username" required autofocus>
     </div>
@@ -69,7 +69,7 @@
   <div class="field">
     <label class="label" for="{{ form.password1.id_for_label }}">Contraseña</label>
     <div style="position:relative">
-      <i class="fas fa-lock" style="position:absolute;left:15px;top:50%;transform:translateY(-50%);font-size:11px;color:rgba(241,240,255,.32);pointer-events:none"></i>
+      <i class="fas fa-lock" style="position:absolute;left:15px;top:50%;transform:translateY(-50%);font-size:11px;color:var(--text-muted);pointer-events:none"></i>
       <input type="password" name="password1" id="{{ form.password1.id_for_label }}"
              style="padding-left:38px" placeholder="al menos 8 caracteres" autocomplete="new-password" required>
     </div>
@@ -82,7 +82,7 @@
   <div class="field" style="margin-bottom:22px">
     <label class="label" for="{{ form.password2.id_for_label }}">Repite la contraseña</label>
     <div style="position:relative">
-      <i class="fas fa-lock" style="position:absolute;left:15px;top:50%;transform:translateY(-50%);font-size:11px;color:rgba(241,240,255,.32);pointer-events:none"></i>
+      <i class="fas fa-lock" style="position:absolute;left:15px;top:50%;transform:translateY(-50%);font-size:11px;color:var(--text-muted);pointer-events:none"></i>
       <input type="password" name="password2" id="{{ form.password2.id_for_label }}"
              style="padding-left:38px" placeholder="••••••••" autocomplete="new-password" required>
     </div>
@@ -92,7 +92,7 @@
   <button type="submit" class="btn btn-purple btn-block">Crear cuenta</button>
 </form>
 
-<div style="text-align:center;font-size:12px;color:rgba(241,240,255,.42);margin-top:16px">
+<div style="text-align:center;font-size:12px;color:var(--text-muted);margin-top:16px">
   ¿Ya tienes cuenta? <a href="{% url 'login' %}">Entra aquí</a>
 </div>
 {% endblock %}
@@ -109,8 +109,8 @@
   var niveles = [
     { ancho: '25%', color: 'linear-gradient(90deg,#dc2626,#f87171)', label: 'Muy débil: fácil de adivinar.' },
     { ancho: '50%', color: 'linear-gradient(90deg,#ea580c,#fb923c)', label: 'Débil: agrega números o símbolos.' },
-    { ancho: '75%', color: 'linear-gradient(90deg,#7c3aed,#a78bfa)', label: 'Buena.' },
-    { ancho: '100%', color: 'linear-gradient(90deg,#059669,#34d399)', label: 'Fuerte.' }
+    { ancho: '75%', color: 'linear-gradient(90deg,var(--amber-oscuro),var(--amber))', label: 'Buena.' },
+    { ancho: '100%', color: 'linear-gradient(90deg,#059669,var(--green))', label: 'Fuerte.' }
   ];
 
   p1.addEventListener('input', function () {

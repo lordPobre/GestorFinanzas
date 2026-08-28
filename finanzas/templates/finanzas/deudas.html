@@ -1,5 +1,6 @@
 {% extends 'finanzas/base.html' %}
 {% load humanize %}
+{% block search_placeholder %}Filtrar compras en cuotas{% endblock %}
 {% block title %}Compras en cuotas · FinApp{% endblock %}
 
 {% block content %}
@@ -17,7 +18,7 @@
 
 <div class="grid-metrics" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr))">
   <div class="glass glass-purple card" data-spot>
-    <div class="label" style="color:rgba(167,139,250,.8);margin-bottom:10px">Cuotas de este mes</div>
+    <div class="label" style="color:var(--amber);margin-bottom:10px">Cuotas de este mes</div>
     <div class="display" style="font-size:24px;color:var(--purple)">${{ total_cuotas_mes|floatformat:0|intcomma }}</div>
     <div class="stat-note">{{ deudas_activas }} compras activas</div>
   </div>
@@ -27,7 +28,7 @@
     <div class="stat-note">Sumando todas las cuotas por pagar</div>
   </div>
   <div class="glass glass-green card" data-spot>
-    <div class="label" style="color:rgba(52,211,153,.75);margin-bottom:10px">Ya pagado</div>
+    <div class="label" style="color:var(--green);margin-bottom:10px">Ya pagado</div>
     <div class="display" style="font-size:24px;color:var(--green)">${{ total_pagado|floatformat:0|intcomma }}</div>
     <div class="stat-note">De ${{ total_deuda|floatformat:0|intcomma }} en total</div>
   </div>
@@ -62,11 +63,11 @@
     {# Una marca por cuota #}
     <div class="pips" style="margin-bottom:12px">
       {% for m in d.rango_cuotas %}
-        <span class="pip {{ m.clase }}"></span>
+        <span class="pip {{ m.clase }}" title="Cuota {{ m.indice }}"></span>
       {% endfor %}
     </div>
 
-    <div style="display:flex;justify-content:space-between;font-size:11px;color:rgba(241,240,255,.45);margin-bottom:16px">
+    <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-muted);margin-bottom:16px">
       <span>Te queda <span class="mono" style="color:var(--text-primary)">${{ d.monto_restante|floatformat:0|intcomma }}</span></span>
       <span>de ${{ d.monto_total|floatformat:0|intcomma }}</span>
     </div>
@@ -78,6 +79,7 @@
         <form method="post" action="{% url 'pagar_cuota' d.pk %}" style="flex:1;margin:0">
           {% csrf_token %}
           <input type="hidden" name="next" value="{% url 'deudas' %}">
+          <input type="hidden" name="periodo" value="{{ d.periodo_a_pagar }}">
           <button type="submit" class="btn btn-purple" style="width:100%">Pagar cuota de ${{ d.monto_cuota|floatformat:0|intcomma }}</button>
         </form>
       {% endif %}
@@ -148,12 +150,12 @@
       </div>
 
       <div class="preview-box">
-        <div class="label" style="color:rgba(167,139,250,.8);margin-bottom:9px">Quedaría así</div>
+        <div class="label" style="color:var(--amber);margin-bottom:9px">Quedaría así</div>
         <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:5px">
           <span style="font-size:12px;color:var(--text-secondary)">Cada cuota</span>
           <span class="display" style="font-size:19px;color:var(--purple)" id="cuotaPreview">$0</span>
         </div>
-        <div style="font-size:11.5px;color:rgba(241,240,255,.45)" id="finPreview">Elige cuántas cuotas</div>
+        <div style="font-size:11.5px;color:var(--text-muted)" id="finPreview">Elige cuántas cuotas</div>
       </div>
 
       <button type="submit" class="btn btn-purple btn-block">Guardar compra</button>
