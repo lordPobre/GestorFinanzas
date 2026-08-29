@@ -47,7 +47,7 @@
         </div>
         <div class="label" style="margin-top:2px">{{ hoy_texto|default:nombre_mes }}</div>
       </div>
-      <a href="{% url 'estadisticas' %}" style="color:rgba(26,18,0,.55);font-size:15px" title="Ver detalle">
+      <a href="{% url 'estadisticas' %}" class="balance-mas" style="font-size:15px" title="Ver detalle">
         <i class="fas fa-ellipsis"></i>
       </a>
     </div>
@@ -57,45 +57,56 @@
     </div>
 
     <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin-top:16px">
-      <div style="font-size:11.5px;color:rgba(26,18,0,.68);font-weight:600">
+      <div class="balance-pie" style="font-size:11.5px">
         {{ por_dia|money }} por día · quedan {{ dias_restantes }} días
       </div>
     </div>
   </div>
 
-  <div class="glass card-lg" data-spot>
+  {% comment %}
+    Coral: es plata que sale. El color identifica la tarjeta, así que se
+    mantiene aunque el monto sea cero.
+  {% endcomment %}
+  <div class="balance-card deuda" data-spot>
     <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px">
       <div>
         <div style="font-size:17px;font-weight:700;letter-spacing:-.02em">Debes en cuotas</div>
         <div class="label" style="margin-top:2px">{{ mis_cuotas|length }} compra{{ mis_cuotas|length|pluralize:"s" }} a plazo</div>
       </div>
-      <a href="{% url 'deudas' %}" style="color:var(--text-muted);font-size:15px" title="Ver cuotas">
+      <a href="{% url 'deudas' %}" class="balance-mas" style="font-size:15px" title="Ver cuotas">
         <i class="fas fa-ellipsis"></i>
       </a>
     </div>
-    <div class="display" style="font-size:32px;margin:18px 0 0;color:var(--amber)">
-      {{ deuda_total|money }}
-    </div>
-    <div style="font-size:11.5px;color:var(--text-muted);margin-top:16px">
+    <div class="display" style="font-size:32px;margin:18px 0 0">{{ deuda_total|money }}</div>
+    <div class="balance-pie" style="font-size:11.5px;margin-top:16px">
       {% if total_cuotas_mes %}{{ total_cuotas_mes|money }} este mes{% else %}Sin cuotas este mes{% endif %}
-      {% if cuotas_atrasadas %} · <span style="color:var(--coral)">{{ cuotas_atrasadas }} atrasada{{ cuotas_atrasadas|pluralize:"s" }}</span>{% endif %}
+      {% if cuotas_atrasadas %} · {{ cuotas_atrasadas }} atrasada{{ cuotas_atrasadas|pluralize:"s" }}{% endif %}
     </div>
   </div>
 
-  <div class="glass card-lg" data-spot>
+  {% comment %}
+    Verde: es plata que vuelve. Mismo tratamiento que la ámbar, distinto
+    color, para que las tres se lean como la misma familia.
+  {% endcomment %}
+  <div class="balance-card cobrar" data-spot>
     <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px">
       <div>
         <div style="font-size:17px;font-weight:700;letter-spacing:-.02em">Te deben</div>
         <div class="label" style="margin-top:2px">{{ prestamos_activos }} préstamo{{ prestamos_activos|pluralize:"s" }} activo{{ prestamos_activos|pluralize:"s" }}</div>
       </div>
-      <a href="{% url 'prestamos' %}" style="color:var(--text-muted);font-size:15px" title="Ver préstamos">
+      <a href="{% url 'prestamos' %}" class="balance-mas" style="font-size:15px" title="Ver préstamos">
         <i class="fas fa-ellipsis"></i>
       </a>
     </div>
-    <div class="display" style="font-size:32px;margin:18px 0 0;color:var(--green)">
-      ${{ total_por_cobrar|default:0|intcomma }}
+    {% comment %}
+      money y no intcomma: intcomma usa el separador de miles del locale
+      activo de Django, que no es el chileno — de ahí que saliera
+      "$10 000" con espacio en vez de "$10.000".
+    {% endcomment %}
+    <div class="display" style="font-size:32px;margin:18px 0 0">
+      {{ total_por_cobrar|default:0|money }}
     </div>
-    <div style="font-size:11.5px;color:var(--text-muted);margin-top:16px">
+    <div class="balance-pie" style="font-size:11.5px;margin-top:16px">
       No cuenta en tu balance hasta que te paguen
     </div>
   </div>

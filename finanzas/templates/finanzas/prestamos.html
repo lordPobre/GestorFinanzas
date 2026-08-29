@@ -35,7 +35,23 @@
     <div class="label" style="margin:4px 6px 11px">Personas</div>
     <div class="row-list">
       {% for p in personas %}
-      <a href="{% url 'detalle_persona' p.pk %}" class="row {% if p.pk == persona.pk %}on{% endif %}" data-searchable>
+      {% comment %}
+        Mismo gesto que en las compras en cuotas: la fila se desliza y
+        descubre la acción. Acá solo eliminar — una persona no tiene datos
+        propios que editar más allá del nombre y el contacto, que se cambian
+        desde su detalle.
+      {% endcomment %}
+      <div class="swipe swipe-fila" data-searchable>
+        <div class="swipe-acciones" aria-hidden="true">
+          <form method="post" action="{% url 'eliminar_persona' p.pk %}" style="margin:0;display:contents"
+                data-confirm="¿Eliminar a {{ p.nombre }}? Se borran sus {{ p.cantidad_prestamos }} préstamo{{ p.cantidad_prestamos|pluralize:'s' }} y el historial de abonos.">
+            {% csrf_token %}
+            <button type="submit" class="swipe-btn borrar" title="Eliminar a {{ p.nombre }}">
+              <i class="fas fa-trash-can"></i><span>Eliminar</span>
+            </button>
+          </form>
+        </div>
+      <a href="{% url 'detalle_persona' p.pk %}" class="row swipe-card {% if p.pk == persona.pk %}on{% endif %}">
         <span class="avatar">{{ p.nombre|first|upper }}</span>
         <span class="row-main">
           <span class="row-title" style="display:block">{{ p.nombre }}</span>
@@ -45,6 +61,7 @@
           {% if p.total_pendiente %}{{ p.total_pendiente|money }}{% else %}Al día{% endif %}
         </span>
       </a>
+      </div>
       {% empty %}
       <div class="empty" style="padding:32px 12px">
         <i class="fas fa-users" style="font-size:26px"></i>
@@ -67,7 +84,16 @@
           <div class="modal-sub">{{ persona.contacto|default:"Sin contacto" }}</div>
         </div>
       </div>
-      <button class="btn btn-soft" data-open="#modalPrestamo"><i class="fas fa-plus" style="font-size:10px"></i>Nuevo préstamo</button>
+      <div style="display:flex;gap:8px;align-items:center">
+        <button class="btn btn-soft" data-open="#modalPrestamo"><i class="fas fa-plus" style="font-size:10px"></i>Nuevo préstamo</button>
+        <form method="post" action="{% url 'eliminar_persona' persona.pk %}" style="margin:0"
+              data-confirm="¿Eliminar a {{ persona.nombre }}? Se borran sus {{ persona.cantidad_prestamos }} préstamo{{ persona.cantidad_prestamos|pluralize:'s' }} y el historial de abonos.">
+          {% csrf_token %}
+          <button type="submit" class="icon-btn" title="Eliminar a {{ persona.nombre }}">
+            <i class="fas fa-trash-can" style="font-size:11px"></i>
+          </button>
+        </form>
+      </div>
     </div>
 
     <div class="grid-metrics" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:22px">

@@ -16,27 +16,52 @@
   <button class="btn btn-purple" data-open="#modalDeuda"><i class="fas fa-plus" style="font-size:11px"></i>Nueva compra en cuotas</button>
 </div>
 
+{% comment %}
+  Las tres con fondo de color, igual que el carrusel de Inicio: ámbar lo que
+  toca pagar ahora, coral lo que aún debes, verde lo que ya salió. El borde
+  de color sobre fondo gris no alcanzaba a diferenciarlas.
+{% endcomment %}
 <div class="grid-metrics" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr))">
-  <div class="glass glass-purple card" data-spot>
-    <div class="label" style="color:var(--amber);margin-bottom:10px">Cuotas de este mes</div>
-    <div class="display" style="font-size:24px;color:var(--purple)">{{ total_cuotas_mes|money }}</div>
-    <div class="stat-note">{{ deudas_activas }} compras activas</div>
+  <div class="balance-card compacta" data-spot>
+    <div class="label" style="margin-bottom:10px">Cuotas de este mes</div>
+    <div class="display" style="font-size:24px">{{ total_cuotas_mes|money }}</div>
+    <div class="balance-pie" style="font-size:11.5px;margin-top:7px">{{ deudas_activas }} compras activas</div>
   </div>
-  <div class="glass card" data-spot>
+  <div class="balance-card compacta deuda" data-spot>
     <div class="label" style="margin-bottom:10px">Deuda que te queda</div>
     <div class="display" style="font-size:24px">{{ total_restante|money }}</div>
-    <div class="stat-note">Sumando todas las cuotas por pagar</div>
+    <div class="balance-pie" style="font-size:11.5px;margin-top:7px">Sumando todas las cuotas por pagar</div>
   </div>
-  <div class="glass glass-green card" data-spot>
-    <div class="label" style="color:var(--green);margin-bottom:10px">Ya pagado</div>
-    <div class="display" style="font-size:24px;color:var(--green)">{{ total_pagado|money }}</div>
-    <div class="stat-note">De {{ total_deuda|money }} en total</div>
+  <div class="balance-card compacta cobrar" data-spot>
+    <div class="label" style="margin-bottom:10px">Ya pagado</div>
+    <div class="display" style="font-size:24px">{{ total_pagado|money }}</div>
+    <div class="balance-pie" style="font-size:11.5px;margin-top:7px">De {{ total_deuda|money }} en total</div>
   </div>
 </div>
 
 <div class="grid-cards">
   {% for d in deudas %}
-  <div class="glass glass-lift card" data-spot data-searchable
+  {% comment %}
+    El carril del gesto. Las acciones van detrás de la tarjeta y se
+    descubren al deslizarla; en escritorio aparecen al pasar el cursor,
+    donde no hay dedo con que arrastrar.
+  {% endcomment %}
+  <div class="swipe" data-searchable>
+    <div class="swipe-acciones" aria-hidden="true">
+      <a href="{% url 'editar_deuda' d.pk %}" class="swipe-btn editar" title="Editar {{ d.acreedor }}">
+        <i class="fas fa-pen"></i><span>Editar</span>
+      </a>
+      <form method="post" action="{% url 'eliminar_deuda' d.pk %}" style="margin:0;display:contents"
+            data-confirm="¿Eliminar {{ d.acreedor }}? Se borran también sus {{ d.cuotas_pagadas }} pago{{ d.cuotas_pagadas|pluralize:'s' }} registrado{{ d.cuotas_pagadas|pluralize:'s' }}.">
+        {% csrf_token %}
+        <input type="hidden" name="next" value="{% url 'deudas' %}">
+        <button type="submit" class="swipe-btn borrar" title="Eliminar {{ d.acreedor }}">
+          <i class="fas fa-trash-can"></i><span>Eliminar</span>
+        </button>
+      </form>
+    </div>
+
+  <div class="glass glass-lift card swipe-card" data-spot
        {% if d.urgencia == 'critica' or d.urgencia == 'vencida' %}style="border-color:rgba(251,113,133,.28)"{% endif %}>
 
     <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:16px">
@@ -91,6 +116,7 @@
         </form>
       {% endif %}
     </div>
+  </div>
   </div>
 
   {% empty %}

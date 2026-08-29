@@ -182,6 +182,43 @@ h1, h2, h3, h4 { margin: 0; font-weight: 700; letter-spacing: -.015em; }
 .balance-card .label { color: rgba(26, 18, 0, .6); }
 .balance-card .display { color: #1a1200; }
 
+/* Variantes por lo que mide cada tarjeta. El color no decora: dice de qué
+   lado está el número — lo que debes y lo que te deben no son lo mismo. */
+.balance-card.deuda {
+  background: linear-gradient(115deg, #e25c5c 0%, #f08a6e 100%);
+  color: #2b0606;
+}
+.balance-card.deuda .label { color: rgba(43, 6, 6, .6); }
+.balance-card.deuda .display { color: #2b0606; }
+
+.balance-card.cobrar {
+  background: linear-gradient(115deg, #3aa84a 0%, #6fd96b 100%);
+  color: #04291d;
+}
+.balance-card.cobrar .label { color: rgba(4, 41, 29, .62); }
+.balance-card.cobrar .display { color: #04291d; }
+
+/* Compacta: para cuadrículas de métricas. Mismo color y curva, menos aire y
+   radio algo menor — 26px en una tarjeta de 100px de alto se ve inflado. */
+.balance-card.compacta {
+  padding: 18px 20px; border-radius: var(--r-lg);
+}
+.balance-card.compacta::after {
+  right: -40%; bottom: -90%; width: 130%; height: 200%;
+}
+
+/* Los enlaces "…" de la esquina heredan el tono oscuro de su tarjeta. */
+.balance-card .balance-mas { color: rgba(26, 18, 0, .5); }
+.balance-card.deuda .balance-mas { color: rgba(43, 6, 6, .5); }
+.balance-card.cobrar .balance-mas { color: rgba(4, 41, 29, .5); }
+.balance-card .balance-mas:hover { filter: brightness(.7); }
+
+/* La nota al pie, sobre fondo saturado. */
+.balance-card .balance-pie { color: rgba(26, 18, 0, .68); font-weight: 600; }
+.balance-card.deuda .balance-pie { color: rgba(43, 6, 6, .7); }
+.balance-card.cobrar .balance-pie { color: rgba(4, 41, 29, .72); }
+
+
 /* ===== Botones ===== */
 .btn {
   display: inline-flex; align-items: center; justify-content: center; gap: 8px;
@@ -245,6 +282,117 @@ h1, h2, h3, h4 { margin: 0; font-weight: 700; letter-spacing: -.015em; }
 }
 /* Cuando es la inicial y no un logo, la letra pide menos cuerpo. */
 .marca-tile:not(:has(i)) { font-size: 15px; }
+
+/* ===== Tarjeta deslizable =====
+   Las acciones viven detrás de la tarjeta, no dentro. El gesto mueve solo
+   la tarjeta y las descubre; en escritorio aparecen al pasar el cursor,
+   donde no hay dedo con que arrastrar. */
+.swipe {
+  position: relative;
+  /* El mismo radio que la tarjeta: las acciones quedan recortadas por la
+     misma curva, así el bloque se ve intercalado y no pegado encima. */
+  border-radius: var(--r-lg);
+  overflow: hidden;
+}
+
+.swipe-acciones {
+  position: absolute; top: 0; right: 0; bottom: 0;
+  /* Al alto completo de la tarjeta y pegadas entre sí: se leen como una
+     pieza continua que la tarjeta descubre al deslizarse. */
+  display: flex; align-items: stretch; gap: 2px;
+  z-index: 0;
+}
+
+.swipe-btn {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 7px; width: 68px; flex-shrink: 0;
+  border: none; cursor: pointer; text-decoration: none;
+  font-family: 'Manrope', sans-serif; font-size: 10.5px; font-weight: 700;
+  letter-spacing: .01em;
+  transition: filter .18s var(--ease-out);
+}
+.swipe-btn i { font-size: 17px; }
+.swipe-btn:hover { filter: brightness(1.08); }
+.swipe-btn:active { filter: brightness(.9); }
+
+/* El primero recto por los dos lados: queda entre la tarjeta y el segundo. */
+.swipe-btn.editar {
+  background: linear-gradient(160deg, #3aa84a, #2f8f3d);
+  color: #04291d;
+}
+/* El último cierra el bloque con el radio de la tarjeta. */
+.swipe-btn.borrar {
+  background: linear-gradient(160deg, #e25c5c, #c94747);
+  color: #2b0606;
+  border-radius: 0 var(--r-lg) var(--r-lg) 0;
+}
+/* Cuando eliminar es la única acción, cierra el bloque igual. */
+.swipe-acciones > form:only-child .swipe-btn.borrar,
+.swipe-acciones > .swipe-btn.borrar:only-child {
+  border-radius: 0 var(--r-lg) var(--r-lg) 0;
+}
+
+.swipe-card {
+  position: relative; z-index: 1;
+  /* La transición se apaga durante el arrastre (lo hace el JS) para que la
+     tarjeta siga el dedo sin retraso. */
+  transition: transform .28s var(--ease-out);
+  touch-action: pan-y;
+}
+
+/* Variante en una lista: la fila es más baja que una tarjeta, así que la
+   acción se ajusta a su alto en vez de imponer 62px. */
+.swipe-fila { border-radius: var(--r-md); }
+.swipe-fila .swipe-acciones { gap: 6px; padding-right: 2px; }
+.swipe-fila .swipe-btn { width: 58px; gap: 4px; font-size: 9.5px; }
+.swipe-fila .swipe-btn i { font-size: 13px; }
+.swipe-fila .swipe-btn.borrar { border-radius: 0 var(--r-md) var(--r-md) 0; }
+/* La fila necesita fondo propio (sin él las acciones se ven a través) y su
+   propio aire: el selector .glass > .row-list > .row ya no la alcanza ahora
+   que el hijo directo es el carril. */
+.swipe-fila .swipe-card {
+  background: var(--surface);
+  padding: 12px 14px;
+  border-radius: var(--r-md);
+  /* La línea divisoria sobra: las filas ya se separan con el hueco del
+     row-list, y con fondo propio dos bordes seguidos ensucian. */
+  border-bottom: none;
+}
+.swipe-fila .swipe-card.on {
+  background: var(--surface-2);
+  /* La seleccionada se marca con una línea ámbar al canto, que no desplaza
+     el contenido como lo haría un borde completo. */
+  box-shadow: inset 3px 0 0 var(--amber);
+}
+
+/* Las filas de una lista de carriles llevan su propia separación. */
+.row-list:has(.swipe-fila) { gap: 8px; }
+
+/* Escritorio: sin dedo, las acciones asoman al pasar el cursor. */
+@media (hover: hover) and (min-width: 721px) {
+  .swipe-card { transform: translateX(0); }
+  .swipe:hover .swipe-card,
+  .swipe:focus-within .swipe-card { transform: translateX(-138px); }
+  /* Una sola acción ocupa menos: desplazar 136 dejaría un hueco vacío. */
+  .swipe-fila:hover .swipe-card,
+  .swipe-fila:focus-within .swipe-card { transform: translateX(-58px); }
+  .swipe-acciones { opacity: 0; transition: opacity .2s var(--ease-out); }
+  .swipe:hover .swipe-acciones,
+  .swipe:focus-within .swipe-acciones { opacity: 1; }
+}
+
+/* Táctil: la tarjeta se arrastra y queda abierta hasta que se toque fuera. */
+@media (max-width: 720px) {
+  /* Un poco más grandes: 58px es cómodo con el ratón, no con el pulgar. */
+  .swipe-btn { width: 72px; }
+  .swipe.abierta .swipe-card { transform: translateX(-146px); }
+  .swipe-fila .swipe-btn { width: 62px; }
+  .swipe-fila.abierta .swipe-card { transform: translateX(-62px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .swipe-card { transition: none; }
+}
 
 /* ===== Filas ===== */
 .row-list { display: flex; flex-direction: column; }

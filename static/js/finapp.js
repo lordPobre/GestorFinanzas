@@ -349,4 +349,104 @@
       e.preventDefault();
     });
   }
+  /* ============================================================
+     12. Tarjetas deslizables
+     ============================================================
+     El dedo arrastra la tarjeta y descubre editar/eliminar. Solo en táctil:
+     en escritorio las acciones aparecen al pasar el cursor, que ya lo
+     resuelve el CSS. */
+  var carriles = $$('.swipe');
+  if (carriles.length) {
+    /* El ancho no es fijo: una tarjeta de cuotas tiene dos acciones y una
+       fila de personas solo una. Se mide del propio carril. */
+    function anchoDe(carril) {
+      var acc = $('.swipe-acciones', carril);
+      return acc ? Math.round(acc.getBoundingClientRect().width) + 8 : 144;
+    }
+    var UMBRAL = 40;          // a partir de acá se queda abierta al soltar
+    var abierta = null;
+
+    function cerrar(c) {
+      if (!c) return;
+      c.classList.remove('abierta');
+      var card = $('.swipe-card', c);
+      if (card) card.style.transform = '';
+      if (abierta === c) abierta = null;
+    }
+
+    function abrir(c) {
+      /* Solo una abierta a la vez: dos tarjetas con las acciones al aire se
+         prestan a tocar la equivocada. */
+      if (abierta && abierta !== c) cerrar(abierta);
+      c.classList.add('abierta');
+      var card = $('.swipe-card', c);
+      if (card) card.style.transform = '';
+      abierta = c;
+    }
+
+    carriles.forEach(function (carril) {
+      var card = $('.swipe-card', carril);
+      if (!card) return;
+      var x0 = 0, y0 = 0, dx = 0, arrastrando = false, decidido = false;
+
+      card.addEventListener('touchstart', function (e) {
+        if (e.touches.length !== 1) return;
+        x0 = e.touches[0].clientX;
+        y0 = e.touches[0].clientY;
+        dx = 0; arrastrando = true; decidido = false;
+        card.style.transition = 'none';
+      }, { passive: true });
+
+      card.addEventListener('touchmove', function (e) {
+        if (!arrastrando) return;
+        var mx = e.touches[0].clientX - x0;
+        var my = e.touches[0].clientY - y0;
+
+        /* Los primeros píxeles deciden si el gesto es horizontal o un scroll
+           vertical. Sin esto la tarjeta se movía al desplazar la página. */
+        if (!decidido) {
+          if (Math.abs(mx) < 8 && Math.abs(my) < 8) return;
+          if (Math.abs(my) > Math.abs(mx)) { arrastrando = false; card.style.transition = ''; return; }
+          decidido = true;
+        }
+
+        var tope = anchoDe(carril);
+        var base = carril.classList.contains('abierta') ? -tope : 0;
+        dx = base + mx;
+        /* No pasa de abierta ni se va hacia la derecha; con resistencia en
+           los extremos, para que el tope se sienta en vez de trabarse. */
+        if (dx > 0) dx = mx * 0.25;
+        else if (dx < -tope) dx = -tope + (dx + tope) * 0.25;
+        card.style.transform = 'translateX(' + dx + 'px)';
+      }, { passive: true });
+
+      function soltar() {
+        if (!arrastrando) return;
+        arrastrando = false;
+        card.style.transition = '';
+        card.style.transform = '';
+        if (!decidido) return;
+        if (dx < -UMBRAL) abrir(carril);
+        else cerrar(carril);
+      }
+      card.addEventListener('touchend', soltar);
+      card.addEventListener('touchcancel', soltar);
+
+      /* Con la tarjeta abierta, tocarla la cierra en vez de activar lo que
+         haya debajo del dedo. */
+      card.addEventListener('click', function (e) {
+        if (carril.classList.contains('abierta')) {
+          e.preventDefault();
+          e.stopPropagation();
+          cerrar(carril);
+        }
+      }, true);
+    });
+
+    /* Tocar fuera cierra la que esté abierta. */
+    document.addEventListener('touchstart', function (e) {
+      if (abierta && !abierta.contains(e.target)) cerrar(abierta);
+    }, { passive: true });
+  }
+
 })();
