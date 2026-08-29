@@ -289,6 +289,7 @@
         <form method="post" action="{% url 'pagar_cuota' c.obj.pk %}" style="margin:0">
           {% csrf_token %}
           <input type="hidden" name="next" value="?year={{ year }}&amp;month={{ month }}">
+            <input type="hidden" name="next_path" value="{% url 'dashboard' %}">
           <input type="hidden" name="periodo" value="{{ c.periodo_a_pagar }}">
           <button type="submit" class="btn btn-green btn-sm">
             <i class="fas fa-check" style="font-size:9px"></i>{{ c.obj.texto_a_pagar }}
@@ -368,6 +369,7 @@
               data-confirm="¿Marcar {{ i.nombre }} como no pagado?">
           {% csrf_token %}
           <input type="hidden" name="next" value="?year={{ year }}&amp;month={{ month }}">
+            <input type="hidden" name="next_path" value="{% url 'dashboard' %}">
           <input type="hidden" name="periodo" value="{{ i.periodo }}">
           <button type="submit" class="icon-btn" title="Deshacer"><i class="fas fa-rotate-left" style="font-size:10px"></i></button>
         </form>
@@ -444,6 +446,7 @@
             data-confirm="¿Marcar {{ i.nombre }} como no pagado?">
         {% csrf_token %}
         <input type="hidden" name="next" value="?year={{ year }}&amp;month={{ month }}">
+            <input type="hidden" name="next_path" value="{% url 'dashboard' %}">
         <input type="hidden" name="periodo" value="{{ i.periodo }}">
         <button type="submit" class="icon-btn" title="Deshacer"><i class="fas fa-rotate-left" style="font-size:10px"></i></button>
       </form>
@@ -451,6 +454,7 @@
       <form method="post" action="{{ i.url_pagar }}" style="margin:0">
         {% csrf_token %}
         <input type="hidden" name="next" value="?year={{ year }}&amp;month={{ month }}">
+            <input type="hidden" name="next_path" value="{% url 'dashboard' %}">
         <input type="hidden" name="periodo" value="{{ i.periodo }}">
         <button type="submit" class="btn {% if i.atrasado %}btn-orange{% else %}btn-green{% endif %} btn-sm">
           <i class="fas fa-check" style="font-size:9px"></i>Pagué
@@ -532,77 +536,88 @@
 </div>
 
 {% comment %}
-  6. CÓMO VIENES — el contexto histórico. Va después de lo accionable:
-  saber que gastaste más que el mes pasado no es urgente.
+  6. CÓMO VIENES
+
+  Un solo gráfico, a ancho completo. Antes eran dos tarjetas: barras
+  agrupadas y una dona de categorías. La dona repetía lo que ya dicen las
+  Estadísticas y le robaba la mitad del ancho al gráfico que sí importa.
+
+  Dos líneas y el espacio entre ellas: ese hueco ES tu ahorro. Verde cuando
+  entra más de lo que sale, coral cuando es al revés. Es la única forma de
+  ver de un vistazo si el mes cierra bien, algo que dos barras lado a lado
+  obligan a restar mentalmente.
 {% endcomment %}
 <div class="section-head">
   <h2 class="section-title">Cómo vienes</h2>
+  <a href="{% url 'estadisticas' %}" class="section-sub">Ver estadísticas</a>
 </div>
-<div class="grid-chart">
-  <div class="glass card" style="padding:22px" data-spot>
-    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;margin-bottom:14px">
-      <div>
-        <div class="modal-title" style="font-size:15px;font-weight:500">Entra vs. sale</div>
-        <div class="hint" style="font-size:11.5px;margin-top:3px">Pasa el cursor por un mes para ver el detalle</div>
-      </div>
-      <div class="seg" style="padding:3px" id="segRango">
-        <button type="button" data-meses="3">3 meses</button>
-        <button type="button" class="on" data-meses="6">6 meses</button>
+
+<div class="glass card-lg flujo-panel" data-spot style="margin-bottom:18px">
+
+  <div class="flujo-cabecera">
+    <div>
+      <div class="label" style="margin-bottom:6px">Este mes te queda</div>
+      <div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap">
+        <span class="display" style="font-size:30px;line-height:1;color:{% if disponible >= 0 %}var(--green){% else %}var(--coral){% endif %}">
+          {{ disponible|money }}
+        </span>
+        {% if variacion_saldo != None %}
+        <span class="flujo-delta {% if variacion_saldo >= 0 %}sube{% else %}baja{% endif %}">
+          <i class="fas fa-arrow-{% if variacion_saldo >= 0 %}up{% else %}down{% endif %}" style="font-size:9px"></i>
+          {{ variacion_saldo_abs }}% vs. {{ mes_anterior_nombre }}
+        </span>
+        {% endif %}
       </div>
     </div>
-    <div style="position:relative;height:236px">
-      <canvas id="chartFlujo" data-om-raster></canvas>
+
+    <div class="seg" style="padding:3px" id="segRango">
+      <button type="button" data-meses="3">3M</button>
+      <button type="button" class="on" data-meses="6">6M</button>
+      <button type="button" data-meses="12">1 año</button>
     </div>
   </div>
 
-  <div class="glass card" style="padding:22px" data-spot>
-    <div class="modal-title" style="font-size:15px;font-weight:500">En qué se va</div>
-    <div class="hint" style="font-size:11.5px;margin-top:3px">Toca una categoría para aislarla</div>
+  {# La leyenda va arriba y a mano: la de Chart.js no deja poner los montos #}
+  <div class="flujo-leyenda">
+    <span><i class="punto" style="background:var(--green)"></i>Entra</span>
+    <span><i class="punto" style="background:var(--coral)"></i>Sale</span>
+    <span class="flujo-pista">Desliza sobre el gráfico para ver cada mes</span>
+  </div>
 
-    {% if categorias %}
-    <div style="position:relative;height:196px;margin:12px 0 6px">
-      <canvas id="chartCategorias" data-om-raster></canvas>
-    </div>
-    <div class="row-list" style="gap:2px">
-      {% for c in categorias %}
-      <button type="button" class="row cat-row" data-indice="{{ forloop.counter0 }}"
-              style="padding:8px 10px;background:none;border:1px solid transparent;width:100%;cursor:pointer;text-align:left">
-        <span style="width:8px;height:8px;border-radius:3px;background:{{ c.color }};flex-shrink:0"></span>
-        <span class="row-main" style="font-size:12px">{{ c.label }}</span>
-        <span style="font-size:11px;color:var(--text-muted)">{{ c.porcentaje }}%</span>
-        <span class="mono" style="font-size:11.5px;color:var(--text-secondary)">{{ c.total|money }}</span>
-      </button>
-      {% endfor %}
-    </div>
-    {% else %}
-    <div class="empty" style="padding:36px 12px">
-      <i class="fas fa-chart-pie" style="font-size:24px"></i>
-      <div class="empty-title" style="font-size:14px">Sin gastos este mes</div>
-      <div class="empty-text" style="font-size:11.5px;margin-bottom:14px">Registra uno y verás en qué se te va.</div>
-      <button class="btn btn-soft btn-sm" data-open="#modalGasto" data-preset-tipo="EGRESO">Registrar un gasto</button>
-    </div>
-    {% endif %}
+  <div class="flujo-lienzo">
+    <canvas id="chartFlujo" data-om-raster></canvas>
+  </div>
+
+  {% comment %}
+    Con un solo mes registrado el gráfico se ve vacío y parece roto. Decirlo
+    es mejor que dejar una línea plana sin explicación.
+  {% endcomment %}
+  <div class="hint" style="font-size:11px;margin-top:12px;display:none" id="notaPocoHistorial">
+    Solo hay un mes con movimientos. La comparación se vuelve útil a partir del segundo.
   </div>
 </div>
-
 {% comment %}
   7. EL DETALLE — movimientos y metas.
 {% endcomment %}
-<div class="section-head">
-  <h2 class="section-title">Tu registro</h2>
-</div>
 <div class="grid-registro">
-    <div class="glass card" style="padding:22px" data-spot>
-      <div class="section-head" style="margin:0 0 6px">
-        <h2 class="section-title" style="font-size:15px">Movimientos</h2>
+    <div>
+      <div class="section-head" style="margin-top:0">
+        <h2 class="section-title">Movimientos</h2>
         <button class="section-sub" style="background:none;border:none;padding:0;font-family:inherit"
                 data-open="#modalGasto" data-preset-tipo="EGRESO">Agregar</button>
       </div>
+      <div class="glass card" style="padding:22px" data-spot>
       <div class="row-list mov-list">
         {% for t in ultimas %}
         <div class="row" data-searchable
              {% if t.por_pagar %}style="border-color:rgba(251,146,60,.26)"{% endif %}>
+          {% if t.marca_suscripcion %}
+          <span class="icon-tile marca-tile" style="background:{{ t.marca_suscripcion.color }}1f;color:{{ t.marca_suscripcion.color }}">
+            {% if t.marca_suscripcion.usa_inicial %}{{ t.marca_suscripcion.inicial }}{% else %}<i class="{{ t.marca_suscripcion.icono }}"></i>{% endif %}
+          </span>
+          {% else %}
           <span class="icon-tile {% if t.es_ingreso %}green{% elif t.por_pagar %}orange{% endif %}"><i class="fas {{ t.icono }}"></i></span>
+          {% endif %}
           <div class="row-main">
             <div class="row-title">{{ t.descripcion|default:t.get_categoria_display }}</div>
             <div class="row-meta">
@@ -646,12 +661,13 @@
         </div>
         {% endfor %}
       </div>
+      </div>
     </div>
 
     {% if metas %}
     <div>
       <div class="section-head" style="margin-top:0">
-        <h2 class="section-title" style="font-size:15px">Metas de ahorro</h2>
+        <h2 class="section-title">Metas de ahorro</h2>
         <a href="{% url 'metas' %}" class="section-sub">Ver mas</a>
       </div>
       {% comment %}
@@ -709,6 +725,7 @@
           <form method="post" action="{% url 'pagar_cuota' e.deuda.pk %}" style="margin:0">
             {% csrf_token %}
             <input type="hidden" name="next" value="?year={{ year }}&amp;month={{ month }}">
+            <input type="hidden" name="next_path" value="{% url 'dashboard' %}">
             <input type="hidden" name="periodo" value="{{ e.periodo }}">
             <button type="submit" class="btn btn-purple btn-sm">Pagar</button>
           </form>
@@ -756,26 +773,27 @@
 {% block extra_js %}
 <script>
 /* ============================================================
-   2. GRÁFICOS — aparte, y tolerantes a que Chart.js no cargue.
+   2. EL GRÁFICO
+   Chart.js dibuja sobre canvas, así que nada de aquí puede leer variables
+   CSS: todos los colores van literales.
    ============================================================ */
 (function () {
-  if (typeof Chart === 'undefined') return;
+  var el = document.getElementById('chartFlujo');
+  if (!el || typeof Chart === 'undefined') return;
 
-  /* Chart.js dibuja en canvas y NO resuelve variables CSS: 'var(--text-muted)'
-     era un color inválido, así que los ejes y la leyenda se pintaban en negro
-     por defecto — invisibles sobre el fondo oscuro. Van los literales. */
-  var GRID = 'rgba(255,255,255,.06)';
-  var TICK = 'rgba(245,245,245,.42)';
+  var VERDE = '#53d258', CORAL = '#e25c5c';
+  var TICK  = 'rgba(245,245,245,.38)';
   var TEXTO = 'rgba(245,245,245,.72)';
-  var FONT = "'Manrope', sans-serif";
+  var FONT  = "'Manrope', sans-serif";
+  var quieto = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  /* Una barra sin valor no lleva esquina redondeada. */
-  function radioBarra(ctx) {
-    var v = ctx.raw;
-    return (typeof v === 'number' && v > 0) ? 6 : 0;
-  }
+  var meses = {{ meses_json|safe }};
+  var ingresos = {{ ingresos_json|safe }};
+  var gastos = {{ gastos_json|safe }};
+  var cuotas = {{ cuotas_json|safe }};
+  var salidas = gastos.map(function (g, i) { return g + (cuotas[i] || 0); });
 
-  /* Formato corto: el eje mostraba '$1200k' para 1,2 millones. */
+  function pesos(v) { return '$' + Math.round(v).toLocaleString('es-CL'); }
   function corto(v) {
     v = Math.abs(v);
     if (v >= 1000000) return '$' + (v / 1000000).toFixed(1).replace('.', ',').replace(',0', '') + 'M';
@@ -783,135 +801,177 @@
     return '$' + Math.round(v);
   }
 
-  var tooltip = {
-    backgroundColor: 'rgba(33,33,33,.96)',
-    borderColor: 'rgba(255,170,44,.28)', borderWidth: 1,
-    titleFont: { family: "'Manrope', sans-serif", size: 12, weight: '600' },
-    bodyFont: { family: FONT, size: 12 },
-    padding: 13, cornerRadius: 14, boxPadding: 5, usePointStyle: true,
-    callbacks: {
-      label: function (c) {
-        var v = c.parsed.y !== undefined ? c.parsed.y : c.parsed;
-        return ' ' + (c.dataset.label || c.label) + ': $' + Math.round(v).toLocaleString('es-CL');
-      }
-    }
+  /* ---- Punto vivo en el mes actual ----
+     Un halo sobre el último dato: marca dónde estás parado en la serie. */
+  var faro = {
+    id: 'faro',
+    afterDatasetsDraw: function (chart) {
+      var meta = chart.getDatasetMeta(0);
+      if (!meta.data.length) return;
+      var p = meta.data[meta.data.length - 1];
+      if (!p) return;
+      var c = chart.ctx;
+      var t = chart.$pulso || 0;
+      c.save();
+      c.beginPath();
+      c.arc(p.x, p.y, 5 + t * 7, 0, Math.PI * 2);
+      c.fillStyle = 'rgba(83,210,88,' + (0.22 * (1 - t)) + ')';
+      c.fill();
+      c.beginPath();
+      c.arc(p.x, p.y, 4.5, 0, Math.PI * 2);
+      c.fillStyle = VERDE;
+      c.fill();
+      c.strokeStyle = '#383838';
+      c.lineWidth = 2.5;
+      c.stroke();
+      c.restore();
+    },
   };
 
-  /* ---- Entra vs. sale ---- */
-  var meses = {{ meses_json|safe }};
-  var ingresos = {{ ingresos_json|safe }};
-  var gastos = {{ gastos_json|safe }};
-  var cuotas = {{ cuotas_json|safe }};
-  var salidas = gastos.map(function (g, i) { return g + (cuotas[i] || 0); });
-
-  var elFlujo = document.getElementById('chartFlujo');
-  var flujo = null;
-  if (elFlujo) {
-    flujo = new Chart(elFlujo, {
-      type: 'bar',
-      data: {
-        labels: meses,
-        datasets: [
-          /* borderRadius fijo en una barra de altura ~0 hace que Chart.js
-             dibuje un óvalo suelto: con 5 meses sin datos el gráfico se veía
-             como puntos rojos y verdes flotando sobre el eje. Ahora el radio
-             depende del valor. */
-          { label: 'Entró', data: ingresos, backgroundColor: 'rgba(83,210,88,.9)',
-            borderRadius: radioBarra, borderSkipped: false, maxBarThickness: 18 },
-          { label: 'Salió', data: salidas, backgroundColor: 'rgba(226,92,92,.9)',
-            borderRadius: radioBarra, borderSkipped: false, maxBarThickness: 18 }
-        ]
-      },
-      options: {
-        responsive: true, maintainAspectRatio: false,
-        interaction: { mode: 'index', intersect: false },
-        plugins: {
-          legend: {
-            labels: { color: TEXTO, font: { family: FONT, size: 11, weight: '600' },
-                      usePointStyle: true, pointStyle: 'circle', boxWidth: 7, padding: 16 }
-          },
-          tooltip: tooltip
-        },
-        scales: {
-          x: { grid: { display: false }, border: { display: false },
-               ticks: { color: TICK, font: { family: FONT, size: 10.5 },
-                        /* Sin esto Chart.js rotaba las etiquetas 45° al
-                           apretarse y quedaban cortadas contra el borde. */
-                        maxRotation: 0, minRotation: 0, autoSkipPadding: 8 } },
-          y: { grid: { color: GRID }, border: { display: false }, beginAtZero: true,
-               ticks: { color: TICK, font: { family: FONT, size: 10 }, maxTicksLimit: 4,
-                        padding: 6, callback: corto } }
-        }
-      }
+  /* Rango del eje a partir de los datos con movimiento. Los meses en cero se
+     excluyen del mínimo: uno solo hundiría la escala y aplanaría el resto. */
+  function rango(series) {
+    var vals = [];
+    series.forEach(function (s) {
+      s.forEach(function (v) { if (v > 0) vals.push(v); });
     });
+    if (!vals.length) return { piso: 0, techo: 100000 };
+    var min = Math.min.apply(null, vals);
+    var max = Math.max.apply(null, vals);
+    var margen = Math.max((max - min) * 0.35, max * 0.08);
+    return { piso: Math.max(0, min - margen), techo: max + margen };
+  }
+  var r0 = rango([ingresos, salidas]);
+  var piso = r0.piso, techo = r0.techo;
+
+  var chart = new Chart(el, {
+    type: 'line',
+    data: {
+      labels: meses,
+      datasets: [
+        {
+          label: 'Entra', data: ingresos,
+          borderColor: VERDE, borderWidth: 2.5,
+          /* El relleno va HASTA la otra línea: el hueco entre ambas es el
+             ahorro. Verde si entra más, coral si sale más — el mismo par de
+             líneas cuenta las dos situaciones sin cambiar de gráfico. */
+          fill: { target: '+1',
+                  above: 'rgba(83,210,88,.17)',
+                  below: 'rgba(226,92,92,.17)' },
+          tension: 0.38,
+          pointRadius: 0,
+          pointHoverRadius: 6,
+          pointHoverBackgroundColor: VERDE,
+          pointHoverBorderColor: '#383838',
+          pointHoverBorderWidth: 2.5,
+        },
+        {
+          label: 'Sale', data: salidas,
+          borderColor: CORAL, borderWidth: 2.5,
+          fill: false,
+          tension: 0.38,
+          pointRadius: 0,
+          pointHoverRadius: 6,
+          pointHoverBackgroundColor: CORAL,
+          pointHoverBorderColor: '#383838',
+          pointHoverBorderWidth: 2.5,
+        },
+      ],
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      animation: quieto ? false : { duration: 900, easing: 'easeOutQuart' },
+      interaction: { mode: 'index', intersect: false, axis: 'x' },
+      layout: { padding: { top: 10, right: 4, bottom: 0, left: 0 } },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: 'rgba(24,24,24,.97)',
+          borderColor: 'rgba(255,255,255,.1)',
+          borderWidth: 1,
+          titleColor: '#f5f5f5',
+          titleFont: { family: FONT, size: 12.5, weight: '800' },
+          bodyColor: TEXTO,
+          bodyFont: { family: FONT, size: 12 },
+          footerColor: '#ffaa2c',
+          footerFont: { family: FONT, size: 11.5, weight: '700' },
+          padding: 14, cornerRadius: 14, caretSize: 6,
+          usePointStyle: true, boxWidth: 8, boxHeight: 8, boxPadding: 6,
+          callbacks: {
+            label: function (c) { return ' ' + c.dataset.label + ': ' + pesos(c.parsed.y); },
+            /* El saldo del mes, que antes había que restar a ojo. */
+            footer: function (items) {
+              if (items.length < 2) return '';
+              var i = items[0].dataIndex;
+              var saldo = (chart.data.datasets[0].data[i] || 0) - (chart.data.datasets[1].data[i] || 0);
+              return (saldo >= 0 ? '↑ Te quedaron ' : '↓ Te faltaron ') + pesos(Math.abs(saldo));
+            },
+          },
+        },
+      },
+      scales: {
+        x: {
+          grid: { display: false },
+          border: { color: 'rgba(255,255,255,.08)' },
+          ticks: { color: TICK, font: { family: FONT, size: 11, weight: '600' },
+                   maxRotation: 0, minRotation: 0, padding: 8 },
+        },
+        y: {
+          /* Sin rejilla horizontal: en un gráfico de área las líneas cruzadas
+             ensucian el degradado. Solo tres referencias al margen. */
+          grid: { display: false },
+          border: { display: false },
+          /* El eje se ajusta a los datos en vez de arrancar en cero: con
+             cero, dos series que se mueven entre 500k y 850k quedaban
+             aplastadas en el tercio superior y toda variación se veía plana.
+             El 20% de holgura evita que las líneas toquen los bordes. */
+          min: piso, max: techo,
+          ticks: { color: TICK, font: { family: FONT, size: 10.5 },
+                   maxTicksLimit: 3, padding: 10, callback: corto },
+        },
+      },
+    },
+    plugins: [faro],
+  });
+
+  /* El halo del último punto respira. Se detiene si el sistema pide menos
+     movimiento, y también cuando la pestaña no está visible: si no, el
+     navegador acumula cuadros y el gráfico se traba al volver. */
+  if (!quieto) {
+    var t0 = null;
+    (function pulsar(ts) {
+      if (t0 === null) t0 = ts;
+      var ciclo = ((ts - t0) % 2200) / 2200;
+      chart.$pulso = ciclo;
+      chart.draw();
+      if (!document.hidden) window.requestAnimationFrame(pulsar);
+      else window.setTimeout(function () { window.requestAnimationFrame(pulsar); }, 400);
+    })(0);
+  }
+
+  var conDatos = meses.filter(function (m, i) { return ingresos[i] > 0 || salidas[i] > 0; }).length;
+  if (conDatos <= 1) {
+    var nota = document.getElementById('notaPocoHistorial');
+    if (nota) nota.style.display = 'block';
   }
 
   var seg = document.getElementById('segRango');
-  if (seg && flujo) {
+  if (seg) {
     seg.addEventListener('click', function (e) {
-      var b = e.target.closest('button'); if (!b) return;
+      var b = e.target.closest('button');
+      if (!b) return;
       seg.querySelectorAll('button').forEach(function (x) { x.classList.remove('on'); });
       b.classList.add('on');
       var n = Number(b.dataset.meses);
-      flujo.data.labels = meses.slice(-n);
-      flujo.data.datasets[0].data = ingresos.slice(-n);
-      flujo.data.datasets[1].data = salidas.slice(-n);
-      flujo.update();
+      chart.data.labels = meses.slice(-n);
+      chart.data.datasets[0].data = ingresos.slice(-n);
+      chart.data.datasets[1].data = salidas.slice(-n);
+      var r = rango([ingresos.slice(-n), salidas.slice(-n)]);
+      chart.options.scales.y.min = r.piso;
+      chart.options.scales.y.max = r.techo;
+      chart.update();
     });
   }
-
-  /* ---- En qué se va ---- */
-  var elCat = document.getElementById('chartCategorias');
-  if (!elCat) return;
-
-  var catData = {{ cat_data_json|safe }};
-  var catLabels = {{ cat_labels_json|safe }};
-  var catColores = {{ cat_colores_json|safe }};
-  var total = catData.reduce(function (a, b) { return a + b; }, 0);
-
-  var dona = new Chart(elCat, {
-    type: 'doughnut',
-    data: {
-      labels: catLabels,
-      datasets: [{
-        data: catData, backgroundColor: catColores,
-        // El borde tiene que ser el color de la tarjeta, no del fondo de la
-        // página: la dona vive dentro de una superficie #383838.
-        borderColor: '#383838', borderWidth: 3, hoverOffset: 10
-      }]
-    },
-    options: {
-      responsive: true, maintainAspectRatio: false, cutout: '68%',
-      plugins: {
-        legend: { display: false },
-        tooltip: Object.assign({}, tooltip, {
-          callbacks: {
-            label: function (c) {
-              var pct = total ? Math.round(c.parsed / total * 100) : 0;
-              return ' $' + Math.round(c.parsed).toLocaleString('es-CL') + ' · ' + pct + '%';
-            }
-          }
-        })
-      }
-    }
-  });
-
-  var activa = null;
-  document.querySelectorAll('.cat-row').forEach(function (row) {
-    row.addEventListener('click', function () {
-      var i = Number(row.dataset.indice);
-      activa = (activa === i) ? null : i;
-      document.querySelectorAll('.cat-row').forEach(function (r) {
-        var on = activa !== null && Number(r.dataset.indice) === activa;
-        r.style.background = on ? 'rgba(255,170,44,.14)' : 'none';
-        r.style.borderColor = on ? 'rgba(255,170,44,.24)' : 'transparent';
-      });
-      dona.data.datasets[0].backgroundColor = catColores.map(function (c, k) {
-        return (activa === null || k === activa) ? c : 'rgba(255,255,255,.07)';
-      });
-      dona.update();
-    });
-  });
 })();
 </script>
 {% endblock %}

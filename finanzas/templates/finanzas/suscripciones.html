@@ -56,9 +56,15 @@
   {% for s in suscripciones %}
   <div class="sub-row" data-searchable {% if not s.activa %}style="opacity:.55"{% endif %}>
 
-    <span style="width:36px;height:36px;border-radius:12px;flex-shrink:0;display:flex;align-items:center;justify-content:center;
-                 font-family:'Manrope',sans-serif;font-size:14px;font-weight:600;
-                 background:rgba(255,170,44,.13);border:1px solid rgba(255,170,44,.26);color:var(--amber-claro)">{{ s.inicial }}</span>
+    {% comment %}
+      El logo de la plataforma cuando Font Awesome lo tiene; si no, la
+      inicial sobre el color de la marca. Netflix, Disney+ y HBO no existen
+      como icono, y ese color ya los identifica.
+    {% endcomment %}
+    <span class="marca-tile" style="background:{{ s.marca.color }}1f;color:{{ s.marca.color }};
+                 {% if not s.marca.reconocida %}border:1px solid rgba(255,170,44,.26){% endif %}">
+      {% if s.marca.usa_inicial %}{{ s.inicial }}{% else %}<i class="{{ s.marca.icono }}"></i>{% endif %}
+    </span>
 
     <div class="row-main">
       <div class="row-title" style="font-size:13px;{% if not s.activa %}text-decoration:line-through;color:var(--text-muted){% endif %}">

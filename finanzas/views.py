@@ -14,6 +14,7 @@ from django.contrib.auth.forms import PasswordChangeForm, UserCreationForm
 from django.db.models import Count, F, Sum
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import NoReverseMatch, reverse
 from django.utils import timezone
 
 from .forms import DeudaForm, MetaAhorroForm, TransaccionForm
@@ -50,12 +51,46 @@ def get_or_create_profile(user):
 def _redirigir(request, por_defecto='dashboard'):
     """Vuelve a la pantalla desde la que se hizo la acción.
 
-    Antes todo redirigía a 'dashboard', así que pagar una cuota desde la
-    pantalla de cuotas te sacaba de ahí. Ahora respeta ?next=.
+    El campo 'next' llega en tres formas y hay que distinguirlas, porque
+    redirect() interpreta como NOMBRE DE VISTA cualquier cadena que no
+    empiece por '/' o 'http':
+
+      '/cuotas/'                  → una ruta: se usa tal cual
+      '?year=2026&month=8'        → solo la consulta: hay que pegarle la ruta
+                                     actual, o redirect() la toma por nombre
+                                     de vista y revienta con NoReverseMatch
+      'deudas'                    → un nombre de ruta
+
+    Además se rechaza cualquier destino externo ('//otro.com' o
+    'http://…'): un 'next' que sale del sitio es una redirección abierta.
     """
-    destino = request.POST.get('next') or request.GET.get('next')
-    if destino:
+    destino = (request.POST.get('next') or request.GET.get('next') or '').strip()
+
+    if not destino:
+        return redirect(por_defecto)
+
+    # Solo la cadena de consulta: se completa con la ruta de la que vino.
+    if destino.startswith('?'):
+        base = request.POST.get('next_path') or request.path
+        # request.path es la URL de la ACCIÓN (por ejemplo
+        # /suscripciones/pagar/4/), no la de la pantalla. Si no viene un
+        # next_path explícito se cae a la pantalla por defecto con la
+        # consulta pegada, que es lo único razonable.
+        if base == request.path:
+            base = reverse(por_defecto)
+        return redirect(f'{base}{destino}')
+
+    # Ruta interna.
+    if destino.startswith('/') and not destino.startswith('//'):
         return redirect(destino)
+
+    # Nombre de ruta. Si no existe, no se rompe la acción por un 'next' malo.
+    if '/' not in destino and ':' not in destino:
+        try:
+            return redirect(destino)
+        except NoReverseMatch:
+            pass
+
     return redirect(por_defecto)
 
 
@@ -792,6 +827,22 @@ def dashboard(request):
     dias_semana = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo']
     context['hoy_texto'] = (f'{dias_semana[hoy.weekday()]}, {hoy.day} '
                             f'{MESES_LARGOS[hoy.month - 1]} {hoy.year}')
+
+    # La variación del saldo contra el mes anterior: es el dato que da
+    # sentido al gráfico ("vas mejor o peor que el mes pasado").
+    f_ant = date(year, month, 1) - relativedelta(months=1)
+    r_ant = resumen_mes(request.user, f_ant.year, f_ant.month)
+    saldo_ant = r_ant['disponible']
+    if saldo_ant:
+        var_saldo = round((r['disponible'] - saldo_ant) / abs(saldo_ant) * 100)
+        context['variacion_saldo'] = var_saldo
+        context['variacion_saldo_abs'] = abs(var_saldo)
+    else:
+        # Sin mes anterior con datos no hay con qué comparar; el template
+        # esconde la píldora en vez de mostrar un 0% que no significa nada.
+        context['variacion_saldo'] = None
+        context['variacion_saldo_abs'] = None
+    context['mes_anterior_nombre'] = MESES_LARGOS[f_ant.month - 1]
 
     context['mapa_categorias'] = Categoria.mapa(request.user)
     context.update(contadores(request.user))

@@ -122,6 +122,22 @@ class Transaccion(models.Model):
         return self.COLORES_CATEGORIA.get(self.categoria, self.COLORES_CATEGORIA['Otros'])
 
     @property
+    def marca_suscripcion(self):
+        """Si el movimiento es el cobro de una suscripción, el icono y color
+        de la plataforma. Así la lista de movimientos se lee de un vistazo en
+        vez de mostrar la misma flecha para todo."""
+        desc = self.descripcion or ''
+        if not desc.startswith('Suscripción: '):
+            return None
+        nombre = desc[len('Suscripción: '):].lower()
+        for clave, icono, color in Suscripcion.MARCAS:
+            if clave in nombre:
+                return {'icono': icono, 'color': color,
+                        'usa_inicial': icono is None,
+                        'inicial': (nombre or '?')[0].upper()}
+        return None
+
+    @property
     def icono(self):
         """Icono Font Awesome según la categoría."""
         iconos = {
@@ -987,6 +1003,76 @@ class Suscripcion(models.Model):
 
     def __str__(self):
         return f"{self.nombre} — {self.monto}/mes"
+
+    # Marcas reconocidas: icono de Font Awesome y color oficial.
+    #
+    # Font Awesome trae los logos de algunas plataformas pero no de todas
+    # (Netflix, Disney+, HBO y Max no existen como icono). Para esas se usa
+    # la inicial sobre el color de la marca, que se reconoce igual de rápido
+    # y no obliga a incrustar SVG de logos ajenos.
+    #
+    # El orden importa: se busca por subcadena, así que "apple tv" tiene que
+    # ir antes que "apple".
+    MARCAS = [
+        ('netflix',      None,                  '#e50914'),
+        ('spotify',      'fa-brands fa-spotify', '#1db954'),
+        ('youtube',      'fa-brands fa-youtube', '#ff0000'),
+        ('twitch',       'fa-brands fa-twitch',  '#9146ff'),
+        ('disney',       None,                  '#1a3fd4'),
+        ('star+',        None,                  '#1a3fd4'),
+        ('hbo',          None,                  '#9b26f4'),
+        ('max',          None,                  '#9b26f4'),
+        ('prime',        'fa-brands fa-amazon',  '#ff9900'),
+        ('amazon',       'fa-brands fa-amazon',  '#ff9900'),
+        ('apple',        'fa-brands fa-apple',   '#f5f5f5'),
+        ('icloud',       'fa-brands fa-apple',   '#f5f5f5'),
+        ('itunes',       'fa-brands fa-apple',   '#f5f5f5'),
+        ('google',       'fa-brands fa-google',  '#4285f4'),
+        ('microsoft',    'fa-brands fa-microsoft', '#00a4ef'),
+        ('office',       'fa-brands fa-microsoft', '#00a4ef'),
+        ('xbox',         'fa-brands fa-xbox',    '#107c10'),
+        ('playstation',  'fa-brands fa-playstation', '#0070d1'),
+        ('steam',        'fa-brands fa-steam',   '#66c0f4'),
+        ('discord',      'fa-brands fa-discord', '#5865f2'),
+        ('dropbox',      'fa-brands fa-dropbox', '#0061ff'),
+        ('figma',        'fa-brands fa-figma',   '#f24e1e'),
+        ('deezer',       'fa-brands fa-deezer',  '#a238ff'),
+        ('soundcloud',   'fa-brands fa-soundcloud', '#ff5500'),
+        ('tidal',        None,                  '#00ffff'),
+        ('crunchyroll',  None,                  '#f47521'),
+        ('paramount',    None,                  '#0064ff'),
+        ('canva',        None,                  '#00c4cc'),
+        ('adobe',        None,                  '#ed2224'),
+        ('chatgpt',      None,                  '#10a37f'),
+        ('openai',       None,                  '#10a37f'),
+        ('claude',       None,                  '#d97757'),
+        ('notion',       None,                  '#f5f5f5'),
+        ('duolingo',     None,                  '#58cc02'),
+        ('gimnasio',     'fas fa-dumbbell',      '#53d258'),
+        ('gym',          'fas fa-dumbbell',      '#53d258'),
+        ('internet',     'fas fa-wifi',          '#4b8cff'),
+        ('seguro',       'fas fa-shield-halved', '#4b8cff'),
+    ]
+
+    @property
+    def marca(self):
+        """Icono y color de la plataforma, si se reconoce por el nombre.
+
+        Devuelve un dict listo para el template. Cuando no hay icono se
+        marca usa_inicial y el template pinta la letra sobre el color.
+        """
+        nombre = (self.nombre or "").lower()
+        for clave, icono, color in self.MARCAS:
+            if clave in nombre:
+                return {
+                    'icono': icono, 'color': color,
+                    'usa_inicial': icono is None,
+                    'reconocida': True,
+                }
+        return {
+            'icono': 'fas fa-rotate', 'color': '#ffaa2c',
+            'usa_inicial': False, 'reconocida': False,
+        }
 
     @property
     def inicial(self):
