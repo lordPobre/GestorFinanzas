@@ -121,6 +121,12 @@ h1, h2, h3, h4 { margin: 0; font-weight: 700; letter-spacing: -.015em; }
 .hero-line b { font-weight: 800; color: var(--amber); }
 .stat-value { font-family: 'Manrope', sans-serif; font-size: 26px; font-weight: 800; letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
 .stat-note { font-size: 11.5px; color: var(--text-muted); margin-top: 7px; line-height: 1.5; }
+/* Visibilidad por franja de ancho:
+   .solo-ancho  → escritorio (>1000px)
+   .solo-medio  → tablet (720–1000px)
+   Bajo 720px el topbar desaparece y manda el botón flotante. */
+.solo-medio { display: none !important; }
+
 .visually-hidden {
   position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
   overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
@@ -524,6 +530,11 @@ label { display: block; }
   .grid-metrics { grid-template-columns: repeat(4, 1fr); }
 }
 .grid-chart   { display: grid; grid-template-columns: 1.5fr 1fr; gap: 16px; margin-bottom: 18px; align-items: start; }
+/* Proporciones como clase, no en línea: un estilo en línea gana sobre las
+   consultas de medios y la cuadrícula nunca colapsaría en el teléfono. */
+.grid-chart.par       { grid-template-columns: 1fr 1fr; }
+.grid-chart.ancho-izq { grid-template-columns: 1.4fr 1fr; }
+.grid-chart.ancho-der { grid-template-columns: 1fr 1.25fr; }
 .grid-pagos   { display: grid; grid-template-columns: 1fr 1.15fr; gap: 16px; margin-bottom: 18px; align-items: start; }
 .grid-registro{ display: grid; grid-template-columns: 1.35fr 1fr; gap: 16px; align-items: start; }
 .grid-cards   { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
@@ -532,7 +543,8 @@ label { display: block; }
 .grid-registro > :only-child { grid-column: 1 / -1; }
 
 @media (max-width: 1100px) {
-  .grid-chart, .grid-pagos, .grid-registro, .grid-detail, .grid-bottom {
+  .grid-chart, .grid-chart.par, .grid-chart.ancho-izq, .grid-chart.ancho-der,
+  .grid-pagos, .grid-registro, .grid-detail, .grid-bottom {
     grid-template-columns: 1fr;
   }
 }
@@ -543,13 +555,17 @@ label { display: block; }
    apretujen. */
 @container contenido (min-width: 860px) {
   .grid-chart   { grid-template-columns: 1.5fr 1fr; }
+  .grid-chart.par       { grid-template-columns: 1fr 1fr; }
+  .grid-chart.ancho-izq { grid-template-columns: 1.4fr 1fr; }
+  .grid-chart.ancho-der { grid-template-columns: 1fr 1.25fr; }
   .grid-pagos   { grid-template-columns: 1fr 1.15fr; }
   .grid-registro{ grid-template-columns: 1.35fr 1fr; }
   .grid-detail  { grid-template-columns: 320px 1fr; }
   .grid-bottom  { grid-template-columns: 1fr 1.2fr; }
 }
 @container contenido (max-width: 859px) {
-  .grid-chart, .grid-pagos, .grid-registro, .grid-detail, .grid-bottom {
+  .grid-chart, .grid-chart.par, .grid-chart.ancho-izq, .grid-chart.ancho-der,
+  .grid-pagos, .grid-registro, .grid-detail, .grid-bottom {
     grid-template-columns: 1fr;
   }
 }
@@ -895,24 +911,46 @@ label { display: block; }
 
 /* ===== Panel de registro =====
    Dos columnas en escritorio: el teclado a la izquierda, la categoría y el
-   resto a la derecha. Apilado el teclado empujaba las categorías fuera de
-   la pantalla, y es lo que más se usa de la app. */
-/* El panel de registro reutiliza .drawer-box, que fija 270px para el cajón
-   del menú. Acá hace falta ancho para las dos columnas. */
-.drawer-box.registro-box {
-  position: static; width: 100%; max-width: 720px;
-  border-radius: var(--r-xl); padding: 24px;
+   resto a la derecha. Apilado, el teclado empujaba las categorías fuera de
+   la pantalla, y es lo que más se usa de la app.
+
+   Tiene su propio overlay en vez de reutilizar el del cajón lateral: ahí
+   dos clases se peleaban el display y hacía falta un :has() para
+   distinguirlas. */
+.registro-overlay {
+  position: fixed; inset: 0; z-index: 200; display: none;
+  align-items: center; justify-content: center; padding: 20px;
+  background: rgba(0, 0, 0, .72);
+  animation: fadeIn .2s var(--ease-out);
+}
+.registro-overlay.open { display: flex; }
+
+.registro-box {
+  width: 100%; max-width: 720px;
+  /* Puede encoger (en flex el hijo no baja de su min-content si no se le
+     dice) y nunca pasa del ancho ni del alto disponibles. */
+  min-width: 0; box-sizing: border-box;
+  max-height: 90vh; overflow-y: auto;
+  padding: 24px; border-radius: var(--r-xl);
+  background: var(--bg-elev);
   animation: modalUp .28s var(--ease-out);
 }
+
 @media (max-width: 640px) {
-  .drawer-box.registro-box {
-    max-width: none; border-radius: var(--r-xl) var(--r-xl) 0 0;
+  /* Hoja pegada al fondo, a todo el ancho: en un teléfono el pulgar está
+     abajo, y centrar un diálogo más ancho que la pantalla lo recorta por
+     los dos lados. */
+  .registro-overlay { align-items: flex-end; padding: 0; }
+  .registro-box {
+    max-width: none; max-height: 92vh;
+    border-radius: var(--r-xl) var(--r-xl) 0 0;
     padding: 22px 18px calc(24px + env(safe-area-inset-bottom));
     animation: hojaSube .3s var(--ease-out);
   }
 }
+
 .registro-grid {
-  display: grid; grid-template-columns: 232px 1fr; gap: 22px;
+  display: grid; grid-template-columns: 232px minmax(0, 1fr); gap: 22px;
   align-items: start; margin-bottom: 20px;
 }
 .registro-monto { min-width: 0; }
@@ -921,10 +959,22 @@ label { display: block; }
 .registro-monto .keypad button { padding: 13px 0; font-size: 17px; }
 .registro-datos { min-width: 0; }
 
+/* Guardar queda pegado al fondo del panel. La sombra del mismo color que el
+   panel tapa el contenido que pasa por detrás. */
+.registro-box form > .btn-block:last-child {
+  position: sticky; bottom: 0; z-index: 2;
+  box-shadow: 0 -16px 18px 6px var(--bg-elev);
+}
+
 @media (max-width: 640px) {
   /* Una columna, y el teclado más bajo para que la categoría quede a la
      vista sin desplazarse. */
-  .registro-grid { grid-template-columns: 1fr; gap: 16px; }
+  .registro-grid { grid-template-columns: minmax(0, 1fr); gap: 16px; }
+
+  /* Un nombre largo de categoría envuelve en vez de estirar el panel: el
+     nowrap sirve en escritorio, donde hay ancho de sobra, pero en 390px es
+     lo que empujaba el diálogo fuera de la pantalla. */
+  .registro-datos .chip { white-space: normal; text-align: center; }
   .registro-monto .amount-display { padding: 4px 0 12px; font-size: 27px; }
   .registro-monto .keypad button { padding: 11px 0; font-size: 16px; }
 }
@@ -1070,12 +1120,6 @@ select:focus-visible, textarea:focus-visible, [tabindex]:focus-visible {
   background: rgba(0, 0, 0, .6);
 }
 .drawer-overlay.open { display: block; }
-/* Con el panel de registro se comporta como diálogo centrado */
-.drawer-overlay:has(.registro-box) { display: none; align-items: center; justify-content: center; padding: 20px; }
-.drawer-overlay:has(.registro-box).open { display: flex; }
-@media (max-width: 640px) {
-  .drawer-overlay:has(.registro-box) { align-items: flex-end; padding: 0; }
-}
 .drawer-box {
   position: absolute; top: 0; left: 0; bottom: 0; width: 270px; max-width: 100%;
   padding: 22px 16px; overflow-y: auto;
@@ -1140,12 +1184,12 @@ select:focus-visible, textarea:focus-visible, [tabindex]:focus-visible {
   .topbar { gap: 10px; padding: 20px 22px 0; }
   .search { min-width: 0; flex: 1 1 150px; }
   .search .kbd { display: none; }
-  /* Con la píldora de mes del dashboard, el saludo + buscador + dos botones
-     con texto no caben y uno se caía a una segunda fila. Los botones quedan
-     en icono (el title los explica) y todo entra en una línea. */
-  .topbar > .btn > span,
+  /* Con la píldora de mes del dashboard no caben dos botones con texto: se
+     cambian por uno solo. Un icono sin etiqueta no sirve acá — la flecha de
+     ingreso y el más de gasto se confunden. */
+  .solo-ancho { display: none !important; }
+  .solo-medio { display: inline-flex !important; }
   .topbar .saludo-sub { display: none; }
-  .topbar > .btn { padding: 11px 14px; }
 }
 
 @media (max-width: 720px) {
@@ -1153,12 +1197,38 @@ select:focus-visible, textarea:focus-visible, [tabindex]:focus-visible {
   /* Sin topbar en móvil, el padding superior vuelve a .main. */
   .main, .topbar + .main { padding: 18px 16px calc(var(--bottombar-h) + 26px); }
   .sub-row { padding-left: 16px; padding-right: 16px; }
+
+  /* ===== Formularios en móvil =====
+     .form-row es flex con min-width:120px por campo, así que dos campos
+     seguían lado a lado en 390px: unos 150px cada uno. En ese ancho el
+     control nativo de fecha se corta, el monto grande no cabe y las
+     etiquetas de dos palabras se parten. Un campo por fila.
+
+     Pasa a grid a propósito: los style="flex:1.5" que traen algunas
+     plantillas se ignoran en un grid item, así que no hay que quitarlos
+     uno por uno para que las columnas queden parejas. */
+  .form-row {
+    display: grid; grid-template-columns: 1fr;
+    gap: 16px; margin-bottom: 16px;
+  }
+  .form-row > div { min-width: 0; }
+
+  /* El monto grande centrado: 22px con 16px de padding deja el cursor casi
+     pegado al borde en un campo estrecho. */
+  .input-amount { font-size: 19px; padding: 14px; }
+
+  /* Un input de fecha o de número no debe imponer su ancho preferido. */
+  input[type=date], input[type=number] { min-width: 0; }
+
+  /* Los chips de un formulario envuelven en dos líneas si hace falta, en
+     vez de estirar la tarjeta. */
+  .field .chip, .form-row .chip { white-space: normal; text-align: center; }
   .glass > .row, .glass > .row-list > .row { padding-left: 16px; padding-right: 16px; }
   .bottomnav { display: flex; }
   .fab-group { display: flex; }
   .fab-group .fab { display: flex; }
   .grid-metrics { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
-  .hide-mobile { display: none !important; }
+  .hide-mobile, .solo-medio, .solo-ancho { display: none !important; }
   .page-title { font-size: 19px; }
   .stat-value { font-size: 22px; }
   .card, .card-lg { padding: 18px; }

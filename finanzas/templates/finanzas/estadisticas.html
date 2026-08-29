@@ -58,26 +58,42 @@
   </div>
 </div>
 
-{# ============ Entra vs. sale ============ #}
-<div class="glass card" style="padding:22px;margin-bottom:16px" data-spot>
-  <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;margin-bottom:14px">
+{% comment %}
+  El mismo gráfico de Inicio: dos líneas y el hueco entre ellas. Acá con 12
+  meses por defecto, que es lo que se viene a ver a Estadísticas.
+{% endcomment %}
+<div class="glass card-lg flujo-panel" data-spot style="margin-bottom:16px">
+
+  <div class="flujo-cabecera">
     <div>
-      <div class="modal-title" style="font-size:15px;font-weight:500">Entra vs. sale</div>
-      <div class="hint" style="font-size:11.5px;margin-top:3px">Pasa el cursor por un mes para ver el detalle</div>
+      <div class="label" style="margin-bottom:6px">Ahorro del último año</div>
+      <div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap">
+        <span class="display" style="font-size:30px;line-height:1;color:{% if ahorro_anual >= 0 %}var(--green){% else %}var(--coral){% endif %}">
+          {{ ahorro_anual|money }}
+        </span>
+        <span class="flujo-delta {% if tasa_ahorro >= 0 %}sube{% else %}baja{% endif %}">
+          {{ tasa_ahorro }}% de lo que entró
+        </span>
+      </div>
     </div>
+
     <div class="seg" style="padding:3px" id="segRango">
       <button type="button" data-meses="3">3M</button>
       <button type="button" data-meses="6">6M</button>
       <button type="button" class="on" data-meses="12">1 año</button>
     </div>
   </div>
-  <div style="position:relative;height:260px">
-    <canvas id="chartFlujo" data-om-raster></canvas>
-  </div>
-</div>
 
+  <div class="flujo-leyenda">
+    <span><i class="punto" style="background:var(--green)"></i>Entra</span>
+    <span><i class="punto" style="background:var(--coral)"></i>Sale</span>
+    <span class="flujo-pista">Desliza sobre el gráfico para ver cada mes</span>
+  </div>
+
+  <div class="flujo-lienzo"><canvas id="chartFlujo" data-om-raster></canvas></div>
+</div>
 {# ============ Ranking de categorías ============ #}
-<div class="grid-chart" style="grid-template-columns:1.4fr 1fr">
+<div class="grid-chart ancho-izq">
 
   <div class="glass card" style="padding:22px" data-spot>
     <div class="modal-title" style="font-size:15px;font-weight:500">Ranking de categorías</div>
@@ -131,70 +147,230 @@
 
 {% block extra_js %}
 <script>
+
+/* ============================================================
+   2. EL GRÁFICO
+   Chart.js dibuja sobre canvas, así que nada de aquí puede leer variables
+   CSS: todos los colores van literales.
+   ============================================================ */
 (function () {
-  var GRID = 'rgba(255,255,255,.055)';
-  var TICK = 'var(--text-muted)';
-  var FONT = "'Manrope', sans-serif";
+  var el = document.getElementById('chartFlujo');
+  if (!el || typeof Chart === 'undefined') return;
+
+  var VERDE = '#53d258', CORAL = '#e25c5c';
+  var TICK  = 'rgba(245,245,245,.38)';
+  var TEXTO = 'rgba(245,245,245,.72)';
+  var FONT  = "'Manrope', sans-serif";
+  var quieto = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   var meses = {{ meses_json|safe }};
   var ingresos = {{ ingresos_json|safe }};
-  var gastos = {{ gastos_json|safe }};
+  /* En esta pantalla la vista ya suma las cuotas dentro de gastos. */
+  var salidas = {{ gastos_json|safe }};
 
   function pesos(v) { return '$' + Math.round(v).toLocaleString('es-CL'); }
+  function corto(v) {
+    v = Math.abs(v);
+    if (v >= 1000000) return '$' + (v / 1000000).toFixed(1).replace('.', ',').replace(',0', '') + 'M';
+    if (v >= 1000) return '$' + Math.round(v / 1000) + 'k';
+    return '$' + Math.round(v);
+  }
 
-  var tooltip = {
-    backgroundColor: 'rgba(33,33,33,.96)',
-    borderColor: 'rgba(255,170,44,.28)',
-    borderWidth: 1,
-    titleFont: { family: "'Manrope', sans-serif", size: 12, weight: '600' },
-    bodyFont: { family: FONT, size: 12 },
-    padding: 13,
-    cornerRadius: 14,
-    displayColors: true,
-    boxWidth: 8, boxHeight: 8, boxPadding: 5, usePointStyle: true,
-    callbacks: { label: function (c) { return ' ' + c.dataset.label + ': ' + pesos(c.parsed.y); } }
+  /* ---- Punto vivo en el mes actual ----
+     Un halo sobre el último dato: marca dónde estás parado en la serie. */
+  var faro = {
+    id: 'faro',
+    afterDatasetsDraw: function (chart) {
+      var meta = chart.getDatasetMeta(0);
+      if (!meta.data.length) return;
+      var p = meta.data[meta.data.length - 1];
+      if (!p) return;
+      var c = chart.ctx;
+      var t = chart.$pulso || 0;
+      c.save();
+      c.beginPath();
+      c.arc(p.x, p.y, 5 + t * 7, 0, Math.PI * 2);
+      c.fillStyle = 'rgba(83,210,88,' + (0.22 * (1 - t)) + ')';
+      c.fill();
+      c.beginPath();
+      c.arc(p.x, p.y, 4.5, 0, Math.PI * 2);
+      c.fillStyle = VERDE;
+      c.fill();
+      c.strokeStyle = '#383838';
+      c.lineWidth = 2.5;
+      c.stroke();
+      c.restore();
+    },
   };
 
-  var flujo = new Chart(document.getElementById('chartFlujo'), {
-    type: 'bar',
+  /* Rango del eje a partir de los datos con movimiento. Los meses en cero se
+     excluyen del mínimo: uno solo hundiría la escala y aplanaría el resto. */
+  function rango(series) {
+    var vals = [];
+    series.forEach(function (s) {
+      s.forEach(function (v) { if (v > 0) vals.push(v); });
+    });
+    if (!vals.length) return { piso: 0, techo: 100000 };
+    var min = Math.min.apply(null, vals);
+    var max = Math.max.apply(null, vals);
+    var margen = Math.max((max - min) * 0.35, max * 0.08);
+    return { piso: Math.max(0, min - margen), techo: max + margen };
+  }
+  var r0 = rango([ingresos, salidas]);
+  var piso = r0.piso, techo = r0.techo;
+
+  var chart = new Chart(el, {
+    type: 'line',
     data: {
       labels: meses,
       datasets: [
-        { label: 'Entró', data: ingresos, backgroundColor: 'rgba(52,211,153,.85)',
-          borderRadius: 7, borderSkipped: false, maxBarThickness: 22 },
-        { label: 'Salió', data: gastos, backgroundColor: 'rgba(251,113,133,.85)',
-          borderRadius: 7, borderSkipped: false, maxBarThickness: 22 }
-      ]
+        {
+          label: 'Entra', data: ingresos,
+          borderColor: VERDE, borderWidth: 2.5,
+          /* El relleno va HASTA la otra línea: el hueco entre ambas es el
+             ahorro. Verde si entra más, coral si sale más — el mismo par de
+             líneas cuenta las dos situaciones sin cambiar de gráfico. */
+          fill: { target: '+1',
+                  above: 'rgba(83,210,88,.17)',
+                  below: 'rgba(226,92,92,.17)' },
+          tension: 0.38,
+          pointRadius: 0,
+          pointHoverRadius: 6,
+          pointHoverBackgroundColor: VERDE,
+          pointHoverBorderColor: '#383838',
+          pointHoverBorderWidth: 2.5,
+        },
+        {
+          label: 'Sale', data: salidas,
+          borderColor: CORAL, borderWidth: 2.5,
+          fill: false,
+          tension: 0.38,
+          pointRadius: 0,
+          pointHoverRadius: 6,
+          pointHoverBackgroundColor: CORAL,
+          pointHoverBorderColor: '#383838',
+          pointHoverBorderWidth: 2.5,
+        },
+      ],
     },
     options: {
       responsive: true, maintainAspectRatio: false,
-      interaction: { mode: 'index', intersect: false },
+      animation: quieto ? false : { duration: 900, easing: 'easeOutQuart' },
+      interaction: { mode: 'index', intersect: false, axis: 'x' },
+      layout: { padding: { top: 10, right: 4, bottom: 0, left: 0 } },
       plugins: {
-        legend: { labels: { color: TICK, font: { family: FONT, size: 11 }, usePointStyle: true, boxWidth: 7, padding: 16 } },
-        tooltip: tooltip
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: 'rgba(24,24,24,.97)',
+          borderColor: 'rgba(255,255,255,.1)',
+          borderWidth: 1,
+          titleColor: '#f5f5f5',
+          titleFont: { family: FONT, size: 12.5, weight: '800' },
+          bodyColor: TEXTO,
+          bodyFont: { family: FONT, size: 12 },
+          footerColor: '#ffaa2c',
+          footerFont: { family: FONT, size: 11.5, weight: '700' },
+          padding: 14, cornerRadius: 14, caretSize: 6,
+          usePointStyle: true, boxWidth: 8, boxHeight: 8, boxPadding: 6,
+          callbacks: {
+            label: function (c) { return ' ' + c.dataset.label + ': ' + pesos(c.parsed.y); },
+            /* El saldo del mes, que antes había que restar a ojo. */
+            footer: function (items) {
+              if (items.length < 2) return '';
+              var i = items[0].dataIndex;
+              var saldo = (chart.data.datasets[0].data[i] || 0) - (chart.data.datasets[1].data[i] || 0);
+              return (saldo >= 0 ? '↑ Te quedaron ' : '↓ Te faltaron ') + pesos(Math.abs(saldo));
+            },
+          },
+        },
       },
       scales: {
-        x: { grid: { display: false }, border: { display: false },
-             ticks: { color: TICK, font: { family: FONT, size: 11 } } },
-        y: { grid: { color: GRID }, border: { display: false },
-             ticks: { color: TICK, font: { family: FONT, size: 10 },
-                      callback: function (v) { return '$' + (v / 1000) + 'k'; } } }
-      }
-    }
+        x: {
+          grid: { display: false },
+          border: { color: 'rgba(255,255,255,.08)' },
+          ticks: { color: TICK, font: { family: FONT, size: 11, weight: '600' },
+                   maxRotation: 0, minRotation: 0, padding: 8 },
+        },
+        y: {
+          /* Sin rejilla horizontal: en un gráfico de área las líneas cruzadas
+             ensucian el degradado. Solo tres referencias al margen. */
+          grid: { display: false },
+          border: { display: false },
+          /* El eje se ajusta a los datos en vez de arrancar en cero: con
+             cero, dos series que se mueven entre 500k y 850k quedaban
+             aplastadas en el tercio superior y toda variación se veía plana.
+             El 20% de holgura evita que las líneas toquen los bordes. */
+          min: piso, max: techo,
+          ticks: { color: TICK, font: { family: FONT, size: 10.5 },
+                   maxTicksLimit: 3, padding: 10, callback: corto },
+        },
+      },
+    },
+    plugins: [faro],
   });
 
-  /* Rango: recorta la serie sin volver al servidor */
-  document.getElementById('segRango').addEventListener('click', function (e) {
-    var b = e.target.closest('button'); if (!b) return;
-    this.querySelectorAll('button').forEach(function (x) { x.classList.remove('on'); });
-    b.classList.add('on');
-    var n = Number(b.dataset.meses);
-    flujo.data.labels = meses.slice(-n);
-    flujo.data.datasets[0].data = ingresos.slice(-n);
-    flujo.data.datasets[1].data = gastos.slice(-n);
-    flujo.update();
-  });
+  /* El halo del último punto respira. Se detiene si el sistema pide menos
+     movimiento, y también cuando la pestaña no está visible: si no, el
+     navegador acumula cuadros y el gráfico se traba al volver. */
+  if (!quieto) {
+    var t0 = null;
+    (function pulsar(ts) {
+      if (t0 === null) t0 = ts;
+      var ciclo = ((ts - t0) % 2200) / 2200;
+      chart.$pulso = ciclo;
+      chart.draw();
+      if (!document.hidden) window.requestAnimationFrame(pulsar);
+      else window.setTimeout(function () { window.requestAnimationFrame(pulsar); }, 400);
+    })(0);
+  }
 
+  var conDatos = meses.filter(function (m, i) { return ingresos[i] > 0 || salidas[i] > 0; }).length;
+  if (conDatos <= 1) {
+    var nota = document.getElementById('notaPocoHistorial');
+    if (nota) nota.style.display = 'block';
+  }
+
+  var seg = document.getElementById('segRango');
+  if (seg) {
+    seg.addEventListener('click', function (e) {
+      var b = e.target.closest('button');
+      if (!b) return;
+      seg.querySelectorAll('button').forEach(function (x) { x.classList.remove('on'); });
+      b.classList.add('on');
+      var n = Number(b.dataset.meses);
+      chart.data.labels = meses.slice(-n);
+      chart.data.datasets[0].data = ingresos.slice(-n);
+      chart.data.datasets[1].data = salidas.slice(-n);
+      var r = rango([ingresos.slice(-n), salidas.slice(-n)]);
+      chart.options.scales.y.min = r.piso;
+      chart.options.scales.y.max = r.techo;
+      chart.update();
+    });
+  }
+})();
+
+</script>
+
+<script>
+(function () {
+  if (typeof Chart === 'undefined') return;
+  var TICK = 'rgba(245,245,245,.42)';
+  var TEXTO = 'rgba(245,245,245,.72)';
+  var GRID = 'rgba(255,255,255,.06)';
+  var FONT = "'Manrope', sans-serif";
+  var tooltip = {
+    backgroundColor: 'rgba(24,24,24,.97)', borderColor: 'rgba(255,255,255,.1)', borderWidth: 1,
+    titleColor: '#f5f5f5', titleFont: { family: FONT, size: 12.5, weight: '700' },
+    bodyColor: TEXTO, bodyFont: { family: FONT, size: 12 },
+    padding: 13, cornerRadius: 14, boxPadding: 5, usePointStyle: true,
+    callbacks: { label: function (c) { return ' ' + c.dataset.label + ': $' + Math.round(c.parsed.x || c.parsed.y).toLocaleString('es-CL'); } }
+  };
+  function corto(v) {
+    v = Math.abs(v);
+    if (v >= 1000000) return '$' + (v / 1000000).toFixed(1).replace('.', ',').replace(',0', '') + 'M';
+    if (v >= 1000) return '$' + Math.round(v / 1000) + 'k';
+    return '$' + Math.round(v);
+  }
   /* Cuotas activas: cuota mensual vs. lo que falta */
   var cuotasEl = document.getElementById('chartCuotas');
   var labels = {{ labels_json|safe }};
@@ -204,10 +380,14 @@
       data: {
         labels: labels,
         datasets: [
+          /* Ámbar lo que pagas cada mes, gris claro lo que aún resta: los
+             dos tonos dicen de qué lado está cada barra sin leer la leyenda. */
           { label: 'Cuota al mes', data: {{ data_json|safe }},
-            backgroundColor: 'var(--amber)', borderRadius: 6, borderSkipped: false, maxBarThickness: 16 },
+            backgroundColor: '#ffaa2c', hoverBackgroundColor: '#ffbb56',
+            borderRadius: 6, borderSkipped: false, maxBarThickness: 15 },
           { label: 'Te falta', data: {{ data_restante_json|safe }},
-            backgroundColor: 'rgba(255,255,255,.12)', borderRadius: 6, borderSkipped: false, maxBarThickness: 16 }
+            backgroundColor: 'rgba(245,245,245,.26)', hoverBackgroundColor: 'rgba(245,245,245,.4)',
+            borderRadius: 6, borderSkipped: false, maxBarThickness: 15 }
         ]
       },
       options: {
@@ -220,9 +400,9 @@
         scales: {
           x: { grid: { color: GRID }, border: { display: false },
                ticks: { color: TICK, font: { family: FONT, size: 10 },
-                        callback: function (v) { return '$' + (v / 1000) + 'k'; } } },
+                        callback: corto } },
           y: { grid: { display: false }, border: { display: false },
-               ticks: { color: 'var(--text-secondary)', font: { family: FONT, size: 11 } } }
+               ticks: { color: 'rgba(245,245,245,.72)', font: { family: FONT, size: 11, weight: '600' } } }
         }
       }
     });

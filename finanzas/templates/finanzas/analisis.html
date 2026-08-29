@@ -135,7 +135,7 @@
 </div>
 
 {# ============ Por qué ese riesgo ============ #}
-<div class="grid-chart" style="grid-template-columns:1fr 1.25fr;margin-bottom:16px">
+<div class="grid-chart ancho-der" style="margin-bottom:16px">
 
   <div class="glass card" style="padding:22px" data-spot>
     <div class="modal-title" style="font-size:15px;font-weight:500">Por qué ese número</div>
@@ -288,7 +288,10 @@
 <script>
 (function () {
   var GRID = 'rgba(255,255,255,.055)';
-  var TICK = 'var(--text-muted)';
+  /* Literal a propósito: sobre canvas un var() no es un color válido y
+     cae al negro por defecto. */
+  var TICK = 'rgba(245,245,245,.42)';
+  var TEXTO = 'rgba(245,245,245,.72)';
   var FONT = "'Manrope', sans-serif";
 
   /* ---- Cuánto pagas en cuotas cada mes ----
@@ -333,7 +336,7 @@
       c.stroke();
       c.setLineDash([]);
       if (!angosto) {
-        c.fillStyle = "var(--amber)";
+        c.fillStyle = '#ffaa2c';
         c.font = "10px 'Manrope', sans-serif";
         c.textAlign = "center";
         c.fillText("este mes", x, area.top + 12);

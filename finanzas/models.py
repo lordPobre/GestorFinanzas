@@ -59,7 +59,47 @@ class Transaccion(models.Model):
         'Educacion': '#facc15',
         'Suscripciones': '#fb923c',
         'Cuentas': '#e25c5c',
-        'Otros': 'rgba(245,245,245,.28)',
+        'Otros': '#8b8b96',
+
+        # Las de ingreso: sin esto caían en 'Otros' y todas salían del mismo
+        # color. En verdes y azules, para distinguirlas de un gasto de un
+        # vistazo.
+        'Sueldo': '#53d258',
+        'Freelance': '#2fd8c8',
+        'Negocio': '#4b8cff',
+        'Venta': '#a3e635',
+        'Bono': '#ffd54f',
+        'Transferencia': '#38bdf8',
+        'Otros_Ingresos': '#8b8b96',
+    }
+
+    # Icono por categoría, a nivel de clase.
+    #
+    # La property .icono lo resolvía por instancia, así que Categoria.mapa()
+    # no tenía de dónde sacarlo y ponía 'fa-tag' para TODAS: la pantalla de
+    # Categorías mostraba trece etiquetas idénticas.
+    ICONOS_CATEGORIA = {
+        'Comida': 'fa-cart-shopping',
+        'Transporte': 'fa-car',
+        'Servicios': 'fa-bolt',
+        'Ocio': 'fa-film',
+        'Salud': 'fa-kit-medical',
+        'Tecnologia': 'fa-laptop',
+        'Ropa': 'fa-shirt',
+        'Hogar': 'fa-couch',
+        'Viajes': 'fa-plane',
+        'Compras': 'fa-bag-shopping',
+        'Educacion': 'fa-graduation-cap',
+        'Suscripciones': 'fa-rotate',
+        'Cuentas': 'fa-file-invoice',
+        'Otros': 'fa-ellipsis',
+        'Sueldo': 'fa-money-check-dollar',
+        'Freelance': 'fa-laptop-code',
+        'Negocio': 'fa-store',
+        'Venta': 'fa-tag',
+        'Bono': 'fa-gift',
+        'Transferencia': 'fa-right-left',
+        'Otros_Ingresos': 'fa-ellipsis',
     }
 
     usuario = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -140,24 +180,9 @@ class Transaccion(models.Model):
     @property
     def icono(self):
         """Icono Font Awesome según la categoría."""
-        iconos = {
-            'Comida': 'fa-cart-shopping',
-            'Transporte': 'fa-car',
-            'Servicios': 'fa-bolt',
-            'Ocio': 'fa-film',
-            'Salud': 'fa-kit-medical',
-            'Tecnologia': 'fa-laptop',
-            'Ropa': 'fa-shirt',
-            'Hogar': 'fa-couch',
-            'Viajes': 'fa-plane',
-            'Compras': 'fa-bag-shopping',
-            'Educacion': 'fa-graduation-cap',
-            'Suscripciones': 'fa-rotate',
-            'Cuentas': 'fa-file-invoice',
-        }
         if self.es_ingreso:
-            return 'fa-arrow-down'
-        return iconos.get(self.categoria, 'fa-arrow-up')
+            return self.ICONOS_CATEGORIA.get(self.categoria, 'fa-arrow-down')
+        return self.ICONOS_CATEGORIA.get(self.categoria, 'fa-arrow-up')
 
 
 class Deuda(models.Model):
@@ -577,7 +602,8 @@ class Categoria(models.Model):
                 'label': label,
                 'color': Transaccion.COLORES_CATEGORIA.get(
                     slug, Transaccion.COLORES_CATEGORIA['Otros']),
-                'icono': 'fa-tag', 'propia': False,
+                'icono': Transaccion.ICONOS_CATEGORIA.get(slug, 'fa-tag'),
+                'propia': False,
             }
         for c in cls.objects.filter(usuario=usuario):
             salida[c.slug] = {

@@ -185,13 +185,21 @@
       <div class="spacer"></div>
 
       {% block topbar_actions %}
-      <button class="btn btn-green hide-mobile" data-open="#modalGasto" data-preset-tipo="INGRESO"
+      <button class="btn btn-green solo-ancho" data-open="#modalGasto" data-preset-tipo="INGRESO"
               title="Anotar ingreso" aria-label="Anotar ingreso">
         <i class="fas fa-arrow-down" style="font-size:11px"></i><span>Anotar ingreso</span>
       </button>
-      <button class="btn btn-purple hide-mobile" data-open="#modalGasto" data-preset-tipo="EGRESO"
+      <button class="btn btn-purple solo-ancho" data-open="#modalGasto" data-preset-tipo="EGRESO"
               title="Anotar gasto" aria-label="Anotar gasto">
         <i class="fas fa-plus" style="font-size:11px"></i><span>Anotar gasto</span>
+      </button>
+
+      {% comment %}
+        Su reemplazo entre 720 y 1000px, donde los dos no caben con texto.
+      {% endcomment %}
+      <button class="btn btn-purple solo-medio" data-open="#modalGasto" data-preset-tipo="EGRESO"
+              title="Anotar un movimiento" aria-label="Anotar un movimiento">
+        <i class="fas fa-plus" style="font-size:11px"></i><span>Anotar</span>
       </button>
       {% endblock %}
     </header>
@@ -360,8 +368,8 @@
   así que en Cuotas, Me deben o Suscripciones esos botones no hacían nada:
   apuntaban a un modal que no existía ahí.
 {% endcomment %}
-<div class="modal-overlay drawer-overlay" id="modalGasto">
-  <div class="drawer-box registro-box">
+<div class="modal-overlay registro-overlay" id="modalGasto">
+  <div class="registro-box">
     <div class="modal-head">
       <div>
         <div class="modal-title">Registrar</div>

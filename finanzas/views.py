@@ -458,6 +458,12 @@ def contadores(usuario):
         'cuotas_activas': cuotas_activas,
         'prestamos_activos': prestamos_activos,
 
+        # El perfil del saludo. El encabezado con el avatar y el nombre vive
+        # en base.html, así que lo necesitan las nueve pantallas: sin esto el
+        # avatar mostraba "?" y el nombre caía al username en todas menos
+        # Inicio y Perfil, que eran las dos que lo pasaban a mano.
+        'profile': get_or_create_profile(usuario),
+
         # Panel de registro.
         #
         # Se llama 'form_registro', NO 'form': contadores() se aplica con
@@ -727,7 +733,6 @@ def dashboard(request):
 
     context = {
         'nombre_mes': nombre_mes,
-        'profile': get_or_create_profile(request.user),
         'es_nuevo': es_nuevo,
         'prev_month': prev_month, 'prev_year': prev_year,
         'next_month': next_month, 'next_year': next_year,
