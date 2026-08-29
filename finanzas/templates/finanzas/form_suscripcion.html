@@ -2,11 +2,6 @@
 {% load humanize %}
 {% block title %}Nueva suscripción · FinApp{% endblock %}
 
-{% comment %}
-  Página suelta para /suscripciones/nueva/. El flujo normal usa el modal de
-  suscripciones.html; esta página es para cuando se entra por URL directa.
-{% endcomment %}
-
 {% block topbar_actions %}
 <a href="{% url 'suscripciones' %}" class="btn btn-glass"><i class="fas fa-arrow-left" style="font-size:11px"></i>Volver</a>
 {% endblock %}

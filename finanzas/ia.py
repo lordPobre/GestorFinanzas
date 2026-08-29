@@ -10,7 +10,6 @@ import json
 
 
 def _construir_prompt(analisis, moneda='$'):
-    """Arma el prompt con los datos financieros para que la IA los interprete."""
     factores_texto = "\n".join(
         f"- {f['factor']}: {f['detalle']}" for f in analisis['riesgo_factores']
     )
@@ -56,7 +55,6 @@ def interpretar_con_ia(analisis, moneda='$'):
         return None
 
     try:
-        # Import diferido: solo se necesita si hay API key
         import anthropic
     except ImportError:
         return None
@@ -71,13 +69,11 @@ def interpretar_con_ia(analisis, moneda='$'):
             messages=[{"role": "user", "content": prompt}],
         )
 
-        # Extraer el texto de la respuesta
         texto = ""
         for bloque in mensaje.content:
             if bloque.type == 'text':
                 texto += bloque.text
 
-        # Limpiar posibles fences de markdown
         texto = texto.strip()
         if texto.startswith('```'):
             texto = texto.split('```')[1]
@@ -87,11 +83,9 @@ def interpretar_con_ia(analisis, moneda='$'):
 
         datos = json.loads(texto)
 
-        # Validar estructura mínima
         if 'diagnostico' in datos and 'recomendaciones' in datos:
             return datos
         return None
 
     except Exception:
-        # Cualquier fallo (red, parsing, API) → la app sigue con solo los números
         return None

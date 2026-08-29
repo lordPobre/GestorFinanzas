@@ -215,7 +215,6 @@
 {% block extra_js %}
 <script>
 (function () {
-  /* Pestañas */
   var seg = document.getElementById('segPerfil');
   var paneles = { datos: document.getElementById('panelDatos'), seguridad: document.getElementById('panelSeguridad') };
 
@@ -228,12 +227,10 @@
     });
   });
 
-  /* Si el POST de contraseña volvió con errores, abrir esa pestaña */
   {% if pw_form.errors %}
   seg.querySelector('[data-panel="seguridad"]').click();
   {% endif %}
 
-  /* Aviso de coincidencia */
   var p1 = document.getElementById('{{ pw_form.new_password1.id_for_label }}');
   var p2 = document.getElementById('{{ pw_form.new_password2.id_for_label }}');
   var aviso = document.getElementById('coincide');

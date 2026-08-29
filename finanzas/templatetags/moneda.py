@@ -8,8 +8,6 @@ from django import template
 
 register = template.Library()
 
-# Monedas que se escriben sin centavos. En CLP y COP los decimales no existen
-# en la práctica, así que mostrarlos solo agrega ruido.
 SIN_DECIMALES = {'$', 'CLP', 'COP'}
 
 
@@ -32,8 +30,6 @@ def money(valor, simbolo='$'):
     if simbolo in SIN_DECIMALES:
         texto = _separar_miles(int(num.to_integral_value()))
     else:
-        # ANTES: siempre se redondeaba a entero, así que en USD o EUR se
-        # perdían los centavos. $12,45 se mostraba como $12.
         entero = int(num)
         centavos = int((num - entero) * 100)
         texto = f'{_separar_miles(entero)},{centavos:02d}'
@@ -43,7 +39,6 @@ def money(valor, simbolo='$'):
 
 @register.filter
 def money_signed(valor, simbolo='$'):
-    """Como money pero con el signo adelante, para ingresos y gastos."""
     try:
         num = Decimal(str(valor))
     except (InvalidOperation, ValueError, TypeError):
@@ -54,11 +49,6 @@ def money_signed(valor, simbolo='$'):
 
 @register.filter
 def money_corto(valor, simbolo='$'):
-    """Versión compacta para etiquetas de gráficos y espacios angostos:
-    1234567 → $1,2M · 45000 → $45k
-
-    Existe porque en móvil un monto completo no cabe y se cortaba a mitad.
-    """
     try:
         num = float(valor)
     except (ValueError, TypeError):
@@ -78,11 +68,6 @@ def money_corto(valor, simbolo='$'):
 
 @register.filter
 def pct(parte, total):
-    """Porcentaje entero, sin reventar cuando el total es cero.
-
-    widthratio en los templates falla con total=0 y dejaba la barra sin
-    ancho o con un error silencioso.
-    """
     try:
         parte = float(parte)
         total = float(total)

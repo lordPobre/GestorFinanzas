@@ -14,8 +14,6 @@ except ImportError:
 #  SEGURIDAD — valores sensibles vienen de variables de entorno
 # ==========================================================
 
-# SECRET_KEY: nunca hardcodeada. Se lee del entorno.
-# En local, si no existe, usa una de desarrollo (NO usar en producción).
 SECRET_KEY = os.environ.get(
     'SECRET_KEY',
     'django-insecure-solo-para-desarrollo-local-cambiar-en-produccion'
@@ -112,7 +110,7 @@ LOGIN_URL = 'login'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # ==========================================================
-#  ESCUDOS DE SEGURIDAD — solo se activan en producción (DEBUG=False)
+#  ESCUDOS DE SEGURIDAD 
 # ==========================================================
 
 if not DEBUG:

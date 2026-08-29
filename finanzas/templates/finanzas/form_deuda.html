@@ -90,8 +90,6 @@
 
 {% block extra_js %}
 <script>
-/* El valor de la cuota y el mes final, en vivo. Es lo que evita que alguien
-   confunda el total con la cuota: se ve el resultado antes de guardar. */
 (function () {
   var total = document.getElementById('{{ form.monto_total.id_for_label }}');
   var cuotas = document.getElementById('{{ form.cuotas_totales.id_for_label }}');

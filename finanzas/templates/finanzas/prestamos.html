@@ -96,18 +96,32 @@
       </div>
     </div>
 
-    <div class="grid-metrics" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:22px">
-      <div class="glass-green" style="padding:13px 15px;border-radius:15px">
-        <div class="label" style="color:var(--green);margin-bottom:5px">Te debe en total</div>
-        <div class="mono" style="font-size:15px;color:var(--green)">{{ persona.total_pendiente|money }}</div>
+    {% comment %}
+      Mini tarjetas con fondo propio. Antes usaban .glass sobre un panel que
+      también es --surface: el mismo color, así que se veían como texto
+      suelto sin separación entre una cifra y la siguiente.
+    {% endcomment %}
+    <div class="mini-cards">
+      <div class="mini-card verde">
+        <span class="mini-icono"><i class="fas fa-hand-holding-dollar"></i></span>
+        <div>
+          <div class="label">Te debe en total</div>
+          <div class="mini-monto">{{ persona.total_pendiente|money }}</div>
+        </div>
       </div>
-      <div class="glass-purple" style="padding:13px 15px;border-radius:15px">
-        <div class="label" style="color:var(--amber);margin-bottom:5px">Cuotas al mes</div>
-        <div class="mono" style="font-size:15px;color:var(--amber-claro)">{{ persona.cuotas_del_mes|money }}</div>
+      <div class="mini-card ambar">
+        <span class="mini-icono"><i class="fas fa-calendar-days"></i></span>
+        <div>
+          <div class="label">Cuotas al mes</div>
+          <div class="mini-monto">{{ persona.cuotas_del_mes|money }}</div>
+        </div>
       </div>
-      <div class="glass" style="padding:13px 15px;border-radius:15px;box-shadow:none">
-        <div class="label" style="margin-bottom:5px">Pagos únicos</div>
-        <div class="mono" style="font-size:15px">{{ persona.unicos_pendientes|money }}</div>
+      <div class="mini-card">
+        <span class="mini-icono"><i class="fas fa-receipt"></i></span>
+        <div>
+          <div class="label">Pagos únicos</div>
+          <div class="mini-monto">{{ persona.unicos_pendientes|money }}</div>
+        </div>
       </div>
     </div>
 

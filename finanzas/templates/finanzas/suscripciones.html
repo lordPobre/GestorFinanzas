@@ -54,7 +54,8 @@
 {% if suscripciones %}
 <div class="glass" data-spot style="overflow:hidden">
   {% for s in suscripciones %}
-  <div class="sub-row" data-searchable {% if not s.activa %}style="opacity:.55"{% endif %}>
+  <div class="sub-row {% if not s.activa %}pausada{% endif %}" data-searchable
+       {% if not s.activa %}style="opacity:.55"{% endif %}>
 
     {% comment %}
       El logo de la plataforma cuando Font Awesome lo tiene; si no, la
@@ -72,7 +73,20 @@
         {% if s.estado_mes == 'pagada' %}<span class="badge badge-green" style="margin-left:7px">Pagada</span>
         {% elif s.estado_mes == 'atrasada' %}<span class="badge badge-coral" style="margin-left:7px">Atrasada</span>{% endif %}
       </div>
-      <div class="row-meta">{{ s.texto_cobro }} · {{ s.texto_estado }}</div>
+      {% comment %}
+        En móvil solo el día de cobro: el estado ya lo dice el badge de arriba,
+        y repetirlo hacía que la línea cayera en dos.
+      {% endcomment %}
+      {% comment %}
+        En móvil el monto vive acá, bajo el nombre: así la columna de la
+        derecha queda libre para los tres controles. El texto del cobro se
+        acorta al día, o la línea cae en dos.
+      {% endcomment %}
+      <div class="row-meta">
+        <span class="sub-monto-movil mono">{{ s.monto|money }}</span>
+        <span class="hide-mobile">{{ s.texto_cobro }} · {{ s.texto_estado }}</span>
+        <span class="solo-movil">· el {{ s.dia_cobro }} de cada mes</span>
+      </div>
     </div>
 
     <div class="sub-monto" style="text-align:right">

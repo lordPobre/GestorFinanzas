@@ -3,7 +3,6 @@ Context processor que inyecta la moneda del usuario en todos los templates.
 Así {{ simbolo_moneda }} y {{ codigo_moneda }} están disponibles globalmente.
 """
 
-# Símbolo y locale por cada moneda soportada
 CONFIG_MONEDA = {
     'CLP': {'simbolo': '$',    'codigo': 'CLP', 'decimales': 0},
     'USD': {'simbolo': 'US$',  'codigo': 'USD', 'decimales': 2},
@@ -19,7 +18,6 @@ DEFAULT = CONFIG_MONEDA['CLP']
 
 
 def moneda_usuario(request):
-    """Devuelve el símbolo y config de moneda según el perfil del usuario."""
     if not request.user.is_authenticated:
         return {'simbolo_moneda': '$', 'codigo_moneda': 'CLP', 'decimales_moneda': 0}
 

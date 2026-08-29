@@ -38,9 +38,6 @@ class DeudaAdmin(admin.ModelAdmin):
 
     @admin.action(description='Recalcular cuotas_pagadas desde los pagos registrados')
     def sincronizar_contador(self, request, queryset):
-        """cuotas_pagadas es un espejo del recuento de pagos. Si alguien lo
-        editó a mano, o quedó desfasado por una migración a medias, esto lo
-        vuelve a cuadrar. Es la fuente de verdad al revés."""
         corregidas = 0
         for deuda in queryset:
             real = deuda.pagos.count()
@@ -67,11 +64,6 @@ class TransaccionAdmin(admin.ModelAdmin):
     date_hierarchy = 'fecha'
     actions = ['marcar_pagado', 'marcar_sin_pagar']
 
-    # ANTES había acciones para cambiar es_cuota en masa. Ahora eso rompe el
-    # cálculo del mes: resumen_mes excluye es_cuota=True de los gastos porque
-    # las cuotas se suman aparte desde el calendario de la deuda. Marcar una
-    # transacción normal como cuota la hace desaparecer de los totales.
-    # Se quitaron a propósito.
 
     @admin.action(description='Marcar como pagado')
     def marcar_pagado(self, request, queryset):

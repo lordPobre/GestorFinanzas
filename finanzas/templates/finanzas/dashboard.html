@@ -617,7 +617,16 @@
         <button class="section-sub" style="background:none;border:none;padding:0;font-family:inherit"
                 data-open="#modalGasto" data-preset-tipo="EGRESO">Agregar</button>
       </div>
-      <div class="glass card" style="padding:22px" data-spot>
+      {% comment %}
+        Plegable: con muchos movimientos la lista crecía sin tope y empujaba
+        las metas fuera de la vista. Se ven los cinco últimos y el resto se
+        abre a un toque.
+
+        Es un contenedor con altura máxima, no un details: así el primer
+        movimiento oculto queda a medias y se ve que hay más abajo, que es
+        lo que invita a abrirlo.
+      {% endcomment %}
+      <div class="glass card mov-panel" style="padding:22px" data-spot data-plegable>
       <div class="row-list mov-list">
         {% for t in ultimas %}
         <div class="row" data-searchable
@@ -631,9 +640,13 @@
           {% endif %}
           <div class="row-main">
             <div class="row-title">{{ t.descripcion|default:t.get_categoria_display }}</div>
+            {% comment %}
+              La categoría solo si hay descripción propia: sin ella el título
+              ya ES la categoría y salía dos veces en la misma fila.
+            {% endcomment %}
             <div class="row-meta">
-              {{ t.fecha|date:"j M" }} · {{ t.get_categoria_display }}
-              {% if t.por_pagar %} · <span style="color:var(--orange)">sin pagar</span>{% endif %}
+              {{ t.fecha|date:"j M" }}{% if t.descripcion %} · {{ t.get_categoria_display }}{% endif %}
+              {% if t.por_pagar %} · <span style="color:var(--amber)">sin pagar</span>{% endif %}
             </div>
           </div>
           <div class="mono" style="font-size:13px;{% if t.es_ingreso %}color:var(--green){% endif %}">
@@ -672,6 +685,13 @@
         </div>
         {% endfor %}
       </div>
+
+      {% if ultimas|length > 5 %}
+      <button type="button" class="mov-toggle" data-toggle-plegable aria-expanded="false">
+        <span class="mov-toggle-txt">Ver los {{ ultimas|length }} movimientos</span>
+        <i class="fas fa-chevron-down"></i>
+      </button>
+      {% endif %}
       </div>
     </div>
 
@@ -685,18 +705,34 @@
         Dos columnas con la barra de color abajo, como en la plantilla. Cada
         meta lleva su propio color para distinguirlas de un vistazo.
       {% endcomment %}
-      <div class="metas-grid">
+      {% comment %}
+        Filas a lo ancho, no dos columnas estrechas: con el ancho completo cabe
+        el icono, el nombre, cuánto falta y el avance en una sola línea. En
+        una columna de 130px el monto quedaba solo y sin contexto.
+      {% endcomment %}
+      <div class="metas-lista">
         {% for m in metas %}
-        <a href="{% url 'metas' %}#meta{{ m.pk }}" class="meta-mini">
-          <div class="meta-mini-head">
-            <span class="meta-mini-nombre">{{ m.nombre }}</span>
-            <i class="fas fa-chevron-right" style="font-size:11px;color:var(--text-muted)"></i>
-          </div>
-          <div class="meta-mini-monto">{{ m.monto_actual|money }}</div>
-          <div class="progress-bar" style="height:6px">
-            <div class="progress-fill" style="width:{{ m.porcentaje|floatformat:0 }}%;
-                 background:{% cycle '#4b8cff' '#f4626c' '#ffd54f' '#53d258' '#818cf8' '#2fd8c8' %}"></div>
-          </div>
+        <a href="{% url 'metas' %}#meta{{ m.pk }}" class="meta-fila">
+          <span class="meta-icono" style="background:{{ m.color }}22;color:{{ m.color }}">
+            <i class="fas {{ m.icono }}"></i>
+          </span>
+
+          <span class="meta-cuerpo">
+            <span class="meta-linea">
+              <span class="meta-nombre">{{ m.nombre }}</span>
+              <span class="meta-monto">{{ m.monto_actual|money }}</span>
+            </span>
+            <span class="progress-bar" style="height:6px">
+              <span class="progress-fill" style="display:block;height:100%;border-radius:100px;
+                    width:{{ m.porcentaje|floatformat:0 }}%;background:{{ m.color }}"></span>
+            </span>
+            <span class="meta-pie">
+              {% if m.esta_completa %}Meta cumplida
+              {% else %}{{ m.porcentaje|floatformat:0 }}% de {{ m.monto_meta|money }} · faltan {{ m.monto_faltante|money }}{% endif %}
+            </span>
+          </span>
+
+          <i class="fas fa-chevron-right meta-flecha"></i>
         </a>
         {% endfor %}
       </div>

@@ -311,21 +311,53 @@ h1, h2, h3, h4 { margin: 0; font-weight: 700; letter-spacing: -.015em; }
   letter-spacing: .01em;
   transition: filter .18s var(--ease-out);
 }
-.swipe-btn i { font-size: 17px; }
-.swipe-btn:hover { filter: brightness(1.08); }
-.swipe-btn:active { filter: brightness(.9); }
+.swipe-btn { font-size: 10.5px; }
+.swipe-btn:active { filter: brightness(.92); }
 
-/* El primero recto por los dos lados: queda entre la tarjeta y el segundo. */
+/* Un velo de color sobre la superficie de la tarjeta, no un bloque opaco:
+   los dos rectángulos plenos se leían como algo pegado desde fuera. El blur
+   los ata al fondo que tienen detrás. */
 .swipe-btn.editar {
-  background: linear-gradient(160deg, #3aa84a, #2f8f3d);
-  color: #04291d;
+  background: linear-gradient(160deg, rgba(83, 210, 88, .26), rgba(58, 168, 74, .14));
+  backdrop-filter: blur(14px) saturate(1.3);
+  -webkit-backdrop-filter: blur(14px) saturate(1.3);
+  color: var(--green);
+  /* La línea interior es lo que da el canto de vidrio. */
+  box-shadow: inset 1px 0 0 rgba(255, 255, 255, .07),
+              inset 0 1px 0 rgba(255, 255, 255, .07);
 }
-/* El último cierra el bloque con el radio de la tarjeta. */
+.swipe-btn.editar:hover {
+  background: linear-gradient(160deg, rgba(83, 210, 88, .42), rgba(58, 168, 74, .26));
+  color: #7de882;
+}
+
 .swipe-btn.borrar {
-  background: linear-gradient(160deg, #e25c5c, #c94747);
-  color: #2b0606;
+  background: linear-gradient(160deg, rgba(226, 92, 92, .26), rgba(201, 71, 71, .14));
+  backdrop-filter: blur(14px) saturate(1.3);
+  -webkit-backdrop-filter: blur(14px) saturate(1.3);
+  color: var(--coral);
   border-radius: 0 var(--r-lg) var(--r-lg) 0;
+  box-shadow: inset 1px 0 0 rgba(255, 255, 255, .07),
+              inset 0 1px 0 rgba(255, 255, 255, .07);
 }
+.swipe-btn.borrar:hover {
+  background: linear-gradient(160deg, rgba(226, 92, 92, .44), rgba(201, 71, 71, .28));
+  color: #f28080;
+}
+
+/* El velo necesita algo detrás que difuminar: sin fondo propio, el carril
+   deja ver la página y el blur no tiene efecto. */
+.swipe { background: var(--surface); }
+.swipe-fila { background: var(--surface); }
+
+/* El icono en su ficha, del mismo color: ancla la etiqueta al velo. */
+.swipe-btn i {
+  display: flex; align-items: center; justify-content: center;
+  width: 34px; height: 34px; border-radius: 12px;
+  background: rgba(255, 255, 255, .08);
+  transition: background .18s var(--ease-out);
+}
+.swipe-btn:hover i { background: rgba(255, 255, 255, .14); }
 /* Cuando eliminar es la única acción, cierra el bloque igual. */
 .swipe-acciones > form:only-child .swipe-btn.borrar,
 .swipe-acciones > .swipe-btn.borrar:only-child {
@@ -344,8 +376,8 @@ h1, h2, h3, h4 { margin: 0; font-weight: 700; letter-spacing: -.015em; }
    acción se ajusta a su alto en vez de imponer 62px. */
 .swipe-fila { border-radius: var(--r-md); }
 .swipe-fila .swipe-acciones { gap: 6px; padding-right: 2px; }
-.swipe-fila .swipe-btn { width: 58px; gap: 4px; font-size: 9.5px; }
-.swipe-fila .swipe-btn i { font-size: 13px; }
+.swipe-fila .swipe-btn { width: 58px; gap: 5px; font-size: 9.5px; }
+.swipe-fila .swipe-btn i { width: 28px; height: 28px; border-radius: 10px; font-size: 12px; }
 .swipe-fila .swipe-btn.borrar { border-radius: 0 var(--r-md) var(--r-md) 0; }
 /* La fila necesita fondo propio (sin él las acciones se ven a través) y su
    propio aire: el selector .glass > .row-list > .row ya no la alcanza ahora
@@ -393,6 +425,48 @@ h1, h2, h3, h4 { margin: 0; font-weight: 700; letter-spacing: -.015em; }
 @media (prefers-reduced-motion: reduce) {
   .swipe-card { transition: none; }
 }
+
+/* Una línea por dato en la lista de movimientos: sin esto un nombre largo
+   se parte en tres renglones, la fila mide el triple y el corte del panel
+   cae a mitad de una palabra. */
+.mov-list .row-title,
+.mov-list .row-meta {
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+/* ===== Panel plegable de movimientos =====
+   Altura máxima con desvanecido al pie, no un details: así el movimiento
+   siguiente queda a medias y se ve que hay más abajo. Un details cerrado no
+   da ninguna pista de cuánto esconde. */
+.mov-panel { position: relative; }
+.mov-panel .mov-list {
+  overflow: hidden;
+  transition: max-height .36s var(--ease-out);
+}
+/* La altura la fija el JS en el estilo en linea, con la medida real de las
+   cinco primeras filas: asi no depende de un valor adivinado ni de que una
+   regla con clase gane la cascada. */
+
+/* El velo que difumina la última fila visible. Se va al abrir. */
+/* El velo insinúa que hay más abajo. Corto a propósito: con 56px tapaba
+   casi toda la última fila visible y parecía un error de render. */
+.mov-panel:not(.abierto) .mov-list::after {
+  content: ''; position: absolute; left: 0; right: 0; bottom: 56px; height: 28px;
+  background: linear-gradient(to bottom, transparent, var(--surface));
+  pointer-events: none;
+}
+
+.mov-toggle {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  width: 100%; margin-top: 12px; padding: 11px;
+  border: 1px solid var(--line-fuerte); border-radius: 100px;
+  background: none; cursor: pointer; color: var(--amber);
+  font-family: 'Manrope', sans-serif; font-size: 12px; font-weight: 700;
+  transition: background .18s var(--ease-out), border-color .18s var(--ease-out);
+}
+.mov-toggle:hover { background: var(--amber-tenue); border-color: rgba(255, 170, 44, .4); }
+.mov-toggle i { font-size: 10px; transition: transform .3s var(--ease-out); }
+.mov-panel.abierto .mov-toggle i { transform: rotate(180deg); }
 
 /* ===== Filas ===== */
 .row-list { display: flex; flex-direction: column; }
@@ -480,7 +554,43 @@ h1, h2, h3, h4 { margin: 0; font-weight: 700; letter-spacing: -.015em; }
   height: 1px; background: var(--line);
 }
 
-/* --- Tarjetas de meta en dos columnas --- */
+/* --- Metas: filas a lo ancho --- */
+.metas-lista { display: flex; flex-direction: column; gap: 9px; }
+
+.meta-fila {
+  display: flex; align-items: center; gap: 13px;
+  padding: 14px 16px; border-radius: var(--r-md);
+  background: var(--surface); color: var(--text-primary); text-decoration: none;
+  transition: background .18s var(--ease-out);
+}
+.meta-fila:hover { background: var(--surface-2); color: var(--text-primary); }
+
+.meta-icono {
+  display: flex; align-items: center; justify-content: center;
+  width: 40px; height: 40px; flex-shrink: 0;
+  border-radius: 13px; font-size: 15px;
+}
+
+.meta-cuerpo { flex: 1; min-width: 0; display: block; }
+.meta-linea {
+  display: flex; align-items: baseline; justify-content: space-between;
+  gap: 12px; margin-bottom: 8px;
+}
+.meta-nombre {
+  font-size: 13px; font-weight: 600;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.meta-monto {
+  font-family: 'Manrope', sans-serif; font-size: 17px; font-weight: 800;
+  letter-spacing: -.025em; font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+}
+.meta-pie {
+  display: block; font-size: 10.5px; color: var(--text-muted); margin-top: 7px;
+}
+.meta-flecha { font-size: 11px; color: var(--text-muted); flex-shrink: 0; }
+
+/* Compatibilidad con el marcado anterior. */
 .metas-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .meta-mini {
   background: var(--surface); border-radius: var(--r-md); padding: 15px 16px;
@@ -497,6 +607,63 @@ h1, h2, h3, h4 { margin: 0; font-weight: 700; letter-spacing: -.015em; }
 }
 
 
+
+/* ===== Mini tarjetas de métrica =====
+   Para cifras dentro de un panel que ya es --surface: con el mismo fondo se
+   leerían como texto suelto, así que suben un nivel de superficie. */
+.mini-cards {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(158px, 1fr));
+  gap: 10px; margin-bottom: 22px;
+}
+
+.mini-card {
+  display: flex; align-items: center; gap: 11px; min-width: 0;
+  padding: 13px 15px; border-radius: var(--r-md);
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+}
+.mini-card > div { min-width: 0; }
+
+.mini-icono {
+  display: flex; align-items: center; justify-content: center;
+  width: 34px; height: 34px; flex-shrink: 0;
+  border-radius: 11px; font-size: 13px;
+  background: rgba(255, 255, 255, .07); color: var(--text-secondary);
+}
+
+.mini-monto {
+  font-family: 'JetBrains Mono', monospace; font-weight: 600;
+  font-size: 15px; margin-top: 4px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+/* El color tiñe el borde y el icono, no el fondo: tres bloques de color
+   pleno seguidos compiten entre sí y ninguno destaca. */
+.mini-card.verde { border-color: rgba(83, 210, 88, .26); }
+.mini-card.verde .mini-icono { background: var(--green-tenue); color: var(--green); }
+.mini-card.verde .mini-monto { color: var(--green); }
+.mini-card.verde .label { color: rgba(83, 210, 88, .8); }
+
+.mini-card.ambar { border-color: rgba(255, 170, 44, .26); }
+.mini-card.ambar .mini-icono { background: var(--amber-tenue); color: var(--amber); }
+.mini-card.ambar .mini-monto { color: var(--amber-claro); }
+.mini-card.ambar .label { color: var(--amber); }
+
+.mini-card.coral { border-color: rgba(226, 92, 92, .26); }
+.mini-card.coral .mini-icono { background: var(--coral-tenue); color: var(--coral); }
+.mini-card.coral .mini-monto { color: var(--coral); }
+
+@media (max-width: 640px) {
+  /* Dos columnas: en una sola las tres cifras ocupan media pantalla, y a
+     158px de ancho mínimo cabrían dos en cualquier teléfono. */
+  .mini-cards { grid-template-columns: 1fr 1fr; gap: 8px; }
+  .mini-card { padding: 11px 12px; gap: 9px; }
+  .mini-icono { width: 30px; height: 30px; border-radius: 10px; font-size: 12px; }
+  .mini-monto { font-size: 13.5px; }
+  /* La tercera ocupa la fila entera si queda sola. */
+  .mini-card:last-child:nth-child(odd) { grid-column: 1 / -1; }
+}
 
 /* ===== Insignias ===== */
 .badge {
@@ -685,7 +852,10 @@ label { display: block; }
 .grid-chart.ancho-der { grid-template-columns: 1fr 1.25fr; }
 .grid-pagos   { display: grid; grid-template-columns: 1fr 1.15fr; gap: 16px; margin-bottom: 18px; align-items: start; }
 .grid-registro{ display: grid; grid-template-columns: 1.35fr 1fr; gap: 16px; align-items: start; }
-.grid-cards   { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
+/* 320px es el mínimo para que la cuota, el contador y el badge de urgencia
+   entren sin partirse. Con 280 el texto caía en dos líneas y el botón de
+   pagar se apretaba contra Anular. */
+.grid-cards   { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px; }
 .grid-detail  { display: grid; grid-template-columns: 320px 1fr; gap: 16px; align-items: start; }
 .grid-bottom  { display: grid; grid-template-columns: 1fr 1.2fr; gap: 16px; }
 .grid-registro > :only-child { grid-column: 1 / -1; }
@@ -701,6 +871,13 @@ label { display: block; }
    860px es donde la columna angosta de un grid 1.5fr/1fr baja de 330px, que
    es lo mínimo para que el calendario y la leyenda de la dona no se
    apretujen. */
+/* Las tarjetas de cuotas responden al ancho del contenido, no de la ventana:
+   con el sidebar de 250px las columnas salían 250px más estrechas de lo que
+   la consulta creía. */
+@container contenido (max-width: 700px) {
+  .grid-cards { grid-template-columns: 1fr; }
+}
+
 @container contenido (min-width: 860px) {
   .grid-chart   { grid-template-columns: 1.5fr 1fr; }
   .grid-chart.par       { grid-template-columns: 1fr 1fr; }
@@ -955,6 +1132,51 @@ label { display: block; }
     animation: modalUp .28s var(--ease-out);
   }
   .hoja-box::before { display: none; }
+}
+
+/* ===== Diálogo de confirmación =====
+   Reemplaza a window.confirm(), que abre el cuadro del navegador: fondo
+   blanco, botón azul y la URL del sitio como título. */
+.confirm-overlay { z-index: 400; align-items: center; justify-content: center; padding: 20px; }
+
+.confirm-box {
+  width: 100%; max-width: 380px; text-align: center;
+  padding: 28px 24px 24px; border-radius: var(--r-xl);
+  background: var(--bg-elev);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, .6);
+  animation: modalUp .26s var(--ease-out);
+}
+
+.confirm-icono {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 52px; height: 52px; margin-bottom: 16px;
+  border-radius: 18px; font-size: 20px;
+  background: rgba(255, 170, 44, .14); color: var(--amber);
+}
+/* En un borrado el icono avisa antes de que se lea el texto. */
+.confirm-overlay.destructivo .confirm-icono {
+  background: var(--coral-tenue); color: var(--coral);
+}
+
+.confirm-texto {
+  font-size: 14px; line-height: 1.55; color: var(--text-primary);
+  margin-bottom: 22px; text-wrap: pretty;
+}
+
+.confirm-acciones { display: flex; gap: 9px; }
+.confirm-acciones .btn { flex: 1; padding: 13px; font-size: 13px; }
+
+@media (max-width: 640px) {
+  /* Hoja desde abajo, donde está el pulgar. */
+  .confirm-overlay { align-items: flex-end; padding: 0; }
+  .confirm-box {
+    max-width: none; border-radius: var(--r-xl) var(--r-xl) 0 0;
+    padding: 26px 20px calc(22px + env(safe-area-inset-bottom));
+    animation: hojaSube .3s var(--ease-out);
+  }
+  /* Confirmar arriba: en una hoja el orden natural de lectura es de arriba
+     abajo, y la acción principal no debe quedar debajo de Cancelar. */
+  .confirm-acciones { flex-direction: column-reverse; }
 }
 
 /* ===== Teclado numérico ===== */
@@ -1384,18 +1606,44 @@ select:focus-visible, textarea:focus-visible, [tabindex]:focus-visible {
   .amount-display { font-size: 32px; }
   .toast-container { top: auto; bottom: calc(var(--bottombar-h) + 14px); left: 14px; right: 14px; max-width: none; }
 
+  /* Todo en una fila: avatar, datos y acciones. El monto pasa a estar bajo
+     el nombre en vez de en su propia columna — ese ancho es justo el que
+     necesitan los tres controles. */
   .sub-row {
-    grid-template-columns: 38px 1fr auto;
-    grid-template-areas: 'avatar nombre monto' 'acciones acciones acciones';
-    row-gap: 12px;
+    grid-template-columns: 34px minmax(0, 1fr) auto;
+    grid-template-areas: 'avatar nombre acciones';
+    align-items: center; gap: 11px; padding: 12px 14px;
   }
-  .sub-row > :nth-child(1) { grid-area: avatar; }
+  .sub-row > :nth-child(1) { grid-area: avatar; width: 34px; height: 34px; font-size: 15px; }
   .sub-row > .row-main { grid-area: nombre; }
-  .sub-row > .sub-monto { grid-area: monto; }
+  .sub-row > .sub-monto { display: none; }
   .sub-row > .sub-acciones {
-    grid-area: acciones; justify-content: space-between;
-    padding-top: 11px; border-top: 1px solid var(--line);
+    grid-area: acciones; justify-content: flex-end;
+    gap: 6px; padding: 0; border: none;
   }
+  .sub-acciones form { margin: 0 !important; }
+
+  /* El monto bajo el nombre, solo en móvil. */
+  .sub-monto-movil {
+    display: inline; font-size: 12px; font-weight: 600;
+    color: var(--text-primary);
+  }
+  .solo-movil { display: inline; }
+  /* Una línea siempre: si crece a dos, los controles se desalinean del
+     nombre y la fila da un salto. */
+  .sub-row .row-meta {
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .sub-row .row-title { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  /* Controles más chicos: tres en una fila de 390px no caben a 44px. */
+  .sub-acciones .icon-btn { width: 34px; height: 34px; min-width: 34px; min-height: 34px; }
+  .sub-acciones .switch { width: 38px; height: 22px; }
+  .sub-acciones .switch .knob { width: 16px; height: 16px; }
+  .sub-acciones .switch.on .knob { transform: translateX(16px); }
+  /* El botón de pagar, cuando aparece, se reduce a su icono. */
+  .sub-acciones .btn span { display: none; }
+  .sub-acciones .btn { padding: 0 11px; min-height: 34px; }
   .deuda-item > summary { gap: 10px; padding: 12px 10px; }
   .deuda-item-detalle { padding-left: 14px; }
   .deuda-datos { width: 100%; }

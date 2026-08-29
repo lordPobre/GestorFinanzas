@@ -203,9 +203,78 @@
   /* ============================================================
      8. Confirmación antes de borrar
      ============================================================ */
+  /* ---- Diálogo de confirmación ----
+     Se arma una sola vez y se reutiliza: crear el nodo en cada apertura
+     pierde la animación de entrada y deja basura en el DOM. */
+  var dlg = null;
+
+  function pedirConfirmacion(texto, destructivo, alAceptar) {
+    if (!dlg) {
+      dlg = document.createElement('div');
+      dlg.className = 'modal-overlay confirm-overlay';
+      dlg.innerHTML =
+        '<div class="confirm-box">' +
+          '<span class="confirm-icono"><i class="fas fa-triangle-exclamation"></i></span>' +
+          '<div class="confirm-texto"></div>' +
+          '<div class="confirm-acciones">' +
+            '<button type="button" class="btn btn-glass" data-cancelar>Cancelar</button>' +
+            '<button type="button" class="btn btn-purple" data-aceptar></button>' +
+          '</div>' +
+        '</div>';
+      document.body.appendChild(dlg);
+
+      dlg.addEventListener('click', function (e) {
+        /* Tocar fuera cancela, como cualquier hoja de la app. */
+        if (e.target === dlg || e.target.closest('[data-cancelar]')) cerrarConfirm();
+        else if (e.target.closest('[data-aceptar]')) {
+          var fn = dlg._alAceptar;
+          cerrarConfirm();
+          if (fn) fn();
+        }
+      });
+    }
+
+    dlg.querySelector('.confirm-texto').textContent = texto;
+    var btn = dlg.querySelector('[data-aceptar]');
+    /* El botón dice qué va a pasar, no "OK": en un diálogo de borrado un
+       "Aceptar" genérico no distingue de un guardado. */
+    btn.textContent = destructivo ? 'Sí, eliminar' : 'Confirmar';
+    btn.className = 'btn ' + (destructivo ? 'btn-red' : 'btn-purple');
+    dlg.classList.toggle('destructivo', !!destructivo);
+    dlg._alAceptar = alAceptar;
+    dlg.classList.add('open');
+    document.body.style.overflow = 'hidden';
+    setTimeout(function () { btn.focus(); }, 60);
+  }
+
+  function cerrarConfirm() {
+    if (!dlg) return;
+    dlg.classList.remove('open');
+    document.body.style.overflow = '';
+    dlg._alAceptar = null;
+  }
+
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && dlg && dlg.classList.contains('open')) cerrarConfirm();
+  });
+
   document.addEventListener('submit', function (e) {
     var f = e.target.closest('form[data-confirm]');
-    if (f && !window.confirm(f.dataset.confirm)) { e.preventDefault(); return; }
+    if (f && !f.dataset.confirmado) {
+      e.preventDefault();
+      var texto = f.dataset.confirm;
+      /* Destructivo se deduce del propio mensaje: así una acción nueva con
+         data-confirm ya sale bien sin tener que marcarla. */
+      var destructivo = /elimin|borra|quita|cancel/i.test(texto);
+      pedirConfirmacion(texto, destructivo, function () {
+        f.dataset.confirmado = '1';
+        /* requestSubmit respeta la validación del navegador; submit() la
+           salta y dejaría pasar un formulario incompleto. */
+        if (f.requestSubmit) f.requestSubmit();
+        else f.submit();
+      });
+      return;
+    }
 
     /* Doble envío: el botón se bloquea al enviar.
        ANTES un doble clic en "Pagar" mandaba dos POST. Con las cuotas eso
@@ -350,7 +419,53 @@
     });
   }
   /* ============================================================
-     12. Tarjetas deslizables
+     12. Panel plegable
+     ============================================================
+     max-height animada: 'none' no se puede interpolar, así que al abrir se
+     fija la altura real y se suelta cuando termina la transición. */
+  $$('[data-plegable]').forEach(function (panel) {
+    var lista = $('.mov-list', panel);
+    var btn = $('[data-toggle-plegable]', panel);
+    if (!lista || !btn) return;
+    var txt = $('.mov-toggle-txt', btn);
+    var cerradoTxt = txt ? txt.textContent : 'Ver todo';
+    /* Menos filas en un teléfono: ahí el nombre se parte en dos líneas y
+       cinco ocupan casi toda la pantalla. */
+    var VISIBLES = window.matchMedia('(max-width: 640px)').matches ? 4 : 5;
+
+    /* La altura de corte se mide, no se adivina: una fila con una
+       descripcion larga es mas alta que otra sin ella, y un valor fijo
+       cortaba a mitad de texto. */
+    function alturaCorte() {
+      var filas = lista.children;
+      if (filas.length <= VISIBLES) return null;
+      var base = lista.getBoundingClientRect().top;
+      /* Se corta 14px DENTRO de la fila siguiente, no en el borde de la
+         última: un corte limpio parece el final de la lista y nadie busca
+         el botón. */
+      return Math.round(filas[VISIBLES - 1].getBoundingClientRect().bottom - base) + 14;
+    }
+
+    var corte = alturaCorte();
+    if (corte === null) { btn.style.display = "none"; return; }
+    lista.style.maxHeight = corte + 'px';
+
+    btn.addEventListener('click', function () {
+      var abriendo = !panel.classList.contains('abierto');
+      panel.classList.toggle('abierto', abriendo);
+      lista.style.maxHeight = (abriendo ? lista.scrollHeight : corte) + 'px';
+      if (txt) txt.textContent = abriendo ? 'Ver menos' : cerradoTxt;
+      btn.setAttribute('aria-expanded', abriendo ? 'true' : 'false');
+
+      if (!abriendo) {
+        /* Al plegar una lista larga la pagina salta y se pierde el sitio. */
+        var arriba = panel.getBoundingClientRect().top;
+        if (arriba < 0) window.scrollBy({ top: arriba - 12, behavior: 'smooth' });
+      }
+    });
+  });
+  /* ============================================================
+     13. Tarjetas deslizables
      ============================================================
      El dedo arrastra la tarjeta y descubre editar/eliminar. Solo en táctil:
      en escritorio las acciones aparecen al pasar el cursor, que ya lo

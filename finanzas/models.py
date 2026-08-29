@@ -631,6 +631,66 @@ class MetaAhorro(models.Model):
     def __str__(self):
         return self.nombre
 
+    # Se busca por subcadena del nombre, así que "viaje al sur" y "mi viaje"
+    # caen en el mismo icono. El orden importa cuando dos claves se solapan.
+    ICONOS_META = [
+        ('emergencia', 'fa-shield-halved'),
+        ('fondo', 'fa-piggy-bank'),
+        ('ahorro', 'fa-piggy-bank'),
+        ('viaje', 'fa-plane'),
+        ('vacacion', 'fa-umbrella-beach'),
+        ('auto', 'fa-car'),
+        ('moto', 'fa-motorcycle'),
+        ('bici', 'fa-bicycle'),
+        ('casa', 'fa-house'),
+        ('depart', 'fa-building'),
+        ('arriendo', 'fa-key'),
+        ('notebook', 'fa-laptop'),
+        ('computad', 'fa-desktop'),
+        ('pc', 'fa-desktop'),
+        ('celular', 'fa-mobile-screen'),
+        ('telefono', 'fa-mobile-screen'),
+        ('iphone', 'fa-mobile-screen'),
+        ('tv', 'fa-tv'),
+        ('consola', 'fa-gamepad'),
+        ('play', 'fa-gamepad'),
+        ('estudio', 'fa-graduation-cap'),
+        ('curso', 'fa-graduation-cap'),
+        ('universidad', 'fa-graduation-cap'),
+        ('matricula', 'fa-graduation-cap'),
+        ('regalo', 'fa-gift'),
+        ('navidad', 'fa-gift'),
+        ('boda', 'fa-ring'),
+        ('matrimonio', 'fa-ring'),
+        ('salud', 'fa-kit-medical'),
+        ('dentista', 'fa-tooth'),
+        ('gym', 'fa-dumbbell'),
+        ('gimnasio', 'fa-dumbbell'),
+        ('mascota', 'fa-paw'),
+        ('ropa', 'fa-shirt'),
+        ('mueble', 'fa-couch'),
+        ('negocio', 'fa-store'),
+        ('inversion', 'fa-chart-line'),
+        ('deuda', 'fa-credit-card'),
+    ]
+
+    # Un color por meta, en el orden en que se crearon. Se reparte por id
+    # para que no cambie al agregar otra.
+    COLORES_META = ['#4b8cff', '#f4626c', '#ffd54f', '#53d258',
+                    '#818cf8', '#2fd8c8', '#c084fc', '#fb923c']
+
+    @property
+    def icono(self):
+        nombre = (self.nombre or '').lower()
+        for clave, ic in self.ICONOS_META:
+            if clave in nombre:
+                return ic
+        return 'fa-bullseye'
+
+    @property
+    def color(self):
+        return self.COLORES_META[(self.pk or 0) % len(self.COLORES_META)]
+
     @property
     def porcentaje(self):
         if self.monto_meta > 0:

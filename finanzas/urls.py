@@ -5,8 +5,6 @@ from . import views
 urlpatterns = [
     path('', views.dashboard, name='dashboard'),
 
-    # Compras en cuotas — pantalla nueva del rediseño.
-    # Esta es la línea que faltaba y causaba el NoReverseMatch.
     path('cuotas/', views.deudas, name='deudas'),
 
     path('nueva-deuda/', views.crear_deuda, name='crear_deuda'),
@@ -36,7 +34,6 @@ urlpatterns = [
 
     path('estadisticas/', views.estadisticas, name='estadisticas'),
 
-    # Préstamos por cobrar (quién me debe)
     path('prestamos/', views.prestamos, name='prestamos'),
     path('prestamos/persona/nueva/', views.crear_persona, name='crear_persona'),
     path('prestamos/persona/<int:persona_id>/', views.detalle_persona, name='detalle_persona'),
@@ -48,7 +45,6 @@ urlpatterns = [
     path('analisis/', views.analisis_predictivo, name='analisis_predictivo'),
     path('analisis/ia/', views.analisis_ia, name='analisis_ia'),
 
-    # Gastos pendientes de pagar
     path('gasto-pendiente/nuevo/', views.crear_gasto_pendiente, name='crear_gasto_pendiente'),
     path('gasto-pendiente/pagar/<int:gasto_id>/', views.pagar_gasto_pendiente, name='pagar_gasto_pendiente'),
     path('gasto-pendiente/anular/<int:gasto_id>/', views.anular_gasto_pendiente, name='anular_gasto_pendiente'),

@@ -73,8 +73,6 @@
 
 {% block extra_js %}
 <script>
-/* El aporte mensual sugerido, en vivo. Sin esto la fecha límite es un campo
-   más; con esto se ve de inmediato si la meta es realista. */
 (function () {
   var meta = document.getElementById('{{ form.monto_meta.id_for_label }}');
   var actual = document.getElementById('{{ form.monto_actual.id_for_label }}');

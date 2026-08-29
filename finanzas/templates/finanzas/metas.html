@@ -61,10 +61,6 @@
       {% if d.meta.esta_completa %}
         <span class="badge badge-green"><i class="fas fa-check" style="font-size:9px"></i>Lista</span>
       {% elif d.meses_quieta and d.meses_quieta >= 2 %}
-        {% comment %}
-          El aviso que faltaba: una meta sin aportes en meses está abandonada,
-          y la barra de avance sola no lo dice.
-        {% endcomment %}
         <span class="badge badge-orange">Quieta {{ d.meses_quieta }} meses</span>
       {% endif %}
     </div>
@@ -96,11 +92,6 @@
         {% for s in d.serie %}
         <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:5px;height:100%;justify-content:flex-end"
              title="{{ s.label }}: {{ s.monto|money }}">
-          {% comment %}
-            Un mes sin aportes deja una marca fina en vez de nada: así se ve
-            el hueco. Con altura cero la barra desaparecía y parecía que ese
-            mes no existía.
-          {% endcomment %}
           <div style="width:100%;border-radius:6px 6px 3px 3px;transition:height .5s var(--ease-out);
                       {% if s.monto %}height:{{ s.alto }}%;min-height:8px;background:var(--amber);
                       {% else %}height:3px;background:var(--surface-3);{% endif %}"></div>
@@ -258,8 +249,6 @@
 
 {% block extra_js %}
 <script>
-/* Los montos sugeridos llenan el campo. Sin esto el chip se veía interactivo
-   y no hacía nada al tocarlo. */
 document.addEventListener('click', function (e) {
   var chip = e.target.closest('[data-montos] > button');
   if (!chip) return;

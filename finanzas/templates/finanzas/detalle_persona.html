@@ -23,7 +23,6 @@
     </div>
 </div>
 
-<!-- Resumen de la persona -->
 <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:24px" class="grid-resumen-persona">
     <div class="glass" style="padding:18px">
         <div class="label" style="margin-bottom:6px">Te debe</div>
@@ -54,7 +53,6 @@
 </div>
 {% endif %}
 
-<!-- Botón agregar préstamo -->
 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
     <div style="font-size:15px;font-weight:600;color:var(--text-primary)">Préstamos</div>
     <a href="{% url 'crear_prestamo' persona.id %}" class="btn btn-purple" style="padding:8px 14px;font-size:13px">
@@ -88,7 +86,6 @@
             </div>
         </div>
 
-        <!-- Progreso -->
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
             <div>
                 <span class="mono" style="font-size:18px;font-weight:600;color:{% if p.esta_pagado %}var(--purple){% else %}var(--green){% endif %}">{{ p.monto_pendiente|money:simbolo_moneda }}</span>
@@ -110,7 +107,6 @@
         </div>
         {% endif %}
 
-        <!-- Historial de abonos -->
         {% if p.abonos.all %}
         <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--glass-border)">
             <div style="font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px">Abonos</div>
@@ -132,7 +128,6 @@
 </div>
 {% endif %}
 
-<!-- Modal de abono -->
 <script>
 function abrirAbono(prestamoId, desc, pendiente) {
     let overlay = document.getElementById('abono-overlay');
@@ -197,7 +192,6 @@ function getCsrfAbono() {
 }
 </script>
 
-<!-- token csrf para el modal -->
 <form style="display:none">{% csrf_token %}</form>
 
 <style>
