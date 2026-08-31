@@ -440,15 +440,29 @@
       var filas = lista.children;
       if (filas.length <= VISIBLES) return null;
       var base = lista.getBoundingClientRect().top;
-      /* Se corta 14px DENTRO de la fila siguiente, no en el borde de la
-         última: un corte limpio parece el final de la lista y nadie busca
-         el botón. */
-      return Math.round(filas[VISIBLES - 1].getBoundingClientRect().bottom - base) + 14;
+      /* Justo en el borde de la última fila visible. Cortar dentro de la
+         siguiente dejaba su texto partido a media altura. */
+      return Math.round(filas[VISIBLES - 1].getBoundingClientRect().bottom - base);
     }
 
     var corte = alturaCorte();
     if (corte === null) { btn.style.display = "none"; return; }
     lista.style.maxHeight = corte + 'px';
+
+    /* Recalcular cuando las fuentes estén listas.
+       El corte se mide al cargar, con las métricas de la fuente de reserva:
+       si Manrope llega después las filas cambian de alto unos píxeles y el
+       recorte deja asomar un trozo de la fila siguiente. */
+    if (document.fonts && document.fonts.ready) {
+      document.fonts.ready.then(function () {
+        if (panel.classList.contains('abierto')) return;
+        var nuevo = alturaCorte();
+        if (nuevo !== null && Math.abs(nuevo - corte) > 1) {
+          corte = nuevo;
+          lista.style.maxHeight = corte + 'px';
+        }
+      });
+    }
 
     btn.addEventListener('click', function () {
       var abriendo = !panel.classList.contains('abierto');
@@ -495,7 +509,11 @@
       if (abierta && abierta !== c) cerrar(abierta);
       c.classList.add('abierta');
       var card = $('.swipe-card', c);
-      if (card) card.style.transform = '';
+      /* El desplazamiento se MIDE, no se toma del CSS.
+         Las reglas .abierta traían un valor fijo por tipo de carril (-60px
+         para una fila), y una fila de movimiento con dos acciones dejaba la
+         segunda tapada. Medirlo sirve para 1, 2 o N botones. */
+      if (card) card.style.transform = 'translateX(-' + anchoDe(c) + 'px)';
       abierta = c;
     }
 

@@ -25,6 +25,37 @@
 {% endif %}
 
 {% comment %}
+  0. QUÉ MES SE ESTÁ VIENDO
+
+  Estaba en la barra superior, que no se muestra en el teléfono: no había
+  forma de mirar un mes pasado. Acá arriba, antes de las cifras, deja claro
+  a qué mes pertenece todo lo de abajo.
+{% endcomment %}
+<div class="mes-nav">
+  <a href="?year={{ prev_year }}&amp;month={{ prev_month }}" class="mes-flecha"
+     title="Ver {{ prev_month_nombre }}" aria-label="Ver {{ prev_month_nombre }}">
+    <i class="fas fa-chevron-left"></i>
+  </a>
+
+  <div class="mes-actual">
+    <span class="mes-nombre">{{ nombre_mes }}</span>
+    {% if es_mes_actual %}
+    <span class="mes-ahora">ahora</span>
+    {% else %}
+    {% comment %}
+      El atajo de vuelta va acá, junto al mes: navegando tres meses atrás es
+      fácil perder de vista dónde estás.
+    {% endcomment %}
+    <a href="{% url 'dashboard' %}" class="mes-hoy">Volver a hoy</a>
+    {% endif %}
+  </div>
+
+  <a href="?year={{ next_year }}&amp;month={{ next_month }}" class="mes-flecha"
+     title="Ver {{ next_month_nombre }}" aria-label="Ver {{ next_month_nombre }}">
+    <i class="fas fa-chevron-right"></i>
+  </a>
+</div>
+{% comment %}
   1. LO IMPORTANTE HOY — la conclusión, arriba de todo.
 
   El número de "te queda libre" salía TRES veces: acá, en la tarjeta "Por día"
@@ -629,52 +660,70 @@
       <div class="glass card mov-panel" style="padding:22px" data-spot data-plegable>
       <div class="row-list mov-list">
         {% for t in ultimas %}
-        <div class="row" data-searchable
-             {% if t.por_pagar %}style="border-color:rgba(251,146,60,.26)"{% endif %}>
-          {% if t.marca_suscripcion %}
-          <span class="icon-tile marca-tile" style="background:{{ t.marca_suscripcion.color }}1f;color:{{ t.marca_suscripcion.color }}">
-            {% if t.marca_suscripcion.usa_inicial %}{{ t.marca_suscripcion.inicial }}{% else %}<i class="{{ t.marca_suscripcion.icono }}"></i>{% endif %}
-          </span>
-          {% else %}
-          <span class="icon-tile {% if t.es_ingreso %}green{% elif t.por_pagar %}orange{% endif %}"><i class="fas {{ t.icono }}"></i></span>
-          {% endif %}
-          <div class="row-main">
-            <div class="row-title">{{ t.descripcion|default:t.get_categoria_display }}</div>
-            {% comment %}
-              La categoría solo si hay descripción propia: sin ella el título
-              ya ES la categoría y salía dos veces en la misma fila.
-            {% endcomment %}
-            <div class="row-meta">
-              {{ t.fecha|date:"j M" }}{% if t.descripcion %} · {{ t.get_categoria_display }}{% endif %}
-              {% if t.por_pagar %} · <span style="color:var(--amber)">sin pagar</span>{% endif %}
+        {% comment %}
+          Cada fila va en un carril deslizable, igual que las compras en
+          cuotas y las personas. En un teléfono los dos botones de acción se
+          comían 77px de los 298 de la fila y al nombre le quedaban 90: por
+          eso "Cuota 3/3 — Regalo madre" salía recortado. Detrás del gesto,
+          el nombre se queda con el ancho completo.
+        {% endcomment %}
+        <div class="swipe swipe-fila swipe-mov" data-searchable>
+
+          <div class="swipe-acciones">
+            {% if t.por_pagar %}
+            <form method="post" action="{% url 'pagar_gasto' t.pk %}" style="margin:0">
+              {% csrf_token %}
+              <input type="hidden" name="next" value="{% url 'dashboard' %}">
+              <button type="submit" class="swipe-btn editar" title="Marcar como pagado">
+                <i class="fas fa-check"></i><span>Pagué</span>
+              </button>
+            </form>
+            {% elif t.es_gasto_unico %}
+            <form method="post" action="{% url 'anular_pago_gasto' t.pk %}" style="margin:0"
+                  data-confirm="¿Marcar este gasto como no pagado?">
+              {% csrf_token %}
+              <input type="hidden" name="next" value="{% url 'dashboard' %}">
+              <button type="submit" class="swipe-btn editar" title="{{ t.texto_estado_pago }} — deshacer">
+                <i class="fas fa-rotate-left"></i><span>Deshacer</span>
+              </button>
+            </form>
+            {% endif %}
+
+            <form method="post" action="{% url 'eliminar_transaccion' t.pk %}" style="margin:0"
+                  data-confirm="¿Eliminar {{ t.descripcion|default:t.get_categoria_display }}?">
+              {% csrf_token %}
+              <input type="hidden" name="next" value="{% url 'dashboard' %}">
+              <button type="submit" class="swipe-btn borrar" title="Eliminar">
+                <i class="fas fa-trash-can"></i><span>Eliminar</span>
+              </button>
+            </form>
+          </div>
+
+          <div class="swipe-card row">
+            {% if t.marca_suscripcion %}
+            <span class="icon-tile marca-tile" style="background:{{ t.marca_suscripcion.color }}1f;color:{{ t.marca_suscripcion.color }}">
+              {% if t.marca_suscripcion.usa_inicial %}{{ t.marca_suscripcion.inicial }}{% else %}<i class="{{ t.marca_suscripcion.icono }}"></i>{% endif %}
+            </span>
+            {% else %}
+            <span class="icon-tile {% if t.es_ingreso %}green{% elif t.por_pagar %}orange{% endif %}"><i class="fas {{ t.icono }}"></i></span>
+            {% endif %}
+
+            <div class="row-main">
+              <div class="row-title">{{ t.descripcion|default:t.get_categoria_display }}</div>
+              {% comment %}
+                La categoría solo si hay descripción propia: sin ella el
+                título ya ES la categoría y salía dos veces en la fila.
+              {% endcomment %}
+              <div class="row-meta">
+                {{ t.fecha|date:"j M" }}{% if t.descripcion %} · {{ t.get_categoria_display }}{% endif %}
+                {% if t.por_pagar %} · <span style="color:var(--amber)">sin pagar</span>{% endif %}
+              </div>
+            </div>
+
+            <div class="mono mov-monto" style="{% if t.es_ingreso %}color:var(--green){% endif %}">
+              {% if t.es_ingreso %}+{% endif %}{{ t.monto|money }}
             </div>
           </div>
-          <div class="mono" style="font-size:13px;{% if t.es_ingreso %}color:var(--green){% endif %}">
-            {% if t.es_ingreso %}+{% endif %}{{ t.monto|money }}
-          </div>
-
-          {% if t.por_pagar %}
-          <form method="post" action="{% url 'pagar_gasto' t.pk %}" style="margin:0">
-            {% csrf_token %}
-            <input type="hidden" name="next" value="{% url 'dashboard' %}">
-            <button type="submit" class="btn btn-green btn-sm"><i class="fas fa-check" style="font-size:9px"></i>Pagué</button>
-          </form>
-          {% elif t.es_gasto_unico %}
-          <form method="post" action="{% url 'anular_pago_gasto' t.pk %}" style="margin:0"
-                data-confirm="¿Marcar este gasto como no pagado?">
-            {% csrf_token %}
-            <input type="hidden" name="next" value="{% url 'dashboard' %}">
-            <button type="submit" class="icon-btn" title="{{ t.texto_estado_pago }} — deshacer">
-              <i class="fas fa-check" style="font-size:10px;color:var(--green)"></i>
-            </button>
-          </form>
-          {% endif %}
-
-          <form method="post" action="{% url 'eliminar_transaccion' t.pk %}" style="margin:0" data-confirm="¿Eliminar este movimiento?">
-            {% csrf_token %}
-            <input type="hidden" name="next" value="{% url 'dashboard' %}">
-            <button type="submit" class="icon-btn" title="Eliminar"><i class="fas fa-trash-can" style="font-size:10px"></i></button>
-          </form>
         </div>
         {% empty %}
         <div class="empty">

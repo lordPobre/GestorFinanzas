@@ -5,9 +5,16 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Bienvenido · FinApp</title>
+
+  {# Favicon: SVG con respaldo PNG, igual que en base.html. #}
+  <link rel="icon" type="image/svg+xml" href="{% static 'img/favicon.svg' %}">
+  <link rel="alternate icon" href="{% static 'img/favicon.png' %}">
+  <link rel="apple-touch-icon" href="{% static 'img/favicon-180.png' %}">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <link rel="stylesheet" href="{% static 'css/finapp.css' %}">
 <style>
+  /* Solo lo que esta pantalla necesita y no está en finapp.css: es una
+     página suelta, sin barra lateral ni menú. */
   body {
     display: flex; align-items: center; justify-content: center;
     padding: 24px 16px; min-height: 100vh;
@@ -31,6 +38,7 @@
   }
   .ob-sub { font-size: 13.5px; color: var(--text-secondary); line-height: 1.55; margin-bottom: 24px; }
 
+  /* Atajos de monto: teclear un sueldo completo en el teléfono es tedioso */
   .atajos { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
 </style>
 </head>

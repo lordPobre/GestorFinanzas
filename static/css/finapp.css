@@ -376,8 +376,10 @@ h1, h2, h3, h4 { margin: 0; font-weight: 700; letter-spacing: -.015em; }
    acción se ajusta a su alto en vez de imponer 62px. */
 .swipe-fila { border-radius: var(--r-md); }
 .swipe-fila .swipe-acciones { gap: 6px; padding-right: 2px; }
-.swipe-fila .swipe-btn { width: 58px; gap: 5px; font-size: 9.5px; }
-.swipe-fila .swipe-btn i { width: 28px; height: 28px; border-radius: 10px; font-size: 12px; }
+.swipe-fila .swipe-btn { width: 56px; gap: 0; }
+/* Sin etiqueta: la palabra no cabe y quedaba cortada contra el borde. */
+.swipe-fila .swipe-btn > span { display: none; }
+.swipe-fila .swipe-btn i { width: 34px; height: 34px; border-radius: 12px; font-size: 13px; }
 .swipe-fila .swipe-btn.borrar { border-radius: 0 var(--r-md) var(--r-md) 0; }
 /* La fila necesita fondo propio (sin él las acciones se ven a través) y su
    propio aire: el selector .glass > .row-list > .row ya no la alcanza ahora
@@ -407,7 +409,15 @@ h1, h2, h3, h4 { margin: 0; font-weight: 700; letter-spacing: -.015em; }
   .swipe:focus-within .swipe-card { transform: translateX(-138px); }
   /* Una sola acción ocupa menos: desplazar 136 dejaría un hueco vacío. */
   .swipe-fila:hover .swipe-card,
-  .swipe-fila:focus-within .swipe-card { transform: translateX(-58px); }
+  .swipe-fila:focus-within .swipe-card { transform: translateX(-56px); }
+
+  /* Una fila de movimiento lleva una acción o dos según si el gasto se puede
+     marcar pagado. Sin distinguirlo, con dos el segundo botón quedaba tapado
+     y con una sobraba medio hueco. */
+  .swipe-mov:has(.swipe-acciones > form + form):hover .swipe-card,
+  .swipe-mov:has(.swipe-acciones > form + form):focus-within .swipe-card {
+    transform: translateX(-134px);
+  }
   .swipe-acciones { opacity: 0; transition: opacity .2s var(--ease-out); }
   .swipe:hover .swipe-acciones,
   .swipe:focus-within .swipe-acciones { opacity: 1; }
@@ -418,8 +428,23 @@ h1, h2, h3, h4 { margin: 0; font-weight: 700; letter-spacing: -.015em; }
   /* Un poco más grandes: 58px es cómodo con el ratón, no con el pulgar. */
   .swipe-btn { width: 72px; }
   .swipe.abierta .swipe-card { transform: translateX(-146px); }
-  .swipe-fila .swipe-btn { width: 62px; }
-  .swipe-fila.abierta .swipe-card { transform: translateX(-62px); }
+  .swipe-fila .swipe-btn { width: 60px; }
+  .swipe-fila.abierta .swipe-card { transform: translateX(-60px); }
+  /* Respaldo si finapp.js no cargara: el JS mide el ancho real y lo aplica
+     en línea, pero sin él una fila de dos acciones necesita más. */
+  .swipe-mov:has(.swipe-acciones > form + form).abierta .swipe-card {
+    transform: translateX(-136px);
+  }
+
+  /* Las acciones de una fila solo existen cuando está abierta.
+     En una tarjeta grande da igual que asomen detrás, pero en una fila de
+     lista el fondo de la card las tapaba por poco y cualquier animación las
+     dejaba ver. Ocultas hasta que se arrastra. */
+  .swipe-fila .swipe-acciones {
+    opacity: 0; pointer-events: none;
+    transition: opacity .2s var(--ease-out);
+  }
+  .swipe-fila.abierta .swipe-acciones { opacity: 1; pointer-events: auto; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -448,14 +473,6 @@ h1, h2, h3, h4 { margin: 0; font-weight: 700; letter-spacing: -.015em; }
    regla con clase gane la cascada. */
 
 /* El velo que difumina la última fila visible. Se va al abrir. */
-/* El velo insinúa que hay más abajo. Corto a propósito: con 56px tapaba
-   casi toda la última fila visible y parecía un error de render. */
-.mov-panel:not(.abierto) .mov-list::after {
-  content: ''; position: absolute; left: 0; right: 0; bottom: 56px; height: 28px;
-  background: linear-gradient(to bottom, transparent, var(--surface));
-  pointer-events: none;
-}
-
 .mov-toggle {
   display: flex; align-items: center; justify-content: center; gap: 8px;
   width: 100%; margin-top: 12px; padding: 11px;
@@ -547,11 +564,47 @@ h1, h2, h3, h4 { margin: 0; font-weight: 700; letter-spacing: -.015em; }
   border-radius: 14px; background: #fff; font-size: 18px;
 }
 
-/* --- Lista de movimientos: divisor recortado tras el icono --- */
+/* --- Lista de movimientos --- */
 .mov-list .row { border-bottom: none; padding: 14px 0; position: relative; }
-.mov-list .row + .row::before {
+
+/* El divisor va en el CARRIL, no en la fila: desde que cada movimiento vive
+   dentro de un .swipe, el selector .row + .row ya no alcanzaba nada. Y va
+   recortado tras el icono, como en la referencia. */
+.mov-list .swipe-mov + .swipe-mov::before {
   content: ''; position: absolute; top: 0; left: 59px; right: 0;
-  height: 1px; background: var(--line);
+  height: 1px; background: var(--line); z-index: 2;
+}
+
+/* La fila de un movimiento vive dentro de la tarjeta y se separa con la
+   línea, sin radio propio. El carril solo aporta el gesto.
+   
+   La fila SÍ lleva fondo, del mismo color que la tarjeta: es lo que tapa las
+   acciones mientras está cerrada. Sin él se veían siempre, superpuestas al
+   monto. */
+.swipe-mov { background: transparent; border-radius: 0; }
+.swipe-mov .swipe-card {
+  display: flex; align-items: center; gap: 13px;
+  padding: 14px 0; border: none; border-radius: 0;
+  background: var(--surface);
+}
+
+/* Un carril de esta lista NO se encoge.
+   .row-list es flex column, y un hijo con overflow:hidden (que es lo que el
+   carril necesita para recortar las acciones) pierde su min-height:auto
+   implícito. Con el max-height del plegado, las diez filas se comprimían a
+   28px cada una y los iconos quedaban cortados por la mitad. */
+.mov-list > .swipe-mov { flex-shrink: 0; }
+
+/* Las acciones a escuadra: en el medio de una lista no hay esquina que
+   redondear. */
+.swipe-mov .swipe-acciones { border-radius: 0; }
+.swipe-mov .swipe-btn { border-radius: 0; }
+
+/* El monto: tabular y sin encoger, para que la columna quede a plomo entre
+   filas aunque los importes tengan distinto largo. */
+.mov-monto {
+  font-size: 13px; flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
 }
 
 /* --- Metas: filas a lo ancho --- */
@@ -578,6 +631,10 @@ h1, h2, h3, h4 { margin: 0; font-weight: 700; letter-spacing: -.015em; }
 }
 .meta-nombre {
   font-size: 13px; font-weight: 600;
+  /* min-width:0 en el propio elemento: .meta-cuerpo ya lo tiene, pero el
+     nombre es hijo de .meta-linea y sin él su nowrap fija el ancho mínimo
+     de la fila en vez de recortarse. */
+  min-width: 0; flex: 1;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 .meta-monto {
@@ -587,6 +644,9 @@ h1, h2, h3, h4 { margin: 0; font-weight: 700; letter-spacing: -.015em; }
 }
 .meta-pie {
   display: block; font-size: 10.5px; color: var(--text-muted); margin-top: 7px;
+  /* "5% de $1.000.000 · faltan $950.000" es la línea más larga de la fila:
+     recortada antes que partida, o la fila crece de alto en el teléfono. */
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 .meta-flecha { font-size: 11px; color: var(--text-muted); flex-shrink: 0; }
 
@@ -1248,6 +1308,93 @@ label { display: block; }
   .flujo-cabecera .display { font-size: 26px !important; }
 }
 
+/* Encabezado de Análisis: el título a la izquierda y el botón de la IA a la
+   derecha. El botón estaba en el topbar, que en móvil no se muestra, así que
+   la acción principal de la pantalla no existía en el teléfono. */
+.analisis-head {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  gap: 16px; flex-wrap: wrap; margin-bottom: 18px;
+}
+.btn-ia { flex-shrink: 0; }
+
+@media (max-width: 720px) {
+  /* A ancho completo bajo el texto: en una fila con el título quedaba en
+     150px y "Explicarlo con IA" se partía en dos líneas. */
+  .analisis-head { gap: 14px; }
+  .btn-ia { width: 100%; justify-content: center; padding: 14px; }
+}
+
+/* La cifra de salud, a plomo con el título y la barra. */
+.health-cifra {
+  display: flex; align-items: baseline; gap: 6px;
+  justify-content: flex-start; margin-bottom: 9px;
+}
+
+/* Con el sidebar colapsado a 76px solo queda el número: ahí sí centrado, o
+   se pega al canto izquierdo del riel. */
+@media (max-width: 1000px) {
+  .health-cifra { justify-content: center; }
+}
+
+/* ===== Selector de mes =====
+   Vive en el contenido del dashboard, no en la barra superior: ahí no se
+   mostraba en el teléfono y el mes es lo que gobierna toda la pantalla.
+
+   Las flechas a los extremos y el mes al medio: el pulgar llega a las dos
+   sin recolocar la mano, que es la razón de no apilarlas a un lado. */
+.mes-nav {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 16px;
+  /* En un monitor el grupo no tiene que ocupar todo el ancho: con la píldora
+     estirada a 900px se leía como una barra vacía con dos palabras al medio. */
+  max-width: 420px;
+}
+
+.mes-flecha {
+  display: flex; align-items: center; justify-content: center;
+  width: 42px; height: 42px; flex-shrink: 0;
+  border-radius: 50%; font-size: 12px;
+  background: var(--surface); color: var(--text-secondary);
+  text-decoration: none;
+  transition: background .18s var(--ease-out), color .18s;
+}
+.mes-flecha:hover { background: var(--surface-2); color: var(--text-primary); }
+.mes-flecha:active { transform: scale(.94); }
+
+/* El mes ocupa el centro y empuja las flechas a los cantos. */
+.mes-actual {
+  flex: 1; min-width: 0;
+  display: flex; align-items: center; justify-content: center;
+  gap: 9px; flex-wrap: wrap;
+  padding: 10px 14px; border-radius: 100px;
+  background: var(--surface);
+}
+.mes-nombre {
+  font-family: 'Manrope', sans-serif; font-size: 14px; font-weight: 700;
+  letter-spacing: -.02em; white-space: nowrap;
+}
+.mes-ahora {
+  font-size: 10px; font-weight: 700; letter-spacing: .04em;
+  text-transform: uppercase;
+  padding: 3px 9px; border-radius: 100px;
+  background: var(--amber-tenue); color: var(--amber);
+}
+/* El atajo de vuelta, solo cuando no se está en el mes corriente. */
+.mes-hoy {
+  font-size: 11px; font-weight: 700; color: var(--amber);
+  text-decoration: none; white-space: nowrap;
+}
+.mes-hoy:hover { color: var(--amber-claro); }
+
+@media (max-width: 720px) {
+  /* Toques de 46px: son dos botones que se usan seguido, y 42 con el pulgar
+     en el borde de la pantalla se falla. */
+  .mes-nav { gap: 8px; margin-bottom: 14px; max-width: none; }
+  .mes-flecha { width: 46px; height: 46px; }
+  .mes-actual { padding: 12px 12px; gap: 8px; }
+  .mes-nombre { font-size: 13.5px; }
+}
+
 /* ===== Bloque "Tu mes" =====
    Reemplaza tres bloques que repetían cifras. Los dos totales arriba, la
    barra al medio, cada tramo con su monto abajo. */
@@ -1679,13 +1826,16 @@ select:focus-visible, textarea:focus-visible, [tabindex]:focus-visible {
 
   /* --- Barra inferior flotante, con el botón encima --- */
   .bottomnav {
-    left: 14px; right: 14px; bottom: 14px;
+    left: 14px; right: 14px;
+    /* Igual que el botón flotante: bottom + área segura, no margin-bottom.
+       Dos mecanismos distintos para el mismo desplazamiento fue lo que dejó
+       al botón montado por debajo en el iPhone. */
+    bottom: calc(14px + env(safe-area-inset-bottom));
     height: 66px; padding: 0 4px;
     border-radius: 24px; border: none;
     background: var(--surface);
     box-shadow: 0 10px 34px rgba(0, 0, 0, .5);
     padding-bottom: 0;
-    margin-bottom: env(safe-area-inset-bottom);
   }
   .bottomnav .nav-item { gap: 3px; padding: 8px 2px; font-size: 10.5px; }
   .bottomnav .nav-item i { font-size: 18px; }
@@ -1693,9 +1843,12 @@ select:focus-visible, textarea:focus-visible, [tabindex]:focus-visible {
   /* El hueco del botón central: dos ítems a cada lado */
   .bottomnav .nav-hueco { flex: 0 0 66px; }
 
-  /* El botón sale de la barra y la monta por arriba, con su halo ámbar */
+  /* El botón sale de la barra y la monta por arriba, con su halo ámbar.
+     Se ancla al MISMO sistema que la barra: sin sumarle el área segura,
+     en un iPhone la barra subía 34px y el botón se quedaba abajo, montado
+     por el lado contrario. */
   .fab-group {
-    right: 50%; bottom: 34px;
+    right: 50%; bottom: calc(34px + env(safe-area-inset-bottom));
     transform: translateX(50%);
     flex-direction: row-reverse; gap: 0;
   }
@@ -1710,14 +1863,29 @@ select:focus-visible, textarea:focus-visible, [tabindex]:focus-visible {
      Gasto/Ingreso arriba, así que el ingreso sigue a un toque. */
   .fab-group .fab-mini { display: none; }
 
-  .main { padding-bottom: calc(66px + 40px); }
+  .main { padding-bottom: calc(66px + 40px + env(safe-area-inset-bottom)); }
 
   /* Las secciones se ven como en la plantilla: título grande, "Ver mas" */
   .section-title { font-size: 19px; }
   .section-head { margin: 24px 0 12px; }
 
-  /* La lista de movimientos va en una sola tarjeta */
-  .mov-list .row + .row::before { left: 59px; }
+  /* El divisor arranca tras el icono, que en móvil mide lo mismo. */
+  .mov-list .swipe-mov + .swipe-mov::before { left: 51px; }
+
+  /* Filas más compactas: con las acciones tras el gesto sobra el aire que
+     antes necesitaban los botones. */
+  .swipe-mov .swipe-card { gap: 11px; padding: 13px 0; }
+  .mov-list .icon-tile, .mov-list .marca-tile { width: 34px; height: 34px; font-size: 13px; }
+  .mov-monto { font-size: 12.5px; }
+
+  /* ===== Metas =====
+     El icono baja a 34 y el pie a 10px: son los dos que dejaban al nombre
+     con menos de la mitad de la fila. */
+  .meta-fila { gap: 11px; padding: 13px 14px; }
+  .meta-icono { width: 34px; height: 34px; font-size: 13px; border-radius: 11px; }
+  .meta-monto { font-size: 15px; }
+  .meta-linea { gap: 9px; margin-bottom: 7px; }
+  .meta-pie { font-size: 10px; margin-top: 6px; }
 }
 
 @media (prefers-reduced-motion: reduce) {

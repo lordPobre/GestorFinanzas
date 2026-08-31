@@ -4,12 +4,22 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#0b0b16">
+  {# El color de la barra del navegador en móvil: el fondo real de la app. #}
+  <meta name="theme-color" content="#191919">
   <title>{% block title %}FinApp{% endblock %}</title>
+
+  {% comment %}
+    Favicon en SVG: nítido en cualquier tamaño y más liviano que un PNG.
+    El ICO queda como respaldo para navegadores que no aceptan SVG, y el
+    apple-touch-icon para cuando se guarda en la pantalla de inicio.
+  {% endcomment %}
+  <link rel="icon" type="image/svg+xml" href="{% static 'img/favicon.svg' %}">
+  <link rel="alternate icon" href="{% static 'img/favicon.png' %}">
+  <link rel="apple-touch-icon" href="{% static 'img/favicon-180.png' %}">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
   <link rel="stylesheet" href="{% static 'css/finapp.css' %}">
   {% block extra_head %}{% endblock %}
@@ -107,7 +117,13 @@
       {% if salud_score != None %}
       <div class="sidebar-foot health" data-spot title="Salud del mes: {{ salud_score }}/100 · {{ salud_label }}">
         <div class="label" style="color:var(--amber);margin-bottom:7px">Salud del mes</div>
-        <div style="display:flex;align-items:baseline;gap:6px;margin-bottom:9px;justify-content:center">
+        {% comment %}
+          Alineado a la izquierda, a plomo con el título y la barra. El
+          centrado venía de cuando el sidebar se colapsaba a 76px y solo
+          quedaba el número; con el sidebar ancho dejaba el 70 flotando al
+          medio, sin nada que lo alineara.
+        {% endcomment %}
+        <div class="health-cifra">
           <span class="display" style="font-size:24px;line-height:1">{{ salud_score }}</span>
           <span class="health-detalle" style="font-size:11px;color:var(--text-muted)">/ 100 · {{ salud_label }}</span>
         </div>
@@ -145,28 +161,12 @@
         </div>
       </div>
 
-      {# Solo el dashboard navega por mes; el resto no manda nombre_mes #}
-      {% if nombre_mes %}
-      <div class="pill-group">
-        <a href="?year={{ prev_year }}&amp;month={{ prev_month }}" class="icon-btn"
-           style="display:flex;align-items:center;justify-content:center"
-           title="Ver {{ prev_month_nombre }}" aria-label="Ver {{ prev_month_nombre }}">
-          <i class="fas fa-chevron-left" style="font-size:10px"></i>
-        </a>
-        <span class="month">
-          {{ nombre_mes|default:"Este mes" }}
-          {% if es_mes_actual %}<span style="font-size:9.5px;color:var(--amber);margin-left:5px">ahora</span>{% endif %}
-        </span>
-        <a href="?year={{ next_year }}&amp;month={{ next_month }}" class="icon-btn"
-           style="display:flex;align-items:center;justify-content:center"
-           title="Ver {{ next_month_nombre }}" aria-label="Ver {{ next_month_nombre }}">
-          <i class="fas fa-chevron-right" style="font-size:10px"></i>
-        </a>
-      </div>
-      {% if not es_mes_actual %}
-      <a href="{% url 'dashboard' %}" class="btn btn-soft btn-sm">Volver a hoy</a>
-      {% endif %}
-      {% endif %}
+      {% comment %}
+        El selector de mes vivía acá, y el topbar entero se oculta bajo
+        720px: en el teléfono no había forma de ver otro mes. Pasó al
+        contenido del dashboard, que es la única pantalla que navega por
+        mes y donde además gobierna todo lo que se muestra debajo.
+      {% endcomment %}
 
       {% comment %}
         El placeholder decía "Buscar movimiento, persona o categoría" en todas

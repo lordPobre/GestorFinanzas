@@ -12,21 +12,27 @@
 </div>
 {% endblock %}
 
-{% block topbar_actions %}
-<button class="btn btn-soft" id="btnIA"><i class="fas fa-wand-magic-sparkles" style="font-size:11px"></i>Explicarlo con IA</button>
-{% endblock %}
+
 
 {% block content %}
 
-<div style="margin-bottom:18px">
-  <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-    <div class="page-title">Análisis</div>
-    <span class="badge badge-purple">Calculado, no adivinado</span>
+<div class="analisis-head">
+  <div style="min-width:0">
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+      <div class="page-title">Análisis</div>
+      <span class="badge badge-purple">Calculado, no adivinado</span>
+    </div>
+    <div class="hint" style="margin-top:5px;max-width:640px">
+      Todo lo de esta página sale de matemática sobre tus datos: promedios de tres meses,
+      ratio deuda/ingreso y el calendario real de tus cuotas.
+    </div>
   </div>
-  <div class="hint" style="margin-top:5px;max-width:640px">
-    Todo lo de esta página sale de matemática sobre tus datos: promedios de tres meses,
-    ratio deuda/ingreso y el calendario real de tus cuotas.
-  </div>
+
+  {% if analisis.tiene_datos %}
+  <button class="btn btn-soft btn-ia" id="btnIA">
+    <i class="fas fa-wand-magic-sparkles" style="font-size:11px"></i>Explicarlo con IA
+  </button>
+  {% endif %}
 </div>
 
 {% if not analisis.tiene_datos %}
@@ -105,7 +111,7 @@
   </div>
 </div>
 
-{# ============ Interpretación IA ============ #}
+{# ============ Interpretación IA (bajo demanda) ============ #}
 <div class="glass card" style="padding:22px;margin-bottom:16px;display:none" id="cajaIA" data-spot>
   <div style="display:flex;align-items:center;gap:10px;margin-bottom:15px">
     <span class="icon-tile"><i class="fas fa-wand-magic-sparkles"></i></span>
@@ -191,6 +197,13 @@
       <canvas id="chartSerie" data-om-raster></canvas>
     </div>
 
+    {% comment %}
+      El saldo total de la deuda salía como una línea sobre estas mismas barras,
+      pero con su PROPIO eje: las barras se medían contra $140k y la línea contra
+      $80k. Comparar sus alturas no significaba nada, y la línea parecía estar por
+      encima de las barras sin estarlo. Es otra pregunta, así que va aparte, en
+      texto, donde no hay escala que confundir.
+    {% endcomment %}
     <div style="margin-top:16px;padding-top:16px;border-top:1px solid rgba(255,255,255,.06);display:flex;gap:22px;flex-wrap:wrap">
       <div>
         <div class="label" style="margin-bottom:5px">Te queda debiendo</div>
@@ -281,10 +294,23 @@
 <script>
 (function () {
   var GRID = 'rgba(255,255,255,.055)';
+  /* Literal a propósito: sobre canvas un var() no es un color válido y
+     cae al negro por defecto. */
   var TICK = 'rgba(245,245,245,.42)';
   var TEXTO = 'rgba(245,245,245,.72)';
   var FONT = "'Manrope', sans-serif";
 
+  /* ---- Cuánto pagas en cuotas cada mes ----
+
+     Un solo eje. ANTES había dos: las barras contra el eje izquierdo y la
+     línea del saldo total contra el derecho, con topes distintos ($140k y
+     $80k). Dos reglas en el mismo dibujo hacen que las alturas no se puedan
+     comparar: la línea aparecía por encima de las barras sin estar por
+     encima de nada. El saldo ahora va en texto, bajo el gráfico.
+
+     Además la línea no contaba lo que parecía: el saldo de un mes pasado
+     ya estaba pagado, así que la serie salía plana y caía a cero de golpe
+     en el último mes con cuotas. Un acantilado, no una tendencia. */
   var el = document.getElementById("chartSerie");
   if (!el || !window.Chart) return;
 
@@ -294,6 +320,9 @@
   var pagado = {{ serie_pagado_json|safe }};
   var pendiente = {{ serie_pendiente_json|safe }};
 
+  /* Franja sobre el mes en curso y una línea que separa pasado de futuro.
+     La etiqueta "hoy" se pisaba con los nombres de mes del eje; ahora va
+     dentro del área, alineada al borde. */
   var marcaHoy = {
     id: "marcaHoy",
      beforeDatasetsDraw: function (chart) {
@@ -350,6 +379,8 @@
           padding: 13, cornerRadius: 14, boxPadding: 5, usePointStyle: true,
           filter: function (c) { return c.parsed.y > 0; },
           callbacks: {
+            /* El total va en el título, que es la pregunta real: "cuánto
+               pago este mes". El reparto queda abajo, como detalle. */
             title: function (items) {
               var i = items[0].dataIndex;
               var total = (pagado[i] || 0) + (pendiente[i] || 0);
@@ -389,7 +420,7 @@
 </script>
 
 <script>
-(function () {
+(function () {  /* ---- Interpretación con IA, bajo demanda ---- */
   var btn = document.getElementById('btnIA');
   if (!btn) return;
   var caja = document.getElementById('cajaIA');
@@ -402,6 +433,9 @@
     estado.textContent = msg;
   }
 
+  /* La respuesta es un objeto con cuatro partes: diagnóstico, lista de
+     recomendaciones, proyección y una frase de cierre. Se arma cada una;
+     antes se volcaba el objeto completo y salía "[object Object]". */
   function pintar(ia) {
     if (!ia || typeof ia !== 'object' || !ia.diagnostico) {
       fallo('La respuesta llegó incompleta. Vuelve a intentarlo.');
