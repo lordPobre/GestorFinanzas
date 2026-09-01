@@ -152,7 +152,7 @@
     <header class="topbar">
       {% block topbar_left %}
       <div style="display:flex;align-items:center;gap:11px">
-        <a href="{% url 'perfil' %}" class="avatar" title="Mi perfil">{{ profile.inicial|default:"?" }}</a>
+        <a href="{% url 'perfil' %}" class="avatar" title="Mi perfil">{% if profile.foto_url %}<img src="{{ profile.foto_url }}" alt="">{% else %}{{ profile.inicial|default:"?" }}{% endif %}</a>
         <div>
           <div style="font-size:15px;font-weight:700;letter-spacing:-.02em">
             Hola, {{ profile.nombre_display|default:user.username }}
@@ -182,6 +182,12 @@
       </div>
       {% endblock %}
 
+      {% comment %}
+        El selector de mes de la pantalla que lo tenga, junto al buscador.
+        Vacío en el resto.
+      {% endcomment %}
+      {% block topbar_mes %}{% endblock %}
+
       <div class="spacer"></div>
 
       {% block topbar_actions %}
@@ -210,7 +216,7 @@
         En escritorio se esconde: ahí el saludo vive en el topbar.
       {% endcomment %}
       <div class="saludo-card">
-        <a href="{% url 'perfil' %}" class="avatar">{{ profile.inicial|default:"?" }}</a>
+        <a href="{% url 'perfil' %}" class="avatar">{% if profile.foto_url %}<img src="{{ profile.foto_url }}" alt="">{% else %}{{ profile.inicial|default:"?" }}{% endif %}</a>
         <div class="saludo-txt">
           <div class="saludo-hola">{% block saludo %}Buenos días{% endblock %}</div>
           <div class="saludo-nombre">{{ profile.nombre_display|default:user.username }}</div>

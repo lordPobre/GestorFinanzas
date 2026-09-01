@@ -16,35 +16,77 @@
 <div style="max-width:780px">
 
 {# ============ Cabecera ============ #}
-<div class="glass card-lg" data-spot style="margin-bottom:16px;display:flex;align-items:center;gap:18px;flex-wrap:wrap">
-  <span class="avatar" style="width:66px;height:66px;border-radius:22px;font-size:24px;
-        background:linear-gradient(140deg,var(--amber-oscuro),var(--amber));border:none;color:#fff;
-        box-shadow:0 10px 28px rgba(255,170,44,.35)">{{ profile.inicial }}</span>
+{% comment %}
+  Foto, nombre y datos en un bloque; las cifras en otro, separadas por una
+  línea. Antes el aviso de la foto se metía ENTRE la foto y el nombre y lo
+  empujaba al otro extremo de la tarjeta, y las tres cifras tenían
+  tratamientos distintos: dos apagadas y la de la fecha en ámbar y mono, sin
+  que nada justificara el destaque.
+{% endcomment %}
+<div class="glass card-lg perfil-cab" data-spot>
 
-  <div style="flex:1;min-width:180px">
-    <div class="page-title" style="font-size:19px">{{ profile.nombre_display }}</div>
-    <div class="hint" style="font-size:12.5px;margin-top:4px">
-      {{ profile.email|default:request.user.email|default:"Sin email" }}
-      {% if profile.ubicacion %} · {{ profile.ubicacion }}{% endif %}
+  <div class="perfil-id">
+    <label class="avatar-foto" for="{{ perfil_form.foto.id_for_label }}"
+           title="{% if profile.foto_url %}Cambiar foto{% else %}Subir una foto{% endif %}">
+      {% comment %}
+        La inicial va SIEMPRE en el marcado, debajo de la foto: si la imagen
+        no carga se ve la letra en vez del texto alternativo suelto.
+      {% endcomment %}
+      <span class="avatar-inicial" id="vistaInicial"
+            {% if profile.foto_url %}style="display:none"{% endif %}>{{ profile.inicial }}</span>
+      <img id="vistaAvatar" alt=""
+           {% if profile.foto_url %}src="{{ profile.foto_url }}"{% else %}hidden{% endif %}>
+      <span class="avatar-lapiz"><i class="fas fa-camera"></i></span>
+    </label>
+
+    <div class="perfil-datos">
+      <h1 class="perfil-nombre">{{ profile.nombre_display }}</h1>
+
+      {% comment %}
+        Correo y ubicación en líneas propias con su icono: juntos con un
+        punto en medio se leían como una sola frase larga.
+      {% endcomment %}
+      <div class="perfil-meta">
+        <span>
+          <i class="fas fa-envelope"></i>
+          {{ profile.email|default:request.user.email|default:"Sin email" }}
+        </span>
+        {% if profile.ubicacion %}
+        <span>
+          <i class="fas fa-location-dot"></i>{{ profile.ubicacion }}
+        </span>
+        {% endif %}
+      </div>
+
+      {% comment %}
+        El aviso va bajo el nombre, donde no empuja nada: es un estado
+        pasajero y no debe reordenar la cabecera al aparecer.
+      {% endcomment %}
+      <div class="foto-nota" id="notaFoto" hidden>
+        <i class="fas fa-circle-info" style="font-size:10px"></i>Guarda los cambios para subir la foto
+      </div>
     </div>
   </div>
 
-  <div style="display:flex;gap:10px;flex-wrap:wrap">
-    <div style="padding:11px 15px;border-radius:14px;background:rgba(255,255,255,.05);border:1px solid var(--glass-border);text-align:center">
-      <div class="mono" style="font-size:15px">{{ total_trans }}</div>
-      <div class="label" style="margin-top:3px">movimientos</div>
+  {% comment %}
+    Las tres con el mismo peso: son tres datos del mismo tipo y ninguno
+    manda sobre los otros.
+  {% endcomment %}
+  <div class="perfil-cifras">
+    <div class="perfil-cifra">
+      <span class="perfil-cifra-valor">{{ total_trans }}</span>
+      <span class="label">movimientos</span>
     </div>
-    <div style="padding:11px 15px;border-radius:14px;background:rgba(255,255,255,.05);border:1px solid var(--glass-border);text-align:center">
-      <div class="mono" style="font-size:15px">{{ total_deudas }}</div>
-      <div class="label" style="margin-top:3px">compras a plazo</div>
+    <div class="perfil-cifra">
+      <span class="perfil-cifra-valor">{{ total_deudas }}</span>
+      <span class="label">compras a plazo</span>
     </div>
-    <div style="padding:11px 15px;border-radius:14px;background:rgba(255,170,44,.12);border:1px solid rgba(255,170,44,.24);text-align:center">
-      <div class="mono" style="font-size:15px;color:var(--amber-claro)">{{ miembro_desde }}</div>
-      <div class="label" style="color:var(--amber);margin-top:3px">desde</div>
+    <div class="perfil-cifra">
+      <span class="perfil-cifra-valor">{{ miembro_desde }}</span>
+      <span class="label">miembro desde</span>
     </div>
   </div>
 </div>
-
 {# ============ Pestañas ============ #}
 <div class="seg" style="margin-bottom:16px;max-width:340px" id="segPerfil">
   <button type="button" class="on" data-panel="datos">Tus datos</button>
@@ -53,9 +95,26 @@
 
 {# ============ Panel: datos ============ #}
 <div id="panelDatos">
-  <form method="post">
+  {% comment %}
+    enctype multipart: sin él el navegador manda solo los nombres de los
+    campos de archivo, no el contenido, y la foto nunca llega.
+  {% endcomment %}
+  <form method="post" enctype="multipart/form-data">
     {% csrf_token %}
     <input type="hidden" name="accion" value="perfil">
+
+    {% comment %}
+      El campo va oculto: lo dispara el avatar de arriba. Sigue en el
+      formulario para que se envíe con el resto.
+    {% endcomment %}
+    <div class="visually-hidden">{{ perfil_form.foto }}</div>
+    {% for e in perfil_form.foto.errors %}
+    <div class="glass card" style="margin-bottom:14px;border-color:rgba(226,92,92,.3)">
+      <div style="display:flex;align-items:center;gap:10px;font-size:12.5px;color:var(--coral)">
+        <i class="fas fa-triangle-exclamation"></i>{{ e }}
+      </div>
+    </div>
+    {% endfor %}
 
     <div class="glass card" style="padding:24px;margin-bottom:16px" data-spot>
       <div class="modal-title" style="font-size:15px;font-weight:500">Tus datos</div>
@@ -214,7 +273,39 @@
 
 {% block extra_js %}
 <script>
+/* Vista previa de la foto antes de guardar.
+   Sin esto hay que enviar el formulario para ver si la imagen era la
+   correcta, y si no lo era, repetir todo. */
 (function () {
+  var campo = document.getElementById('{{ perfil_form.foto.id_for_label }}');
+  var img = document.getElementById('vistaAvatar');
+  var inicial = document.getElementById('vistaInicial');
+  var nota = document.getElementById('notaFoto');
+  if (!campo || !img) return;
+
+  /* Si la foto no carga, se vuelve a la inicial.
+     Sin esto queda un hueco con el icono de imagen rota, que no dice nada
+     de lo que pasó. */
+  img.addEventListener('error', function () {
+    if (!img.getAttribute('src')) return;
+    img.removeAttribute('src');
+    img.hidden = true;
+    if (inicial) inicial.style.display = 'flex';
+  });
+
+  campo.addEventListener('change', function () {
+    var f = campo.files && campo.files[0];
+    if (!f) return;
+    img.src = URL.createObjectURL(f);
+    img.hidden = false;
+    if (inicial) inicial.style.display = 'none';
+    /* La foto ya se ve, pero no está subida hasta enviar el formulario. */
+    if (nota) nota.hidden = false;
+  });
+})();
+
+(function () {
+  /* Pestañas */
   var seg = document.getElementById('segPerfil');
   var paneles = { datos: document.getElementById('panelDatos'), seguridad: document.getElementById('panelSeguridad') };
 
@@ -227,10 +318,12 @@
     });
   });
 
+  /* Si el POST de contraseña volvió con errores, abrir esa pestaña */
   {% if pw_form.errors %}
   seg.querySelector('[data-panel="seguridad"]').click();
   {% endif %}
 
+  /* Aviso de coincidencia */
   var p1 = document.getElementById('{{ pw_form.new_password1.id_for_label }}');
   var p2 = document.getElementById('{{ pw_form.new_password2.id_for_label }}');
   var aviso = document.getElementById('coincide');

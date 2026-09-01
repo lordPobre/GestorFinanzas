@@ -1,0 +1,33 @@
+{% comment %}
+  Selector de mes. Se incluye dos veces desde el dashboard:
+
+    · en el topbar, junto al buscador  → escritorio
+    · al principio del contenido       → móvil, donde el topbar no se muestra
+
+  Cada copia se esconde en la franja que no le toca (.solo-ancho / .solo-medio
+  no sirven acá porque la de móvil tiene que aparecer bajo 720px).
+{% endcomment %}
+<div class="mes-nav {{ variante }}">
+  <a href="?year={{ prev_year }}&amp;month={{ prev_month }}" class="mes-flecha"
+     title="Ver {{ prev_month_nombre }}" aria-label="Ver {{ prev_month_nombre }}">
+    <i class="fas fa-chevron-left"></i>
+  </a>
+
+  <div class="mes-actual">
+    <span class="mes-nombre">{{ nombre_mes }}</span>
+    {% if es_mes_actual %}
+    <span class="mes-ahora">ahora</span>
+    {% else %}
+    {% comment %}
+      El atajo de vuelta va junto al mes: navegando tres meses atrás es fácil
+      perder de vista dónde estás.
+    {% endcomment %}
+    <a href="{% url 'dashboard' %}" class="mes-hoy">Volver a hoy</a>
+    {% endif %}
+  </div>
+
+  <a href="?year={{ next_year }}&amp;month={{ next_month }}" class="mes-flecha"
+     title="Ver {{ next_month_nombre }}" aria-label="Ver {{ next_month_nombre }}">
+    <i class="fas fa-chevron-right"></i>
+  </a>
+</div>

@@ -131,6 +131,13 @@ h1, h2, h3, h4 { margin: 0; font-weight: 700; letter-spacing: -.015em; }
   position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
   overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
 }
+/* Un input dentro tiene que encogerse también.
+   La regla general de input es "input:not([type=checkbox]):not([type=radio])",
+   más específica que esta clase, así que le imponía width:100% y padding: un
+   campo de archivo oculto se estiraba a 1000px y desbordaba la página. */
+.visually-hidden input, input.visually-hidden {
+  width: 1px; min-width: 0; padding: 0; border: 0;
+}
 
 /* ===== Superficies =====
    Planas y muy redondeadas. Sin blur: la referencia no lo usa, y el
@@ -1336,6 +1343,134 @@ label { display: block; }
   .health-cifra { justify-content: center; }
 }
 
+/* ===== Cabecera del perfil ===== */
+.perfil-cab {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 24px; flex-wrap: wrap; margin-bottom: 16px;
+}
+
+.perfil-id { display: flex; align-items: center; gap: 18px; min-width: 0; }
+.perfil-datos { min-width: 0; }
+
+.perfil-nombre {
+  font-family: 'Manrope', sans-serif; font-size: 21px; font-weight: 800;
+  letter-spacing: -.03em; margin: 0; line-height: 1.2;
+}
+
+/* Correo y ubicación en líneas propias con su icono: juntos con un punto en
+   medio se leían como una frase larga y el correo perdía su forma. */
+.perfil-meta {
+  display: flex; flex-direction: column; gap: 4px; margin-top: 7px;
+}
+.perfil-meta > span {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 12.5px; color: var(--text-secondary);
+  min-width: 0;
+}
+.perfil-meta i {
+  width: 13px; font-size: 11px; color: var(--text-muted); flex-shrink: 0;
+}
+
+/* Las tres cifras con el mismo peso: son datos del mismo tipo y ninguno
+   manda sobre los otros. Antes la fecha iba en ámbar y monoespaciada, como
+   si fuera un dato de otra clase. */
+.perfil-cifras { display: flex; gap: 10px; flex-wrap: wrap; }
+.perfil-cifra {
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  padding: 12px 18px; border-radius: var(--r-md); min-width: 92px;
+  background: var(--surface-2);
+}
+.perfil-cifra-valor {
+  font-family: 'Manrope', sans-serif; font-size: 17px; font-weight: 800;
+  letter-spacing: -.02em; font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.perfil-cifra .label { font-size: 10.5px; }
+
+/* El aviso de la foto, bajo el nombre: es un estado pasajero y no debe
+   reordenar la cabecera al aparecer. */
+.perfil-datos .foto-nota { margin-top: 10px; display: inline-flex; }
+
+@media (max-width: 720px) {
+  .perfil-cab { gap: 18px; }
+  .perfil-id { gap: 14px; }
+  .perfil-nombre { font-size: 18px; }
+  /* Las tres reparten el ancho en vez de envolver a dos y una suelta. */
+  .perfil-cifras { display: grid; grid-template-columns: repeat(3, 1fr); width: 100%; gap: 8px; }
+  .perfil-cifra { min-width: 0; padding: 12px 8px; }
+  .perfil-cifra-valor { font-size: 15px; }
+  .perfil-cifra .label { font-size: 9.5px; text-align: center; line-height: 1.3; }
+}
+
+/* ===== Avatar con foto =====
+   El avatar del perfil ES el control: se toca y abre el selector. Un botón
+   aparte diría dos veces lo mismo. */
+.avatar-foto {
+  position: relative; flex-shrink: 0; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  width: 66px; height: 66px; border-radius: 22px; overflow: hidden;
+  background: linear-gradient(140deg, var(--amber-oscuro), var(--amber));
+  /* Un borde fino en vez del halo ámbar: con una foto real el resplandor la
+     teñía y competía con ella. El degradado solo se ve cuando hay inicial. */
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, .08), 0 6px 18px rgba(0, 0, 0, .35);
+  transition: transform .18s var(--ease-out), box-shadow .18s var(--ease-out);
+}
+.avatar-foto:hover {
+  transform: scale(1.03);
+  box-shadow: 0 0 0 2px rgba(255, 170, 44, .5), 0 6px 18px rgba(0, 0, 0, .35);
+}
+.avatar-foto:active { transform: scale(.97); }
+
+.avatar-foto img {
+  position: relative; z-index: 1;
+  width: 100%; height: 100%; display: block;
+  /* cover, no fill: una foto vertical se deformaría al cuadrado. */
+  object-fit: cover;
+}
+.avatar-inicial {
+  position: absolute; inset: 0; z-index: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Manrope', sans-serif; font-size: 24px; font-weight: 800;
+  color: #fff;
+}
+
+/* La cámara sobre una banda oscura al pie: sobre una foto clara un icono
+   blanco suelto no se ve. */
+.avatar-lapiz {
+  position: absolute; left: 0; right: 0; bottom: 0;
+  display: flex; align-items: center; justify-content: center;
+  height: 22px; font-size: 10px; color: #fff;
+  background: rgba(0, 0, 0, .55);
+  opacity: 0; transition: opacity .18s var(--ease-out);
+}
+.avatar-foto:hover .avatar-lapiz,
+.avatar-foto:focus-within .avatar-lapiz { opacity: 1; }
+/* En táctil no hay hover: la banda se queda puesta, o nadie sabe que el
+   avatar se puede tocar. */
+@media (hover: none) {
+  .avatar-lapiz { opacity: 1; }
+}
+
+.foto-nota {
+  display: flex; align-items: center; gap: 7px;
+  padding: 8px 13px; border-radius: 100px;
+  font-size: 11.5px; font-weight: 600;
+  background: var(--amber-tenue); color: var(--amber);
+}
+
+/* La letra vive debajo de la foto. Si la imagen falla, el onerror la quita
+   del DOM y la letra queda a la vista sin dejar hueco. */
+.avatar { position: relative; }
+.avatar-letra { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
+.avatar img { position: relative; z-index: 1; }
+
+/* El avatar del menú y del saludo también muestran la foto. */
+.avatar img {
+  width: 100%; height: 100%; border-radius: inherit;
+  object-fit: cover; display: block;
+}
+.avatar:has(img) { padding: 0; overflow: hidden; }
+
 /* ===== Selector de mes =====
    Vive en el contenido del dashboard, no en la barra superior: ahí no se
    mostraba en el teléfono y el mes es lo que gobierna toda la pantalla.
@@ -1344,11 +1479,29 @@ label { display: block; }
    sin recolocar la mano, que es la razón de no apilarlas a un lado. */
 .mes-nav {
   display: flex; align-items: center; gap: 10px;
-  margin-bottom: 16px;
   /* En un monitor el grupo no tiene que ocupar todo el ancho: con la píldora
      estirada a 900px se leía como una barra vacía con dos palabras al medio. */
   max-width: 420px;
 }
+
+/* Dos copias del mismo control, una por franja.
+   El corte son 1000px, no los 720 en que desaparece el topbar: el selector
+   mide unos 300px y a 900 no cabe junto al saludo, el buscador y el botón —
+   el topbar se partía en dos filas. */
+.mes-nav-movil { display: none; }
+@media (max-width: 1000px) {
+  .mes-nav-desktop { display: none; }
+  .mes-nav-movil { display: flex; margin-bottom: 16px; }
+}
+.mes-nav-desktop {
+  margin-bottom: 0;
+  /* Dentro del topbar el grupo se ajusta a su contenido: con flex:1 el mes se
+     estiraba y empujaba los botones de la derecha. */
+  max-width: none; flex: 0 0 auto;
+}
+.mes-nav-desktop .mes-actual { flex: 0 0 auto; }
+.mes-nav-desktop .mes-flecha { width: 36px; height: 36px; }
+.mes-nav-desktop .mes-actual { padding: 9px 15px; }
 
 .mes-flecha {
   display: flex; align-items: center; justify-content: center;

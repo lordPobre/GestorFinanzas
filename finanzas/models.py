@@ -2,6 +2,8 @@ from decimal import Decimal
 
 from django.db import models
 from django.contrib.auth.models import User
+
+from .almacenamiento import almacen_media
 from django.utils import timezone
 from dateutil.relativedelta import relativedelta
 from datetime import date
@@ -784,6 +786,18 @@ class PagoServicio(models.Model):
         return f'{nombres[self.periodo % 100 - 1]} {self.periodo // 100}'
 
 
+def _ruta_avatar(instance, filename):
+    """avatares/<id>/<8 hex>.<ext>
+
+    El nombre original no sirve: dos usuarios con "IMG_0042.jpg" chocarían,
+    y el nombre de un archivo personal no tiene por qué quedar en una URL
+    pública. La carpeta por usuario deja limpiar sus archivos de una.
+    """
+    import uuid
+    ext = (filename.rsplit('.', 1)[-1] or 'jpg').lower()[:5]
+    return f'avatares/{instance.usuario_id}/{uuid.uuid4().hex[:8]}.{ext}'
+
+
 class UserProfile(models.Model):
     MONEDAS = [
         ('CLP', 'Peso Chileno ($)'),
@@ -806,6 +820,16 @@ class UserProfile(models.Model):
     ciudad          = models.CharField(max_length=60, blank=True)
     moneda          = models.CharField(max_length=5, choices=MONEDAS, default='CLP')
 
+    # Foto de perfil. Opcional: sin ella el avatar sigue mostrando la
+    # inicial, que es lo que hacía hasta ahora.
+    #
+    # El almacén se resuelve solo: R2 si hay credenciales en el entorno,
+    # disco local si no. Va con storage= en el campo y no en el STORAGES
+    # global de settings para que solo la foto viaje a la nube; el resto de
+    # los archivos siguen donde estén.
+    foto = models.ImageField(
+        upload_to=_ruta_avatar, storage=almacen_media, null=True, blank=True)
+
     def __str__(self):
         return f"Perfil de {self.usuario.username}"
 
@@ -815,8 +839,23 @@ class UserProfile(models.Model):
 
     @property
     def inicial(self):
-        """Letra del avatar en el sidebar y el perfil."""
+        """Letra del avatar cuando no hay foto."""
         return (self.nombre_display or '?')[0].upper()
+
+    @property
+    def foto_url(self):
+        """La URL de la foto, o None.
+
+        No basta con preguntar por self.foto: si el archivo se borró del disco
+        pero el campo sigue apuntando a él, acceder a .url no falla pero la
+        imagen queda rota. Se comprueba que exista.
+        """
+        if not self.foto:
+            return None
+        try:
+            return self.foto.url
+        except ValueError:
+            return None
 
     @property
     def ubicacion(self):

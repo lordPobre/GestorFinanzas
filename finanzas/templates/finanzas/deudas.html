@@ -121,13 +121,66 @@
 
   {% empty %}
   <div class="glass empty" style="grid-column:1/-1">
-    <i class="fas fa-credit-card"></i>
-    <div class="empty-title">No tienes compras en cuotas</div>
-    <div class="empty-text">Cuando registres una, verás la cuota mensual, cuántas van y cuánto falta.</div>
-    <button class="btn btn-purple" data-open="#modalDeuda">Registrar la primera</button>
+    <i class="fas fa-circle-check" style="color:var(--green)"></i>
+    <div class="empty-title">
+      {% if saldadas %}No te queda nada por pagar{% else %}No tienes compras en cuotas{% endif %}
+    </div>
+    <div class="empty-text">
+      {% if saldadas %}Terminaste todas tus compras a plazo. Las anteriores están en el histórico.
+      {% else %}Cuando registres una, verás la cuota mensual, cuántas van y cuánto falta.{% endif %}
+    </div>
+    <button class="btn btn-purple" data-open="#modalDeuda">
+      {% if saldadas %}Registrar una nueva{% else %}Registrar la primera{% endif %}
+    </button>
   </div>
   {% endfor %}
 </div>
+
+{% comment %}
+  Histórico. Plegado y sin el gesto de deslizar: son compras cerradas, no
+  hay nada que pagar ni editar. Solo consultar y, si acaso, borrar.
+{% endcomment %}
+{% if saldadas %}
+<details class="glass card" style="margin-top:18px;padding:0" data-spot>
+  <summary style="padding:16px 20px;cursor:pointer;display:flex;align-items:center;gap:13px">
+    <span class="icon-tile green" style="flex-shrink:0"><i class="fas fa-box-archive"></i></span>
+    <div class="row-main">
+      <div class="row-title">Compras que ya pagaste</div>
+      <div class="row-meta">
+        {{ saldadas|length }} compra{{ saldadas|length|pluralize:"s" }} · {{ total_saldado|money }} en total
+      </div>
+    </div>
+    <span style="font-size:11px;color:var(--text-muted)" class="hide-mobile">Ver histórico</span>
+    <i class="fas fa-chevron-down" style="font-size:10px;color:var(--text-muted)"></i>
+  </summary>
+
+  <div style="padding:0 20px 20px">
+    <div class="row-list">
+      {% for d in saldadas %}
+      <div class="row" data-searchable>
+        <span class="icon-tile green"><i class="fas fa-check"></i></span>
+        <div class="row-main">
+          <div class="row-title" style="color:var(--text-secondary)">{{ d.acreedor }}</div>
+          <div class="row-meta">
+            {{ d.cuotas_totales }} cuota{{ d.cuotas_totales|pluralize:"s" }} ·
+            terminada en {{ d.fecha_fin_estimada|date:"F Y" }}
+          </div>
+        </div>
+        <div class="mono" style="font-size:13px;color:var(--text-muted)">{{ d.monto_total|money }}</div>
+        <form method="post" action="{% url 'eliminar_deuda' d.pk %}" style="margin:0"
+              data-confirm="¿Borrar {{ d.acreedor }} del histórico? Se eliminan también sus pagos registrados.">
+          {% csrf_token %}
+          <input type="hidden" name="next" value="{% url 'deudas' %}">
+          <button type="submit" class="icon-btn" title="Borrar del histórico">
+            <i class="fas fa-trash-can" style="font-size:10px"></i>
+          </button>
+        </form>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</details>
+{% endif %}
 
 {% endblock %}
 

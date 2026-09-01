@@ -879,7 +879,11 @@ def deudas(request):
     proximas.sort(key=lambda d: d.fecha_fin_estimada)
 
     context = {
-        'deudas': activas + saldadas,
+        'deudas': activas,
+        # El histórico, aparte. Lo más reciente primero: al terminar de pagar
+        # algo se busca eso, no la compra de hace dos años.
+        'saldadas': sorted(saldadas, key=lambda d: d.fecha_fin_estimada, reverse=True),
+        'total_saldado': round(sum(float(d.monto_total) for d in saldadas)),
         'deudas_activas': len(activas),
         'total_cuotas_mes': round(sum(float(d.monto_cuota) for d in activas)),
         'total_restante': round(sum(float(d.monto_restante) for d in lista)),
@@ -2197,9 +2201,11 @@ def completar_onboarding(request):
 class PerfilForm(forms.ModelForm):
     """Antes se definía dentro de la vista, así que se reconstruía en cada
     request y no se podía importar desde otro módulo."""
+
+    MAX_FOTO_MB = 5
     class Meta:
         model = UserProfile
-        fields = ['nombre_completo', 'email', 'telefono', 'ciudad', 'pais', 'moneda']
+        fields = ['foto', 'nombre_completo', 'email', 'telefono', 'ciudad', 'pais', 'moneda']
         widgets = {
             'nombre_completo': forms.TextInput(attrs={'placeholder': 'Ej: Juan Pérez'}),
             'email':           forms.EmailInput(attrs={'placeholder': 'Ej: juan@email.com'}),
@@ -2207,7 +2213,19 @@ class PerfilForm(forms.ModelForm):
             'ciudad':          forms.TextInput(attrs={'placeholder': 'Ej: Santiago'}),
             'pais':            forms.TextInput(attrs={'placeholder': 'Ej: Chile'}),
             'moneda':          forms.Select(),
+            # accept en el propio widget: el selector de archivos del móvil
+            # abre directo en la galería en vez de listar todo.
+            'foto':            forms.ClearableFileInput(attrs={'accept': 'image/*'}),
         }
+
+    def clean_foto(self):
+        """Una foto de teléfono pesa 5-12 MB sin comprimir. Sin tope, el
+        servidor las guarda todas y el avatar de 40px descarga megas."""
+        foto = self.cleaned_data.get('foto')
+        if foto and getattr(foto, 'size', 0) > self.MAX_FOTO_MB * 1024 * 1024:
+            raise forms.ValidationError(
+                f'La imagen pesa demasiado. El máximo son {self.MAX_FOTO_MB} MB.')
+        return foto
 
 
 @login_required(login_url='/login/')
@@ -2219,7 +2237,9 @@ def perfil(request):
     if request.method == 'POST':
         accion = request.POST.get('accion')
         if accion == 'perfil':
-            perfil_form = PerfilForm(request.POST, instance=profile)
+            # request.FILES: sin él el archivo subido nunca llega al form y
+            # la foto se guardaba siempre vacía.
+            perfil_form = PerfilForm(request.POST, request.FILES, instance=profile)
             if perfil_form.is_valid():
                 perfil_form.save()
                 nombre = perfil_form.cleaned_data.get('nombre_completo', '').strip()
