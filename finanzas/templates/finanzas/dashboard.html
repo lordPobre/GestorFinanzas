@@ -611,8 +611,22 @@
     <span class="flujo-pista">Desliza sobre el gráfico para ver cada mes</span>
   </div>
 
-  <div class="flujo-lienzo">
-    <canvas id="chartFlujo" data-om-raster></canvas>
+  {% comment %}
+    La altura va en el elemento, no solo en la clase: sin altura definida
+    Chart.js estira el lienzo indefinidamente y no dibuja nada.
+  {% endcomment %}
+  <div class="flujo-lienzo" style="position:relative;height:300px">
+    {% comment %}
+      Las series viajan en atributos del lienzo. Antes iban en
+      <script type="application/json">, pero la política de contenidos
+      bloquea cualquier <script> sin nonce y los datos no llegaban: el
+      gráfico salía con los ejes y sin líneas.
+    {% endcomment %}
+    <canvas id="chartFlujo" data-om-raster
+            data-meses="{{ meses_json|a_json }}"
+            data-ingresos="{{ ingresos_json|a_json }}"
+            data-gastos="{{ gastos_json|a_json }}"
+            data-cuotas="{{ cuotas_json|a_json }}"></canvas>
   </div>
 
   {% comment %}
@@ -860,7 +874,38 @@
    ============================================================ */
 (function () {
   var el = document.getElementById('chartFlujo');
-  if (!el || typeof Chart === 'undefined') return;
+  if (!el) return;
+
+  /* Si la librería no cargó (sin conexión, CDN caído, política de contenidos
+     que lo bloquea) se dice, en vez de dejar un hueco sin explicación. */
+  if (typeof Chart === 'undefined') {
+    el.parentElement.innerHTML =
+      '<div style="display:flex;align-items:center;justify-content:center;height:100%;' +
+      'font-size:12px;color:rgba(245,245,245,.42);text-align:center;padding:20px">' +
+      'No se pudo cargar el gráfico. Revisa tu conexión y recarga.</div>';
+    return;
+  }
+
+  /* Lee una serie embebida con json_script. Si falta o viene mal, devuelve
+     una lista vacía en vez de romper el script entero. */
+  /* Lee una serie embebida con json_script.
+
+     Acepta las dos formas posibles: una lista, o una cadena que a su vez
+     contiene JSON. La segunda pasa cuando la vista todavía envía el
+     resultado de json.dumps: json_script lo serializa OTRA VEZ y aquí
+     llega un texto en lugar de un array. Sin este doble intento, la serie
+     quedaba vacía y el gráfico salía en blanco. */
+  /* Las series salen de los atributos del lienzo. El navegador ya devolvió
+     el texto desescapado, así que basta con interpretarlo. */
+  function serie(nombre) {
+    var bruto = el.dataset[nombre];
+    if (!bruto) return [];
+    try {
+      var v = JSON.parse(bruto);
+      if (typeof v === 'string') v = JSON.parse(v);
+      return Array.isArray(v) ? v : [];
+    } catch (e) { return []; }
+  }
 
   var VERDE = '#53d258', CORAL = '#e25c5c';
   var TICK  = 'rgba(245,245,245,.38)';
@@ -868,10 +913,10 @@
   var FONT  = "'Manrope', sans-serif";
   var quieto = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  var meses = JSON.parse(document.getElementById("d-meses_json").textContent);
-  var ingresos = JSON.parse(document.getElementById("d-ingresos_json").textContent);
-  var gastos = JSON.parse(document.getElementById("d-gastos_json").textContent);
-  var cuotas = JSON.parse(document.getElementById("d-cuotas_json").textContent);
+  var meses = serie('meses');
+  var ingresos = serie('ingresos');
+  var gastos = serie('gastos');
+  var cuotas = serie('cuotas');
   var salidas = gastos.map(function (g, i) { return g + (cuotas[i] || 0); });
 
   function pesos(v) { return '$' + Math.round(v).toLocaleString('es-CL'); }

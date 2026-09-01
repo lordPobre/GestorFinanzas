@@ -2269,6 +2269,59 @@ def verificar_codigo(request):
     })
 
 
+def _qr_svg(uri, escala=6):
+    """Código QR como SVG, listo para incrustar en el HTML.
+
+    SVG y no PNG: escala sin pixelarse y no necesita Pillow ni guardar un
+    archivo. Se dibuja como una sola ruta de rectángulos, que pesa poco.
+
+    Si la librería no está instalada devuelve None y la pantalla muestra la
+    clave manual, que funciona igual de bien aunque sea más incómoda.
+    """
+    try:
+        import qrcode
+    except ImportError:
+        return None
+
+    qr = qrcode.QRCode(
+        version=None,
+        # Corrección media: el QR sigue leyéndose con el reflejo de la
+        # pantalla o con la cámara algo movida.
+        error_correction=qrcode.constants.ERROR_CORRECT_M,
+        box_size=1, border=2,
+    )
+    qr.add_data(uri)
+    qr.make(fit=True)
+    matriz = qr.get_matrix()
+
+    lado = len(matriz) * escala
+    piezas = []
+    for y, fila in enumerate(matriz):
+        x = 0
+        while x < len(fila):
+            if fila[x]:
+                # Se agrupan los módulos negros seguidos en un solo
+                # rectángulo: un <rect> por módulo daría un SVG cinco veces
+                # más grande.
+                ancho = 1
+                while x + ancho < len(fila) and fila[x + ancho]:
+                    ancho += 1
+                piezas.append(
+                    f'M{x * escala} {y * escala}h{ancho * escala}v{escala}h-{ancho * escala}z')
+                x += ancho
+            else:
+                x += 1
+
+    return (
+        f'<svg xmlns="http://www.w3.org/2000/svg" width="{lado}" height="{lado}" '
+        f'viewBox="0 0 {lado} {lado}" shape-rendering="crispEdges" role="img" '
+        f'aria-label="Código QR para configurar la verificación en dos pasos">'
+        f'<rect width="{lado}" height="{lado}" fill="#ffffff"/>'
+        f'<path d="{"".join(piezas)}" fill="#191919"/>'
+        f'</svg>'
+    )
+
+
 @login_required(login_url='/login/')
 def configurar_2fa(request):
     """Activar la verificación en dos pasos.
@@ -2325,6 +2378,11 @@ def configurar_2fa(request):
     if not factor.activo:
         contexto['uri'] = factor.uri()
         contexto['secreto'] = factor.secreto
+        contexto['qr_svg'] = _qr_svg(factor.uri())
+        # El secreto en grupos de cuatro: escribirlo a mano de un tirón de 32
+        # caracteres es donde la gente se equivoca.
+        s = factor.secreto
+        contexto['secreto_legible'] = ' '.join(s[i:i + 4] for i in range(0, len(s), 4))
     contexto.update(contadores(request.user))
     return render(request, 'finanzas/configurar_2fa.html', contexto)
 

@@ -13,6 +13,9 @@ Pillow>=10.0,<12.0
 # Verificacion en dos pasos (TOTP)
 pyotp>=2.9,<3.0
 
+# Codigo QR de la verificacion, generado en el servidor
+qrcode>=7.4,<9.0
+
 # Hash de contrasenas recomendado hoy
 argon2-cffi>=23.1
 

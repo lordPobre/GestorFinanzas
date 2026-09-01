@@ -90,7 +90,10 @@
     <span class="flujo-pista">Desliza sobre el gráfico para ver cada mes</span>
   </div>
 
-  <div class="flujo-lienzo"><canvas id="chartFlujo" data-om-raster></canvas></div>
+  <div class="flujo-lienzo" style="position:relative;height:300px"><canvas id="chartFlujo" data-om-raster
+            data-meses="{{ meses_json|a_json }}"
+            data-ingresos="{{ ingresos_json|a_json }}"
+            data-gastos="{{ gastos_json|a_json }}"></canvas></div>
 </div>
 {# ============ Ranking de categorías ============ #}
 <div class="grid-chart ancho-izq">
@@ -137,7 +140,10 @@
     </div>
     <div class="hint" style="font-size:11.5px;margin:3px 0 16px">Lo que pagas al mes y lo que aún debes</div>
     <div style="position:relative;height:230px">
-      <canvas id="chartCuotas" data-om-raster></canvas>
+      <canvas id="chartCuotas"
+          data-labels="{{ labels_json|a_json }}"
+          data-data="{{ data_json|a_json }}"
+          data-restante="{{ data_restante_json|a_json }}" data-om-raster></canvas>
     </div>
   </div>
 </div>
@@ -157,16 +163,33 @@
   var el = document.getElementById('chartFlujo');
   if (!el || typeof Chart === 'undefined') return;
 
+  /* Lee una serie embebida con json_script.
+
+     Acepta las dos formas posibles: una lista, o una cadena que a su vez
+     contiene JSON. La segunda pasa cuando la vista todavía envía el
+     resultado de json.dumps: json_script lo serializa OTRA VEZ y aquí
+     llega un texto en lugar de un array. Sin este doble intento, la serie
+     quedaba vacía y el gráfico salía en blanco. */
+  function serie(nombre) {
+    var bruto = el.dataset[nombre];
+    if (!bruto) return [];
+    try {
+      var v = JSON.parse(bruto);
+      if (typeof v === 'string') v = JSON.parse(v);
+      return Array.isArray(v) ? v : [];
+    } catch (e) { return []; }
+  }
+
   var VERDE = '#53d258', CORAL = '#e25c5c';
   var TICK  = 'rgba(245,245,245,.38)';
   var TEXTO = 'rgba(245,245,245,.72)';
   var FONT  = "'Manrope', sans-serif";
   var quieto = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  var meses = JSON.parse(document.getElementById("d-meses_json").textContent);
-  var ingresos = JSON.parse(document.getElementById("d-ingresos_json").textContent);
+  var meses = serie('meses');
+  var ingresos = serie('ingresos');
   /* En esta pantalla la vista ya suma las cuotas dentro de gastos. */
-  var salidas = JSON.parse(document.getElementById("d-gastos_json").textContent);
+  var salidas = serie('gastos');
 
   function pesos(v) { return '$' + Math.round(v).toLocaleString('es-CL'); }
   function corto(v) {
@@ -372,8 +395,18 @@
     return '$' + Math.round(v);
   }
   /* Cuotas activas: cuota mensual vs. lo que falta */
+  function cuotasDato(nombre) {
+    var c = document.getElementById('chartCuotas');
+    if (!c || !c.dataset[nombre]) return [];
+    try {
+      var v = JSON.parse(c.dataset[nombre]);
+      if (typeof v === 'string') v = JSON.parse(v);
+      return Array.isArray(v) ? v : [];
+    } catch (e) { return []; }
+  }
+
   var cuotasEl = document.getElementById('chartCuotas');
-  var labels = JSON.parse(document.getElementById("d-labels_json").textContent);
+  var labels = cuotasDato('labels');
   if (cuotasEl && labels.length) {
     new Chart(cuotasEl, {
       type: 'bar',
@@ -382,10 +415,10 @@
         datasets: [
           /* Ámbar lo que pagas cada mes, gris claro lo que aún resta: los
              dos tonos dicen de qué lado está cada barra sin leer la leyenda. */
-          { label: 'Cuota al mes', data: JSON.parse(document.getElementById("d-data_json").textContent),
+          { label: 'Cuota al mes', data: cuotasDato('data'),
             backgroundColor: '#ffaa2c', hoverBackgroundColor: '#ffbb56',
             borderRadius: 6, borderSkipped: false, maxBarThickness: 15 },
-          { label: 'Te falta', data: JSON.parse(document.getElementById("d-data_restante_json").textContent),
+          { label: 'Te falta', data: cuotasDato('restante'),
             backgroundColor: 'rgba(245,245,245,.26)', hoverBackgroundColor: 'rgba(245,245,245,.4)',
             borderRadius: 6, borderSkipped: false, maxBarThickness: 15 }
         ]

@@ -32,8 +32,12 @@
       <i class="fas fa-lock" style="position:absolute;left:15px;top:50%;transform:translateY(-50%);font-size:11px;color:var(--text-muted);pointer-events:none"></i>
       <input type="password" name="password" id="{{ form.password.id_for_label }}"
              style="padding-left:38px;padding-right:42px" placeholder="••••••••" autocomplete="current-password" required>
-      <button type="button" class="icon-btn" id="verPass"
-              style="position:absolute;right:8px;top:50%;transform:translateY(-50%)" aria-label="Ver contraseña">
+      <button type="button" class="icon-btn" data-ver-pass="{{ form.password.id_for_label }}"
+              style="position:absolute;right:8px;top:50%;transform:translateY(-50%);
+                     width:32px;height:32px;border-radius:50%;border:none;cursor:pointer;
+                     display:flex;align-items:center;justify-content:center;
+                     background:#454545;color:rgba(245,245,245,.72)"
+              aria-label="Ver contraseña">
         <i class="fas fa-eye" style="font-size:11px"></i>
       </button>
     </div>
@@ -49,14 +53,4 @@
 </div>
 {% endblock %}
 
-{% block extra_js %}
-<script>
-document.getElementById('verPass').addEventListener('click', function () {
-  var input = this.parentElement.querySelector('input');
-  var icono = this.querySelector('i');
-  var oculto = input.type === 'password';
-  input.type = oculto ? 'text' : 'password';
-  icono.className = oculto ? 'fas fa-eye-slash' : 'fas fa-eye';
-});
-</script>
-{% endblock %}
+

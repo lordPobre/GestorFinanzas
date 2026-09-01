@@ -28,6 +28,38 @@
   });
 
   /* ============================================================
+     0b. Mostrar la contraseña
+     ============================================================
+     Vive aquí y no en un <script> de la plantilla: un inline depende del
+     nonce de la política de contenidos, y si algo falla ahí el botón queda
+     muerto sin avisar. Este archivo es externo y siempre está permitido. */
+  document.addEventListener('click', function (e) {
+    var btn = e.target.closest('[data-ver-pass]');
+    if (!btn) return;
+    e.preventDefault();
+
+    /* El objetivo puede indicarse por id; si no, se busca el campo dentro
+       del mismo contenedor. */
+    var campo = btn.dataset.verPass
+      ? document.getElementById(btn.dataset.verPass)
+      : (btn.parentElement && btn.parentElement.querySelector('input'));
+    if (!campo) return;
+
+    var oculto = campo.type === 'password';
+    campo.type = oculto ? 'text' : 'password';
+    btn.setAttribute('aria-label', oculto ? 'Ocultar contraseña' : 'Ver contraseña');
+
+    var icono = btn.querySelector('i');
+    if (icono) icono.className = 'fas fa-eye' + (oculto ? '-slash' : '');
+
+    /* El cursor vuelve al final: al cambiar el tipo, el navegador lo manda
+       al principio y seguir escribiendo inserta en medio. */
+    var n = campo.value.length;
+    campo.focus();
+    try { campo.setSelectionRange(n, n); } catch (err) {}
+  });
+
+  /* ============================================================
      1. Luz que sigue el cursor sobre [data-spot]
      ============================================================ */
   var canHover = window.matchMedia('(hover: hover)').matches;

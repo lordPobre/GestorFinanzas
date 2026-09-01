@@ -1,5 +1,4 @@
-{% load moneda %}
-{% load static humanize %}<!DOCTYPE html>
+{% load static humanize moneda %}<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8">
@@ -51,7 +50,6 @@
   </script>
 </head>
 <body>
-
 
 
 <div class="layout">
@@ -434,7 +432,14 @@
             JS las reemplazaba después — así que el primer parpadeo mostraba
             "Sueldo" como si fuera un gasto.
           {% endcomment %}
-          <div class="chips" data-field="#campoCategoria" style="margin-bottom:18px" id="chipsGasto">
+          {% comment %}
+            Las categorías viajan en atributos de este contenedor. Iban en
+            <script type="application/json">, pero la política de contenidos
+            bloquea todo <script> sin nonce y no llegaban.
+          {% endcomment %}
+          <div class="chips" data-field="#campoCategoria" style="margin-bottom:18px" id="chipsGasto"
+               data-egreso="{{ cats_egreso_json|a_json }}"
+               data-ingreso="{{ cats_ingreso_json|a_json }}">
             {% for value, label in cats_egreso %}
             <button type="button" class="chip {% if forloop.first %}on{% endif %}" data-value="{{ value }}">{{ label }}</button>
             {% endfor %}
@@ -490,23 +495,25 @@
 
   /* Las de gasto ya están en el HTML; este arreglo solo sirve para volver
      a ellas si el usuario cambia de Ingreso a Gasto. */
-  var catsGasto = leerDatos("d-cats_egreso_json");
-  var catsIngreso = leerDatos("d-cats_ingreso_json");
+  var catsGasto = leerDatos('egreso');
+  var catsIngreso = leerDatos('ingreso');
 
   var chips = document.getElementById('chipsGasto');
   /* Lee una lista embebida con json_script.
      Devuelve [] si no está o viene vacía: solo el panel de Inicio recibe
      las categorías, y en las demás pantallas un JSON.parse directo daba ""
      y el forEach siguiente reventaba, dejando muerto el resto del script. */
-  function leerDatos(id) {
-    var el = document.getElementById(id);
-    if (!el) return [];
+  /* Las categorías viajan en atributos del contenedor de fichas: la política
+     de contenidos bloquea los <script type="application/json">, y ahí los
+     datos nunca llegaban. */
+  function leerDatos(cual) {
+    var cont = document.getElementById('chipsGasto');
+    if (!cont || !cont.dataset[cual]) return [];
     try {
-      var v = JSON.parse(el.textContent);
+      var v = JSON.parse(cont.dataset[cual]);
+      if (typeof v === 'string') v = JSON.parse(v);
       return Array.isArray(v) ? v : [];
-    } catch (e) {
-      return [];
-    }
+    } catch (e) { return []; }
   }
 
   var campoTipo = document.getElementById('campoTipo');
@@ -624,13 +631,6 @@
   {% endif %}
 })();
 </script>
-{% comment %}
-  Las categorías salen del HTML, no incrustadas en el JavaScript: el
-  nombre lo escribe el usuario y json.dumps no escapa "</script>".
-{% endcomment %}
-{{ cats_egreso_json|json_script:"d-cats_egreso_json" }}
-{{ cats_ingreso_json|json_script:"d-cats_ingreso_json" }}
-
 {% block extra_js %}{% endblock %}
 </body>
 </html>
