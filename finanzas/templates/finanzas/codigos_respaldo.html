@@ -1,0 +1,96 @@
+{% extends 'finanzas/base.html' %}
+{% block title %}Códigos de respaldo · FinApp{% endblock %}
+{% block topbar_sub %}Guárdalos en un lugar seguro{% endblock %}
+
+{% block content %}
+<div style="max-width:480px">
+  <div class="glass card-lg" data-spot>
+
+    <div style="text-align:center;margin-bottom:22px">
+      <span class="icon-tile green" style="width:48px;height:48px;border-radius:17px;font-size:18px;margin-bottom:12px">
+        <i class="fas fa-{% if recien_creados %}circle-check{% else %}key{% endif %}"></i>
+      </span>
+      <h1 style="font-family:'Manrope',sans-serif;font-size:20px;font-weight:800;letter-spacing:-.025em;margin:0 0 6px">
+        {% if recien_creados %}Listo, tu cuenta está protegida{% else %}Códigos nuevos{% endif %}
+      </h1>
+      <div class="hint" style="font-size:12.5px">
+        Guarda estos códigos. Son la única forma de entrar si pierdes el teléfono.
+      </div>
+    </div>
+
+    {% comment %}
+      Se muestran una sola vez: en la base solo queda su hash, igual que con
+      una contraseña. Si se pierden hay que generar otros.
+    {% endcomment %}
+    <div class="aviso-2fa">
+      <i class="fas fa-triangle-exclamation" style="font-size:12px;flex-shrink:0;margin-top:2px"></i>
+      <div>Esta es la única vez que los verás. Cópialos ahora.</div>
+    </div>
+
+    <div class="codigos-grid" id="listaCodigos">
+      {% for c in codigos %}<span class="codigo-respaldo">{{ c }}</span>{% endfor %}
+    </div>
+
+    <div style="display:flex;gap:9px;margin:18px 0">
+      <button type="button" class="btn btn-glass" style="flex:1" id="btnCopiar">
+        <i class="fas fa-copy" style="font-size:11px"></i>Copiar todos
+      </button>
+      <button type="button" class="btn btn-glass" style="flex:1" id="btnDescargar">
+        <i class="fas fa-download" style="font-size:11px"></i>Descargar
+      </button>
+    </div>
+
+    <label class="confirmo-2fa">
+      <input type="checkbox" id="confirmo">
+      <span>Ya los guardé en un lugar seguro</span>
+    </label>
+
+    <a href="{% url 'perfil' %}" class="btn btn-purple btn-block" id="btnListo"
+       style="margin-top:14px;pointer-events:none;opacity:.45">Continuar</a>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script nonce="{{ csp_nonce }}">
+(function () {
+  var codigos = Array.prototype.map.call(
+    document.querySelectorAll('.codigo-respaldo'),
+    function (el) { return el.textContent.trim(); }
+  );
+  var texto = 'Códigos de respaldo de FinApp\n' +
+              'Cada uno sirve una sola vez.\n\n' + codigos.join('\n');
+
+  document.getElementById('btnCopiar').addEventListener('click', function () {
+    var b = this;
+    navigator.clipboard.writeText(texto).then(function () {
+      b.innerHTML = '<i class="fas fa-check" style="font-size:11px"></i>Copiados';
+      setTimeout(function () {
+        b.innerHTML = '<i class="fas fa-copy" style="font-size:11px"></i>Copiar todos';
+      }, 2000);
+    });
+  });
+
+  document.getElementById('btnDescargar').addEventListener('click', function () {
+    /* El archivo se arma en el navegador: los códigos no vuelven a viajar
+       por la red. */
+    var blob = new Blob([texto], { type: 'text/plain' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = 'finapp-codigos-respaldo.txt';
+    a.click();
+    URL.revokeObjectURL(url);
+  });
+
+  /* Continuar se activa solo al confirmar: sin esto es fácil pasar de largo
+     y quedarse sin forma de recuperar la cuenta. */
+  var check = document.getElementById('confirmo');
+  var btn = document.getElementById('btnListo');
+  check.addEventListener('change', function () {
+    btn.style.pointerEvents = check.checked ? 'auto' : 'none';
+    btn.style.opacity = check.checked ? '1' : '.45';
+  });
+})();
+</script>
+{% endblock %}

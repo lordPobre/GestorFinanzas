@@ -15,6 +15,19 @@
   var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
 
   /* ============================================================
+     0. Avatares que no cargan
+     ============================================================
+     Antes iba como onerror="" en el HTML, pero la política de contenidos
+     bloquea los manejadores en línea. Al quitar la imagen queda a la vista
+     la inicial que hay debajo. */
+  $$('[data-quitar-si-falla]').forEach(function (img) {
+    img.addEventListener('error', function () { img.remove(); });
+    /* Si ya falló antes de que corriera este script, complete es true y
+       naturalWidth 0: el evento no volverá a dispararse. */
+    if (img.complete && img.naturalWidth === 0) img.remove();
+  });
+
+  /* ============================================================
      1. Luz que sigue el cursor sobre [data-spot]
      ============================================================ */
   var canHover = window.matchMedia('(hover: hover)').matches;

@@ -615,6 +615,132 @@ class Categoria(models.Model):
         return salida
 
 
+class SegundoFactor(models.Model):
+    """Verificación en dos pasos con código temporal (TOTP).
+
+    TOTP y no SMS a propósito: el SMS se intercepta con un cambio de SIM,
+    que es el ataque habitual contra cuentas financieras. Un código generado
+    en el teléfono no viaja por ninguna red.
+
+    El secreto se guarda en claro en la base. Cifrarlo con una clave que
+    vive en el mismo servidor no añade nada: quien lea la base normalmente
+    también puede leer las variables de entorno. Lo que sí importa es que
+    nunca salga en un log ni en una respuesta.
+    """
+    usuario = models.OneToOneField(User, on_delete=models.CASCADE,
+                                   related_name="segundo_factor")
+    secreto = models.CharField(max_length=64)
+    activo = models.BooleanField(default=False)
+    creado = models.DateTimeField(auto_now_add=True)
+    ultimo_uso = models.DateTimeField(null=True, blank=True)
+
+    # El último código usado, para que no valga dos veces. Sin esto, alguien
+    # que vea el código por encima del hombro puede reutilizarlo durante los
+    # segundos que le queden de vida.
+    ultimo_codigo = models.CharField(max_length=6, blank=True)
+
+    class Meta:
+        verbose_name = "Segundo factor"
+        verbose_name_plural = "Segundos factores"
+
+    def __str__(self):
+        return f"2FA de {self.usuario.username}"
+
+    @staticmethod
+    def generar_secreto():
+        import pyotp
+        return pyotp.random_base32()
+
+    def uri(self):
+        """La cadena que se convierte en código QR."""
+        import pyotp
+        return pyotp.TOTP(self.secreto).provisioning_uri(
+            name=self.usuario.email or self.usuario.username,
+            issuer_name="FinApp",
+        )
+
+    def verificar(self, codigo):
+        """Comprueba un código de seis dígitos.
+
+        valid_window=1 acepta también el código anterior y el siguiente: los
+        relojes de los teléfonos se desfasan unos segundos y si no, la gente
+        no puede entrar. Una ventana mayor alargaría demasiado la vida útil
+        de un código robado.
+        """
+        import pyotp
+        codigo = (codigo or "").strip().replace(" ", "")
+        if not codigo.isdigit() or len(codigo) != 6:
+            return False
+        if codigo == self.ultimo_codigo:
+            return False   # ya se usó
+        if pyotp.TOTP(self.secreto).verify(codigo, valid_window=1):
+            from django.utils import timezone as _tz
+            self.ultimo_codigo = codigo
+            self.ultimo_uso = _tz.now()
+            self.save(update_fields=["ultimo_codigo", "ultimo_uso"])
+            return True
+        return False
+
+
+class CodigoRespaldo(models.Model):
+    """Códigos de un solo uso para cuando se pierde el teléfono.
+
+    Sin esto, perder el teléfono es perder la cuenta: no hay forma de
+    recuperar el acceso salvo entrando a la base a mano.
+
+    Se guardan hasheados, igual que una contraseña. Si alguien lee la base
+    no obtiene códigos utilizables.
+    """
+    usuario = models.ForeignKey(User, on_delete=models.CASCADE,
+                                related_name="codigos_respaldo")
+    codigo_hash = models.CharField(max_length=128)
+    usado = models.BooleanField(default=False)
+    usado_en = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        verbose_name = "Código de respaldo"
+        verbose_name_plural = "Códigos de respaldo"
+
+    @classmethod
+    def generar(cls, usuario, cantidad=8):
+        """Crea un juego nuevo y devuelve los códigos EN CLARO.
+
+        Es la única vez que se pueden ver: después solo queda el hash. Los
+        anteriores se borran, para que un juego filtrado deje de servir en
+        cuanto se generen otros.
+        """
+        import secrets
+        from django.contrib.auth.hashers import make_password
+
+        cls.objects.filter(usuario=usuario).delete()
+        codigos = []
+        for _ in range(cantidad):
+            # Sin caracteres ambiguos: 0/O y 1/I se confunden al copiarlos
+            # a mano de un papel, que es donde acaban estos códigos.
+            alfabeto = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
+            crudo = "".join(secrets.choice(alfabeto) for _ in range(8))
+            codigos.append(crudo[:4] + "-" + crudo[4:])
+            cls.objects.create(usuario=usuario, codigo_hash=make_password(crudo))
+        return codigos
+
+    @classmethod
+    def consumir(cls, usuario, codigo):
+        """Gasta un código. Solo sirve una vez."""
+        from django.contrib.auth.hashers import check_password
+        from django.utils import timezone as _tz
+
+        limpio = (codigo or "").strip().upper().replace("-", "").replace(" ", "")
+        if len(limpio) != 8:
+            return False
+        for c in cls.objects.filter(usuario=usuario, usado=False):
+            if check_password(limpio, c.codigo_hash):
+                c.usado = True
+                c.usado_en = _tz.now()
+                c.save(update_fields=["usado", "usado_en"])
+                return True
+        return False
+
+
 class Presupuesto(models.Model):
     usuario = models.OneToOneField(User, on_delete=models.CASCADE)
     limite_mensual = models.DecimalField(max_digits=12, decimal_places=2, default=500000)
@@ -832,6 +958,49 @@ class UserProfile(models.Model):
 
     def __str__(self):
         return f"Perfil de {self.usuario.username}"
+
+    def save(self, *args, **kwargs):
+        """Borra la foto anterior cuando se sube una nueva.
+
+        Sin esto cada cambio deja el archivo viejo ocupando espacio para
+        siempre: nada vuelve a apuntar a él, pero sigue en el bucket. Con un
+        avatar es poco, pero se acumula y no hay forma de saber cuáles sobran.
+
+        Se compara contra lo que hay en la base ANTES de guardar. Ojo con el
+        orden: primero se guarda el registro nuevo y después se borra el
+        archivo viejo. Al revés, si el guardado falla, la foto anterior ya no
+        existiría y el usuario se quedaría sin ninguna.
+        """
+        anterior = None
+        if self.pk:
+            try:
+                anterior = UserProfile.objects.only("foto").get(pk=self.pk).foto
+            except UserProfile.DoesNotExist:
+                anterior = None
+
+        super().save(*args, **kwargs)
+
+        # Solo si de verdad cambió: guardar el perfil sin tocar la foto (un
+        # cambio de teléfono, por ejemplo) no debe borrar nada.
+        if anterior and anterior.name and anterior.name != self.foto.name:
+            try:
+                anterior.delete(save=False)
+            except Exception:
+                # Si el archivo ya no está, o R2 no responde, no se rompe el
+                # guardado por un archivo huérfano: es basura, no un error
+                # que el usuario tenga que ver.
+                pass
+
+    def delete(self, *args, **kwargs):
+        """Al borrar el perfil se lleva su foto: si no, queda un archivo que
+        ya nadie puede alcanzar."""
+        foto = self.foto
+        super().delete(*args, **kwargs)
+        if foto and foto.name:
+            try:
+                foto.delete(save=False)
+            except Exception:
+                pass
 
     @property
     def nombre_display(self):

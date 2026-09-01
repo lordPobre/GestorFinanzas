@@ -82,7 +82,7 @@
 {% endblock %}
 
 {% block extra_js %}
-<script>
+<script nonce="{{ csp_nonce }}">
 (function () {
   var oculto = document.getElementById('{{ form.tipo.id_for_label }}');
   var seg = document.getElementById('segTipoMov');
@@ -108,6 +108,7 @@
   });
   aplicar(oculto.value || 'EGRESO');
 
+  /* Ya pagado / aún lo debo */
   var segPago = document.getElementById('segPagoForm');
   var campo = document.getElementById('id_es_pendiente');
   var nota = document.getElementById('notaPagoForm');

@@ -1,0 +1,91 @@
+{% extends 'registration/auth_base.html' %}
+{% block title %}Verificación · FinApp{% endblock %}
+
+{% block contenido %}
+<div class="auth-card">
+  <div style="text-align:center;margin-bottom:24px">
+    <span class="icon-tile orange" style="width:52px;height:52px;border-radius:18px;font-size:20px;margin-bottom:14px">
+      <i class="fas fa-shield-halved"></i>
+    </span>
+    <h1 style="font-family:'Manrope',sans-serif;font-size:21px;font-weight:800;letter-spacing:-.025em;margin:0 0 6px">
+      Verificación en dos pasos
+    </h1>
+    <div class="hint" style="font-size:12.5px">
+      Abre tu app de autenticación y escribe el código de seis dígitos.
+    </div>
+  </div>
+
+  <form method="post" id="formCodigo">
+    {% csrf_token %}
+    <input type="hidden" name="es_respaldo" id="esRespaldo" value="">
+
+    <div class="field" id="campoNormal">
+      <label class="label" for="codigo" style="text-align:center;display:block">Código de tu app</label>
+      {% comment %}
+        inputmode numeric abre el teclado numérico en el teléfono, y
+        autocomplete one-time-code deja que iOS lo ofrezca desde el portapapeles.
+      {% endcomment %}
+      <input type="text" name="codigo" id="codigo" class="codigo-input"
+             inputmode="numeric" autocomplete="one-time-code"
+             maxlength="6" pattern="[0-9]{6}" placeholder="000000"
+             required autofocus {% if bloqueado %}disabled{% endif %}>
+    </div>
+
+    <div class="field" id="campoRespaldo" hidden>
+      <label class="label" for="codigoRespaldo" style="text-align:center;display:block">Código de respaldo</label>
+      <input type="text" id="codigoRespaldo" class="codigo-input" style="font-size:18px;letter-spacing:.08em"
+             maxlength="9" placeholder="ABCD-2345" autocomplete="off">
+    </div>
+
+    <button type="submit" class="btn btn-purple btn-block" {% if bloqueado %}disabled{% endif %}>
+      Entrar
+    </button>
+  </form>
+
+  {% if tiene_respaldo %}
+  <button type="button" class="btn-enlace" id="btnRespaldo">
+    Perdí el teléfono, usar un código de respaldo
+  </button>
+  {% endif %}
+
+  <div style="text-align:center;margin-top:16px">
+    <a href="{% url 'login' %}" style="font-size:11.5px;color:var(--text-muted)">Volver al acceso</a>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script nonce="{{ csp_nonce }}">
+(function () {
+  var campo = document.getElementById('codigo');
+
+  /* Se envía solo al llegar a seis dígitos: nadie escribe un código y
+     después busca el botón. */
+  if (campo) {
+    campo.addEventListener('input', function () {
+      campo.value = campo.value.replace(/[^0-9]/g, '');
+      if (campo.value.length === 6) document.getElementById('formCodigo').submit();
+    });
+  }
+
+  var btn = document.getElementById('btnRespaldo');
+  if (btn) {
+    btn.addEventListener('click', function () {
+      var normal = document.getElementById('campoNormal');
+      var respaldo = document.getElementById('campoRespaldo');
+      var entrada = document.getElementById('codigoRespaldo');
+
+      normal.hidden = true;
+      campo.removeAttribute('required');
+      campo.removeAttribute('name');
+      respaldo.hidden = false;
+      entrada.setAttribute('name', 'codigo');
+      entrada.setAttribute('required', '');
+      document.getElementById('esRespaldo').value = '1';
+      btn.hidden = true;
+      entrada.focus();
+    });
+  }
+})();
+</script>
+{% endblock %}

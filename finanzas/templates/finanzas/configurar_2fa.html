@@ -1,0 +1,176 @@
+{% extends 'finanzas/base.html' %}
+{% block title %}Verificación en dos pasos · FinApp{% endblock %}
+{% block topbar_sub %}Protege tu cuenta{% endblock %}
+
+{% block topbar_actions %}
+<a href="{% url 'perfil' %}#seguridad" class="btn btn-glass"><i class="fas fa-arrow-left" style="font-size:11px"></i>Volver</a>
+{% endblock %}
+
+{% block content %}
+<div style="max-width:520px">
+
+  <div class="section-head" style="margin-top:0">
+    <h1 class="section-title" style="font-size:21px">Verificación en dos pasos</h1>
+    {% if factor.activo %}<span class="badge badge-green"><i class="fas fa-check" style="font-size:9px"></i>Activa</span>{% endif %}
+  </div>
+
+  {% if factor.activo %}
+  {# ---------- Ya está activa ---------- #}
+  <div class="glass card-lg" data-spot style="margin-bottom:16px">
+    <div style="display:flex;align-items:flex-start;gap:14px">
+      <span class="icon-tile green" style="width:42px;height:42px;border-radius:15px;font-size:16px">
+        <i class="fas fa-shield-halved"></i>
+      </span>
+      <div>
+        <div class="row-title" style="font-size:15px;margin-bottom:5px">Tu cuenta está protegida</div>
+        <div class="hint">
+          Al entrar te pediremos un código de tu app además de la contraseña.
+          Aunque alguien sepa tu clave, no puede entrar sin tu teléfono.
+        </div>
+        {% if factor.ultimo_uso %}
+        <div class="hint" style="font-size:11px;margin-top:8px">
+          Último uso: {{ factor.ultimo_uso|date:"j M Y, H:i" }}
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="glass card" data-spot style="margin-bottom:16px">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+      <div>
+        <div class="row-title">Códigos de respaldo</div>
+        <div class="row-meta">
+          Te quedan {{ codigos_restantes }} sin usar.
+          {% if codigos_restantes < 3 %}<span style="color:var(--coral)">Conviene generar otros.</span>{% endif %}
+        </div>
+      </div>
+      <button class="btn btn-soft btn-sm" data-open="#modalRegenerar">Generar nuevos</button>
+    </div>
+  </div>
+
+  <button class="btn btn-glass btn-block" style="color:var(--coral)" data-open="#modalDesactivar">
+    <i class="fas fa-shield-xmark" style="font-size:11px"></i>Desactivar verificación en dos pasos
+  </button>
+
+  {% else %}
+  {# ---------- Configuración ---------- #}
+  <div class="glass card-lg" data-spot style="margin-bottom:16px">
+    <div class="hint" style="margin-bottom:20px">
+      Una contraseña robada deja de bastar: al entrar pediremos también un
+      código que solo existe en tu teléfono y cambia cada 30 segundos.
+    </div>
+
+    <div class="paso-2fa">
+      <span class="paso-num">1</span>
+      <div>
+        <div class="row-title" style="margin-bottom:4px">Instala una app de autenticación</div>
+        <div class="hint" style="font-size:12px">
+          Google Authenticator, Microsoft Authenticator, Authy o 1Password. Cualquiera sirve.
+        </div>
+      </div>
+    </div>
+
+    <div class="paso-2fa">
+      <span class="paso-num">2</span>
+      <div style="min-width:0;flex:1">
+        <div class="row-title" style="margin-bottom:10px">Escanea este código</div>
+        <div class="qr-caja" id="cajaQR" data-uri="{{ uri }}"></div>
+
+        <details style="margin-top:12px">
+          <summary style="cursor:pointer;font-size:11.5px;color:var(--amber);font-weight:600">
+            No puedo escanear
+          </summary>
+          <div style="margin-top:10px">
+            <div class="hint" style="font-size:11.5px;margin-bottom:7px">
+              Escribe esta clave a mano en tu app:
+            </div>
+            <div class="secreto-2fa">{{ secreto }}</div>
+          </div>
+        </details>
+      </div>
+    </div>
+
+    <div class="paso-2fa" style="border-bottom:none;padding-bottom:0">
+      <span class="paso-num">3</span>
+      <div style="flex:1;min-width:0">
+        <div class="row-title" style="margin-bottom:10px">Escribe el código que aparece</div>
+        <form method="post">
+          {% csrf_token %}
+          <input type="hidden" name="accion" value="activar">
+          <input type="text" name="codigo" class="codigo-input" style="margin-bottom:14px"
+                 inputmode="numeric" maxlength="6" pattern="[0-9]{6}"
+                 placeholder="000000" required>
+          <button type="submit" class="btn btn-purple btn-block">Activar</button>
+        </form>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block modals %}
+<div class="modal-overlay" id="modalDesactivar">
+  <div class="modal-box" style="max-width:400px">
+    <div class="modal-head">
+      <div>
+        <div class="modal-title">¿Desactivar la protección?</div>
+        <div class="modal-sub">Tu cuenta quedará solo con contraseña.</div>
+      </div>
+      <button class="modal-close" data-close>✕</button>
+    </div>
+    <form method="post">
+      {% csrf_token %}
+      <input type="hidden" name="accion" value="desactivar">
+      <div class="field">
+        <label class="label" for="pwDesactivar">Confirma con tu contraseña</label>
+        <input type="password" name="password" id="pwDesactivar" required autocomplete="current-password">
+      </div>
+      <button type="submit" class="btn btn-block" style="background:var(--coral);color:#2b0606">Desactivar</button>
+    </form>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modalRegenerar">
+  <div class="modal-box" style="max-width:400px">
+    <div class="modal-head">
+      <div>
+        <div class="modal-title">Generar códigos nuevos</div>
+        <div class="modal-sub">Los actuales dejarán de servir.</div>
+      </div>
+      <button class="modal-close" data-close>✕</button>
+    </div>
+    <form method="post">
+      {% csrf_token %}
+      <input type="hidden" name="accion" value="regenerar">
+      <div class="field">
+        <label class="label" for="pwRegenerar">Confirma con tu contraseña</label>
+        <input type="password" name="password" id="pwRegenerar" required autocomplete="current-password">
+      </div>
+      <button type="submit" class="btn btn-purple btn-block">Generar</button>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{% if not factor.activo %}
+<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+<script nonce="{{ csp_nonce }}">
+/* El QR se dibuja en el navegador: así el secreto no pasa por un servicio
+   de terceros que genere la imagen. */
+(function () {
+  var caja = document.getElementById('cajaQR');
+  if (!caja || typeof QRCode === 'undefined') return;
+  QRCode.toCanvas(caja.dataset.uri, {
+    width: 170, margin: 1,
+    color: { dark: '#191919', light: '#ffffff' },
+  }, function (err, canvas) {
+    if (err) { caja.textContent = 'No se pudo generar el código. Usa la clave manual.'; return; }
+    caja.appendChild(canvas);
+  });
+})();
+</script>
+{% endif %}
+{% endblock %}

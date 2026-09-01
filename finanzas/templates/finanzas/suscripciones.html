@@ -230,7 +230,7 @@
 
 
 {% block extra_js %}
-<script>
+<script nonce="{{ csp_nonce }}">
 /* El costo anual es el número que hace pensar dos veces. Se calcula en vivo. */
 (function () {
   var monto = document.getElementById('id_sub_monto');

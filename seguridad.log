@@ -1,0 +1,151 @@
+2026-08-31 21:30:03,959 ERROR django.request Internal Server Error: /login/
+Traceback (most recent call last):
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\contrib\auth\hashers.py", line 231, in _load_library
+    module = importlib.import_module(mod_path)
+  File "C:\Users\celf_\AppData\Local\Programs\Python\Python313\Lib\importlib\__init__.py", line 88, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen importlib._bootstrap>", line 1387, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1360, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1324, in _find_and_load_unlocked
+ModuleNotFoundError: No module named 'argon2'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\core\handlers\base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\finanzas\views.py", line 2161, in entrar
+    if form.is_valid():
+       ~~~~~~~~~~~~~^^
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\forms\forms.py", line 206, in is_valid
+    return self.is_bound and not self.errors
+                                 ^^^^^^^^^^^
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\forms\forms.py", line 201, in errors
+    self.full_clean()
+    ~~~~~~~~~~~~~~~^^
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\forms\forms.py", line 338, in full_clean
+    self._clean_form()
+    ~~~~~~~~~~~~~~~~^^
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\forms\forms.py", line 354, in _clean_form
+    cleaned_data = self.clean()
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\views\decorators\debug.py", line 75, in sensitive_variables_wrapper
+    return func(*func_args, **func_kwargs)
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\contrib\auth\forms.py", line 349, in clean
+    self.user_cache = authenticate(
+                      ~~~~~~~~~~~~^
+        self.request, username=username, password=password
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\views\decorators\debug.py", line 75, in sensitive_variables_wrapper
+    return func(*func_args, **func_kwargs)
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\contrib\auth\__init__.py", line 114, in authenticate
+    user = backend.authenticate(request, **credentials)
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\contrib\auth\backends.py", line 71, in authenticate
+    if user.check_password(password) and self.user_can_authenticate(user):
+       ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\contrib\auth\base_user.py", line 109, in check_password
+    return check_password(raw_password, self.password, setter)
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\contrib\auth\hashers.py", line 85, in check_password
+    setter(password)
+    ~~~~~~^^^^^^^^^^
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\contrib\auth\base_user.py", line 104, in setter
+    self.set_password(raw_password)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\contrib\auth\base_user.py", line 94, in set_password
+    self.password = make_password(raw_password)
+                    ~~~~~~~~~~~~~^^^^^^^^^^^^^^
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\contrib\auth\hashers.py", line 119, in make_password
+    return hasher.encode(password, salt)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\contrib\auth\hashers.py", line 404, in encode
+    argon2 = self._load_library()
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\contrib\auth\hashers.py", line 233, in _load_library
+    raise ValueError(
+    ...<2 lines>...
+    )
+ValueError: Couldn't load 'Argon2PasswordHasher' algorithm library: No module named 'argon2'
+2026-08-31 21:33:09,410 ERROR django.request Internal Server Error: /perfil/
+Traceback (most recent call last):
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\core\handlers\base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\contrib\auth\decorators.py", line 59, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\finanzas\views.py", line 2333, in perfil
+    return render(request, 'finanzas/perfil.html', context)
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\template\loader.py", line 62, in render_to_string
+    return template.render(context, request)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\template\backends\django.py", line 107, in render
+    return self.template.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\template\base.py", line 174, in render
+    return self._render(context)
+           ~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\template\base.py", line 166, in _render
+    return self.nodelist.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\template\base.py", line 1091, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\template\base.py", line 1052, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\template\loader_tags.py", line 160, in render
+    return compiled_parent._render(context)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\template\base.py", line 166, in _render
+    return self.nodelist.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\template\base.py", line 1091, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\template\base.py", line 1052, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\template\loader_tags.py", line 66, in render
+    result = block.nodelist.render(context)
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\template\base.py", line 1091, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\template\base.py", line 1052, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\template\defaulttags.py", line 511, in render
+    url = reverse(view_name, args=args, kwargs=kwargs, current_app=current_app)
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\urls\base.py", line 98, in reverse
+    resolved_url = resolver._reverse_with_prefix(view, prefix, *args, **kwargs)
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\urls\resolvers.py", line 842, in _reverse_with_prefix
+    raise NoReverseMatch(msg)
+django.urls.exceptions.NoReverseMatch: Reverse for 'configurar_2fa' not found. 'configurar_2fa' is not a valid view function or pattern name.
+2026-08-31 21:35:45,388 ERROR django.request Internal Server Error: /perfil/dos-pasos/
+Traceback (most recent call last):
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\core\handlers\base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\contrib\auth\decorators.py", line 59, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\finanzas\views.py", line 2274, in configurar_2fa
+    factor, _ = SegundoFactor.objects.get_or_create(
+                ^^^^^^^^^^^^^
+NameError: name 'SegundoFactor' is not defined
+2026-08-31 21:36:27,620 ERROR django.request Internal Server Error: /perfil/dos-pasos/
+Traceback (most recent call last):
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\core\handlers\base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\contrib\auth\decorators.py", line 59, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\finanzas\views.py", line 2274, in configurar_2fa
+    factor, _ = SegundoFactor.objects.get_or_create(
+                ^^^^^^^^^^^^^
+NameError: name 'SegundoFactor' is not defined

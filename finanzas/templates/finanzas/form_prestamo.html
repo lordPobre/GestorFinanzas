@@ -69,7 +69,7 @@
 {% endblock %}
 
 {% block extra_js %}
-<script>
+<script nonce="{{ csp_nonce }}">
 (function () {
   var seg = document.getElementById('segTipoPr');
   var campo = document.getElementById('campoCuotasPr');

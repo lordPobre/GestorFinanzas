@@ -344,7 +344,7 @@
 
 
 {% block extra_js %}
-<script>
+<script nonce="{{ csp_nonce }}">
 /* Atajos de monto en los modales de abono */
 document.querySelectorAll('[data-monto]').forEach(function (b) {
   b.addEventListener('click', function () {

@@ -10,6 +10,7 @@ from django import forms
 from django.contrib import messages
 from django.contrib.auth import login, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
 from django.contrib.auth.forms import PasswordChangeForm, UserCreationForm
 from django.db.models import Count, F, Sum
 from django.http import HttpResponse, JsonResponse
@@ -18,9 +19,12 @@ from django.urls import NoReverseMatch, reverse
 from django.utils import timezone
 
 from .forms import DeudaForm, MetaAhorroForm, TransaccionForm
-from .models import (AbonoPrestamo, AporteMeta, Categoria, Deuda, GastoPendiente,
+from .seguridad import (MAX_INTENTOS as MAX_INTENTOS_LOGIN, _ip, esta_bloqueado,
+                        limitar, limpiar_intentos, registrar_fallo)
+from .models import (AbonoPrestamo, AporteMeta, Categoria, CodigoRespaldo, Deuda, GastoPendiente,
                      MetaAhorro, PagoCuota, PagoServicio, Persona, Prestamo,
-                     Presupuesto, Suscripcion, Transaccion, UserProfile)
+                     Presupuesto, SegundoFactor, Suscripcion, Transaccion,
+                     UserProfile)
 
 NOMBRES_MESES = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun',
                  'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic']
@@ -464,6 +468,12 @@ def contadores(usuario):
         # Inicio y Perfil, que eran las dos que lo pasaban a mano.
         'profile': get_or_create_profile(usuario),
 
+        # El panel de registro vive en base.html, así que estas listas hacen
+        # falta en TODAS las pantallas. Antes solo las ponía el dashboard y
+        # en el resto el panel se abría sin categorías.
+        'cats_egreso_json': [list(c) for c in Categoria.opciones(usuario, 'EGRESO')],
+        'cats_ingreso_json': [list(c) for c in Categoria.opciones(usuario, 'INGRESO')],
+
         # Panel de registro.
         #
         # Se llama 'form_registro', NO 'form': contadores() se aplica con
@@ -482,8 +492,10 @@ def contadores(usuario):
         # adorno.
         'cats_egreso': Categoria.opciones(usuario, 'EGRESO'),
         'cats_ingreso': Categoria.opciones(usuario, 'INGRESO'),
-        'cats_egreso_json': json.dumps([list(c) for c in Categoria.opciones(usuario, 'EGRESO')]),
-        'cats_ingreso_json': json.dumps([list(c) for c in Categoria.opciones(usuario, 'INGRESO')]),
+        # Listas, no cadenas: json_script serializa por su cuenta y escapa
+        # los caracteres que podrían cerrar la etiqueta <script>.
+        'cats_egreso_json': [list(c) for c in Categoria.opciones(usuario, 'EGRESO')],
+        'cats_ingreso_json': [list(c) for c in Categoria.opciones(usuario, 'INGRESO')],
 
         # Suscripciones sin pagar este mes: el badge del menú
         'subs_pendientes': sum(
@@ -815,13 +827,13 @@ def dashboard(request):
         # porque el panel ahora está en base.html y lo usan todas las pantallas.
         'abrir_panel': bool(request.GET.get('registrar')),
 
-        'meses_json': json.dumps(meses_labels),
-        'ingresos_json': json.dumps(datos_ingresos),
-        'gastos_json': json.dumps(datos_gastos),
-        'cuotas_json': json.dumps(datos_cuotas),
-        'cat_labels_json': json.dumps([c['label'] for c in categorias]),
-        'cat_data_json': json.dumps([c['total'] for c in categorias]),
-        'cat_colores_json': json.dumps([c['color'] for c in categorias]),
+        'meses_json': meses_labels,
+        'ingresos_json': datos_ingresos,
+        'gastos_json': datos_gastos,
+        'cuotas_json': datos_cuotas,
+        'cat_labels_json': [c['label'] for c in categorias],
+        'cat_data_json': [c['total'] for c in categorias],
+        'cat_colores_json': [c['color'] for c in categorias],
     }
     # La tarjeta "Te deben" del carrusel: antes este total solo existía en la
     # pantalla de préstamos, así que en el dashboard salía vacío.
@@ -1270,12 +1282,12 @@ def estadisticas(request):
         })
 
     context = {
-        'labels_json': json.dumps(labels),
-        'data_json': json.dumps(data_cuota),
-        'data_restante_json': json.dumps(data_restante),
-        'meses_json': json.dumps(meses),
-        'ingresos_json': json.dumps(ingresos),
-        'gastos_json': json.dumps(gastos),
+        'labels_json': labels,
+        'data_json': data_cuota,
+        'data_restante_json': data_restante,
+        'meses_json': meses,
+        'ingresos_json': ingresos,
+        'gastos_json': gastos,
         'promedio_gasto': round(promedio),
         'mejor_mes': meses[mejor] if mejor is not None else None,
         'mejor_ahorro': round(ahorros[mejor]) if mejor is not None else 0,
@@ -1590,20 +1602,22 @@ def analisis_predictivo(request):
         'indice_actual': indice_actual,
         'total_pagado_serie': round(sum(f['pagado'] for f in serie)),
         'total_pendiente_serie': round(sum(f['pendiente'] for f in serie)),
-        'serie_meses_json': json.dumps([f['mes'] for f in serie]),
-        'serie_pagado_json': json.dumps([round(f['pagado']) for f in serie]),
-        'serie_pendiente_json': json.dumps([round(f['pendiente']) for f in serie]),
-        'serie_total_json': json.dumps([round(f['total']) for f in serie]),
-        'serie_restante_json': json.dumps([round(f['restante']) for f in serie]),
-        'proy_meses_json': json.dumps([p['mes'] for p in analisis['proyeccion']]),
-        'proy_deuda_json': json.dumps([p['deuda'] for p in analisis['proyeccion']]),
-        'proy_pago_json': json.dumps([p['pago_mes'] for p in analisis['proyeccion']]),
+        'serie_meses_json': [f['mes'] for f in serie],
+        'serie_pagado_json': [round(f['pagado']) for f in serie],
+        'serie_pendiente_json': [round(f['pendiente']) for f in serie],
+        'serie_total_json': [round(f['total']) for f in serie],
+        'serie_restante_json': [round(f['restante']) for f in serie],
+        'proy_meses_json': [p['mes'] for p in analisis['proyeccion']],
+        'proy_deuda_json': [p['deuda'] for p in analisis['proyeccion']],
+        'proy_pago_json': [p['pago_mes'] for p in analisis['proyeccion']],
     }
     context.update(contadores(request.user))
     return render(request, 'finanzas/analisis.html', context)
 
 
 @login_required(login_url='/login/')
+@limitar(6, 3600, 'Ya pediste varias interpretaciones esta hora. '
+                  'Los números de la pantalla no dependen de la IA.')
 def analisis_ia(request):
     """Endpoint AJAX: genera la interpretación con IA (puede tardar unos segundos)."""
     from .analisis import analizar_finanzas
@@ -2127,6 +2141,195 @@ def metas(request):
 #  REGISTRO Y ONBOARDING
 # ============================================================
 
+def entrar(request):
+    """Acceso con tope de intentos.
+
+    La LoginView de Django no limita nada: se pueden probar contraseñas sin
+    fin. En una app con datos financieros eso es la puerta más fácil, así
+    que cinco fallos bloquean quince minutos.
+    """
+    from django.contrib.auth import authenticate
+    from django.contrib.auth.forms import AuthenticationForm
+
+    ip = _ip(request)
+    usuario_txt = (request.POST.get('username') or '').strip()[:150]
+    restan = esta_bloqueado(usuario_txt, ip)
+
+    if request.method == 'POST' and restan:
+        minutos = max(1, restan // 60)
+        messages.error(
+            request,
+            f'Demasiados intentos fallidos. Espera {minutos} minuto'
+            + ('s' if minutos != 1 else '') + ' antes de volver a probar.')
+        return render(request, 'registration/login.html',
+                      {'form': AuthenticationForm(), 'bloqueado': True})
+
+    if request.method == 'POST':
+        form = AuthenticationForm(request, data=request.POST)
+        if form.is_valid():
+            usuario = form.get_user()
+            limpiar_intentos(usuario_txt, ip)
+
+            # Con 2FA activo la contraseña sola no entra: se guarda en la
+            # sesión QUIÉN está a medio autenticar y se pide el código.
+            #
+            # No se llama a login() todavía. Si se llamara, la sesión ya
+            # estaría abierta y bastaría con navegar a cualquier URL para
+            # saltarse el segundo paso.
+            factor = SegundoFactor.objects.filter(usuario=usuario, activo=True).first()
+            if factor:
+                request.session['2fa_pendiente'] = usuario.pk
+                request.session['2fa_next'] = request.POST.get('next', '')
+                return redirect('verificar_codigo')
+
+            login(request, usuario)
+            destino = request.POST.get('next') or request.GET.get('next')
+            # Solo rutas internas: un 'next' externo es una redirección
+            # abierta, útil para phishing con un enlace de tu propio dominio.
+            if destino and destino.startswith('/') and not destino.startswith('//'):
+                return redirect(destino)
+            return redirect('dashboard')
+
+        intentos = registrar_fallo(usuario_txt, ip)
+        quedan = MAX_INTENTOS_LOGIN - intentos
+        # El mensaje no dice si el usuario existe: eso permitiría averiguar
+        # qué cuentas hay probando nombres.
+        if quedan > 0:
+            messages.error(
+                request,
+                'Usuario o contraseña incorrectos. '
+                f'Te queda{"n" if quedan != 1 else ""} {quedan} intento'
+                + ('s' if quedan != 1 else '') + '.')
+        else:
+            messages.error(request, 'Demasiados intentos. Espera 15 minutos.')
+        return render(request, 'registration/login.html', {'form': form})
+
+    return render(request, 'registration/login.html',
+                  {'form': AuthenticationForm()})
+
+
+def verificar_codigo(request):
+    """Segundo paso del acceso.
+
+    El usuario llega con '2fa_pendiente' en la sesión, puesto por entrar().
+    Hasta que el código sea correcto no hay login(), así que no puede tocar
+    ninguna pantalla de la app.
+    """
+    uid = request.session.get('2fa_pendiente')
+    if not uid:
+        return redirect('login')
+
+    try:
+        usuario = User.objects.get(pk=uid)
+        factor = usuario.segundo_factor
+    except (User.DoesNotExist, SegundoFactor.DoesNotExist):
+        request.session.pop('2fa_pendiente', None)
+        return redirect('login')
+
+    ip = _ip(request)
+    clave_2fa = f'2fa:{uid}'
+
+    if request.method == 'POST':
+        # El código también se limita: seis dígitos son un millón de
+        # combinaciones, y sin tope se prueban todas en minutos.
+        restan = esta_bloqueado(clave_2fa, ip)
+        if restan:
+            messages.error(request, f'Demasiados intentos. Espera {max(1, restan // 60)} minutos.')
+            return render(request, 'registration/verificar.html', {'bloqueado': True})
+
+        codigo = request.POST.get('codigo', '')
+        usa_respaldo = bool(request.POST.get('es_respaldo'))
+
+        ok = (CodigoRespaldo.consumir(usuario, codigo) if usa_respaldo
+              else factor.verificar(codigo))
+
+        if ok:
+            limpiar_intentos(clave_2fa, ip)
+            request.session.pop('2fa_pendiente', None)
+            destino = request.session.pop('2fa_next', '')
+            login(request, usuario)
+
+            if usa_respaldo:
+                quedan = CodigoRespaldo.objects.filter(usuario=usuario, usado=False).count()
+                messages.warning(
+                    request,
+                    f'Usaste un código de respaldo. Te quedan {quedan}. '
+                    'Genera otros desde tu perfil si te quedan pocos.')
+
+            if destino and destino.startswith('/') and not destino.startswith('//'):
+                return redirect(destino)
+            return redirect('dashboard')
+
+        registrar_fallo(clave_2fa, ip)
+        messages.error(request, 'Código incorrecto o ya usado.')
+
+    return render(request, 'registration/verificar.html', {
+        'usuario': usuario,
+        'tiene_respaldo': CodigoRespaldo.objects.filter(usuario=usuario, usado=False).exists(),
+    })
+
+
+@login_required(login_url='/login/')
+def configurar_2fa(request):
+    """Activar la verificación en dos pasos.
+
+    El secreto se crea al abrir la pantalla pero el factor queda inactivo
+    hasta que el usuario confirme un código. Así se comprueba que su app
+    quedó bien configurada ANTES de exigirle el código para entrar — si no,
+    se quedaría fuera de su propia cuenta.
+    """
+    factor, _ = SegundoFactor.objects.get_or_create(
+        usuario=request.user,
+        defaults={'secreto': SegundoFactor.generar_secreto()},
+    )
+
+    if request.method == 'POST':
+        accion = request.POST.get('accion')
+
+        if accion == 'activar':
+            if factor.verificar(request.POST.get('codigo', '')):
+                factor.activo = True
+                factor.save(update_fields=['activo'])
+                codigos = CodigoRespaldo.generar(request.user)
+                messages.success(request, 'Verificación en dos pasos activada.')
+                return render(request, 'finanzas/codigos_respaldo.html',
+                              {'codigos': codigos, 'recien_creados': True})
+            messages.error(request, 'El código no coincide. Revisa la hora de tu teléfono.')
+
+        elif accion == 'desactivar':
+            # Se pide la contraseña: si alguien deja la sesión abierta, no
+            # debería poder quitar la protección sin conocerla.
+            if not request.user.check_password(request.POST.get('password', '')):
+                messages.error(request, 'Contraseña incorrecta.')
+                return redirect('configurar_2fa')
+            factor.delete()
+            CodigoRespaldo.objects.filter(usuario=request.user).delete()
+            messages.success(request, 'Verificación en dos pasos desactivada.')
+            return redirect('perfil')
+
+        elif accion == 'regenerar':
+            if not request.user.check_password(request.POST.get('password', '')):
+                messages.error(request, 'Contraseña incorrecta.')
+                return redirect('configurar_2fa')
+            codigos = CodigoRespaldo.generar(request.user)
+            return render(request, 'finanzas/codigos_respaldo.html',
+                          {'codigos': codigos, 'recien_creados': False})
+
+    # Si aún no está activo se muestra el secreto para configurar la app.
+    # Una vez activo ya no: no hay razón para volver a exponerlo.
+    contexto = {
+        'factor': factor,
+        'codigos_restantes': CodigoRespaldo.objects.filter(
+            usuario=request.user, usado=False).count(),
+    }
+    if not factor.activo:
+        contexto['uri'] = factor.uri()
+        contexto['secreto'] = factor.secreto
+    contexto.update(contadores(request.user))
+    return render(request, 'finanzas/configurar_2fa.html', contexto)
+
+
+@limitar(5, 3600, 'Demasiados registros desde esta conexión. Prueba más tarde.')
 def registro(request):
     if request.method == 'POST':
         form = UserCreationForm(request.POST)
@@ -2241,6 +2444,10 @@ def perfil(request):
             # la foto se guardaba siempre vacía.
             perfil_form = PerfilForm(request.POST, request.FILES, instance=profile)
             if perfil_form.is_valid():
+                # Volver al avatar de inicial. El save() del modelo borra el
+                # archivo del almacenamiento al detectar el cambio.
+                if request.POST.get('quitar_foto'):
+                    perfil_form.instance.foto = None
                 perfil_form.save()
                 nombre = perfil_form.cleaned_data.get('nombre_completo', '').strip()
                 if nombre:

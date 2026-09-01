@@ -58,6 +58,10 @@
   </div>
 </div>
 
+{% comment %}
+  El mismo gráfico de Inicio: dos líneas y el hueco entre ellas. Acá con 12
+  meses por defecto, que es lo que se viene a ver a Estadísticas.
+{% endcomment %}
 <div class="glass card-lg flujo-panel" data-spot style="margin-bottom:16px">
 
   <div class="flujo-cabecera">
@@ -142,8 +146,13 @@
 
 
 {% block extra_js %}
-<script>
+<script nonce="{{ csp_nonce }}">
 
+/* ============================================================
+   2. EL GRÁFICO
+   Chart.js dibuja sobre canvas, así que nada de aquí puede leer variables
+   CSS: todos los colores van literales.
+   ============================================================ */
 (function () {
   var el = document.getElementById('chartFlujo');
   if (!el || typeof Chart === 'undefined') return;
@@ -154,9 +163,10 @@
   var FONT  = "'Manrope', sans-serif";
   var quieto = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  var meses = {{ meses_json|safe }};
-  var ingresos = {{ ingresos_json|safe }};
-  var salidas = {{ gastos_json|safe }};
+  var meses = JSON.parse(document.getElementById("d-meses_json").textContent);
+  var ingresos = JSON.parse(document.getElementById("d-ingresos_json").textContent);
+  /* En esta pantalla la vista ya suma las cuotas dentro de gastos. */
+  var salidas = JSON.parse(document.getElementById("d-gastos_json").textContent);
 
   function pesos(v) { return '$' + Math.round(v).toLocaleString('es-CL'); }
   function corto(v) {
@@ -166,6 +176,8 @@
     return '$' + Math.round(v);
   }
 
+  /* ---- Punto vivo en el mes actual ----
+     Un halo sobre el último dato: marca dónde estás parado en la serie. */
   var faro = {
     id: 'faro',
     afterDatasetsDraw: function (chart) {
@@ -191,6 +203,8 @@
     },
   };
 
+  /* Rango del eje a partir de los datos con movimiento. Los meses en cero se
+     excluyen del mínimo: uno solo hundiría la escala y aplanaría el resto. */
   function rango(series) {
     var vals = [];
     series.forEach(function (s) {
@@ -213,6 +227,9 @@
         {
           label: 'Entra', data: ingresos,
           borderColor: VERDE, borderWidth: 2.5,
+          /* El relleno va HASTA la otra línea: el hueco entre ambas es el
+             ahorro. Verde si entra más, coral si sale más — el mismo par de
+             líneas cuenta las dos situaciones sin cambiar de gráfico. */
           fill: { target: '+1',
                   above: 'rgba(83,210,88,.17)',
                   below: 'rgba(226,92,92,.17)' },
@@ -257,6 +274,7 @@
           usePointStyle: true, boxWidth: 8, boxHeight: 8, boxPadding: 6,
           callbacks: {
             label: function (c) { return ' ' + c.dataset.label + ': ' + pesos(c.parsed.y); },
+            /* El saldo del mes, que antes había que restar a ojo. */
             footer: function (items) {
               if (items.length < 2) return '';
               var i = items[0].dataIndex;
@@ -274,8 +292,14 @@
                    maxRotation: 0, minRotation: 0, padding: 8 },
         },
         y: {
+          /* Sin rejilla horizontal: en un gráfico de área las líneas cruzadas
+             ensucian el degradado. Solo tres referencias al margen. */
           grid: { display: false },
           border: { display: false },
+          /* El eje se ajusta a los datos en vez de arrancar en cero: con
+             cero, dos series que se mueven entre 500k y 850k quedaban
+             aplastadas en el tercio superior y toda variación se veía plana.
+             El 20% de holgura evita que las líneas toquen los bordes. */
           min: piso, max: techo,
           ticks: { color: TICK, font: { family: FONT, size: 10.5 },
                    maxTicksLimit: 3, padding: 10, callback: corto },
@@ -285,6 +309,9 @@
     plugins: [faro],
   });
 
+  /* El halo del último punto respira. Se detiene si el sistema pide menos
+     movimiento, y también cuando la pestaña no está visible: si no, el
+     navegador acumula cuadros y el gráfico se traba al volver. */
   if (!quieto) {
     var t0 = null;
     (function pulsar(ts) {
@@ -324,7 +351,7 @@
 
 </script>
 
-<script>
+<script nonce="{{ csp_nonce }}">
 (function () {
   if (typeof Chart === 'undefined') return;
   var TICK = 'rgba(245,245,245,.42)';
@@ -344,18 +371,21 @@
     if (v >= 1000) return '$' + Math.round(v / 1000) + 'k';
     return '$' + Math.round(v);
   }
+  /* Cuotas activas: cuota mensual vs. lo que falta */
   var cuotasEl = document.getElementById('chartCuotas');
-  var labels = {{ labels_json|safe }};
+  var labels = JSON.parse(document.getElementById("d-labels_json").textContent);
   if (cuotasEl && labels.length) {
     new Chart(cuotasEl, {
       type: 'bar',
       data: {
         labels: labels,
         datasets: [
-          { label: 'Cuota al mes', data: {{ data_json|safe }},
+          /* Ámbar lo que pagas cada mes, gris claro lo que aún resta: los
+             dos tonos dicen de qué lado está cada barra sin leer la leyenda. */
+          { label: 'Cuota al mes', data: JSON.parse(document.getElementById("d-data_json").textContent),
             backgroundColor: '#ffaa2c', hoverBackgroundColor: '#ffbb56',
             borderRadius: 6, borderSkipped: false, maxBarThickness: 15 },
-          { label: 'Te falta', data: {{ data_restante_json|safe }},
+          { label: 'Te falta', data: JSON.parse(document.getElementById("d-data_restante_json").textContent),
             backgroundColor: 'rgba(245,245,245,.26)', hoverBackgroundColor: 'rgba(245,245,245,.4)',
             borderRadius: 6, borderSkipped: false, maxBarThickness: 15 }
         ]

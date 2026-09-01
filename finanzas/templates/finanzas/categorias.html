@@ -267,7 +267,9 @@
 
 
 {% block extra_js %}
-<script>
+<script nonce="{{ csp_nonce }}">
+/* Selección de color y de icono. Se resuelve con delegación para que sirva
+   igual en el modal de crear y en los de editar, sin repetir código. */
 document.addEventListener('click', function (e) {
   var sw = e.target.closest('[data-swatches] > button');
   if (sw) {

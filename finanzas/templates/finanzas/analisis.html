@@ -291,7 +291,16 @@
 
 
 {% block extra_js %}
-<script>
+{% comment %}
+  Los datos salen del HTML en vez de incrustarse en el JavaScript:
+  json.dumps escapa comillas pero no "</script>", así que un texto del
+  usuario podía cerrar la etiqueta. json_script escapa <, > y &.
+{% endcomment %}
+{{ serie_meses_json|json_script:"d-serie_meses_json" }}
+{{ serie_pagado_json|json_script:"d-serie_pagado_json" }}
+{{ serie_pendiente_json|json_script:"d-serie_pendiente_json" }}
+
+<script nonce="{{ csp_nonce }}">
 (function () {
   var GRID = 'rgba(255,255,255,.055)';
   /* Literal a propósito: sobre canvas un var() no es un color válido y
@@ -316,9 +325,9 @@
 
   var angosto = window.innerWidth < 720;
   var idxActual = {{ indice_actual }};
-  var etiquetas = {{ serie_meses_json|safe }};
-  var pagado = {{ serie_pagado_json|safe }};
-  var pendiente = {{ serie_pendiente_json|safe }};
+  var etiquetas = JSON.parse(document.getElementById("d-serie_meses_json").textContent);
+  var pagado = JSON.parse(document.getElementById("d-serie_pagado_json").textContent);
+  var pendiente = JSON.parse(document.getElementById("d-serie_pendiente_json").textContent);
 
   /* Franja sobre el mes en curso y una línea que separa pasado de futuro.
      La etiqueta "hoy" se pisaba con los nombres de mes del eje; ahora va
@@ -419,7 +428,7 @@
 })();
 </script>
 
-<script>
+<script nonce="{{ csp_nonce }}">
 (function () {  /* ---- Interpretación con IA, bajo demanda ---- */
   var btn = document.getElementById('btnIA');
   if (!btn) return;

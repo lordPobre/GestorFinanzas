@@ -6,3 +6,19 @@ psycopg2-binary>=2.9,<3.0
 python-dateutil>=2.8,<3.0
 python-dotenv>=1.0,<2.0
 anthropic>=0.40.0
+
+# Foto de perfil
+Pillow>=10.0,<12.0
+
+# Verificacion en dos pasos (TOTP)
+pyotp>=2.9,<3.0
+
+# Hash de contrasenas recomendado hoy
+argon2-cffi>=23.1
+
+# Solo si activas el cifrado de campos de texto
+cryptography>=42.0
+
+# Solo si guardas las fotos en Cloudflare R2
+django-storages>=1.14
+boto3>=1.34

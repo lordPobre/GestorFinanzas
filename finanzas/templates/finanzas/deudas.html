@@ -245,7 +245,7 @@
 
 
 {% block extra_js %}
-<script>
+<script nonce="{{ csp_nonce }}">
 /* Cuota y mes final en vivo mientras el usuario escribe */
 (function () {
   var total = document.getElementById('{{ form.monto_total.id_for_label }}');

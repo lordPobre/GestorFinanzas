@@ -852,7 +852,7 @@
 
 
 {% block extra_js %}
-<script>
+<script nonce="{{ csp_nonce }}">
 /* ============================================================
    2. EL GRÁFICO
    Chart.js dibuja sobre canvas, así que nada de aquí puede leer variables
@@ -868,10 +868,10 @@
   var FONT  = "'Manrope', sans-serif";
   var quieto = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  var meses = {{ meses_json|safe }};
-  var ingresos = {{ ingresos_json|safe }};
-  var gastos = {{ gastos_json|safe }};
-  var cuotas = {{ cuotas_json|safe }};
+  var meses = JSON.parse(document.getElementById("d-meses_json").textContent);
+  var ingresos = JSON.parse(document.getElementById("d-ingresos_json").textContent);
+  var gastos = JSON.parse(document.getElementById("d-gastos_json").textContent);
+  var cuotas = JSON.parse(document.getElementById("d-cuotas_json").textContent);
   var salidas = gastos.map(function (g, i) { return g + (cuotas[i] || 0); });
 
   function pesos(v) { return '$' + Math.round(v).toLocaleString('es-CL'); }

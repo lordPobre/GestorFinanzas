@@ -23,7 +23,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
   <link rel="stylesheet" href="{% static 'css/finapp.css' %}">
   {% block extra_head %}{% endblock %}
-  <script>
+  <script nonce="{{ csp_nonce }}">
   /* Respaldo mínimo: abre y cierra modales aunque finapp.js no cargue.
      finapp.js sobreescribe estas funciones cuando sí está disponible. */
   (function () {
@@ -152,7 +152,7 @@
     <header class="topbar">
       {% block topbar_left %}
       <div style="display:flex;align-items:center;gap:11px">
-        <a href="{% url 'perfil' %}" class="avatar" title="Mi perfil">{% if profile.foto_url %}<img src="{{ profile.foto_url }}" alt="">{% else %}{{ profile.inicial|default:"?" }}{% endif %}</a>
+        <a href="{% url 'perfil' %}" class="avatar" title="Mi perfil">{% if profile.foto_url %}<img src="{{ profile.foto_url }}" alt="" data-quitar-si-falla>{% endif %}<span class="avatar-letra">{{ profile.inicial|default:"?" }}</span></a>
         <div>
           <div style="font-size:15px;font-weight:700;letter-spacing:-.02em">
             Hola, {{ profile.nombre_display|default:user.username }}
@@ -216,7 +216,7 @@
         En escritorio se esconde: ahí el saludo vive en el topbar.
       {% endcomment %}
       <div class="saludo-card">
-        <a href="{% url 'perfil' %}" class="avatar">{% if profile.foto_url %}<img src="{{ profile.foto_url }}" alt="">{% else %}{{ profile.inicial|default:"?" }}{% endif %}</a>
+        <a href="{% url 'perfil' %}" class="avatar">{% if profile.foto_url %}<img src="{{ profile.foto_url }}" alt="" data-quitar-si-falla>{% endif %}<span class="avatar-letra">{{ profile.inicial|default:"?" }}</span></a>
         <div class="saludo-txt">
           <div class="saludo-hola">{% block saludo %}Buenos días{% endblock %}</div>
           <div class="saludo-nombre">{{ profile.nombre_display|default:user.username }}</div>
@@ -481,7 +481,7 @@
 {% block modals %}{% endblock %}
 
 <script src="{% static 'js/finapp.js' %}"></script>
-<script>
+<script nonce="{{ csp_nonce }}">
 /* Panel de registro. Va en base.html, después de finapp.js, porque el panel
    está disponible en todas las pantallas. */
 (function () {
@@ -490,10 +490,25 @@
 
   /* Las de gasto ya están en el HTML; este arreglo solo sirve para volver
      a ellas si el usuario cambia de Ingreso a Gasto. */
-  var catsGasto = {{ cats_egreso_json|safe }};
-  var catsIngreso = {{ cats_ingreso_json|safe }};
+  var catsGasto = leerDatos("d-cats_egreso_json");
+  var catsIngreso = leerDatos("d-cats_ingreso_json");
 
   var chips = document.getElementById('chipsGasto');
+  /* Lee una lista embebida con json_script.
+     Devuelve [] si no está o viene vacía: solo el panel de Inicio recibe
+     las categorías, y en las demás pantallas un JSON.parse directo daba ""
+     y el forEach siguiente reventaba, dejando muerto el resto del script. */
+  function leerDatos(id) {
+    var el = document.getElementById(id);
+    if (!el) return [];
+    try {
+      var v = JSON.parse(el.textContent);
+      return Array.isArray(v) ? v : [];
+    } catch (e) {
+      return [];
+    }
+  }
+
   var campoTipo = document.getElementById('campoTipo');
   var campoCat = document.getElementById('campoCategoria');
   var campoMonto = document.getElementById('campoMonto');
@@ -609,6 +624,13 @@
   {% endif %}
 })();
 </script>
+{% comment %}
+  Las categorías salen del HTML, no incrustadas en el JavaScript: el
+  nombre lo escribe el usuario y json.dumps no escapa "</script>".
+{% endcomment %}
+{{ cats_egreso_json|json_script:"d-cats_egreso_json" }}
+{{ cats_ingreso_json|json_script:"d-cats_ingreso_json" }}
+
 {% block extra_js %}{% endblock %}
 </body>
 </html>
