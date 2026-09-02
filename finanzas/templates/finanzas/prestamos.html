@@ -158,7 +158,12 @@
     <div class="label" style="margin-bottom:11px">Préstamos</div>
     <div style="display:flex;flex-direction:column;gap:10px">
       {% for x in prestamos %}
-      <div class="row" style="display:block;padding:17px;border-radius:19px">
+      {% comment %}
+        La franja de color a la izquierda: verde si ya está saldado, lila si
+        va en cuotas, azul si es pago único. Antes las tarjetas eran todas
+        iguales y había que leer el badge para distinguirlas.
+      {% endcomment %}
+      <div class="prestamo-card {% if x.esta_pagado %}saldado{% elif x.tipo == 'CUOTAS' %}cuotas{% else %}unico{% endif %}">
         <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:13px">
           <div style="min-width:0">
             <div style="display:flex;align-items:center;gap:9px;flex-wrap:wrap">

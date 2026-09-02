@@ -401,9 +401,18 @@ def pendientes_del_mes(usuario, year, month):
         })
 
     # Gastos únicos anotados pero sin pagar. Son los del bloque "ya gastaste".
+    #
+    # Se excluyen los cobros que genera una suscripción: ya entran arriba
+    # desde el propio modelo Suscripcion, y contarlos también acá duplicaba
+    # cada servicio en la lista Y en el total del mes.
+    #
+    # Igual con los gastos pendientes: su transacción se crea al registrarlos
+    # y el bloque de abajo los añade desde GastoPendiente.
     for t in Transaccion.objects.filter(
             usuario=usuario, tipo='EGRESO', es_cuota=False, pagado=False,
-            fecha__year=year, fecha__month=month):
+            fecha__year=year, fecha__month=month,
+    ).exclude(descripcion__startswith='Suscripción: ').exclude(
+            descripcion__startswith='Pendiente: '):
         items.append({
             'tipo': 'gasto',
             'nombre': t.descripcion or t.get_categoria_display(),

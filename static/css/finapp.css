@@ -1240,7 +1240,11 @@ label { display: block; }
   font-family: 'JetBrains Mono', monospace; font-size: 10.5px; font-weight: 600;
   background: var(--coral); color: #fff;
 }
-.nav-item.active .nav-count { background: rgba(26, 18, 0, .22); color: #1a1200; }
+/* Solo en el sidebar: ahí el ítem activo lleva relleno ámbar y un badge
+   rojo encima no se leería. En la barra inferior el activo no tiene fondo,
+   así que el contador conserva su coral. */
+.sidebar .nav-item.active .nav-count { background: rgba(26, 18, 0, .22); color: #1a1200; }
+.bottomnav .nav-item.active > .nav-count { background: var(--coral); color: #fff; opacity: 1; }
 
 .sidebar-foot {
   /* flex-shrink: 0 para que no lo comprima el menú cuando hay muchos ítems. */
@@ -2016,10 +2020,10 @@ select:focus-visible, textarea:focus-visible, [tabindex]:focus-visible {
   font-size: 10px; font-weight: 600;
 }
 .bottomnav .nav-item i { width: auto; font-size: 17px; opacity: .55; transition: opacity .18s, color .18s; }
-.bottomnav .nav-item span { opacity: .6; }
+.bottomnav .nav-item span:not(.nav-count) { opacity: .6; }
 .bottomnav .nav-item.active { background: none; color: var(--amber); }
 .bottomnav .nav-item.active i { opacity: 1; color: var(--amber); }
-.bottomnav .nav-item.active span { opacity: 1; }
+.bottomnav .nav-item.active span:not(.nav-count) { opacity: 1; }
 .bottomnav .nav-item > .nav-count {
   position: absolute; top: 5px; left: 50%; margin-left: 7px;
   min-width: 16px; padding: 1px 5px; font-size: 9px;
@@ -2313,4 +2317,129 @@ select:focus-visible, textarea:focus-visible, [tabindex]:focus-visible {
   .sidebar, .topbar, .bottomnav, .fab-group, .toast-container { display: none !important; }
   body { background: #fff; color: #000; }
   .glass { background: #fff; border: 1px solid #ddd; }
+}
+
+/* ===== Tarjeta de préstamo =====
+   Una franja de color al canto y un tinte del mismo tono en el fondo. Basta
+   para diferenciarlas sin el peso de una tarjeta rellena: son varias en una
+   lista, y tres fondos saturados seguidos compiten entre sí. */
+.prestamo-card {
+  position: relative; display: block; overflow: hidden;
+  padding: 17px 17px 17px 20px; border-radius: 19px;
+  background: var(--surface-2);
+  border: 1px solid var(--linea-prestamo, rgba(255, 255, 255, .07));
+}
+.prestamo-card::before {
+  content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px;
+  background: var(--acento-prestamo, var(--amber));
+}
+
+/* En cuotas: lila, el mismo tono con que se marcan las cuotas en toda la app */
+.prestamo-card.cuotas {
+  --acento-prestamo: #818cf8;
+  --linea-prestamo: rgba(129, 140, 248, .22);
+  background: linear-gradient(100deg, rgba(129, 140, 248, .1), var(--surface-2) 62%);
+}
+
+/* Pago único: azul */
+.prestamo-card.unico {
+  --acento-prestamo: #4b8cff;
+  --linea-prestamo: rgba(75, 140, 255, .22);
+  background: linear-gradient(100deg, rgba(75, 140, 255, .1), var(--surface-2) 62%);
+}
+
+/* Saldado: verde y más apagado. Ya no hay nada que hacer con él, así que no
+   debe llamar la atención igual que los que siguen abiertos. */
+.prestamo-card.saldado {
+  --acento-prestamo: var(--green);
+  --linea-prestamo: rgba(83, 210, 88, .2);
+  background: linear-gradient(100deg, rgba(83, 210, 88, .07), var(--surface-2) 62%);
+}
+.prestamo-card.saldado .row-meta { color: var(--text-muted); }
+
+@media (max-width: 720px) {
+  .prestamo-card { padding: 15px 15px 15px 18px; }
+}
+
+/* ===== Fila de pago del mes =====
+   Cada pago se distingue por tipo con una franja al canto y el color de su
+   ficha. Franja y no fondo relleno: son siete u ocho seguidas, y otros
+   tantos fondos de color convertirían la lista en un semáforo. */
+.pago-fila {
+  position: relative; display: flex; align-items: center; gap: 13px;
+  padding: 13px 14px 13px 17px; border-radius: 15px;
+  background: var(--pago-fondo, transparent);
+  transition: background .18s var(--ease-out);
+}
+.pago-fila + .pago-fila { margin-top: 5px; }
+.pago-fila:hover { background: var(--pago-hover, rgba(255, 255, 255, .04)); }
+
+.pago-fila::before {
+  content: ''; position: absolute; left: 0; top: 9px; bottom: 9px; width: 3px;
+  border-radius: 0 3px 3px 0;
+  background: var(--pago-acento);
+}
+
+.pago-ficha {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 38px; height: 38px; flex-shrink: 0; border-radius: 13px;
+  font-size: 14px;
+  background: var(--pago-tenue); color: var(--pago-acento);
+}
+
+.pago-monto { font-size: 12.5px; flex-shrink: 0; }
+
+/* --- Por tipo --- */
+
+/* Cuota: lila, el mismo tono que las cuotas en toda la app */
+.pago-fila.t-cuota {
+  --pago-acento: #818cf8;
+  --pago-tenue: rgba(129, 140, 248, .15);
+  --pago-hover: rgba(129, 140, 248, .07);
+}
+
+/* Suscripción: naranja, como la categoría Suscripciones */
+.pago-fila.t-servicio {
+  --pago-acento: #fb923c;
+  --pago-tenue: rgba(251, 146, 60, .15);
+  --pago-hover: rgba(251, 146, 60, .07);
+}
+
+/* Cuenta por pagar: rosa, como la categoría Cuentas */
+.pago-fila.t-cuenta {
+  --pago-acento: #f472b6;
+  --pago-tenue: rgba(244, 114, 182, .15);
+  --pago-hover: rgba(244, 114, 182, .07);
+}
+
+/* Gasto anotado sin pagar: azul */
+.pago-fila.t-gasto {
+  --pago-acento: #4b8cff;
+  --pago-tenue: rgba(75, 140, 255, .15);
+  --pago-hover: rgba(75, 140, 255, .07);
+}
+
+/* --- El estado manda sobre el tipo --- */
+
+/* Atrasado: coral y con fondo, para que salte por encima del resto. Es lo
+   único de la lista que exige atención hoy. */
+.pago-fila.atrasado {
+  --pago-acento: var(--coral);
+  --pago-tenue: var(--coral-tenue);
+  --pago-fondo: rgba(226, 92, 92, .07);
+  --pago-hover: rgba(226, 92, 92, .12);
+}
+
+/* Pagado: verde y apagado. Ya está hecho, no compite por la mirada. */
+.pago-fila.pagado {
+  --pago-acento: var(--green);
+  --pago-tenue: var(--green-tenue);
+  opacity: .58;
+}
+.pago-fila.pagado .row-title { color: var(--text-secondary); }
+.pago-fila.pagado .pago-monto { color: var(--text-muted); }
+
+@media (max-width: 720px) {
+  .pago-fila { padding: 12px 11px 12px 15px; gap: 11px; }
+  .pago-ficha { width: 34px; height: 34px; border-radius: 11px; font-size: 12.5px; }
 }

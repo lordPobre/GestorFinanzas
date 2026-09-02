@@ -93,9 +93,16 @@
         <i class="fas fa-ellipsis"></i>
       </a>
     </div>
-    <div class="display" style="font-size:32px;margin:18px 0 0">{{ deuda_total|money }}</div>
+    {% comment %}
+      La cuota del mes en grande, el total debajo. Es lo que hay que pagar
+      ahora; el total es contexto. Al revés, la cifra grande era una que no
+      se paga en meses y la accionable quedaba en letra pequeña.
+    {% endcomment %}
+    <div class="display" style="font-size:32px;margin:18px 0 0">
+      {% if total_cuotas_mes %}{{ total_cuotas_mes|money }}{% else %}Sin cuotas{% endif %}
+    </div>
     <div class="balance-pie" style="font-size:11.5px;margin-top:16px">
-      {% if total_cuotas_mes %}{{ total_cuotas_mes|money }} este mes{% else %}Sin cuotas este mes{% endif %}
+      {% if total_cuotas_mes %}a pagar este mes · {% endif %}{{ deuda_total|money }} de deuda restante
       {% if cuotas_atrasadas %} · {{ cuotas_atrasadas }} atrasada{{ cuotas_atrasadas|pluralize:"s" }}{% endif %}
     </div>
   </div>
@@ -450,9 +457,16 @@
 
   <div class="row-list">
     {% for i in pendientes %}
-    <div class="row" data-searchable
-         {% if i.atrasado %}style="border-color:rgba(248,113,113,.26)"{% elif i.pagado %}style="opacity:.62"{% endif %}>
-      <span class="icon-tile {% if i.pagado %}green{% elif i.atrasado %}coral{% else %}orange{% endif %}">
+    {% comment %}
+      La clase de tipo pinta la franja y la ficha: lila cuota, naranja
+      suscripción, rosa cuenta, azul gasto. Antes todas las pendientes eran
+      ámbar y había que leer el detalle de cada una para saber qué era.
+
+      El estado manda sobre el tipo: lo atrasado en coral y lo pagado
+      apagado, porque eso es lo que hay que atender primero.
+    {% endcomment %}
+    <div class="pago-fila t-{{ i.tipo }}{% if i.atrasado %} atrasado{% elif i.pagado %} pagado{% endif %}" data-searchable>
+      <span class="pago-ficha">
         <i class="fas {% if i.pagado %}fa-check{% else %}{{ i.icono }}{% endif %}"></i>
       </span>
 
@@ -466,7 +480,7 @@
         </div>
       </div>
 
-      <div class="mono" style="font-size:12.5px;{% if i.pagado %}color:var(--text-muted){% endif %}">{{ i.monto|money }}</div>
+      <div class="mono pago-monto">{{ i.monto|money }}</div>
 
       {% if i.pagado %}
       <form method="post" action="{{ i.url_anular }}" style="margin:0"
