@@ -21,24 +21,50 @@
   toca pagar ahora, coral lo que aún debes, verde lo que ya salió. El borde
   de color sobre fondo gris no alcanzaba a diferenciarlas.
 {% endcomment %}
-<div class="grid-metrics" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr))">
-  <div class="balance-card compacta" data-spot>
-    <div class="label" style="margin-bottom:10px">Cuotas de este mes</div>
-    <div class="display" style="font-size:24px">{{ total_cuotas_mes|money }}</div>
-    <div class="balance-pie" style="font-size:11.5px;margin-top:7px">{{ deudas_activas }} compras activas</div>
+{% comment %}
+  Mismo componente que en "Me deben": tres tarjetas con fondo de color,
+  icono, monto y una nota que dice de qué es la cifra. Antes eran cajas de
+  colores distintos entre sí y con la misma jerarquía que el resto.
+{% endcomment %}
+<div class="grid-metrics tarjetas-color" style="margin-bottom:20px">
+
+  <div class="tarjeta-color ambar">
+    <div class="tc-cabecera">
+      <span class="tc-icono"><i class="fas fa-calendar-day"></i></span>
+      <span class="tc-label">Este mes pagas</span>
+    </div>
+    <div class="tc-monto">{{ total_cuotas_mes|money }}</div>
+    <div class="tc-nota">
+      {% if deudas_activas %}en {{ deudas_activas }} compra{{ deudas_activas|pluralize:"s" }}
+      {% else %}Sin cuotas pendientes{% endif %}
+      {% if cuotas_atrasadas %} · <b>{{ cuotas_atrasadas }} atrasada{{ cuotas_atrasadas|pluralize:"s" }}</b>{% endif %}
+    </div>
   </div>
-  <div class="balance-card compacta deuda" data-spot>
-    <div class="label" style="margin-bottom:10px">Deuda que te queda</div>
-    <div class="display" style="font-size:24px">{{ total_restante|money }}</div>
-    <div class="balance-pie" style="font-size:11.5px;margin-top:7px">Sumando todas las cuotas por pagar</div>
+
+  <div class="tarjeta-color coral">
+    <div class="tc-cabecera">
+      <span class="tc-icono"><i class="fas fa-hourglass-half"></i></span>
+      <span class="tc-label">Te falta pagar</span>
+    </div>
+    <div class="tc-monto">{{ total_restante|money }}</div>
+    <div class="tc-nota">
+      {% if se_libera %}Terminas en {{ se_libera.fecha_fin_estimada|date:"F Y" }}
+      {% else %}Nada pendiente{% endif %}
+    </div>
   </div>
-  <div class="balance-card compacta cobrar" data-spot>
-    <div class="label" style="margin-bottom:10px">Ya pagado</div>
-    <div class="display" style="font-size:24px">{{ total_pagado|money }}</div>
-    <div class="balance-pie" style="font-size:11.5px;margin-top:7px">De {{ total_deuda|money }} en total</div>
+
+  <div class="tarjeta-color verde">
+    <div class="tc-cabecera">
+      <span class="tc-icono"><i class="fas fa-circle-check"></i></span>
+      <span class="tc-label">Ya pagaste</span>
+    </div>
+    <div class="tc-monto">{{ total_pagado|money }}</div>
+    <div class="tc-nota">
+      {% if total_deuda %}{% widthratio total_pagado total_deuda 100 %}% del total
+      {% else %}Sin compras registradas{% endif %}
+    </div>
   </div>
 </div>
-
 <div class="grid-cards">
   {% for d in deudas %}
   {% comment %}

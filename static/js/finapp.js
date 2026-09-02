@@ -540,6 +540,10 @@
     var UMBRAL = 40;          // a partir de acá se queda abierta al soltar
     var abierta = null;
 
+    /* Una fila de movimiento no se desplaza: sus acciones flotan sobre el
+       borde. El gesto solo enciende la clase, sin transform. */
+    function esFlotante(c) { return c.classList.contains('swipe-mov'); }
+
     function cerrar(c) {
       if (!c) return;
       c.classList.remove('abierta');

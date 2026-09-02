@@ -421,10 +421,7 @@ h1, h2, h3, h4 { margin: 0; font-weight: 700; letter-spacing: -.015em; }
   /* Una fila de movimiento lleva una acción o dos según si el gasto se puede
      marcar pagado. Sin distinguirlo, con dos el segundo botón quedaba tapado
      y con una sobraba medio hueco. */
-  .swipe-mov:has(.swipe-acciones > form + form):hover .swipe-card,
-  .swipe-mov:has(.swipe-acciones > form + form):focus-within .swipe-card {
-    transform: translateX(-134px);
-  }
+  /* Las de movimiento no se desplazan: las acciones aparecen encima. */
   .swipe-acciones { opacity: 0; transition: opacity .2s var(--ease-out); }
   .swipe:hover .swipe-acciones,
   .swipe:focus-within .swipe-acciones { opacity: 1; }
@@ -439,15 +436,15 @@ h1, h2, h3, h4 { margin: 0; font-weight: 700; letter-spacing: -.015em; }
   .swipe-fila.abierta .swipe-card { transform: translateX(-60px); }
   /* Respaldo si finapp.js no cargara: el JS mide el ancho real y lo aplica
      en línea, pero sin él una fila de dos acciones necesita más. */
-  .swipe-mov:has(.swipe-acciones > form + form).abierta .swipe-card {
-    transform: translateX(-136px);
-  }
+  /* Toque cómodo con el pulgar. Siguen sin desplazar la fila. */
+  .swipe-mov .swipe-btn { width: 38px; height: 38px; flex: 0 0 38px; }
+  .swipe-mov .swipe-acciones { padding: 0 10px 0 30px; }
 
   /* Las acciones de una fila solo existen cuando está abierta.
      En una tarjeta grande da igual que asomen detrás, pero en una fila de
      lista el fondo de la card las tapaba por poco y cualquier animación las
      dejaba ver. Ocultas hasta que se arrastra. */
-  .swipe-fila .swipe-acciones {
+  .swipe-fila:not(.swipe-mov) .swipe-acciones {
     opacity: 0; pointer-events: none;
     transition: opacity .2s var(--ease-out);
   }
@@ -571,42 +568,144 @@ h1, h2, h3, h4 { margin: 0; font-weight: 700; letter-spacing: -.015em; }
   border-radius: 14px; background: #fff; font-size: 18px;
 }
 
-/* --- Lista de movimientos --- */
-.mov-list .row { border-bottom: none; padding: 14px 0; position: relative; }
+/* ===== Lista de movimientos =====
 
-/* El divisor va en el CARRIL, no en la fila: desde que cada movimiento vive
-   dentro de un .swipe, el selector .row + .row ya no alcanzaba nada. Y va
-   recortado tras el icono, como en la referencia. */
-.mov-list .swipe-mov + .swipe-mov::before {
-  content: ''; position: absolute; top: 0; left: 59px; right: 0;
-  height: 1px; background: var(--line); z-index: 2;
+   Filas planas separadas por una línea fina, no tarjetas dentro de la
+   tarjeta. Cada movimiento en su propia caja con borde creaba tres niveles
+   de superficie anidados (panel → fila → ficha del icono) y la lista se
+   leía como un montón de cajas sueltas en vez de un registro continuo.
+
+   Las acciones no desplazan la fila: flotan sobre el borde derecho con un
+   velo del color del panel. El contenido no se mueve, así que el icono y
+   el nombre nunca quedan recortados. */
+
+.mov-list { gap: 0; }
+
+.swipe-mov {
+  position: relative;
+  background: transparent;
+  border: none;
+  border-radius: var(--r-sm);
+  transition: background .16s var(--ease-out);
 }
 
-/* La fila de un movimiento vive dentro de la tarjeta y se separa con la
-   línea, sin radio propio. El carril solo aporta el gesto.
-   
-   La fila SÍ lleva fondo, del mismo color que la tarjeta: es lo que tapa las
-   acciones mientras está cerrada. Sin él se veían siempre, superpuestas al
-   monto. */
-.swipe-mov { background: transparent; border-radius: 0; }
+/* El divisor, recortado tras el icono para que la columna de contenido se
+   lea como una sola. Va en el carril: desde que cada fila vive dentro de un
+   .swipe, el selector .row + .row ya no alcanza nada. */
+.mov-list .swipe-mov + .swipe-mov::marker {
+  content: ''; position: absolute; top: 0; left: 57px; right: 0;
+  height: 1px; background: var(--line); pointer-events: none;
+}
+/* Color por tipo de movimiento.
+   Un tinte muy bajo (5%) más una barra lateral: suficiente para agrupar la
+   lista de un vistazo, no tanto como para competir con los montos, que son
+   lo que se viene a leer. */
+.swipe-mov { --tono: transparent; --tono-rgb: 245, 245, 245; }
+.swipe-mov.tono-ingreso     { --tono: var(--green); --tono-rgb: 83, 210, 88; }
+.swipe-mov.tono-cuota       { --tono: #818cf8;      --tono-rgb: 129, 140, 248; }
+.swipe-mov.tono-suscripcion { --tono: #fb923c;      --tono-rgb: 251, 146, 60; }
+.swipe-mov.tono-gasto       { --tono: var(--coral); --tono-rgb: 226, 92, 92; }
+
+.swipe-mov {
+  background: rgba(var(--tono-rgb), .05);
+  border-radius: var(--r-sm);
+}
+/* La barra lateral: 3px pegados al borde izquierdo. Se dibuja con un
+   pseudo-elemento y no con border-left, que desplazaría el contenido. */
+.swipe-mov::before {
+  content: ''; position: absolute; left: 0; top: 6px; bottom: 6px;
+  width: 3px; border-radius: 0 3px 3px 0;
+  background: var(--tono); opacity: .55;
+}
+.swipe-mov:hover::before { opacity: 1; }
+
+.swipe-mov:hover { background: rgba(var(--tono-rgb), .1); }
+/* El velo sigue el aclarado de la fila, o se vería un rectángulo más oscuro
+   recortado encima. */
+.swipe-mov:hover .swipe-acciones::before {
+  content: ''; position: absolute; inset: 0;
+  background: rgba(var(--tono-rgb), .05);
+  border-radius: inherit; pointer-events: none;
+}
+/* Al resaltar la fila, su divisor y el de la siguiente estorban. */
+.swipe-mov:hover::before,
+.swipe-mov:hover + .swipe-mov::before { background: transparent; }
+
+/* Un gasto sin pagar: línea ámbar al canto. Un fondo distinto competiría
+   con los colores de las fichas de marca (Spotify, Netflix…). */
+.swipe-mov.sin-pagar::after {
+  content: ''; position: absolute; left: 0; top: 7px; bottom: 7px;
+  width: 2.5px; border-radius: 100px; background: var(--amber);
+}
+
 .swipe-mov .swipe-card {
   display: flex; align-items: center; gap: 13px;
-  padding: 14px 0; border: none; border-radius: 0;
-  background: var(--surface);
+  padding: 13px 4px 13px 10px;
+  background: transparent; border: none; border-radius: 0;
+  /* Quieto: desplazar la fila es lo que recortaba el icono contra el borde
+     del panel. */
+  transform: none !important;
 }
 
-/* Un carril de esta lista NO se encoge.
-   .row-list es flex column, y un hijo con overflow:hidden (que es lo que el
-   carril necesita para recortar las acciones) pierde su min-height:auto
-   implícito. Con el max-height del plegado, las diez filas se comprimían a
-   28px cada una y los iconos quedaban cortados por la mitad. */
+/* Con el plegado por max-height, un hijo flex se comprime hasta caber: las
+   diez filas quedaban en 28px cada una y los iconos cortados por la mitad. */
 .mov-list > .swipe-mov { flex-shrink: 0; }
 
-/* Las acciones a escuadra: en el medio de una lista no hay esquina que
-   redondear. */
-.swipe-mov .swipe-acciones { border-radius: 0; }
-.swipe-mov .swipe-btn { border-radius: 0; }
+/* --- Acciones --- */
 
+.swipe-mov { --acciones: 0; }
+.swipe-mov:hover,
+.swipe-mov:focus-within,
+.swipe-mov.abierta { --acciones: 1; }
+
+.swipe-mov .swipe-acciones {
+  position: absolute; right: 0; top: 0; bottom: 0;
+  display: flex; align-items: center; gap: 6px;
+  padding: 0 8px 0 44px;
+  border-radius: 0 var(--r-sm) var(--r-sm) 0;
+  z-index: 3;
+  /* El velo tapa el monto que queda detrás. Del color de la superficie del
+     panel, no del fondo de la página. */
+  background:
+    linear-gradient(to right, transparent 0, rgba(var(--tono-rgb), .05) 30px),
+    linear-gradient(rgba(var(--tono-rgb), .05), rgba(var(--tono-rgb), .05)),
+    var(--surface);
+  opacity: var(--acciones);
+  transition: opacity .16s var(--ease-out);
+}
+/* El puntero sigue al valor: invisible no debe ser clicable. */
+.swipe-mov .swipe-acciones { pointer-events: none; }
+.swipe-mov:hover .swipe-acciones,
+.swipe-mov:focus-within .swipe-acciones,
+.swipe-mov.abierta .swipe-acciones { pointer-events: auto; }
+
+/* Aparecen al apuntar la fila, al tabular hasta ella, o al deslizarla en
+   táctil. Antes solo respondían al hover, así que en el teléfono no había
+   forma de llegar a ellas. */
+
+.swipe-mov .swipe-btn {
+  position: relative; z-index: 1;
+  width: 34px; height: 34px; flex: 0 0 34px;
+  display: inline-flex; align-items: center; justify-content: center;
+  border-radius: 11px; border: 1px solid transparent;
+  background: var(--surface-2); color: var(--text-secondary);
+  cursor: pointer; padding: 0; gap: 0; box-shadow: none;
+  transition: background .16s var(--ease-out), color .16s var(--ease-out);
+}
+/* Sin etiqueta: en 34px la palabra no cabe y quedaba cortada. El title y el
+   color explican la acción. */
+.swipe-mov .swipe-btn > span { display: none; }
+.swipe-mov .swipe-btn i {
+  width: auto; height: auto; background: none; border-radius: 0; font-size: 12px;
+}
+.swipe-mov .swipe-btn:hover i { background: none; }
+
+.swipe-mov .swipe-btn.editar:hover {
+  background: rgba(83, 210, 88, .16); color: #6ee873;
+}
+.swipe-mov .swipe-btn.borrar:hover {
+  background: rgba(226, 92, 92, .16); color: #f28080;
+}
 /* El monto: tabular y sin encoger, para que la columna quede a plomo entre
    filas aunque los importes tengan distinto largo. */
 .mov-monto {
@@ -730,6 +829,114 @@ h1, h2, h3, h4 { margin: 0; font-weight: 700; letter-spacing: -.015em; }
   .mini-monto { font-size: 13.5px; }
   /* La tercera ocupa la fila entera si queda sola. */
   .mini-card:last-child:nth-child(odd) { grid-column: 1 / -1; }
+}
+
+/* ===== Tarjeta de cifra con color =====
+   Un solo componente para los tres números de cabecera de Cuotas y de Me
+   deben. Antes cada pantalla los pintaba con estilos en línea distintos:
+   ninguno reaccionaba igual al estrechar la ventana y los montos largos se
+   partían en dos líneas.
+
+   La forma sigue a la tarjeta ámbar del carrusel: degradado en diagonal y
+   curva de luz en la esquina, que es la firma visual de la app. */
+
+.tarjetas-color { grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); }
+
+.tarjeta-color {
+  position: relative; overflow: hidden;
+  padding: 18px 20px 17px; border-radius: var(--r-xl);
+  min-width: 0;
+}
+/* La curva de luz: el mismo recurso de .balance-card. */
+.tarjeta-color::after {
+  content: ''; position: absolute; right: -34%; bottom: -68%;
+  width: 116%; height: 150%; border-radius: 50%;
+  background: rgba(255, 255, 255, .15);
+  pointer-events: none;
+}
+.tarjeta-color > * { position: relative; z-index: 1; }
+
+.tc-cabecera { display: flex; align-items: center; gap: 9px; margin-bottom: 14px; }
+
+.tc-icono {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 30px; height: 30px; flex-shrink: 0;
+  border-radius: 11px; font-size: 12px;
+  background: rgba(0, 0, 0, .14);
+}
+
+.tc-label {
+  font-family: 'Manrope', sans-serif;
+  font-size: 11.5px; font-weight: 700; letter-spacing: .01em;
+  /* Un rótulo de dos palabras no debe partirse ni empujar la tarjeta. */
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+.tc-monto {
+  font-family: 'Manrope', sans-serif;
+  font-size: 26px; font-weight: 800; letter-spacing: -.03em; line-height: 1;
+  font-variant-numeric: tabular-nums;
+  /* Los montos largos encogen en vez de desbordar: sin esto, un millón con
+     separadores rompe la caja en pantallas estrechas. */
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+.tc-nota {
+  font-size: 11px; font-weight: 600; line-height: 1.45; margin-top: 9px;
+  /* Dos líneas como mucho: la tercera desalinea las tarjetas entre sí. */
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* --- Colores. El texto oscuro sobre el fondo saturado da más contraste
+       que el blanco, y es lo que usa la tarjeta del carrusel. --- */
+
+.tarjeta-color.ambar {
+  background: linear-gradient(118deg, var(--amber) 0%, var(--amber-claro) 100%);
+  color: #1a1200;
+}
+.tarjeta-color.ambar .tc-label { color: rgba(26, 18, 0, .72); }
+.tarjeta-color.ambar .tc-nota  { color: rgba(26, 18, 0, .62); }
+.tarjeta-color.ambar .tc-icono { color: #1a1200; }
+
+.tarjeta-color.coral {
+  background: linear-gradient(118deg, #d94f4f 0%, #f07575 100%);
+  color: #2b0606;
+}
+.tarjeta-color.coral .tc-label { color: rgba(43, 6, 6, .72); }
+.tarjeta-color.coral .tc-nota  { color: rgba(43, 6, 6, .62); }
+.tarjeta-color.coral .tc-icono { color: #2b0606; }
+
+.tarjeta-color.verde {
+  background: linear-gradient(118deg, #3fbf46 0%, #6ee873 100%);
+  color: #052b08;
+}
+.tarjeta-color.verde .tc-label { color: rgba(5, 43, 8, .72); }
+.tarjeta-color.verde .tc-nota  { color: rgba(5, 43, 8, .62); }
+.tarjeta-color.verde .tc-icono { color: #052b08; }
+
+.tarjeta-color.azul {
+  background: linear-gradient(118deg, #3d7ae8 0%, #6fa5ff 100%);
+  color: #04162e;
+}
+.tarjeta-color.azul .tc-label { color: rgba(4, 22, 46, .72); }
+.tarjeta-color.azul .tc-nota  { color: rgba(4, 22, 46, .62); }
+.tarjeta-color.azul .tc-icono { color: #04162e; }
+
+/* Bajo 560px de CONTENIDO no caben dos: 167px por tarjeta cortan el rótulo
+   ("Ya te devolvieron" no entra) y aprietan el monto contra los bordes. */
+@container contenido (max-width: 560px) {
+  .tarjetas-color { grid-template-columns: 1fr; gap: 10px; }
+}
+
+@media (max-width: 720px) {
+  /* Igual por ventana, para las pantallas que no viven dentro de .main
+     (acceso, onboarding) donde no hay contenedor que consultar. */
+  .tarjetas-color { grid-template-columns: 1fr !important; gap: 10px; }
+  .tarjeta-color { padding: 15px 17px 14px; border-radius: var(--r-lg); }
+  .tc-cabecera { margin-bottom: 10px; }
+  .tc-monto { font-size: 23px; }
+  .tc-nota { margin-top: 6px; -webkit-line-clamp: 1; }
 }
 
 /* ===== Insignias ===== */
@@ -1273,6 +1480,61 @@ label { display: block; }
 .cat-row:hover { background: var(--surface-2) !important; }
 .cat-row > span:nth-child(3) { text-align: right; }
 .cat-row > span:nth-child(4) { text-align: right; min-width: 74px; }
+
+/* ===== Tarjetas de métrica =====
+   Un color por tarjeta, con la misma mecánica que las filas de movimiento:
+   una variable que alimenta el icono, el tinte y el resplandor. */
+.metrica {
+  --tono: #8b8b96; --tono-rgb: 139, 139, 150;
+  position: relative; overflow: hidden;
+  padding: 18px 20px; border-radius: var(--r-lg);
+  background:
+    radial-gradient(120% 100% at 100% 0%, rgba(var(--tono-rgb), .13), transparent 60%),
+    var(--surface);
+  border: 1px solid rgba(var(--tono-rgb), .2);
+  transition: transform .22s var(--ease-out), border-color .22s var(--ease-out);
+}
+.metrica:hover {
+  transform: translateY(-2px);
+  border-color: rgba(var(--tono-rgb), .42);
+}
+
+.metrica.tono-verde { --tono: var(--green); --tono-rgb: 83, 210, 88; }
+.metrica.tono-coral { --tono: var(--coral); --tono-rgb: 226, 92, 92; }
+.metrica.tono-ambar { --tono: var(--amber); --tono-rgb: 255, 170, 44; }
+
+.metrica-cab { display: flex; align-items: center; gap: 9px; margin-bottom: 13px; }
+.metrica-cab .label { color: var(--tono); }
+
+.metrica-icono {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 28px; height: 28px; flex-shrink: 0;
+  border-radius: 10px; font-size: 12px;
+  background: rgba(var(--tono-rgb), .16); color: var(--tono);
+}
+
+.metrica-cifra {
+  font-family: 'Manrope', sans-serif; font-size: 25px; font-weight: 800;
+  letter-spacing: -.03em; line-height: 1.05;
+  font-variant-numeric: tabular-nums; color: var(--tono);
+}
+/* El símbolo de porcentaje, más chico: la cifra es el dato, el símbolo solo
+   la unidad. */
+.metrica-unidad { font-size: 16px; font-weight: 700; opacity: .7; margin-left: 1px; }
+
+.metrica-barra {
+  height: 5px; margin: 11px 0 2px; border-radius: 100px;
+  background: rgba(var(--tono-rgb), .16); overflow: hidden;
+}
+.metrica-barra > span {
+  display: block; height: 100%; border-radius: 100px;
+  background: var(--tono); transition: width .6s var(--ease-out);
+}
+
+/* La primera tarjeta no tiene color propio: su cifra en el blanco de
+   siempre, para que el gris no parezca un estado apagado. */
+.metrica:not([class*="tono-"]) .metrica-cifra { color: var(--text-primary); }
+.metrica:not([class*="tono-"]) .metrica-cab .label { color: var(--text-muted); }
 
 /* ===== Panel del gráfico de flujo ===== */
 .flujo-panel { overflow: hidden; }
@@ -2022,12 +2284,12 @@ select:focus-visible, textarea:focus-visible, [tabindex]:focus-visible {
   .section-title { font-size: 19px; }
   .section-head { margin: 24px 0 12px; }
 
-  /* El divisor arranca tras el icono, que en móvil mide lo mismo. */
-  .mov-list .swipe-mov + .swipe-mov::before { left: 51px; }
+  /* El divisor arranca tras el icono, que en móvil es más pequeño. */
+  .mov-list .swipe-mov + .swipe-mov::marker { left: 50px; }
 
   /* Filas más compactas: con las acciones tras el gesto sobra el aire que
      antes necesitaban los botones. */
-  .swipe-mov .swipe-card { gap: 11px; padding: 13px 0; }
+  .swipe-mov .swipe-card { gap: 11px; padding: 12px 2px 12px 8px; }
   .mov-list .icon-tile, .mov-list .marca-tile { width: 34px; height: 34px; font-size: 13px; }
   .mov-monto { font-size: 12.5px; }
 

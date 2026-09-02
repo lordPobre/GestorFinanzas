@@ -5,29 +5,59 @@
 
 {% block content %}
 
-<div style="display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap;margin-bottom:18px">
+{% comment %}
+  Las tres cifras iban apretadas en el encabezado, a la derecha del título:
+  cajas de 13px de padding que en cuanto el monto crecía se partían en dos
+  líneas o se caían de fila. Ahora son tarjetas con el mismo tratamiento que
+  las de compras en cuotas: fondo de color, curva de luz y su propia franja.
+{% endcomment %}
+<div class="section-head" style="margin-top:0">
   <div>
-    <div class="page-title">Me deben</div>
-    <div class="hint" style="margin-top:5px;max-width:600px">
+    <h1 class="section-title" style="font-size:22px">Me deben</h1>
+    <div class="hint" style="margin-top:4px;max-width:560px">
       Plata que prestaste y todavía no vuelve. Toca una persona para ver sus préstamos y abonar.
     </div>
   </div>
-  <div style="display:flex;gap:12px;flex-wrap:wrap">
-    <div class="glass-green" style="padding:13px 18px;border-radius:16px">
-      <div class="label" style="color:var(--green);margin-bottom:5px">Total por cobrar</div>
-      <div class="display" style="font-size:20px;color:var(--green)">{{ total_por_cobrar|money }}</div>
-    </div>
-    <div class="glass" style="padding:13px 18px;border-radius:16px">
-      <div class="label" style="margin-bottom:5px">Total prestado</div>
-      <div class="display" style="font-size:20px">{{ total_prestado|money }}</div>
-    </div>
-    <div class="glass-purple" style="padding:13px 18px;border-radius:16px">
-      <div class="label" style="color:var(--amber);margin-bottom:5px">Ya recuperado</div>
-      <div class="display" style="font-size:20px;color:var(--purple)">{{ total_recuperado|money }}</div>
-    </div>
-  </div>
+  <button class="btn btn-purple" data-open="#modalPersona">
+    <i class="fas fa-user-plus" style="font-size:11px"></i>Agregar persona
+  </button>
 </div>
 
+<div class="grid-metrics tarjetas-color" style="margin-bottom:20px">
+
+  <div class="tarjeta-color verde">
+    <div class="tc-cabecera">
+      <span class="tc-icono"><i class="fas fa-hand-holding-dollar"></i></span>
+      <span class="tc-label">Te deben ahora</span>
+    </div>
+    <div class="tc-monto">{{ total_por_cobrar|money }}</div>
+    <div class="tc-nota">
+      {% if personas %}de {{ personas|length }} persona{{ personas|length|pluralize:"s" }}
+      {% else %}Nadie te debe nada{% endif %}
+    </div>
+  </div>
+
+  <div class="tarjeta-color ambar">
+    <div class="tc-cabecera">
+      <span class="tc-icono"><i class="fas fa-arrow-rotate-left"></i></span>
+      <span class="tc-label">Ya te devolvieron</span>
+    </div>
+    <div class="tc-monto">{{ total_recuperado|money }}</div>
+    <div class="tc-nota">
+      {% if total_prestado %}{% widthratio total_recuperado total_prestado 100 %}% de lo que prestaste
+      {% else %}Sin préstamos registrados{% endif %}
+    </div>
+  </div>
+
+  <div class="tarjeta-color azul">
+    <div class="tc-cabecera">
+      <span class="tc-icono"><i class="fas fa-arrow-up-from-bracket"></i></span>
+      <span class="tc-label">Prestado en total</span>
+    </div>
+    <div class="tc-monto">{{ total_prestado|money }}</div>
+    <div class="tc-nota">Desde que usas la app</div>
+  </div>
+</div>
 <div class="grid-detail">
 
   {# ---- Columna: personas ---- #}

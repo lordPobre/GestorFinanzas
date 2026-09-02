@@ -666,7 +666,7 @@
           eso "Cuota 3/3 — Regalo madre" salía recortado. Detrás del gesto,
           el nombre se queda con el ancho completo.
         {% endcomment %}
-        <div class="swipe swipe-fila swipe-mov" data-searchable>
+        <div class="swipe swipe-fila swipe-mov tono-{{ t.clase_tono }}{% if t.por_pagar %} sin-pagar{% endif %}" data-searchable>
 
           <div class="swipe-acciones">
             {% if t.por_pagar %}

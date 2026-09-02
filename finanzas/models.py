@@ -164,6 +164,23 @@ class Transaccion(models.Model):
         return self.COLORES_CATEGORIA.get(self.categoria, self.COLORES_CATEGORIA['Otros'])
 
     @property
+    def clase_tono(self):
+        """Sufijo de la clase CSS que colorea la fila: .tono-<valor>.
+
+        Cuatro tipos, no más: un color por cada cosa que se lee distinto en
+        el balance. Las categorías ya tienen su propio color en el icono; si
+        la fila también cambiara por categoría, la lista sería un arcoíris y
+        el color dejaría de significar nada.
+        """
+        if self.es_ingreso:
+            return 'ingreso'
+        if self.es_cuota:
+            return 'cuota'
+        if (self.descripcion or '').startswith('Suscripción: '):
+            return 'suscripcion'
+        return 'gasto'
+
+    @property
     def marca_suscripcion(self):
         """Si el movimiento es el cobro de una suscripción, el icono y color
         de la plataforma. Así la lista de movimientos se lee de un vistazo en

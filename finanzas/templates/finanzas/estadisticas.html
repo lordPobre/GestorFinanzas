@@ -26,38 +26,62 @@
   </div>
 </div>
 
-{# ============ Cuatro números ============ #}
-<div class="grid-metrics" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr))">
-  <div class="glass glass-lift card" data-spot>
-    <div class="label" style="margin-bottom:10px">Gasto promedio mensual</div>
-    <div class="display" style="font-size:24px">{{ promedio_gasto|money }}</div>
+{% comment %}
+  Cuatro números. Cada uno con su icono y su color: sin ellos las tarjetas
+  se leen como un bloque uniforme y hay que ir etiqueta por etiqueta para
+  saber cuál es cuál.
+{% endcomment %}
+<div class="grid-metrics">
+
+  <div class="metrica" data-spot>
+    <div class="metrica-cab">
+      <span class="metrica-icono"><i class="fas fa-wave-square"></i></span>
+      <span class="label">Gasto promedio</span>
+    </div>
+    <div class="metrica-cifra">{{ promedio_gasto|money }}</div>
     <div class="stat-note">Promedio de los meses con movimiento.</div>
   </div>
 
-  <div class="glass glass-lift glass-green card" data-spot>
-    <div class="label" style="color:var(--green);margin-bottom:10px">Mejor mes</div>
-    <div class="display" style="font-size:24px;color:var(--green)">{{ mejor_mes|default:"—" }}</div>
+  <div class="metrica tono-verde" data-spot>
+    <div class="metrica-cab">
+      <span class="metrica-icono"><i class="fas fa-trophy"></i></span>
+      <span class="label">Mejor mes</span>
+    </div>
+    <div class="metrica-cifra">{{ mejor_mes|default:"—" }}</div>
     <div class="stat-note">
-      {% if mejor_ahorro > 0 %}Ahorraste {{ mejor_ahorro|money }}.{% else %}Aún sin un mes en positivo.{% endif %}
+      {% if mejor_ahorro > 0 %}Ahorraste {{ mejor_ahorro|money }}.
+      {% else %}Aún sin un mes en positivo.{% endif %}
     </div>
   </div>
 
-  <div class="glass glass-lift glass-coral card" data-spot>
-    <div class="label" style="color:var(--coral);margin-bottom:10px">Mes más caro</div>
-    <div class="display" style="font-size:24px;color:var(--coral)">{{ peor_mes|default:"—" }}</div>
+  <div class="metrica tono-coral" data-spot>
+    <div class="metrica-cab">
+      <span class="metrica-icono"><i class="fas fa-fire"></i></span>
+      <span class="label">Mes más caro</span>
+    </div>
+    <div class="metrica-cifra">{{ peor_mes|default:"—" }}</div>
     <div class="stat-note">{{ peor_gasto|money }} en salidas.</div>
   </div>
 
-  <div class="glass glass-lift glass-purple card" data-spot>
-    <div class="label" style="color:var(--amber);margin-bottom:10px">Tasa de ahorro</div>
-    <div class="display" style="font-size:24px;color:var(--purple)">{{ tasa_ahorro }}%</div>
+  {% comment %}
+    La tasa lleva barra: es el único de los cuatro que es un porcentaje, y
+    verlo contra el 100% dice más que la cifra sola.
+  {% endcomment %}
+  <div class="metrica tono-ambar" data-spot>
+    <div class="metrica-cab">
+      <span class="metrica-icono"><i class="fas fa-piggy-bank"></i></span>
+      <span class="label">Tasa de ahorro</span>
+    </div>
+    <div class="metrica-cifra">{{ tasa_ahorro }}<span class="metrica-unidad">%</span></div>
+    <div class="metrica-barra">
+      <span style="width:{% if tasa_ahorro > 0 %}{{ tasa_ahorro }}{% else %}0{% endif %}%"></span>
+    </div>
     <div class="stat-note">
       {% if tasa_ahorro > 0 %}De cada $100 que entran, guardas ${{ tasa_ahorro }}.
       {% else %}Estás gastando más de lo que entra.{% endif %}
     </div>
   </div>
 </div>
-
 {% comment %}
   El mismo gráfico de Inicio: dos líneas y el hueco entre ellas. Acá con 12
   meses por defecto, que es lo que se viene a ver a Estadísticas.
