@@ -29,11 +29,13 @@
     <label class="avatar-foto" for="{{ perfil_form.foto.id_for_label }}"
            title="{% if profile.foto_url %}Cambiar foto{% else %}Subir una foto{% endif %}">
       {% comment %}
-        La inicial va SIEMPRE en el marcado, debajo de la foto: si la imagen
-        no carga se ve la letra en vez del texto alternativo suelto.
+        La inicial va SIEMPRE visible, debajo de la foto: si la imagen no
+        carga — archivo borrado del bucket, URL mal formada — se ve la letra
+        en vez de un cuadro vacío. Ocultarla desde el servidor con
+        display:none era el bug: bastaba con que la foto fallara para que no
+        quedara nada que mirar, porque un &lt;img alt=""&gt; roto no dibuja nada.
       {% endcomment %}
-      <span class="avatar-inicial" id="vistaInicial"
-            {% if profile.foto_url %}style="display:none"{% endif %}>{{ profile.inicial }}</span>
+      <span class="avatar-inicial" id="vistaInicial">{{ profile.inicial }}</span>
       <img id="vistaAvatar" alt=""
            {% if profile.foto_url %}src="{{ profile.foto_url }}"{% else %}hidden{% endif %}>
       <span class="avatar-lapiz"><i class="fas fa-camera"></i></span>
@@ -324,14 +326,12 @@
   var nota = document.getElementById('notaFoto');
   if (!campo || !img) return;
 
-  /* Si la foto no carga, se vuelve a la inicial.
-     Sin esto queda un hueco con el icono de imagen rota, que no dice nada
-     de lo que pasó. */
+  /* Si la foto no carga, se oculta la imagen y vuelve a verse la inicial,
+     que está siempre detrás. No hace falta tocar su display. */
   img.addEventListener('error', function () {
     if (!img.getAttribute('src')) return;
     img.removeAttribute('src');
     img.hidden = true;
-    if (inicial) inicial.style.display = 'flex';
   });
 
   var btnQuitar = document.getElementById('btnQuitarFoto');
@@ -342,11 +342,13 @@
       campo.value = '';
       img.removeAttribute('src');
       img.hidden = true;
-      if (inicial) inicial.style.display = 'flex';
       btnQuitar.hidden = true;
       if (nota) {
         nota.hidden = false;
-        nota.querySelector('span').textContent = 'Guarda los cambios para quitar la foto';
+        /* El texto va en el último nodo del div (el icono es el primero).
+           Antes se buscaba un &lt;span&gt; que no existe: querySelector
+           devolvía null y el click reventaba a mitad de camino. */
+        nota.lastChild.textContent = 'Guarda los cambios para quitar la foto';
       }
     });
   }
@@ -357,7 +359,6 @@
     if (campoQuitar) campoQuitar.value = '';
     img.src = URL.createObjectURL(f);
     img.hidden = false;
-    if (inicial) inicial.style.display = 'none';
     /* La foto ya se ve, pero no está subida hasta enviar el formulario. */
     if (nota) nota.hidden = false;
   });

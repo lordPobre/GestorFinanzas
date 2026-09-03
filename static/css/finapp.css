@@ -1692,7 +1692,15 @@ label { display: block; }
   width: 100%; height: 100%; display: block;
   /* cover, no fill: una foto vertical se deformaría al cuadrado. */
   object-fit: cover;
+  /* Fondo propio: si la foto es un PNG con transparencia, sin esto se vería
+     la inicial a través de ella. */
+  background: linear-gradient(140deg, var(--amber-oscuro), var(--amber));
 }
+/* El display:block de arriba gana sobre el [hidden] del navegador, así que
+   un <img hidden> seguía ocupando el cuadro entero por encima de la
+   inicial: con alt="" una imagen rota no dibuja nada y el avatar quedaba
+   como un bloque ámbar vacío. */
+.avatar-foto img[hidden] { display: none; }
 .avatar-inicial {
   position: absolute; inset: 0; z-index: 0;
   display: flex; align-items: center; justify-content: center;
@@ -1734,7 +1742,12 @@ label { display: block; }
 .avatar img {
   width: 100%; height: 100%; border-radius: inherit;
   object-fit: cover; display: block;
+  /* Sin fondo propio, un PNG con transparencia deja ver la letra detrás. */
+  background: var(--amber);
 }
+/* Mismo motivo que en .avatar-foto img: este display:block gana sobre el
+   [hidden] del navegador y un img oculto seguiría tapando la letra. */
+.avatar img[hidden] { display: none; }
 .avatar:has(img) { padding: 0; overflow: hidden; }
 
 /* ===== Selector de mes =====
@@ -2442,42 +2455,4 @@ select:focus-visible, textarea:focus-visible, [tabindex]:focus-visible {
 @media (max-width: 720px) {
   .pago-fila { padding: 12px 11px 12px 15px; gap: 11px; }
   .pago-ficha { width: 34px; height: 34px; border-radius: 11px; font-size: 12.5px; }
-}
-
-/* ===== Cabecera de "Pagos del mes" =====
-   Antes eran tres bloques sueltos con aire entre ellos: título, monto a la
-   derecha en letra pequeña, aviso de atrasos en su propia tarjeta y la
-   barra abajo. El dato más importante era el más discreto.
-
-   Ahora es una sola pieza: la cifra manda y todo lo demás cuelga de ella. */
-.pagos-cabecera {
-  padding-bottom: 16px; margin-bottom: 14px;
-  border-bottom: 1px solid var(--line);
-}
-
-.pagos-titulo {
-  display: flex; align-items: flex-start; justify-content: space-between;
-  gap: 12px; flex-wrap: wrap; margin-bottom: 16px;
-}
-/* Sin esto la bajada envolvía en dos líneas y la segunda se colaba bajo la
-   cifra, que está en el bloque siguiente. */
-.pagos-titulo > div:first-child { flex: 1 1 220px; min-width: 0; }
-
-/* Las dos cifras en la misma línea base: lo que falta y lo que ya salió
-   se comparan de un vistazo en vez de estar en extremos opuestos. */
-.pagos-cifra {
-  display: flex; align-items: flex-end; justify-content: space-between;
-  gap: 16px; flex-wrap: wrap;
-}
-.pagos-monto {
-  font-size: 26px; line-height: 1; color: var(--orange);
-}
-.pagos-hecho { text-align: right; }
-.pagos-nota {
-  font-size: 11px; color: var(--text-muted); margin-top: 5px;
-}
-
-@media (max-width: 720px) {
-  .pagos-monto { font-size: 23px; }
-  .pagos-cifra { gap: 12px; }
 }
