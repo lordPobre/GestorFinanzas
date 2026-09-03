@@ -2,6 +2,8 @@ from decimal import Decimal
 
 from django.db import models
 from django.contrib.auth.models import User
+from django.db.models.signals import post_delete
+from django.dispatch import receiver
 
 from .almacenamiento import almacen_media
 from django.utils import timezone
@@ -10,6 +12,13 @@ from datetime import date
 
 
 class Transaccion(models.Model):
+    """Un movimiento de dinero: un ingreso o un egreso, en una fecha dada.
+
+    Cubre tanto el gasto del día a día como el registro que generan las
+    cuotas (es_cuota=True) y las suscripciones — de ahí que 'pagado' y
+    'fecha_pago' existan: una transacción puede registrarse antes de que
+    la plata salga de verdad de la cuenta.
+    """
     TIPO_CHOICES = [
         ('INGRESO', 'Ingreso'),
         ('EGRESO', 'Egreso'),
@@ -205,6 +214,13 @@ class Transaccion(models.Model):
 
 
 class Deuda(models.Model):
+    """Una compra a plazo (cuotas fijas): cel a 12 cuotas, una compra
+    en el retail, etc. No es un préstamo — para eso está Persona/Prestamo.
+
+    El estado de cada cuota NO se deduce de 'cuotas_pagadas': se guarda un
+    PagoCuota por mes real pagado (ver la sección "Periodos" más abajo),
+    así que adelantarse o atrasarse no rompe el cálculo.
+    """
     # Las categorías de una compra a plazo no son las del día a día.
     #
     # ANTES esta lista era una copia de las de gasto corriente, encabezada
@@ -759,6 +775,8 @@ class CodigoRespaldo(models.Model):
 
 
 class Presupuesto(models.Model):
+    """Un límite de gasto mensual por usuario, para el aviso de
+    'vas en el X% de tu presupuesto' del dashboard."""
     usuario = models.OneToOneField(User, on_delete=models.CASCADE)
     limite_mensual = models.DecimalField(max_digits=12, decimal_places=2, default=500000)
 
@@ -942,6 +960,11 @@ def _ruta_avatar(instance, filename):
 
 
 class UserProfile(models.Model):
+    """Datos de perfil que no viven en el User de Django: moneda, avatar,
+    progreso del onboarding. 'saldo_disponible' NO vive aquí — se calcula
+    siempre al vuelo en resumen_mes(), nunca se guarda, para que no se
+    pueda desincronizar de las transacciones reales.
+    """
     MONEDAS = [
         ('CLP', 'Peso Chileno ($)'),
         ('USD', 'Dólar Americano (USD)'),
@@ -1008,20 +1031,27 @@ class UserProfile(models.Model):
                 # que el usuario tenga que ver.
                 pass
 
-    def delete(self, *args, **kwargs):
-        """Al borrar el perfil se lleva su foto: si no, queda un archivo que
-        ya nadie puede alcanzar."""
-        foto = self.foto
-        super().delete(*args, **kwargs)
-        if foto and foto.name:
-            try:
-                foto.delete(save=False)
-            except Exception:
-                pass
-
     @property
     def nombre_display(self):
         return self.nombre_completo or self.usuario.username
+
+
+@receiver(post_delete, sender=UserProfile)
+def _borrar_avatar_al_eliminar_perfil(sender, instance, **kwargs):
+    """Borra el archivo del avatar cuando se borra el perfil.
+
+    Antes esto era un método delete() en el modelo. El problema: cuando se
+    borra un User, Django borra el UserProfile por CASCADE con un DELETE en
+    lote directo a la base — nunca llama a instance.delete() de Python, así
+    que ese método nunca se ejecutaba y la foto se quedaba huérfana en el
+    bucket. Una señal post_delete sí se dispara en los dos casos: borrar el
+    perfil directamente, o borrar el User y que el perfil caiga con él.
+    """
+    if instance.foto and instance.foto.name:
+        try:
+            instance.foto.delete(save=False)
+        except Exception:
+            pass
 
     @property
     def inicial(self):

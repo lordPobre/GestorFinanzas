@@ -416,45 +416,60 @@
 {% else %}
 {# ============ Lo que hay que pagar este mes ============ #}
 <div class="glass card" style="padding:22px;margin-bottom:18px" data-spot>
-  <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;margin-bottom:4px">
-    <div>
-      <div class="modal-title" style="font-size:15px;font-weight:500">Pagos de {{ nombre_mes }}</div>
-      <div class="hint" style="font-size:11.5px;margin-top:3px">
-        Cuotas, suscripciones y cuentas. Márcalas acá a medida que las pagas.
-      </div>
-    </div>
+  {% comment %}
+    Cabecera compacta: el monto, el aviso de atrasos y la barra eran tres
+    bloques sueltos con aire entre ellos, y el número más importante
+    quedaba perdido a la derecha en letra pequeña.
 
-    {% if pendientes_sin_pagar %}
-      <div style="text-align:right">
-        <div class="mono" style="font-size:15px;color:var(--orange)">{{ monto_sin_pagar|money }}</div>
-        <div style="font-size:10px;color:var(--text-muted);margin-top:2px">
-          {{ pendientes_sin_pagar|length }} sin pagar
+    Ahora el monto manda y el resto cuelga de él en una sola pieza.
+  {% endcomment %}
+  <div class="pagos-cabecera">
+    <div class="pagos-titulo">
+      <div>
+        <div class="modal-title" style="font-size:15px;font-weight:500">Pagos de {{ nombre_mes }}</div>
+        <div class="hint" style="font-size:11.5px;margin-top:3px">
+          Márcalas acá a medida que las pagas.
         </div>
       </div>
+
+      {% if pendientes_atrasados %}
+      <span class="badge badge-coral" style="flex-shrink:0">
+        <i class="fas fa-triangle-exclamation" style="font-size:9px"></i>
+        {{ pendientes_atrasados|length }} atrasado{{ pendientes_atrasados|length|pluralize:"s" }}
+      </span>
+      {% endif %}
+    </div>
+
+    {% if pendientes %}
+    <div class="pagos-cifra">
+      <div>
+        <div class="display pagos-monto">{{ monto_sin_pagar|money }}</div>
+        <div class="pagos-nota">
+          {% if pendientes_sin_pagar %}
+            por pagar en {{ pendientes_sin_pagar|length }} pago{{ pendientes_sin_pagar|length|pluralize:"s" }}
+          {% else %}
+            todo pagado este mes
+          {% endif %}
+        </div>
+      </div>
+
+      {% if monto_ya_pagado %}
+      <div class="pagos-hecho">
+        <div class="mono" style="font-size:14px;color:var(--green)">{{ monto_ya_pagado|money }}</div>
+        <div class="pagos-nota">ya pagado</div>
+      </div>
+      {% endif %}
+    </div>
+
+    {# La barra va pegada a la cifra: es la misma información en otra forma #}
+    <div class="split-bar" style="height:7px;margin-top:12px">
+      {% if monto_ya_pagado %}<span style="width:{% widthratio monto_ya_pagado total_comprometido_mes 100 %}%;background:linear-gradient(90deg,#059669,var(--green))"></span>{% endif %}
+      {% if monto_sin_pagar %}<span style="width:{% widthratio monto_sin_pagar total_comprometido_mes 100 %}%;background:linear-gradient(90deg,#ea580c,#fb923c)"></span>{% endif %}
+    </div>
     {% endif %}
   </div>
 
   {% if pendientes %}
-  {% if pendientes_atrasados %}
-  <div class="glass-coral" style="margin:14px 0;padding:12px 15px;border-radius:14px;display:flex;align-items:center;gap:11px">
-    <i class="fas fa-triangle-exclamation" style="font-size:12px;color:var(--coral)"></i>
-    <div style="font-size:12px;color:var(--text-secondary)">
-      {{ pendientes_atrasados|length }} pago{{ pendientes_atrasados|length|pluralize:"s" }} con la fecha ya pasada.
-    </div>
-  </div>
-  {% endif %}
-
-  <div style="margin:14px 0 16px">
-    <div class="split-bar" style="height:8px">
-      {% if monto_ya_pagado %}<span style="width:{% widthratio monto_ya_pagado total_comprometido_mes 100 %}%;background:linear-gradient(90deg,#059669,var(--green))"></span>{% endif %}
-      {% if monto_sin_pagar %}<span style="width:{% widthratio monto_sin_pagar total_comprometido_mes 100 %}%;background:linear-gradient(90deg,#ea580c,#fb923c)"></span>{% endif %}
-    </div>
-    <div style="display:flex;justify-content:space-between;margin-top:8px;font-size:10.5px;color:var(--text-muted)">
-      <span>{{ monto_ya_pagado|money }} pagado</span>
-      <span>{{ monto_sin_pagar|money }} por pagar</span>
-    </div>
-  </div>
-
   <div class="row-list">
     {% for i in pendientes %}
     {% comment %}

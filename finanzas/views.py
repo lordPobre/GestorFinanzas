@@ -236,15 +236,19 @@ def resumen_mes(usuario, year, month):
     }
 
 
-def salud_financiera(usuario):
+def salud_financiera(usuario, resumen_actual=None):
     """Puntaje 0-100 del mes en curso, para el bloque del sidebar.
 
     Tres cosas, con el peso que tienen en la vida real:
     que no gastes más de lo que entra, que las cuotas no te ahoguen,
     y que quede algo libre. Nada de esto necesita IA.
+
+    Si quien llama ya calculó el resumen del mes en curso (el dashboard lo
+    hace siempre), se puede pasar en 'resumen_actual' para no repetir las
+    mismas consultas.
     """
     hoy = date.today()
-    r = resumen_mes(usuario, hoy.year, hoy.month)
+    r = resumen_actual if resumen_actual is not None else resumen_mes(usuario, hoy.year, hoy.month)
     if r['ingresos'] <= 0:
         return {'salud_score': None, 'salud_label': '', 'salud_nota': ''}
 
@@ -454,22 +458,31 @@ def pendientes_del_mes(usuario, year, month):
     return items
 
 
-def contadores(usuario):
+def contadores(usuario, resumen_actual=None):
     """Contexto compartido por todas las pantallas.
 
     Los badges del menú, la salud del mes y los datos del panel de registro.
     El panel vive en base.html (los botones que lo abren están en el topbar
     de todas las pantallas), así que sus datos tienen que llegar a todas —
     antes solo existían en el contexto del dashboard.
+
+    'resumen_actual' es el resumen del mes en curso si quien llama (el
+    dashboard) ya lo calculó: evita que salud_financiera() vuelva a
+    consultar lo mismo.
     """
     cuotas_activas = Deuda.objects.filter(
         usuario=usuario, cuotas_pagadas__lt=F('cuotas_totales')).count()
     personas = Persona.objects.filter(usuario=usuario).prefetch_related('prestamos__abonos')
     prestamos_activos = sum(len(p.prestamos_activos) for p in personas)
+    # 'personas' ya trae los préstamos con sus abonos: la tarjeta "Te deben"
+    # del dashboard usaba esto mismo pero con una consulta propia y aparte.
+    # Se calcula una sola vez, acá, y el dashboard lo toma de este contexto.
+    total_por_cobrar = round(sum(p.total_pendiente for p in personas))
     hoy = date.today()
     datos = {
         'cuotas_activas': cuotas_activas,
         'prestamos_activos': prestamos_activos,
+        'total_por_cobrar': total_por_cobrar,
 
         # El perfil del saludo. El encabezado con el avatar y el nombre vive
         # en base.html, así que lo necesitan las nueve pantallas: sin esto el
@@ -480,9 +493,6 @@ def contadores(usuario):
         # El panel de registro vive en base.html, así que estas listas hacen
         # falta en TODAS las pantallas. Antes solo las ponía el dashboard y
         # en el resto el panel se abría sin categorías.
-        'cats_egreso_json': [list(c) for c in Categoria.opciones(usuario, 'EGRESO')],
-        'cats_ingreso_json': [list(c) for c in Categoria.opciones(usuario, 'INGRESO')],
-
         # Panel de registro.
         #
         # Se llama 'form_registro', NO 'form': contadores() se aplica con
@@ -502,7 +512,10 @@ def contadores(usuario):
         'cats_egreso': Categoria.opciones(usuario, 'EGRESO'),
         'cats_ingreso': Categoria.opciones(usuario, 'INGRESO'),
         # Listas, no cadenas: json_script serializa por su cuenta y escapa
-        # los caracteres que podrían cerrar la etiqueta <script>.
+        # los caracteres que podrían cerrar la etiqueta <script>. Antes se
+        # llamaba a Categoria.opciones() cuatro veces en total en esta
+        # función (dos de ellas pisadas por estas mismas líneas, sin usarse
+        # nunca): ahora se llama dos veces, una por lista.
         'cats_egreso_json': [list(c) for c in Categoria.opciones(usuario, 'EGRESO')],
         'cats_ingreso_json': [list(c) for c in Categoria.opciones(usuario, 'INGRESO')],
 
@@ -513,7 +526,7 @@ def contadores(usuario):
             if not s.pagada_este_mes
         ),
     }
-    datos.update(salud_financiera(usuario))
+    datos.update(salud_financiera(usuario, resumen_actual=resumen_actual))
     return datos
 
 
@@ -562,27 +575,14 @@ def generar_cobros_suscripciones(usuario):
 # ============================================================
 #  DASHBOARD
 # ============================================================
+#
+# Cada función de abajo era un bloque suelto dentro de dashboard(): calendario,
+# serie de 6 meses, categorías, deuda por compra, proyecciones e insights.
+# Separadas, cada una se puede leer y testear sin montar un request completo,
+# y dashboard() queda como la lista de qué se calcula, no el cómo.
 
-@login_required(login_url='/login/')
-def dashboard(request):
-    generar_cobros_suscripciones(request.user)
-    hoy = date.today()
-
-    try:
-        year = int(request.GET.get('year', hoy.year))
-        month = int(request.GET.get('month', hoy.month))
-        date(year, month, 1)
-    except ValueError:
-        year, month = hoy.year, hoy.month
-
-    prev_month, prev_year = (12, year - 1) if month == 1 else (month - 1, year)
-    next_month, next_year = (1, year + 1) if month == 12 else (month + 1, year)
-
-    r = resumen_mes(request.user, year, month)
-    nombre_mes = nombre_mes_es(year, month)
-    todas_las_deudas = Deuda.objects.filter(usuario=request.user)
-
-    # ---------- Calendario ----------
+def _calendario_del_mes(year, month, hoy, eventos_por_dia):
+    """La grilla de semanas del mes con los eventos de pago ya resueltos."""
     calendario_datos = []
     for semana in calendar.monthcalendar(year, month):
         fila = []
@@ -590,39 +590,50 @@ def dashboard(request):
             if dia == 0:
                 fila.append(None)
             else:
-                eventos = r['eventos'].get(dia, [])
+                eventos = eventos_por_dia.get(dia, [])
                 fila.append({
                     'numero': dia,
                     'es_hoy': (dia == hoy.day and month == hoy.month and year == hoy.year),
                     'eventos': eventos,
-                    # Nuevos: el template ya no tiene que recorrer los eventos
                     'tiene_pagos': bool(eventos),
                     'todo_pagado': bool(eventos) and all(e['estado'] == 'pagado' for e in eventos),
                     'total_dia': sum(float(e['monto']) for e in eventos),
                 })
         calendario_datos.append(fila)
-
     dias_con_pago = [d for semana in calendario_datos for d in semana if d and d['tiene_pagos']]
+    return calendario_datos, dias_con_pago
 
-    # ---------- Serie de 6 meses ----------
+
+def _serie_seis_meses(usuario, hoy, year, month, resumen_actual):
+    """Ingresos/gastos/cuotas de los últimos 6 meses, para el gráfico.
+
+    Reusa 'resumen_actual' para el mes en curso en vez de recalcularlo: es
+    la misma consulta que ya hizo dashboard() para 'r'.
+    """
     meses_labels, datos_ingresos, datos_gastos, datos_cuotas = [], [], [], []
     for i in range(5, -1, -1):
         f = date(hoy.year, hoy.month, 1) - relativedelta(months=i)
-        rr = resumen_mes(request.user, f.year, f.month)
+        if f.year == year and f.month == month:
+            rr = resumen_actual
+        else:
+            rr = resumen_mes(usuario, f.year, f.month)
         meses_labels.append(f"{NOMBRES_MESES[f.month - 1]} {f.year}")
         datos_ingresos.append(rr['ingresos'])
         datos_gastos.append(rr['gastos'])
         datos_cuotas.append(rr['total_cuotas_mes'])
+    return meses_labels, datos_ingresos, datos_gastos, datos_cuotas
 
-    # ---------- Categorías ----------
+
+def _desglose_categorias(usuario, resumen):
+    """Gasto por categoría del mes, con porcentaje y color para la dona."""
     gastos_categoria = Transaccion.objects.filter(
-        usuario=request.user, tipo='EGRESO',
-        fecha__gte=r['fecha_inicio'], fecha__lte=r['fecha_fin'],
+        usuario=usuario, tipo='EGRESO',
+        fecha__gte=resumen['fecha_inicio'], fecha__lte=resumen['fecha_fin'],
     ).values('categoria').annotate(total=Sum('monto')).order_by('-total')
 
     total_cat = sum(float(x['total']) for x in gastos_categoria) or 1.0
-    categorias = []
     etiquetas = dict(Transaccion.CATEGORIAS)
+    categorias = []
     for x in gastos_categoria:
         cat = x['categoria'] or 'Otros'
         categorias.append({
@@ -632,25 +643,18 @@ def dashboard(request):
             'porcentaje': round(float(x['total']) / total_cat * 100),
             'color': Transaccion.COLORES_CATEGORIA.get(cat, Transaccion.COLORES_CATEGORIA['Otros']),
         })
+    return categorias
 
-    # ---------- Próximo pago ----------
-    pendientes = [d for d in todas_las_deudas
-                  if not d.esta_saldada and d.dias_para_vencer is not None]
-    pendientes.sort(key=lambda d: d.dias_para_vencer)
-    proximo_pago = pendientes[0] if pendientes else None
 
-    pagos_mes = pendientes_del_mes(request.user, year, month)
-    sin_pagar = [i for i in pagos_mes if not i['pagado']]
-    atrasados = [i for i in sin_pagar if i['atrasado']]
+def _mis_cuotas_detalle(usuario, hoy):
+    """Cada deuda activa con su avance, para la tarjeta 'Debo en total'.
 
-    # ---------- Deuda: el total, no solo la cuota del mes ----------
-    #
-    # El dashboard mostraba cuánto se paga ESTE mes y nada más. Faltaba la
-    # pregunta que la gente hace primero: "¿cuánto debo en total?". Sin eso,
-    # una cuota de $30.000 se ve igual de liviana el primer mes que el
-    # último, y no hay forma de ver si vas avanzando.
+    Antes vivía dentro de dashboard() bajo el comentario original: el
+    dashboard mostraba cuánto se paga ESTE mes y nada más, y faltaba la
+    pregunta que la gente hace primero, cuánto debo en total.
+    """
     mis_cuotas = []
-    for d in Deuda.objects.filter(usuario=request.user).prefetch_related('pagos'):
+    for d in Deuda.objects.filter(usuario=usuario).prefetch_related('pagos'):
         if d.esta_saldada:
             continue
         atrasadas = len(d.periodos_atrasados)
@@ -678,23 +682,37 @@ def dashboard(request):
         })
     # Lo atrasado primero; después lo que más falta por pagar.
     mis_cuotas.sort(key=lambda x: (-x['atrasadas'], -x['restante']))
-
     deuda_pagada_total = sum(c['pagado'] for c in mis_cuotas)
     deuda_bruta_total = sum(c['monto_total'] for c in mis_cuotas)
+    return mis_cuotas, deuda_pagada_total, deuda_bruta_total
 
-    ultimas = Transaccion.objects.filter(usuario=request.user).order_by('-fecha', '-id')[:10]
-    deuda_total = sum(float(d.monto_restante) for d in todas_las_deudas if not d.esta_saldada)
-    metas = MetaAhorro.objects.filter(usuario=request.user)
-    es_nuevo = (r['ingresos'] == 0 and r['gastos'] == 0 and not todas_las_deudas.exists())
 
-    # ---------- Insights ----------
+def _proyecciones_deuda_activas(todas_las_deudas):
+    """Cuándo termina de pagarse cada deuda activa, la más próxima primero."""
+    proyecciones = []
+    for d in todas_las_deudas:
+        if d.esta_saldada:
+            continue
+        fin = d.fecha_fin_estimada
+        proyecciones.append({
+            'acreedor': d.acreedor,
+            'fecha_fin': fin,
+            'cuotas_restantes': d.cuotas_restantes,
+            'monto_cuota': float(d.monto_cuota),
+            'mes_fin': f'{NOMBRES_MESES[fin.month - 1]} {fin.year}',
+        })
+    proyecciones.sort(key=lambda x: x['fecha_fin'])
+    return proyecciones
+
+
+def _insights_dashboard(resumen, datos_gastos, pendientes, proyecciones_deuda, presupuesto):
+    """Las frases del bloque de avisos: presupuesto, variación mensual,
+    cuotas urgentes y la proyección de la deuda más próxima a terminar."""
     insights = []
-
-    presupuesto = Presupuesto.objects.filter(usuario=request.user).first()
     presupuesto_pct = None
     if presupuesto and presupuesto.limite_mensual > 0:
         limite = float(presupuesto.limite_mensual)
-        presupuesto_pct = round((r['gastos'] / limite) * 100)
+        presupuesto_pct = round((resumen['gastos'] / limite) * 100)
         if presupuesto_pct >= 100:
             insights.append({
                 'tipo': 'peligro', 'icono': 'fa-exclamation-triangle',
@@ -729,19 +747,6 @@ def dashboard(request):
                 'texto': f'La cuota de {d.acreedor} vence en {dias} día{"s" if dias != 1 else ""}.',
             })
 
-    proyecciones_deuda = []
-    for d in todas_las_deudas:
-        if d.esta_saldada:
-            continue
-        fin = d.fecha_fin_estimada
-        proyecciones_deuda.append({
-            'acreedor': d.acreedor,
-            'fecha_fin': fin,
-            'cuotas_restantes': d.cuotas_restantes,
-            'monto_cuota': float(d.monto_cuota),
-            'mes_fin': f'{NOMBRES_MESES[fin.month - 1]} {fin.year}',
-        })
-    proyecciones_deuda.sort(key=lambda x: x['fecha_fin'])
     if proyecciones_deuda:
         prox = proyecciones_deuda[0]
         insights.append({
@@ -749,6 +754,54 @@ def dashboard(request):
             'texto': f'A este ritmo, terminas de pagar {prox["acreedor"]} en {prox["mes_fin"]}.',
         })
 
+    return insights, presupuesto_pct
+
+
+@login_required(login_url='/login/')
+def dashboard(request):
+    generar_cobros_suscripciones(request.user)
+    hoy = date.today()
+
+    try:
+        year = int(request.GET.get('year', hoy.year))
+        month = int(request.GET.get('month', hoy.month))
+        date(year, month, 1)
+    except ValueError:
+        year, month = hoy.year, hoy.month
+
+    prev_month, prev_year = (12, year - 1) if month == 1 else (month - 1, year)
+    next_month, next_year = (1, year + 1) if month == 12 else (month + 1, year)
+
+    r = resumen_mes(request.user, year, month)
+    nombre_mes = nombre_mes_es(year, month)
+    todas_las_deudas = Deuda.objects.filter(usuario=request.user)
+
+    calendario_datos, dias_con_pago = _calendario_del_mes(year, month, hoy, r['eventos'])
+    meses_labels, datos_ingresos, datos_gastos, datos_cuotas = _serie_seis_meses(
+        request.user, hoy, year, month, r)
+    categorias = _desglose_categorias(request.user, r)
+
+    # ---------- Próximo pago ----------
+    pendientes = [d for d in todas_las_deudas
+                  if not d.esta_saldada and d.dias_para_vencer is not None]
+    pendientes.sort(key=lambda d: d.dias_para_vencer)
+    proximo_pago = pendientes[0] if pendientes else None
+
+    pagos_mes = pendientes_del_mes(request.user, year, month)
+    sin_pagar = [i for i in pagos_mes if not i['pagado']]
+    atrasados = [i for i in sin_pagar if i['atrasado']]
+
+    mis_cuotas, deuda_pagada_total, deuda_bruta_total = _mis_cuotas_detalle(request.user, hoy)
+
+    ultimas = Transaccion.objects.filter(usuario=request.user).order_by('-fecha', '-id')[:10]
+    deuda_total = sum(float(d.monto_restante) for d in todas_las_deudas if not d.esta_saldada)
+    metas = MetaAhorro.objects.filter(usuario=request.user)
+    es_nuevo = (r['ingresos'] == 0 and r['gastos'] == 0 and not todas_las_deudas.exists())
+
+    presupuesto = Presupuesto.objects.filter(usuario=request.user).first()
+    proyecciones_deuda = _proyecciones_deuda_activas(todas_las_deudas)
+    insights, presupuesto_pct = _insights_dashboard(
+        r, datos_gastos, pendientes, proyecciones_deuda, presupuesto)
     # Lo que se libera cuando termine la deuda más próxima
     se_libera = proyecciones_deuda[0] if proyecciones_deuda else None
 
@@ -844,10 +897,10 @@ def dashboard(request):
         'cat_data_json': [c['total'] for c in categorias],
         'cat_colores_json': [c['color'] for c in categorias],
     }
-    # La tarjeta "Te deben" del carrusel: antes este total solo existía en la
-    # pantalla de préstamos, así que en el dashboard salía vacío.
-    personas = Persona.objects.filter(usuario=request.user).prefetch_related('prestamos__abonos')
-    context['total_por_cobrar'] = round(sum(p.total_pendiente for p in personas))
+    # La tarjeta "Te deben" del carrusel: total_por_cobrar lo entrega
+    # contadores() más abajo (context.update), que ya consulta Persona con
+    # sus préstamos para el badge del menú. Antes esta vista repetía esa
+    # misma consulta aparte, solo para sacar la suma.
 
     # La fecha larga bajo "Puedes gastar", como en la plantilla.
     dias_semana = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo']
@@ -871,7 +924,13 @@ def dashboard(request):
     context['mes_anterior_nombre'] = MESES_LARGOS[f_ant.month - 1]
 
     context['mapa_categorias'] = Categoria.mapa(request.user)
-    context.update(contadores(request.user))
+    # Si se está viendo el mes en curso, 'r' YA es el resumen que
+    # salud_financiera() necesita: contadores() lo reusa en vez de volver a
+    # consultar Transaccion/Deuda/Suscripcion para el mismo mes.
+    context.update(contadores(
+        request.user,
+        resumen_actual=r if (year, month) == (hoy.year, hoy.month) else None,
+    ))
     return render(request, 'finanzas/dashboard.html', context)
 
 
@@ -1238,17 +1297,27 @@ def registrar_ingreso(request):
 @login_required(login_url='/login/')
 def estadisticas(request):
     hoy = date.today()
-    activas = [d for d in Deuda.objects.filter(usuario=request.user) if not d.esta_saldada]
+    # prefetch_related('pagos'): sin esto, monto_restante y monto_cuota más
+    # abajo abren una consulta de pagos POR CADA deuda activa (N+1) — con
+    # 5 deudas son 5 consultas extra en cada carga de Estadísticas.
+    activas = [d for d in Deuda.objects.filter(usuario=request.user)
+                                        .prefetch_related('pagos') if not d.esta_saldada]
 
     labels = [d.acreedor for d in activas]
     data_cuota = [float(d.monto_cuota) for d in activas]
     data_restante = [float(d.monto_restante) for d in activas]
 
     # Serie de 12 meses para el gráfico de rango, y el ranking de categorías.
+    # El mes en curso (i=0, el último de la vuelta) se guarda: es el mismo
+    # que contadores() necesita para salud_financiera(), y sin esto se
+    # volvía a calcular una 13ª vez al final de la vista.
     meses, ingresos, gastos = [], [], []
+    resumen_actual = None
     for i in range(11, -1, -1):
         f = date(hoy.year, hoy.month, 1) - relativedelta(months=i)
         r = resumen_mes(request.user, f.year, f.month)
+        if i == 0:
+            resumen_actual = r
         meses.append(f'{NOMBRES_MESES[f.month - 1]} {f.year}')
         ingresos.append(r['ingresos'])
         gastos.append(r['gastos'] + r['total_cuotas_mes'])
@@ -1305,7 +1374,7 @@ def estadisticas(request):
         'tasa_ahorro': tasa_ahorro,
         'ranking': ranking,
     }
-    context.update(contadores(request.user))
+    context.update(contadores(request.user, resumen_actual=resumen_actual))
     return render(request, 'finanzas/estadisticas.html', context)
 
 
@@ -2107,15 +2176,25 @@ def metas(request):
 
     datos = []
     for meta in lista:
+        # 'aportes' ya viene prefetcheado (una sola consulta para TODAS las
+        # metas, arriba en el queryset de 'lista') y ordenado por -fecha,
+        # -id, que es el ordering por defecto de AporteMeta. Antes se leía
+        # con meta.aportes.all() para la serie Y con meta.aportes.first()
+        # para el último aporte: ese .first() abre un queryset nuevo con
+        # LIMIT 1 que ignora el cache del prefetch, así que cada meta hacía
+        # una consulta extra a la base — cinco metas, cinco consultas de
+        # más solo para saber la fecha del último aporte.
+        aportes = list(meta.aportes.all())
         por_mes = {}
-        for ap in meta.aportes.all():
+        for ap in aportes:
             k = ap.fecha.year * 100 + ap.fecha.month
             por_mes[k] = por_mes.get(k, 0) + float(ap.monto)
 
         serie = [por_mes.get(m['clave'], 0) for m in meses]
         techo = max(serie) or 1
-        # El último aporte dice si la meta sigue viva.
-        ultimo = meta.aportes.first()
+        # El último aporte dice si la meta sigue viva. Ya está ordenado
+        # primero-el-más-reciente, así que es el primer elemento de la lista.
+        ultimo = aportes[0] if aportes else None
         datos.append({
             'meta': meta,
             'serie': [{'label': meses[i]['label'],

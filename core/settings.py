@@ -94,6 +94,26 @@ else:
         }
     }
 
+# Modo WAL para SQLite: sin esto, cada escritura bloquea toda la base — un
+# solo usuario guardando un gasto deja a todos los demás esperando. WAL
+# permite lecturas concurrentes mientras alguien escribe, que es el caso
+# real de la app (mucha gente mirando su dashboard, pocos escribiendo a la
+# vez). No aplica si ya se usa Postgres (database_url), que maneja esto
+# nativamente.
+if not database_url:
+    from django.db.backends.signals import connection_created
+
+    def _activar_wal(sender, connection, **kwargs):
+        if connection.vendor == 'sqlite':
+            cursor = connection.cursor()
+            cursor.execute('PRAGMA journal_mode=WAL;')
+            cursor.execute('PRAGMA synchronous=NORMAL;')
+            # Si dos escrituras chocan, reintenta hasta 5s en vez de fallar
+            # de inmediato con "database is locked".
+            cursor.execute('PRAGMA busy_timeout=5000;')
+
+    connection_created.connect(_activar_wal)
+
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
     {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
