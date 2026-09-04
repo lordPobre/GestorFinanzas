@@ -14,10 +14,12 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.contrib.auth.forms import PasswordChangeForm, UserCreationForm
 from django.db.models import Count, F, Sum
-from django.http import HttpResponse, JsonResponse
+from django.contrib.staticfiles import finders
+from django.http import Http404, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import NoReverseMatch, reverse
 from django.utils import timezone
+from django.views.decorators.cache import cache_control
 
 from .forms import DeudaForm, MetaAhorroForm, TransaccionForm
 from .seguridad import (MAX_INTENTOS as MAX_INTENTOS_LOGIN, _ip, esta_bloqueado,
@@ -2854,3 +2856,31 @@ def exportar_excel(request):
         writer.writerow([t.fecha.strftime('%d/%m/%Y'), t.get_tipo_display(),
                          t.categoria, t.descripcion, int(t.monto)])
     return response
+
+
+# ============================================================
+#  SERVICE WORKER
+# ============================================================
+
+@cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
+def service_worker(request):
+    """Sirve static/js/sw.js desde la raiz del sitio.
+
+    El alcance de un service worker no puede subir de la carpeta donde vive el
+    archivo. En /static/js/sw.js solo controlaria /static/js/, que no es
+    ninguna pantalla de la app: Chrome registraria el worker y aun asi no
+    ofreceria instalar. Servido desde /sw.js el alcance es todo el sitio.
+
+    La alternativa era mandar el encabezado Service-Worker-Allowed desde el
+    servidor de estaticos, pero eso depende de la configuracion del hosting y
+    esto no.
+
+    Sin cache (no_store): si el navegador guardara este archivo, una version
+    con un error quedaria fija y no habria manera de reemplazarla.
+    """
+    ruta = finders.find('js/sw.js')
+    if not ruta:
+        raise Http404('sw.js no encontrado')
+    with open(ruta, 'rb') as f:
+        contenido = f.read()
+    return HttpResponse(contenido, content_type='application/javascript')

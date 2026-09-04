@@ -2197,8 +2197,13 @@ select:focus-visible, textarea:focus-visible, [tabindex]:focus-visible {
 
 @media (max-width: 720px) {
   .sidebar { display: none; }
-  /* Sin topbar en móvil, el padding superior vuelve a .main. */
-  .main, .topbar + .main { padding: 18px 16px calc(var(--bottombar-h) + 26px); }
+  /* Sin topbar en móvil, el padding superior vuelve a .main.
+     Guardada en la pantalla de inicio, la app corre bajo la barra de
+     estado (status-bar-style black-translucent), así que el aire de
+     arriba tiene que contar el notch además de los 18px de diseño. */
+  .main, .topbar + .main {
+    padding: calc(18px + env(safe-area-inset-top)) 16px calc(var(--bottombar-h) + 26px);
+  }
   .sub-row { padding-left: 16px; padding-right: 16px; }
 
   /* ===== Formularios en móvil =====

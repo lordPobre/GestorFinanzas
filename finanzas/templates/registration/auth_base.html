@@ -5,12 +5,26 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#191919">
   <title>{% block title %}Entrar · FinApp{% endblock %}</title>
+
+  {# Mismos meta de app instalable que base.html: si el usuario abre la app
+     ya guardada y la sesión caducó, el login también debe verse sin barra. #}
+  <link rel="manifest" href="{% static 'site.webmanifest' %}">
+  <meta name="application-name" content="FinApp">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="FinApp">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="format-detection" content="telephone=no">
+
+  {# Favicon: SVG con respaldo PNG, igual que en base.html. #}
   <link rel="icon" type="image/svg+xml" href="{% static 'img/favicon.svg' %}">
   <link rel="alternate icon" href="{% static 'img/favicon.png' %}">
   <link rel="apple-touch-icon" href="{% static 'img/favicon-180.png' %}">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  {# Solo las dos familias que la app usa de verdad. Antes se cargaban
+     Sora, DM Sans y DM Mono, que no aparecen en ninguna regla del CSS. #}
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
   <link rel="stylesheet" href="{% static 'css/finapp.css' %}">
@@ -20,7 +34,7 @@
        reglas viven acá y no en finapp.css. Son las que NO se pueden poner
        en un atributo style: las consultas de medios. */
     .auth {
-      display: flex; min-height: 100vh;
+      display: flex; min-height: 100vh; min-height: 100dvh;
       font-family: 'Manrope', system-ui, sans-serif;
       background: var(--bg); color: var(--text-primary);
     }
@@ -108,13 +122,15 @@
       .auth { flex-direction: column; }
       .auth-marca {
         flex: 0 0 auto; min-width: 0;
-        padding: 26px 22px; gap: 18px;
+        /* Guardada en la pantalla de inicio la banda ámbar arranca bajo la
+           barra de estado, así que suma el notch a su aire de arriba. */
+        padding: calc(26px + env(safe-area-inset-top)) 22px 26px; gap: 18px;
       }
       .auth-marca .auth-pie,
       .auth-marca .auth-ventajas { display: none; }
       .auth-titular { font-size: 24px; }
       .auth-marca p { font-size: 13px; margin-top: 10px; }
-      .auth-panel { padding: 32px 22px 44px; }
+      .auth-panel { padding: 32px 22px calc(44px + env(safe-area-inset-bottom)); }
     }
     @media (max-width: 420px) {
       .auth-digitos { gap: 7px; }
@@ -148,6 +164,18 @@
     });
     window.finappOpen = open;
     window.finappClose = closeAll;
+  })();
+  </script>
+
+  <script nonce="{{ csp_nonce }}">
+  /* Mismo registro que en base.html. Va aca tambien porque la primera visita
+     de cualquier usuario es el login: si el worker solo se registrara adentro
+     de la app, Chrome no ofreceria instalar hasta despues de iniciar sesion. */
+  (function () {
+    if (!('serviceWorker' in navigator)) return;
+    window.addEventListener('load', function () {
+      navigator.serviceWorker.register('/sw.js').catch(function () {});
+    });
   })();
   </script>
 </head>

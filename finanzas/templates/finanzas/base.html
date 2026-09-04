@@ -8,6 +8,21 @@
   <title>{% block title %}FinApp{% endblock %}</title>
 
   {% comment %}
+    Instalable en la pantalla de inicio. El manifest cubre Android/Chrome;
+    los meta apple-* son los que iOS todavía necesita aparte para abrir
+    en pantalla completa, sin barra de Safari.
+  {% endcomment %}
+  <link rel="manifest" href="{% static 'site.webmanifest' %}">
+  <meta name="application-name" content="FinApp">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="FinApp">
+  {# black-translucent deja que el fondo suba bajo la isla dinámica;
+     el padding lo resuelve viewport-fit=cover + safe-area en el CSS. #}
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="format-detection" content="telephone=no">
+
+  {% comment %}
     Favicon en SVG: nítido en cualquier tamaño y más liviano que un PNG.
     El ICO queda como respaldo para navegadores que no aceptan SVG, y el
     apple-touch-icon para cuando se guarda en la pantalla de inicio.
@@ -46,6 +61,45 @@
     });
     window.finappOpen = open;
     window.finappClose = closeAll;
+  })();
+  </script>
+
+  <script nonce="{{ csp_nonce }}">
+  /* Registro del service worker. Es lo que hace que Chrome en Android ofrezca
+     "Instalar app": el manifest solo no alcanza, tiene que haber un worker
+     activo que responda al evento fetch.
+
+     Va despues de 'load' para no competir por ancho de banda con el CSS y las
+     tipografias en la primera carga, que es la que se siente lenta. */
+  (function () {
+    if (!('serviceWorker' in navigator)) return;
+    window.addEventListener('load', function () {
+      navigator.serviceWorker.register('/sw.js').then(function (reg) {
+        /* Cuando sale una version nueva, el worker viejo sigue mandando hasta
+           que se cierran todas las pestanas. Esto lo reemplaza en el momento y
+           recarga una sola vez: la bandera evita el bucle de recargas, que es
+           el error clasico de este patron. */
+        reg.addEventListener('updatefound', function () {
+          var nuevo = reg.installing;
+          if (!nuevo) return;
+          nuevo.addEventListener('statechange', function () {
+            if (nuevo.state === 'installed' && navigator.serviceWorker.controller) {
+              nuevo.postMessage('saltar-espera');
+            }
+          });
+        });
+      }).catch(function () {
+        /* Sin service worker la app funciona igual; solo se pierde la pantalla
+           de sin conexion y el boton de instalar. No molestamos al usuario. */
+      });
+
+      var recargado = false;
+      navigator.serviceWorker.addEventListener('controllerchange', function () {
+        if (recargado) return;
+        recargado = true;
+        window.location.reload();
+      });
+    });
   })();
   </script>
 </head>

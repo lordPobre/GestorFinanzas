@@ -64,7 +64,7 @@
       <div style="position:relative;display:flex;align-items:center">
         <i class="fas fa-user auth-icono"></i>
         <input type="text" name="username" id="{{ form.username.id_for_label }}"
-               class="auth-campo" placeholder="con el que entras"
+               class="auth-campo" placeholder="Nickname con el que entras"
                autocomplete="username" required autofocus>
       </div>
       <div style="font-size:11px;color:var(--text-muted);margin-top:7px">Letras, números y @ . + - _</div>
@@ -86,7 +86,7 @@
       <div style="position:relative;display:flex;align-items:center">
         <i class="fas fa-lock auth-icono"></i>
         <input type="password" name="password1" id="{{ form.password1.id_for_label }}"
-               class="auth-campo" style="padding-right:52px" placeholder="al menos 8 caracteres"
+               class="auth-campo" style="padding-right:52px" placeholder="Al menos 8 caracteres"
                autocomplete="new-password" required>
         <button type="button" id="btnVerPass" data-ver-pass="{{ form.password1.id_for_label }}"
                 style="position:absolute;right:9px;display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border:none;border-radius:50%;background:var(--surface-2);color:var(--text-secondary);cursor:pointer;font-size:12px"

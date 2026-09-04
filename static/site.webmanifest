@@ -1,0 +1,28 @@
+{
+  "name": "FinApp · Finanzas personales",
+  "short_name": "FinApp",
+  "description": "Control de gastos, ingresos, suscripciones y préstamos.",
+  "lang": "es",
+  "dir": "ltr",
+  "start_url": "/?fuente=pwa",
+  "scope": "/",
+  "id": "/",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "orientation": "portrait",
+  "background_color": "#191919",
+  "theme_color": "#191919",
+  "categories": ["finance", "productivity"],
+  "icons": [
+    { "src": "/static/img/favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "/static/img/favicon-180.png", "sizes": "180x180", "type": "image/png", "purpose": "any" },
+    { "src": "/static/img/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/static/img/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/static/img/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Nuevo movimiento", "short_name": "Movimiento", "url": "/?accion=nuevo-movimiento" },
+    { "name": "Suscripciones", "short_name": "Subs", "url": "/suscripciones/" },
+    { "name": "Préstamos", "short_name": "Préstamos", "url": "/prestamos/" }
+  ]
+}

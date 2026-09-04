@@ -80,4 +80,9 @@ urlpatterns = [
 
     path('bienvenido/', views.onboarding, name='onboarding'),
     path('bienvenido/completar/', views.completar_onboarding, name='completar_onboarding'),
+
+    # El service worker se sirve desde la raiz y no desde /static/ porque su
+    # alcance no puede subir de la carpeta donde vive el archivo. Ver el
+    # comentario largo en views.service_worker.
+    path('sw.js', views.service_worker, name='service_worker'),
 ]
