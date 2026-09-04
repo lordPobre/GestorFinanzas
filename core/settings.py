@@ -131,6 +131,15 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATIC_URL = 'static/'
 STATICFILES_DIRS = [ BASE_DIR / 'static' ]
 
+# Archivos que sube el usuario (hoy solo la foto de perfil).
+#
+# Faltaban por completo. Sin MEDIA_URL, FileSystemStorage.url() devuelve la
+# ruta suelta ("avatares/3/ab12cd34.jpg"), que el navegador resuelve contra
+# la página actual — /perfil/avatares/3/... — y da 404: la foto se subía
+# bien pero no había forma de mostrarla cuando R2 no está configurado.
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+
 if not DEBUG:
     STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
@@ -178,7 +187,7 @@ DATA_UPLOAD_MAX_NUMBER_FIELDS = 500
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
     {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-     'OPTIONS': {'min_length': 12}},
+     'OPTIONS': {'min_length': 8}},
     {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
     {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
@@ -189,6 +198,22 @@ PASSWORD_HASHERS = [
     'django.contrib.auth.hashers.PBKDF2SHA1PasswordHasher',
     'django.contrib.auth.hashers.BCryptSHA256PasswordHasher',
 ]
+
+# Cuánto vale un enlace de recuperación de contraseña. Django trae tres
+# días por defecto, que para una app con datos financieros es demasiado:
+# un correo olvidado abierto en un equipo ajeno sigue siendo una llave
+# válida durante todo ese tiempo.
+PASSWORD_RESET_TIMEOUT = 60 * 60   # 1 hora
+
+# El correo sale por una API HTTP (ver finanzas/correo.py), no por SMTP:
+# PythonAnywhere en cuenta gratuita bloquea los puertos de correo.
+# Las credenciales viven en el entorno. Con Resend:
+#   PROVEEDOR_CORREO=resend, RESEND_API_KEY, CORREO_FROM
+# Con Mailgun:
+#   PROVEEDOR_CORREO=mailgun, MAILGUN_API_KEY, MAILGUN_DOMAIN, CORREO_FROM
+# En ambos casos SITE_URL para que los enlaces salgan absolutos y con https.
+DEFAULT_FROM_EMAIL = os.environ.get(
+    'CORREO_FROM', os.environ.get('MAILGUN_FROM', 'FinApp <no-responder@localhost>'))
 
 CACHES = {
     'default': {

@@ -70,6 +70,12 @@ urlpatterns = [
     path('perfil/dos-pasos/', views.configurar_2fa, name='configurar_2fa'),
     path('registro/', views.registro, name='registro'),
 
+    # Recuperar contraseña. Vistas propias y no las de Django porque el
+    # enlace también tiene que pedir el código de dos pasos cuando está
+    # activo, y PasswordResetConfirmView no sabe de eso.
+    path('recuperar/', views.recuperar, name='recuperar'),
+    path('recuperar/<uidb64>/<token>/', views.restablecer, name='restablecer'),
+
     path('perfil/', views.perfil, name='perfil'),
 
     path('bienvenido/', views.onboarding, name='onboarding'),

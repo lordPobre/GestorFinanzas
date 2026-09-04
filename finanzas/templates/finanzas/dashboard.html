@@ -343,13 +343,24 @@
 <div class="section-head">
   <h2 class="section-title">Atención a esto</h2>
 </div>
-<div style="display:flex;flex-direction:column;gap:8px;margin-bottom:18px">
+{% comment %}
+  Tarjetas en cuadrícula, no filas a lo ancho: un aviso es una frase corta,
+  y estirada sobre 1400px queda un renglón perdido con mucho vacío al lado.
+  En cuadrícula caben dos o tres por fila y cada uno se lee como una pieza.
+
+  El color, el borde y la etiqueta vienen del contexto (TONOS_INSIGHT en
+  views.py) para no repetir el bloque una vez por tipo.
+{% endcomment %}
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:10px;margin-bottom:18px">
   {% for i in insights %}
-  <div class="row" style="border-color:{% if i.tipo == 'peligro' %}rgba(248,113,113,.26){% elif i.tipo == 'alerta' %}rgba(251,146,60,.24){% elif i.tipo == 'exito' %}rgba(83,210,88,.24){% else %}var(--glass-border){% endif %}">
-    <span class="icon-tile {% if i.tipo == 'peligro' %}coral{% elif i.tipo == 'alerta' %}orange{% elif i.tipo == 'exito' %}green{% endif %}">
+  <div style="display:flex;gap:12px;padding:15px 16px;border-radius:var(--r-md);background:var(--surface-2);border:1px solid {{ i.borde }}">
+    <span style="display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;flex-shrink:0;border-radius:11px;font-size:12px;background:{{ i.tenue }};color:{{ i.color }}">
       <i class="fas {{ i.icono }}"></i>
     </span>
-    <div class="row-main"><div style="font-size:12.5px;line-height:1.5">{{ i.texto }}</div></div>
+    <div style="flex:1;min-width:0">
+      <div style="font-size:10.5px;font-weight:700;letter-spacing:.03em;color:{{ i.color }};margin-bottom:4px">{{ i.etiqueta }}</div>
+      <div style="font-size:12.5px;line-height:1.5;text-wrap:pretty">{{ i.texto }}</div>
+    </div>
   </div>
   {% endfor %}
 </div>

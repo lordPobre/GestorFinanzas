@@ -80,3 +80,20 @@ class AlmacenMedia(LazyObject):
 
 
 almacen_media = AlmacenMedia()
+
+
+def obtener_almacen():
+    """El almacén, entregado como CALLABLE.
+
+    Esto importa: cuando un ImageField recibe storage=<instancia>, Django
+    serializa esa instancia dentro de la migración — con sus credenciales.
+    En este proyecto eso ya pasó: la migración 0107 tiene la access_key y la
+    secret_key de R2 escritas en texto plano dentro del repositorio.
+
+    Con un callable, la migración guarda solo la referencia a esta función
+    ('finanzas.almacenamiento.obtener_almacen') y nunca sus valores. Además
+    deja de detectar cambios en el modelo cada vez que varía una variable de
+    entorno, que es lo que hacía que makemigrations pidiera una migración
+    nueva sin haber tocado nada.
+    """
+    return almacen_media

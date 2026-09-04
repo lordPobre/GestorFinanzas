@@ -149,15 +149,20 @@
 
     <header class="topbar">
       {% block topbar_left %}
-      <div style="display:flex;align-items:center;gap:11px">
-        <a href="{% url 'perfil' %}" class="avatar" title="Mi perfil">{% if profile.foto_url %}<img src="{{ profile.foto_url }}" alt="" data-quitar-si-falla>{% endif %}<span class="avatar-letra">{{ profile.inicial|default:"?" }}</span></a>
-        <div>
-          <div style="font-size:15px;font-weight:700;letter-spacing:-.02em">
-            Hola, {{ profile.nombre_display|default:user.username }}
-          </div>
-          <div class="saludo-sub" style="font-size:11px;color:var(--text-muted)">{% block topbar_sub %}Tus finanzas al día{% endblock %}</div>
-        </div>
-      </div>
+      {% comment %}
+        El saludo era el único elemento del topbar sin superficie: al lado
+        de la barra de búsqueda, el selector de mes y los dos botones —
+        todos píldoras — quedaba como texto suelto flotando. Ahora es una
+        píldora del mismo material, y toda ella lleva al perfil en vez de
+        solo el avatar de 38px.
+      {% endcomment %}
+      <a href="{% url 'perfil' %}" class="saludo-pill" title="Mi perfil">
+        <span class="avatar">{% if profile.foto_url %}<img src="{{ profile.foto_url }}" alt="" data-quitar-si-falla>{% endif %}<span class="avatar-letra">{{ profile.inicial|default:"?" }}</span></span>
+        <span style="min-width:0">
+          <span class="saludo-nombre">Hola, {{ profile.nombre_display|default:user.username }}</span>
+          <span class="saludo-sub" style="display:block;font-size:11px;color:var(--text-muted)">{% block topbar_sub %}Tus finanzas al día{% endblock %}</span>
+        </span>
+      </a>
 
       {% comment %}
         El selector de mes vivía acá, y el topbar entero se oculta bajo

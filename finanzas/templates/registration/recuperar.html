@@ -1,0 +1,103 @@
+{% extends 'registration/auth_base.html' %}
+{% block title %}Recuperar contraseña · FinApp{% endblock %}
+
+{% block pitch %}
+<div style="max-width:440px">
+  <h1 class="auth-titular">Olvidar la contraseña no debería costarte la cuenta.</h1>
+  <p style="margin:18px 0 0;font-size:14.5px;font-weight:500;line-height:1.6;color:rgba(26,18,0,.72);max-width:390px">
+    Te mandamos un enlace al correo con el que te registraste. Vale una hora
+    y sirve una sola vez.
+  </p>
+
+  <div class="auth-ventajas" style="display:flex;flex-direction:column;gap:14px;margin-top:34px">
+    <div style="display:flex;align-items:center;gap:13px">
+      <span style="display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;flex-shrink:0;border-radius:12px;background:rgba(26,18,0,.14);font-size:12px"><i class="fas fa-envelope"></i></span>
+      <span style="font-size:13.5px;font-weight:600">El enlace llega solo a tu correo</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:13px">
+      <span style="display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;flex-shrink:0;border-radius:12px;background:rgba(26,18,0,.14);font-size:12px"><i class="fas fa-clock"></i></span>
+      <span style="font-size:13.5px;font-weight:600">Caduca en una hora</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:13px">
+      <span style="display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;flex-shrink:0;border-radius:12px;background:rgba(26,18,0,.14);font-size:12px"><i class="fas fa-fingerprint"></i></span>
+      <span style="font-size:13.5px;font-weight:600">Si tienes dos pasos, también se pide el código</span>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block card %}
+{% if enviado %}
+{% comment %}
+  El mismo mensaje exista o no la cuenta. Si dijéramos "ese correo no está
+  registrado", este formulario serviría para averiguar qué direcciones
+  tienen cuenta en la app.
+{% endcomment %}
+<span style="display:inline-flex;align-items:center;justify-content:center;width:56px;height:56px;border-radius:20px;background:var(--green-tenue);color:var(--green);font-size:22px;margin-bottom:22px">
+  <i class="fas fa-paper-plane"></i>
+</span>
+
+<h2 class="auth-h">Revisa tu correo</h2>
+<p style="margin:10px 0 0;font-size:13.5px;color:var(--text-secondary);line-height:1.6">
+  Si <strong style="color:var(--text-primary)">{{ email }}</strong> tiene una cuenta,
+  ya salió el enlace para elegir contraseña nueva. Vale una hora.
+</p>
+
+<div style="margin-top:24px;padding:15px 17px;border-radius:16px;background:var(--bg-elev)">
+  <div style="font-size:12px;font-weight:700;margin-bottom:8px">¿No llega?</div>
+  <ul style="margin:0;padding-left:18px;font-size:12px;color:var(--text-secondary);line-height:1.7">
+    <li>Mira en la carpeta de spam o de promociones.</li>
+    <li>Revisa que el correo esté bien escrito.</li>
+    <li>Los correos tardan un par de minutos como máximo.</li>
+  </ul>
+</div>
+
+<a href="{% url 'login' %}" class="btn btn-amber btn-block"
+   style="margin-top:24px;padding:16px;font-size:14.5px;font-weight:800;text-decoration:none">
+  Volver al acceso
+</a>
+
+<form method="post" style="margin-top:12px">
+  {% csrf_token %}
+  <input type="hidden" name="email" value="{{ email }}">
+  <button type="submit" class="auth-salida" style="justify-content:center;color:var(--text-muted)">
+    <i class="fas fa-rotate" style="font-size:11px"></i>Enviarlo otra vez
+  </button>
+</form>
+
+{% else %}
+
+<span style="display:inline-flex;align-items:center;justify-content:center;width:56px;height:56px;border-radius:20px;background:var(--amber-tenue);color:var(--amber);font-size:22px;margin-bottom:22px">
+  <i class="fas fa-key"></i>
+</span>
+
+<h2 class="auth-h">Recuperar contraseña</h2>
+<p style="margin:10px 0 28px;font-size:13.5px;color:var(--text-secondary);line-height:1.6">
+  Escribe el correo de tu cuenta y te mandamos un enlace para elegir una nueva.
+</p>
+
+<form method="post">
+  {% csrf_token %}
+  <div>
+    <label class="auth-label" for="id_email_reset">Tu email</label>
+    <div style="position:relative;display:flex;align-items:center">
+      <i class="fas fa-envelope auth-icono"></i>
+      <input type="email" name="email" id="id_email_reset" class="auth-campo"
+             placeholder="el correo de tu cuenta" value="{{ email }}"
+             autocomplete="email" required autofocus>
+    </div>
+  </div>
+
+  <button type="submit" class="btn btn-amber btn-block"
+          style="margin-top:24px;padding:16px;font-size:14.5px;font-weight:800">
+    Enviarme el enlace
+  </button>
+</form>
+
+<div style="display:flex;flex-direction:column;gap:2px;margin-top:22px;padding-top:22px;border-top:1px solid var(--line)">
+  <a href="{% url 'login' %}" class="auth-salida" style="color:var(--text-muted)">
+    <i class="fas fa-arrow-left" style="font-size:11px;width:14px"></i>Volver al acceso
+  </a>
+</div>
+{% endif %}
+{% endblock %}

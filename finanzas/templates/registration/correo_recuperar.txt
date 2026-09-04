@@ -1,0 +1,14 @@
+Hola {{ usuario.username }}:
+
+Pediste recuperar tu contraseña de FinApp. Abre este enlace para elegir una
+nueva:
+
+{{ enlace }}
+
+El enlace vale {{ horas }} hora y sirve una sola vez. Si no lo usas, tu
+contraseña actual sigue funcionando igual.
+
+Si no fuiste tú quien lo pidió, puedes ignorar este correo: nadie puede
+cambiar nada sin abrir el enlace.
+
+— FinApp

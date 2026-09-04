@@ -1,0 +1,120 @@
+{% comment %}
+  Correo de recuperación en HTML.
+
+  Reglas del medio, que no son las de la web: maquetación con <table> porque
+  Outlook no entiende flex ni grid; estilos EN LÍNEA porque Gmail borra las
+  hojas de estilo y los <style> del <head>; y tipografías del sistema,
+  porque una fuente de Google no carga en la mayoría de los clientes.
+
+  La versión de texto plano (correo_recuperar.txt) viaja en el mismo envío:
+  es lo que se ve en un cliente que bloquea HTML.
+{% endcomment %}<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Recupera tu contraseña de FinApp</title>
+</head>
+<body style="margin:0;padding:0;background-color:#141414;">
+
+{% comment %}
+  Preencabezado: el texto que Gmail muestra junto al asunto en la bandeja.
+  Sin él, ahí aparece el primer texto del cuerpo, que sería "FinApp".
+{% endcomment %}
+<div style="display:none;font-size:1px;color:#141414;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;">
+  Un enlace para elegir contraseña nueva. Vale una hora.
+</div>
+
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#141414;">
+<tr>
+<td align="center" style="padding:32px 16px;">
+
+  <table role="presentation" width="440" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:440px;">
+
+    <!-- Marca -->
+    <tr>
+      <td style="padding:0 4px 22px;">
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td width="38" style="vertical-align:middle;">
+            <div style="width:38px;height:38px;border-radius:12px;background-color:#ffaa2c;text-align:center;line-height:38px;font-size:19px;font-weight:700;color:#1a1200;font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">F</div>
+          </td>
+          <td style="padding-left:11px;vertical-align:middle;font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:18px;font-weight:700;color:#f5f5f5;letter-spacing:-.02em;">
+            FinApp
+          </td>
+        </tr>
+        </table>
+      </td>
+    </tr>
+
+    <!-- Tarjeta -->
+    <tr>
+      <td style="background-color:#212121;border-radius:22px;padding:40px 32px 38px;">
+
+        <p style="margin:0 0 8px;font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:12px;font-weight:700;letter-spacing:.04em;color:#ffaa2c;text-transform:uppercase;">
+          Recuperar contraseña
+        </p>
+
+        <h1 style="margin:0 0 16px;font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:24px;font-weight:700;line-height:1.25;letter-spacing:-.02em;color:#f5f5f5;">
+          Hola {{ usuario.username }}, elige una contraseña nueva
+        </h1>
+
+        <p style="margin:0 0 30px;font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:15px;line-height:1.65;color:rgba(245,245,245,.72);">
+          Pediste recuperar el acceso a tu cuenta. Pulsa el botón y podrás
+          elegir la contraseña con la que entrarás de ahora en adelante.
+        </p>
+
+        {% comment %}
+          El botón va como tabla con fondo propio: un <a> con padding se ve
+          bien en Gmail pero Outlook le quita el relleno y queda un enlace
+          suelto sin forma de botón.
+        {% endcomment %}
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
+        <tr>
+          <td align="center" style="background-color:#ffaa2c;border-radius:100px;">
+            <a href="{{ enlace }}" style="display:block;padding:16px 28px;font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:15px;font-weight:700;color:#1a1200;text-decoration:none;">
+              Elegir contraseña nueva
+            </a>
+          </td>
+        </tr>
+        </table>
+
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:28px;background-color:#2b2b2b;border-radius:14px;">
+        <tr>
+          <td style="padding:16px 18px;font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:13px;line-height:1.6;color:rgba(245,245,245,.72);">
+            El enlace vale <strong style="color:#f5f5f5;">{{ horas }} hora</strong> y sirve
+            una sola vez. Si no lo usas, tu contraseña actual sigue funcionando igual.
+          </td>
+        </tr>
+        </table>
+
+        <p style="margin:28px 0 8px;font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:12px;color:rgba(245,245,245,.42);">
+          Si el botón no funciona, copia esta dirección en tu navegador:
+        </p>
+        {# word-break: una URL con el token es más ancha que la tarjeta y sin esto la desborda #}
+        <p style="margin:0;font-family:Consolas,Menlo,monospace;font-size:11.5px;line-height:1.5;color:#ffaa2c;word-break:break-all;">
+          {{ enlace }}
+        </p>
+
+      </td>
+    </tr>
+
+    <!-- Pie -->
+    <tr>
+      <td style="padding:22px 8px 0;font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:12px;line-height:1.6;color:rgba(245,245,245,.42);">
+        <p style="margin:0 0 6px;">
+          Si no fuiste tú quien lo pidió, puedes ignorar este correo: nadie
+          puede cambiar nada sin abrir el enlace.
+        </p>
+        <p style="margin:0;">FinApp · Tus finanzas, claras</p>
+      </td>
+    </tr>
+
+  </table>
+
+</td>
+</tr>
+</table>
+
+</body>
+</html>

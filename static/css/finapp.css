@@ -974,6 +974,41 @@ h1, h2, h3, h4 { margin: 0; font-weight: 700; letter-spacing: -.015em; }
 }
 .split-bar > span { display: block; height: 100%; }
 
+/* ===== Cabecera de "Qué hay que pagar" =====
+   El marcado de dashboard.html ya usaba estas clases, pero nunca se
+   escribieron acá: sin ellas los cinco bloques (título, nota, badge, monto
+   y barra) caían apilados sin aire, el badge se iba a su propia línea en
+   vez de quedar a la derecha del título, y el monto — el número que se
+   viene a leer — salía del tamaño del texto corrido. */
+.pagos-cabecera {
+  display: flex; flex-direction: column; gap: 18px;
+  padding-bottom: 20px; margin-bottom: 18px;
+  border-bottom: 1px solid var(--line);
+}
+.pagos-titulo {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  gap: 12px;
+}
+.pagos-cifra {
+  display: flex; align-items: flex-end; justify-content: space-between;
+  gap: 16px;
+}
+.pagos-monto {
+  font-size: 30px; line-height: 1;
+  /* La cifra manda sobre el resto del bloque: es la respuesta a la
+     pregunta del título. */
+}
+.pagos-nota {
+  font-size: 11.5px; color: var(--text-muted); margin-top: 7px;
+  line-height: 1.4;
+}
+.pagos-hecho { flex-shrink: 0; text-align: right; }
+
+@media (max-width: 640px) {
+  .pagos-cabecera { gap: 15px; padding-bottom: 17px; margin-bottom: 16px; }
+  .pagos-monto { font-size: 25px; }
+}
+
 /* ===== Marcas de cuota ===== */
 .pips { display: flex; gap: 4px; flex-wrap: wrap; }
 .pip {
@@ -1305,6 +1340,25 @@ label { display: block; }
   font-family: 'Manrope', sans-serif; font-size: 15px; font-weight: 800;
 }
 .avatar-lg { width: 64px; height: 64px; font-size: 24px; border-radius: 22px; }
+
+/* El saludo del topbar: una píldora del mismo material que la búsqueda y
+   el selector de mes. Suelto, sin superficie, era el único elemento de la
+   barra que no se leía como un objeto. */
+.saludo-pill {
+  display: flex; align-items: center; gap: 10px; min-width: 0;
+  padding: 6px 14px 6px 6px; border-radius: 100px;
+  background: var(--surface); color: var(--text-primary); text-decoration: none;
+  transition: background .18s var(--ease-out);
+}
+.saludo-pill:hover { background: var(--surface-2); color: var(--text-primary); }
+.saludo-pill .avatar { box-shadow: 0 0 0 2px rgba(255, 170, 44, .38); }
+.saludo-nombre {
+  display: block; font-size: 13.5px; font-weight: 700; letter-spacing: -.02em;
+  /* 150px es el ancho que deja caber la barra de búsqueda, el selector de
+     mes y los dos botones en una sola fila. Con más, "Anotar gasto" se
+     iba a un segundo renglón. Un nombre largo se recorta con puntos. */
+  max-width: 150px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
 
 .search {
   display: flex; align-items: center; gap: 9px;

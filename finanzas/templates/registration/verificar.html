@@ -3,101 +3,172 @@
 
 {% block card %}
 {% comment %}
-  auth_base ya envuelve esto en la tarjeta, así que aquí va solo el
-  contenido. Los estilos van en los elementos: esta pantalla se ve cuando
-  alguien no puede entrar, y no puede depender de que el CSS esté al día.
+  El código va en seis casillas, no en un campo con letter-spacing: se ve
+  cuántos dígitos faltan, el cursor no se pierde y en el teléfono cada
+  casilla es un objetivo cómodo de tocar. El valor que se envía viaja en un
+  campo oculto ('codigo'), así la vista no cambia.
 {% endcomment %}
-  <div style="text-align:center;margin-bottom:24px">
-    <span style="display:inline-flex;align-items:center;justify-content:center;
-                 width:52px;height:52px;border-radius:18px;font-size:20px;margin-bottom:14px;
-                 background:rgba(255,170,44,.14);color:#ffaa2c">
-      <i class="fas fa-shield-halved"></i>
-    </span>
-    <h1 style="font-family:'Manrope',sans-serif;font-size:21px;font-weight:800;letter-spacing:-.025em;margin:0 0 6px">
-      Verificación en dos pasos
-    </h1>
-    <div style="font-size:12.5px;color:rgba(245,245,245,.72);line-height:1.55">
-      Abre tu app de autenticación y escribe el código de seis dígitos.
+<span style="position:relative;display:inline-flex;align-items:center;justify-content:center;width:56px;height:56px;border-radius:50%;border:1.5px solid rgba(255,170,44,.28);color:var(--amber);font-size:26px;margin-bottom:22px">
+  <span style="position:absolute;inset:-7px;border-radius:50%;border:1.5px solid rgba(255,170,44,.1)"></span>
+  <i class="fas fa-fingerprint"></i>
+</span>
+
+<h2 class="auth-h">Verificación en dos pasos</h2>
+<p style="margin:8px 0 0;font-size:13.5px;color:var(--text-secondary);line-height:1.6">
+  Abre tu app de autenticación y escribe el código de seis dígitos.
+</p>
+
+{% if bloqueado %}
+<div style="display:flex;gap:10px;align-items:flex-start;padding:13px 15px;margin-top:22px;border-radius:14px;background:var(--coral-tenue);border:1px solid rgba(226,92,92,.3)">
+  <i class="fas fa-clock" style="font-size:12px;color:var(--coral);margin-top:2px"></i>
+  <div style="font-size:12px;color:var(--text-secondary);line-height:1.5">
+    Demasiados intentos. Espera unos minutos antes de volver a probar.
+  </div>
+</div>
+{% endif %}
+
+<form method="post" id="formCodigo">
+  {% csrf_token %}
+  <input type="hidden" name="es_respaldo" id="esRespaldo" value="">
+  <input type="hidden" name="codigo" id="codigo">
+
+  <div id="campoNormal" style="margin:30px 0 8px">
+    <div class="auth-digitos" id="digitos">
+      <input class="auth-digito" data-i="0" inputmode="numeric" maxlength="1"
+             autocomplete="one-time-code" aria-label="Dígito 1"
+             autofocus {% if bloqueado %}disabled{% endif %}>
+      <input class="auth-digito" data-i="1" inputmode="numeric" maxlength="1"
+             autocomplete="off" aria-label="Dígito 2" {% if bloqueado %}disabled{% endif %}>
+      <input class="auth-digito" data-i="2" inputmode="numeric" maxlength="1"
+             autocomplete="off" aria-label="Dígito 3" {% if bloqueado %}disabled{% endif %}>
+      <input class="auth-digito" data-i="3" inputmode="numeric" maxlength="1"
+             autocomplete="off" aria-label="Dígito 4" {% if bloqueado %}disabled{% endif %}>
+      <input class="auth-digito" data-i="4" inputmode="numeric" maxlength="1"
+             autocomplete="off" aria-label="Dígito 5" {% if bloqueado %}disabled{% endif %}>
+      <input class="auth-digito" data-i="5" inputmode="numeric" maxlength="1"
+             autocomplete="off" aria-label="Dígito 6" {% if bloqueado %}disabled{% endif %}>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;font-size:11.5px;color:var(--text-muted);margin-top:14px">
+      <i class="fas fa-rotate" style="font-size:10px"></i>
+      <span>El código cambia cada 30 segundos.</span>
     </div>
   </div>
 
-  <form method="post" id="formCodigo">
-    {% csrf_token %}
-    <input type="hidden" name="es_respaldo" id="esRespaldo" value="">
-
-    <div class="field" id="campoNormal">
-      <label class="label" for="codigo" style="text-align:center;display:block">Código de tu app</label>
-      {% comment %}
-        inputmode numeric abre el teclado numérico en el teléfono, y
-        autocomplete one-time-code deja que iOS lo ofrezca desde el portapapeles.
-      {% endcomment %}
-      <input type="text" name="codigo" id="codigo" style="width:100%;box-sizing:border-box;padding:16px 12px 16px 26px;
-                    border-radius:16px;border:1px solid transparent;background:#454545;color:#f5f5f5;
-                    font-family:'JetBrains Mono',monospace;font-size:26px;font-weight:600;
-                    letter-spacing:.34em;text-align:center"
-             inputmode="numeric" autocomplete="one-time-code"
-             maxlength="6" pattern="[0-9]{6}" placeholder="000000"
-             required autofocus {% if bloqueado %}disabled{% endif %}>
+  <div id="campoRespaldo" style="margin:30px 0 8px" hidden>
+    <label class="auth-label" for="codigoRespaldo">Código de respaldo</label>
+    <input type="text" id="codigoRespaldo" class="auth-campo"
+           style="padding-left:16px;font-family:'JetBrains Mono',monospace;font-size:19px;letter-spacing:.08em;text-align:center"
+           maxlength="9" placeholder="ABCD-2345" autocomplete="off">
+    <div style="font-size:11.5px;color:var(--text-muted);margin-top:12px">
+      Uno de los ocho códigos que guardaste al activar la verificación. Cada uno sirve una sola vez.
     </div>
+  </div>
 
-    <div class="field" id="campoRespaldo" hidden>
-      <label class="label" for="codigoRespaldo" style="text-align:center;display:block">Código de respaldo</label>
-      <input type="text" id="codigoRespaldo" style="width:100%;box-sizing:border-box;padding:16px 12px 16px 26px;
-                    border-radius:16px;border:1px solid transparent;background:#454545;color:#f5f5f5;
-                    font-family:'JetBrains Mono',monospace;font-size:26px;font-weight:600;
-                    letter-spacing:.34em;text-align:center" style="font-size:18px;letter-spacing:.08em"
-             maxlength="9" placeholder="ABCD-2345" autocomplete="off">
-    </div>
+  <button type="submit" class="btn btn-amber btn-block"
+          style="margin-top:22px;padding:16px;font-size:14.5px;font-weight:800"
+          {% if bloqueado %}disabled{% endif %}>
+    Entrar
+  </button>
+</form>
 
-    <button type="submit" class="btn btn-purple btn-block" {% if bloqueado %}disabled{% endif %}>
-      Entrar
-    </button>
-  </form>
-
+<div style="display:flex;flex-direction:column;gap:2px;margin-top:22px;padding-top:22px;border-top:1px solid var(--line)">
   {% if tiene_respaldo %}
-  <button type="button" id="btnRespaldo"
-          style="display:block;width:100%;margin-top:14px;padding:10px;border:none;background:none;
-                 cursor:pointer;font-family:'Manrope',sans-serif;font-size:12px;font-weight:600;
-                 color:rgba(245,245,245,.42);text-align:center">
-    Perdí el teléfono, usar un código de respaldo
+  <button type="button" id="btnRespaldo" class="auth-salida">
+    <i class="fas fa-key" style="font-size:11px;color:var(--text-muted);width:14px"></i>Perdí el teléfono, usar un código de respaldo
   </button>
   {% endif %}
-
-  <div style="text-align:center;margin-top:16px">
-    <a href="{% url 'login' %}" style="font-size:11.5px;color:rgba(245,245,245,.42)">Volver al acceso</a>
-  </div>
+  <a href="{% url 'login' %}" class="auth-salida" style="color:var(--text-muted)">
+    <i class="fas fa-arrow-left" style="font-size:11px;width:14px"></i>Volver al acceso
+  </a>
+</div>
 {% endblock %}
 
 {% block extra_js %}
 <script nonce="{{ csp_nonce }}">
 (function () {
-  var campo = document.getElementById('codigo');
+  var form = document.getElementById('formCodigo');
+  var oculto = document.getElementById('codigo');
+  var casillas = Array.prototype.slice.call(document.querySelectorAll('.auth-digito'));
+  var respaldo = document.getElementById('codigoRespaldo');
+  var modoRespaldo = false;
 
-  /* Se envía solo al llegar a seis dígitos: nadie escribe un código y
-     después busca el botón. */
-  if (campo) {
-    campo.addEventListener('input', function () {
-      campo.value = campo.value.replace(/[^0-9]/g, '');
-      if (campo.value.length === 6) document.getElementById('formCodigo').submit();
+  function juntar() {
+    return casillas.map(function (c) { return c.value; }).join('');
+  }
+
+  function enfocar(i) {
+    if (casillas[i]) casillas[i].focus();
+  }
+
+  casillas.forEach(function (casilla, i) {
+    casilla.addEventListener('input', function () {
+      /* Un teclado de móvil puede entregar varios caracteres de una vez
+         (autocompletado del SMS): se reparten por las casillas siguientes
+         en vez de quedarse solo con el primero. */
+      var texto = casilla.value.replace(/[^0-9]/g, '');
+      if (texto.length > 1) {
+        texto.split('').forEach(function (d, n) {
+          if (casillas[i + n]) casillas[i + n].value = d;
+        });
+        enfocar(Math.min(i + texto.length, casillas.length - 1));
+      } else {
+        casilla.value = texto;
+        if (texto) enfocar(i + 1);
+      }
+
+      var codigo = juntar();
+      oculto.value = codigo;
+      /* Se envía solo al completar los seis: nadie escribe un código y
+         después busca el botón. */
+      if (codigo.length === 6) form.submit();
+    });
+
+    casilla.addEventListener('keydown', function (e) {
+      if (e.key === 'Backspace' && !casilla.value) {
+        e.preventDefault();
+        if (casillas[i - 1]) { casillas[i - 1].value = ''; enfocar(i - 1); }
+        oculto.value = juntar();
+      }
+      if (e.key === 'ArrowLeft') { e.preventDefault(); enfocar(i - 1); }
+      if (e.key === 'ArrowRight') { e.preventDefault(); enfocar(i + 1); }
+    });
+
+    /* Pegar el código completo desde el portapapeles funciona en cualquiera
+       de las casillas, no solo en la primera. */
+    casilla.addEventListener('paste', function (e) {
+      e.preventDefault();
+      var pegado = (e.clipboardData || window.clipboardData).getData('text') || '';
+      var digitos = pegado.replace(/[^0-9]/g, '').slice(0, 6).split('');
+      digitos.forEach(function (d, n) { if (casillas[n]) casillas[n].value = d; });
+      oculto.value = juntar();
+      enfocar(Math.min(digitos.length, casillas.length - 1));
+      if (oculto.value.length === 6) form.submit();
+    });
+  });
+
+  if (respaldo) {
+    respaldo.addEventListener('input', function () {
+      oculto.value = respaldo.value.trim().toUpperCase();
     });
   }
+
+  /* Última red: si por lo que sea el campo oculto quedó vacío, se llena
+     antes de enviar en vez de mandar un POST sin código. */
+  form.addEventListener('submit', function () {
+    oculto.value = modoRespaldo
+      ? (respaldo ? respaldo.value.trim().toUpperCase() : '')
+      : juntar();
+  });
 
   var btn = document.getElementById('btnRespaldo');
   if (btn) {
     btn.addEventListener('click', function () {
-      var normal = document.getElementById('campoNormal');
-      var respaldo = document.getElementById('campoRespaldo');
-      var entrada = document.getElementById('codigoRespaldo');
-
-      normal.hidden = true;
-      campo.removeAttribute('required');
-      campo.removeAttribute('name');
-      respaldo.hidden = false;
-      entrada.setAttribute('name', 'codigo');
-      entrada.setAttribute('required', '');
+      modoRespaldo = true;
+      document.getElementById('campoNormal').hidden = true;
+      document.getElementById('campoRespaldo').hidden = false;
       document.getElementById('esRespaldo').value = '1';
       btn.hidden = true;
-      entrada.focus();
+      if (respaldo) respaldo.focus();
     });
   }
 })();

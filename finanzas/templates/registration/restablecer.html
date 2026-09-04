@@ -1,0 +1,206 @@
+{% extends 'registration/auth_base.html' %}
+{% block title %}Nueva contraseña · FinApp{% endblock %}
+
+{% block pitch %}
+<div style="max-width:440px">
+  <h1 class="auth-titular">Elige una contraseña y sigue donde estabas.</h1>
+  <p style="margin:18px 0 0;font-size:14.5px;font-weight:500;line-height:1.6;color:rgba(26,18,0,.72);max-width:390px">
+    Al menos 8 caracteres. Mézclala con números y mayúsculas: es la llave de
+    tus cuentas y tus cuotas.
+  </p>
+</div>
+{% endblock %}
+
+{% block card %}
+{% if not valido %}
+{% comment %}
+  Un enlace caducado y uno inventado dan la misma respuesta: distinguirlos
+  le diría a quien prueba al azar cuándo acertó con un usuario real.
+{% endcomment %}
+<span style="display:inline-flex;align-items:center;justify-content:center;width:56px;height:56px;border-radius:20px;background:var(--coral-tenue);color:var(--coral);font-size:22px;margin-bottom:22px">
+  <i class="fas fa-link-slash"></i>
+</span>
+
+<h2 class="auth-h">Este enlace ya no sirve</h2>
+<p style="margin:10px 0 26px;font-size:13.5px;color:var(--text-secondary);line-height:1.6">
+  Los enlaces valen una hora y solo se pueden usar una vez. Pide uno nuevo y
+  ábrelo en cuanto llegue.
+</p>
+
+<a href="{% url 'recuperar' %}" class="btn btn-amber btn-block"
+   style="padding:16px;font-size:14.5px;font-weight:800;text-decoration:none">
+  Pedir otro enlace
+</a>
+
+<div style="display:flex;flex-direction:column;gap:2px;margin-top:22px;padding-top:22px;border-top:1px solid var(--line)">
+  <a href="{% url 'login' %}" class="auth-salida" style="color:var(--text-muted)">
+    <i class="fas fa-arrow-left" style="font-size:11px;width:14px"></i>Volver al acceso
+  </a>
+</div>
+
+{% else %}
+
+<span style="display:inline-flex;align-items:center;justify-content:center;width:56px;height:56px;border-radius:20px;background:var(--amber-tenue);color:var(--amber);font-size:22px;margin-bottom:22px">
+  <i class="fas fa-lock-open"></i>
+</span>
+
+<h2 class="auth-h">Nueva contraseña</h2>
+<p style="margin:10px 0 26px;font-size:13.5px;color:var(--text-secondary);line-height:1.6">
+  Para la cuenta <strong style="color:var(--text-primary)">{{ usuario.username }}</strong>.
+</p>
+
+{% if form.non_field_errors or form.errors %}
+<div style="display:flex;gap:10px;align-items:flex-start;padding:13px 15px;margin-bottom:20px;border-radius:14px;background:var(--coral-tenue);border:1px solid rgba(226,92,92,.3)">
+  <i class="fas fa-circle-exclamation" style="font-size:12px;color:var(--coral);margin-top:2px"></i>
+  <div style="font-size:12px;color:var(--text-secondary);line-height:1.55">
+    {% for e in form.non_field_errors %}<div>{{ e }}</div>{% endfor %}
+    {% for campo, errores in form.errors.items %}
+      {% if campo != '__all__' %}{% for e in errores %}<div>{{ e }}</div>{% endfor %}{% endif %}
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+<form method="post" id="formReset">
+  {% csrf_token %}
+  <input type="hidden" name="es_respaldo" id="esRespaldo" value="">
+
+  <div style="display:flex;flex-direction:column;gap:18px">
+    {% if pide_codigo %}
+    {% comment %}
+      Con dos pasos activo también se pide el código: si no, bastaría con
+      entrar a la bandeja de correo para quedarse con la cuenta, y el
+      segundo factor no protegería nada.
+    {% endcomment %}
+    <div id="bloqueCodigo">
+      <label class="auth-label" for="id_codigo_2fa">Código de tu app de autenticación</label>
+      <input type="text" name="codigo" id="id_codigo_2fa" class="auth-campo"
+             style="padding-left:16px;font-family:'JetBrains Mono',monospace;font-size:20px;letter-spacing:.28em;text-align:center"
+             inputmode="numeric" autocomplete="one-time-code"
+             maxlength="6" placeholder="000000" required autofocus>
+      {% if tiene_respaldo %}
+      <button type="button" id="btnRespaldo" class="auth-salida"
+              style="margin-top:8px;padding-left:0;color:var(--text-muted);font-size:11.5px">
+        <i class="fas fa-key" style="font-size:10px"></i>Usar un código de respaldo
+      </button>
+      {% endif %}
+    </div>
+    {% endif %}
+
+    <div>
+      <label class="auth-label" for="{{ form.new_password1.id_for_label }}">Contraseña nueva</label>
+      <div style="position:relative;display:flex;align-items:center">
+        <i class="fas fa-lock auth-icono"></i>
+        <input type="password" name="new_password1" id="{{ form.new_password1.id_for_label }}"
+               class="auth-campo" style="padding-right:52px"
+               placeholder="al menos 8 caracteres" autocomplete="new-password" required>
+        <button type="button" id="btnVerPass" style="position:absolute;right:9px;display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border:none;border-radius:50%;background:var(--surface-2);color:var(--text-secondary);cursor:pointer;font-size:12px" aria-label="Ver contraseña">
+          <i class="fas fa-eye"></i>
+        </button>
+      </div>
+      <div class="progress-bar" style="height:4px;margin-top:10px">
+        <div class="progress-fill" id="fuerzaBar" style="width:0%;transition:width .3s,background .3s"></div>
+      </div>
+      <div style="font-size:11px;color:var(--text-muted);margin-top:7px" id="fuerzaTexto">Mézclala con números y mayúsculas.</div>
+    </div>
+
+    <div>
+      <label class="auth-label" for="{{ form.new_password2.id_for_label }}">Repítela</label>
+      <div style="position:relative;display:flex;align-items:center">
+        <i class="fas fa-lock auth-icono"></i>
+        <input type="password" name="new_password2" id="{{ form.new_password2.id_for_label }}"
+               class="auth-campo" placeholder="••••••••" autocomplete="new-password" required>
+      </div>
+      <div style="font-size:11px;margin-top:7px;color:var(--text-muted)" id="coincide"></div>
+    </div>
+  </div>
+
+  <button type="submit" class="btn btn-amber btn-block"
+          style="margin-top:26px;padding:16px;font-size:14.5px;font-weight:800">
+    Guardar y entrar
+  </button>
+</form>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+{% if valido %}
+<script nonce="{{ csp_nonce }}">
+(function () {
+  var p1 = document.getElementById('{{ form.new_password1.id_for_label }}');
+  var p2 = document.getElementById('{{ form.new_password2.id_for_label }}');
+  var bar = document.getElementById('fuerzaBar');
+  var texto = document.getElementById('fuerzaTexto');
+  var coincide = document.getElementById('coincide');
+
+  var niveles = [
+    { ancho: '25%', color: 'linear-gradient(90deg,#dc2626,#f87171)', label: 'Muy débil: fácil de adivinar.' },
+    { ancho: '50%', color: 'linear-gradient(90deg,#ea580c,#fb923c)', label: 'Débil: agrega números o símbolos.' },
+    { ancho: '75%', color: 'linear-gradient(90deg,var(--amber-oscuro),var(--amber))', label: 'Buena.' },
+    { ancho: '100%', color: 'linear-gradient(90deg,#059669,var(--green))', label: 'Fuerte.' }
+  ];
+
+  if (p1) {
+    p1.addEventListener('input', function () {
+      var v = p1.value, puntos = 0;
+      if (v.length >= 8) puntos++;
+      if (/[A-Z]/.test(v)) puntos++;
+      if (/[0-9]/.test(v)) puntos++;
+      if (/[^A-Za-z0-9]/.test(v)) puntos++;
+      if (!v) { bar.style.width = '0%'; texto.textContent = 'Mézclala con números y mayúsculas.'; return; }
+      var n = niveles[Math.max(0, puntos - 1)];
+      bar.style.width = n.ancho;
+      bar.style.background = n.color;
+      texto.textContent = n.label;
+    });
+  }
+
+  if (p2) {
+    p2.addEventListener('input', function () {
+      if (!p2.value) { coincide.textContent = ''; coincide.style.color = 'var(--text-muted)'; return; }
+      var igual = p1.value === p2.value;
+      coincide.textContent = igual ? 'Coinciden.' : 'Todavía no coinciden.';
+      coincide.style.color = igual ? 'var(--green)' : 'var(--coral)';
+    });
+  }
+
+  var ver = document.getElementById('btnVerPass');
+  if (ver && p1) {
+    ver.addEventListener('click', function () {
+      var oculta = p1.type === 'password';
+      p1.type = oculta ? 'text' : 'password';
+      ver.querySelector('i').className = oculta ? 'fas fa-eye-slash' : 'fas fa-eye';
+      p1.focus();
+    });
+  }
+
+  /* Solo dígitos en el código del segundo factor. */
+  var codigo = document.getElementById('id_codigo_2fa');
+  if (codigo) {
+    codigo.addEventListener('input', function () {
+      if (document.getElementById('esRespaldo').value === '1') return;
+      codigo.value = codigo.value.replace(/[^0-9]/g, '');
+    });
+  }
+
+  /* Cambiar al código de respaldo: mismo campo, otras reglas. */
+  var btn = document.getElementById('btnRespaldo');
+  if (btn && codigo) {
+    btn.addEventListener('click', function () {
+      document.getElementById('esRespaldo').value = '1';
+      codigo.value = '';
+      codigo.maxLength = 9;
+      codigo.placeholder = 'ABCD-2345';
+      codigo.setAttribute('inputmode', 'text');
+      codigo.style.letterSpacing = '.1em';
+      codigo.style.fontSize = '18px';
+      var etiqueta = document.querySelector('label[for="id_codigo_2fa"]');
+      if (etiqueta) etiqueta.textContent = 'Código de respaldo';
+      btn.hidden = true;
+      codigo.focus();
+    });
+  }
+})();
+</script>
+{% endif %}
+{% endblock %}

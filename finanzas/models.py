@@ -5,7 +5,7 @@ from django.contrib.auth.models import User
 from django.db.models.signals import post_delete
 from django.dispatch import receiver
 
-from .almacenamiento import almacen_media
+from .almacenamiento import obtener_almacen
 from django.utils import timezone
 from dateutil.relativedelta import relativedelta
 from datetime import date
@@ -994,7 +994,7 @@ class UserProfile(models.Model):
     # global de settings para que solo la foto viaje a la nube; el resto de
     # los archivos siguen donde estén.
     foto = models.ImageField(
-        upload_to=_ruta_avatar, storage=almacen_media, null=True, blank=True)
+        upload_to=_ruta_avatar, storage=obtener_almacen, null=True, blank=True)
 
     def __str__(self):
         return f"Perfil de {self.usuario.username}"
@@ -1036,23 +1036,6 @@ class UserProfile(models.Model):
         return self.nombre_completo or self.usuario.username
 
 
-@receiver(post_delete, sender=UserProfile)
-def _borrar_avatar_al_eliminar_perfil(sender, instance, **kwargs):
-    """Borra el archivo del avatar cuando se borra el perfil.
-
-    Antes esto era un método delete() en el modelo. El problema: cuando se
-    borra un User, Django borra el UserProfile por CASCADE con un DELETE en
-    lote directo a la base — nunca llama a instance.delete() de Python, así
-    que ese método nunca se ejecutaba y la foto se quedaba huérfana en el
-    bucket. Una señal post_delete sí se dispara en los dos casos: borrar el
-    perfil directamente, o borrar el User y que el perfil caiga con él.
-    """
-    if instance.foto and instance.foto.name:
-        try:
-            instance.foto.delete(save=False)
-        except Exception:
-            pass
-
     @property
     def inicial(self):
         """Letra del avatar cuando no hay foto."""
@@ -1077,6 +1060,30 @@ def _borrar_avatar_al_eliminar_perfil(sender, instance, **kwargs):
     def ubicacion(self):
         parts = [p for p in [self.ciudad, self.pais] if p]
         return ', '.join(parts) if parts else None
+
+
+@receiver(post_delete, sender=UserProfile)
+def _borrar_avatar_al_eliminar_perfil(sender, instance, **kwargs):
+    """Borra el archivo del avatar cuando se borra el perfil.
+
+    Antes esto era un método delete() en el modelo. El problema: cuando se
+    borra un User, Django borra el UserProfile por CASCADE con un DELETE en
+    lote directo a la base — nunca llama a instance.delete() de Python, así
+    que ese método nunca se ejecutaba y la foto se quedaba huérfana en el
+    bucket. Una señal post_delete sí se dispara en los dos casos: borrar el
+    perfil directamente, o borrar el User y que el perfil caiga con él.
+
+    Va DESPUÉS de la clase completa, no en medio: como es una función a
+    nivel de módulo, todo lo que quedara debajo con indentación de clase se
+    convierte en código interno de esta función. Eso fue justo lo que pasó
+    antes — inicial, foto_url y ubicacion desaparecieron del modelo y el
+    avatar quedó en blanco.
+    """
+    if instance.foto and instance.foto.name:
+        try:
+            instance.foto.delete(save=False)
+        except Exception:
+            pass
 
 
 # ============================================================

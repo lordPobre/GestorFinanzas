@@ -3,19 +3,127 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#0b0b16">
+  <meta name="theme-color" content="#191919">
   <title>{% block title %}Entrar · FinApp{% endblock %}</title>
-
-  {# Favicon: SVG con respaldo PNG, igual que en base.html. #}
   <link rel="icon" type="image/svg+xml" href="{% static 'img/favicon.svg' %}">
   <link rel="alternate icon" href="{% static 'img/favicon.png' %}">
   <link rel="apple-touch-icon" href="{% static 'img/favicon-180.png' %}">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
   <link rel="stylesheet" href="{% static 'css/finapp.css' %}">
+
+  <style>
+    /* Las pantallas de acceso son las únicas con este layout, así que sus
+       reglas viven acá y no en finapp.css. Son las que NO se pueden poner
+       en un atributo style: las consultas de medios. */
+    .auth {
+      display: flex; min-height: 100vh;
+      font-family: 'Manrope', system-ui, sans-serif;
+      background: var(--bg); color: var(--text-primary);
+    }
+    .auth-marca {
+      position: relative; overflow: hidden;
+      flex: 0 0 44%; min-width: 400px;
+      display: flex; flex-direction: column; justify-content: space-between;
+      padding: 44px 46px;
+      background: linear-gradient(140deg, var(--amber) 0%, var(--amber-claro) 100%);
+      color: #1a1200;
+    }
+    /* La curva de luz en diagonal: el mismo recurso de la tarjeta de saldo,
+       que es la firma visual de la app. */
+    .auth-marca::after {
+      content: ''; position: absolute; right: -28%; bottom: -46%;
+      width: 110%; height: 130%; border-radius: 50%;
+      background: rgba(255, 255, 255, .16); pointer-events: none;
+    }
+    .auth-marca > * { position: relative; z-index: 1; }
+    .auth-titular {
+      margin: 0; font-size: 40px; font-weight: 800;
+      line-height: 1.14; letter-spacing: -.035em; text-wrap: pretty;
+    }
+    .auth-panel {
+      flex: 1; display: flex; align-items: center; justify-content: center;
+      padding: 48px 40px;
+    }
+    .auth-panel > div { width: 100%; max-width: 392px; }
+    .auth-h {
+      margin: 0; font-size: 26px; font-weight: 800; letter-spacing: -.03em;
+    }
+
+    /* Los campos del acceso: más altos y con más radio que los del resto de
+       la app, que viven dentro de tarjetas más pequeñas.
+
+       El selector es aparatoso a propósito. finapp.css estiliza los campos
+       con "input:not([type=checkbox]):not([type=radio]):not(.search input)",
+       que pesa (0,3,2) — más que una clase suelta. Con solo .auth-campo, su
+       "padding: 13px 15px" ganaba y el texto se metía debajo del icono. Los
+       dos :not() de acá suben esta regla a (0,4,1) y la dejan por encima. */
+    .auth input.auth-campo:not([type=checkbox]):not([type=radio]) {
+      width: 100%; box-sizing: border-box;
+      padding: 15px 16px 15px 42px;
+      border-radius: 16px; border: 1.5px solid transparent;
+      background: #2b2b2b; color: var(--text-primary);
+      font-family: 'Manrope', sans-serif; font-size: 14px; font-weight: 500;
+    }
+    .auth input.auth-campo:focus { outline: none; border-color: var(--amber); background: #333; }
+    .auth-icono {
+      position: absolute; left: 16px; font-size: 12px;
+      color: var(--text-muted); pointer-events: none;
+    }
+    .auth-label {
+      display: block; font-size: 11.5px; font-weight: 700;
+      letter-spacing: .02em; color: var(--text-secondary); margin-bottom: 9px;
+    }
+
+    /* Las seis casillas del código. Mismo motivo que arriba para el
+       selector: sin los :not() la regla global les imponía 13px 15px de
+       relleno y el dígito se descentraba. */
+    .auth-digitos { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; }
+    .auth input.auth-digito:not([type=checkbox]):not([type=radio]) {
+      width: 100%; box-sizing: border-box; padding: 16px 0;
+      border-radius: 15px; border: 1.5px solid rgba(255, 255, 255, .09);
+      background: #2b2b2b; color: var(--text-primary);
+      font-family: 'JetBrains Mono', monospace; font-size: 23px; font-weight: 600;
+      text-align: center;
+    }
+    .auth input.auth-digito:focus { outline: none; border-color: var(--amber); background: #333; }
+    .auth input.auth-digito:disabled { opacity: .5; }
+
+    .auth-salida {
+      display: flex; align-items: center; gap: 10px;
+      width: 100%; box-sizing: border-box;
+      padding: 12px 14px; border: none; border-radius: 14px;
+      background: none; color: var(--text-secondary); text-decoration: none;
+      font-family: 'Manrope', sans-serif; font-size: 12.5px; font-weight: 600;
+      text-align: left; cursor: pointer;
+    }
+    .auth-salida:hover { background: var(--bg-elev); color: var(--text-primary); }
+
+    /* Bajo 900px el panel de marca no cabe al lado: pasa arriba, en una
+       banda baja que mantiene la identidad sin comerse la pantalla. */
+    @media (max-width: 900px) {
+      .auth { flex-direction: column; }
+      .auth-marca {
+        flex: 0 0 auto; min-width: 0;
+        padding: 26px 22px; gap: 18px;
+      }
+      .auth-marca .auth-pie,
+      .auth-marca .auth-ventajas { display: none; }
+      .auth-titular { font-size: 24px; }
+      .auth-marca p { font-size: 13px; margin-top: 10px; }
+      .auth-panel { padding: 32px 22px 44px; }
+    }
+    @media (max-width: 420px) {
+      .auth-digitos { gap: 7px; }
+      .auth input.auth-digito:not([type=checkbox]):not([type=radio]) {
+        padding: 13px 0; font-size: 19px; border-radius: 13px;
+      }
+    }
+  </style>
+
   <script>
   /* Respaldo mínimo: abre y cierra modales aunque finapp.js no cargue.
      finapp.js sobreescribe estas funciones cuando sí está disponible. */
@@ -45,54 +153,51 @@
 </head>
 <body>
 
-<div class="aurora" aria-hidden="true">
-  <span class="a1"></span><span class="a2"></span><span class="a3"></span><span class="grain"></span>
-</div>
+<div class="auth">
 
-<div style="position:relative;z-index:1;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:32px 24px">
-  <div style="display:flex;align-items:center;justify-content:center;gap:64px;flex-wrap:wrap;max-width:1000px;width:100%">
+  {# ---- Panel de marca ---- #}
+  <div class="auth-marca">
+    <div style="display:flex;align-items:center;gap:12px">
+      <span style="display:inline-flex;align-items:center;justify-content:center;width:42px;height:42px;border-radius:14px;background:#1a1200;color:var(--amber);font-size:16px">
+        <i class="fas fa-chart-line"></i>
+      </span>
+      <span style="font-size:20px;font-weight:800;letter-spacing:-.02em">FinApp</span>
+    </div>
 
-    {# ---- Lado izquierdo: la promesa ---- #}
-    <div style="max-width:380px;flex:1;min-width:280px">
-      <div style="display:flex;align-items:center;gap:11px;margin-bottom:24px">
-        <span class="brand-mark" style="width:40px;height:40px;border-radius:13px;font-size:15px"><i class="fas fa-chart-line"></i></span>
-        <span class="brand-name" style="font-size:19px">FinApp</span>
-      </div>
-
-      {% block pitch %}
-      <div style="font-family:'Manrope',sans-serif;font-size:31px;font-weight:500;line-height:1.28;letter-spacing:-.025em;text-wrap:pretty">
-        Saber cuánto puedes gastar hoy no debería tomar una planilla.
-      </div>
-      <div class="hint" style="font-size:13px;margin-top:14px">
+    {% block pitch %}
+    <div style="max-width:440px">
+      <h1 class="auth-titular">Saber cuánto puedes gastar hoy no debería tomar una planilla.</h1>
+      <p style="margin:18px 0 0;font-size:14.5px;font-weight:500;line-height:1.6;color:rgba(26,18,0,.72);max-width:390px">
         Registra en dos toques, mira una sola cifra clara y deja que la app te avise
         antes de que se te pase una cuota.
-      </div>
+      </p>
 
-      <div style="display:flex;flex-direction:column;gap:12px;margin-top:26px">
-        <div style="display:flex;align-items:center;gap:11px">
-          <span class="icon-tile" style="width:28px;height:28px;border-radius:9px"><i class="fas fa-wallet" style="font-size:11px"></i></span>
-          <span style="font-size:12.5px;color:var(--text-secondary)">Una cifra: lo que te queda libre de verdad</span>
+      <div class="auth-ventajas" style="display:flex;flex-direction:column;gap:14px;margin-top:34px">
+        <div style="display:flex;align-items:center;gap:13px">
+          <span style="display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;flex-shrink:0;border-radius:12px;background:rgba(26,18,0,.14);font-size:12px"><i class="fas fa-wallet"></i></span>
+          <span style="font-size:13.5px;font-weight:600">Una cifra: lo que te queda libre de verdad</span>
         </div>
-        <div style="display:flex;align-items:center;gap:11px">
-          <span class="icon-tile orange" style="width:28px;height:28px;border-radius:9px"><i class="fas fa-credit-card" style="font-size:11px"></i></span>
-          <span style="font-size:12.5px;color:var(--text-secondary)">Tus compras en cuotas, con lo que falta a la vista</span>
+        <div style="display:flex;align-items:center;gap:13px">
+          <span style="display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;flex-shrink:0;border-radius:12px;background:rgba(26,18,0,.14);font-size:12px"><i class="fas fa-credit-card"></i></span>
+          <span style="font-size:13.5px;font-weight:600">Tus compras en cuotas, con lo que falta a la vista</span>
         </div>
-        <div style="display:flex;align-items:center;gap:11px">
-          <span class="icon-tile green" style="width:28px;height:28px;border-radius:9px"><i class="fas fa-hand-holding-dollar" style="font-size:11px"></i></span>
-          <span style="font-size:12.5px;color:var(--text-secondary)">Quién te debe y cuánto ha devuelto</span>
+        <div style="display:flex;align-items:center;gap:13px">
+          <span style="display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;flex-shrink:0;border-radius:12px;background:rgba(26,18,0,.14);font-size:12px"><i class="fas fa-hand-holding-dollar"></i></span>
+          <span style="font-size:13.5px;font-weight:600">Quién te debe y cuánto ha devuelto</span>
         </div>
       </div>
-      {% endblock %}
     </div>
+    {% endblock %}
 
-    {# ---- Lado derecho: la tarjeta ---- #}
-    <div class="glass" data-spot
-         style="width:100%;max-width:372px;padding:28px;border-radius:28px;
-                background:linear-gradient(180deg,rgba(30,28,56,.72),rgba(15,14,30,.6));
-                border-color:rgba(255,255,255,.11);
-                box-shadow:inset 0 1px 0 rgba(255,255,255,.1),0 26px 70px rgba(0,0,0,.45)">
-      {% block card %}{% endblock %}
+    <div class="auth-pie" style="display:flex;align-items:center;gap:9px;font-size:11.5px;font-weight:700;color:rgba(26,18,0,.6)">
+      <i class="fas fa-lock" style="font-size:10px"></i>
+      <span>Tus datos quedan en tu cuenta. Nada se comparte.</span>
     </div>
+  </div>
+
+  {# ---- Panel del formulario ---- #}
+  <div class="auth-panel">
+    <div>{% block card %}{% endblock %}</div>
   </div>
 </div>
 

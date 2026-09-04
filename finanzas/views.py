@@ -1,6 +1,7 @@
 import calendar
 import csv
 import json
+import logging
 from datetime import date, datetime
 from decimal import Decimal, InvalidOperation
 
@@ -705,6 +706,24 @@ def _proyecciones_deuda_activas(todas_las_deudas):
     return proyecciones
 
 
+# Cómo se pinta cada tipo de aviso: color del icono, fondo de su ficha,
+# borde de la tarjeta y la palabra que la encabeza.
+#
+# Vive acá y no en la plantilla porque allá obligaba a repetir el mismo
+# bloque de marcado cuatro veces, una por tipo, con la única diferencia de
+# los colores.
+TONOS_INSIGHT = {
+    'peligro': {'color': '#e25c5c', 'tenue': 'rgba(226,92,92,.14)',
+                'borde': 'rgba(226,92,92,.32)', 'etiqueta': 'Urgente'},
+    'alerta':  {'color': '#ffaa2c', 'tenue': 'rgba(255,170,44,.14)',
+                'borde': 'rgba(255,170,44,.32)', 'etiqueta': 'Ojo con esto'},
+    'exito':   {'color': '#53d258', 'tenue': 'rgba(83,210,88,.14)',
+                'borde': 'rgba(83,210,88,.3)', 'etiqueta': 'Vas bien'},
+    'info':    {'color': '#4b8cff', 'tenue': 'rgba(75,140,255,.14)',
+                'borde': 'rgba(75,140,255,.28)', 'etiqueta': 'A este ritmo'},
+}
+
+
 def _insights_dashboard(resumen, datos_gastos, pendientes, proyecciones_deuda, presupuesto):
     """Las frases del bloque de avisos: presupuesto, variación mensual,
     cuotas urgentes y la proyección de la deuda más próxima a terminar."""
@@ -753,6 +772,10 @@ def _insights_dashboard(resumen, datos_gastos, pendientes, proyecciones_deuda, p
             'tipo': 'info', 'icono': 'fa-check-circle',
             'texto': f'A este ritmo, terminas de pagar {prox["acreedor"]} en {prox["mes_fin"]}.',
         })
+
+    # El color y la etiqueta de cada aviso, resueltos de una vez.
+    for i in insights:
+        i.update(TONOS_INSIGHT.get(i['tipo'], TONOS_INSIGHT['info']))
 
     return insights, presupuesto_pct
 
@@ -2475,20 +2498,201 @@ def configurar_2fa(request):
     return render(request, 'finanzas/configurar_2fa.html', contexto)
 
 
+# ============================================================
+#  RECUPERAR CONTRASEÑA
+# ============================================================
+#
+# Flujo: pides el enlace con tu email → llega un enlace firmado que vale una
+# hora → abres el enlace y eliges contraseña nueva. Si tienes verificación
+# en dos pasos activa, además hay que escribir el código: si no, el correo
+# se convertiría en la única llave de la cuenta y bastaría con entrar a tu
+# bandeja para tomarla.
+#
+# El token lo firma Django (default_token_generator). Dos cosas que hace
+# solo y que conviene saber: caduca según PASSWORD_RESET_TIMEOUT, y deja de
+# valer en cuanto la contraseña cambia — así un enlace ya usado no sirve
+# dos veces.
+
+MAX_SOLICITUDES_RESET = 3
+VENTANA_RESET = 900  # 15 minutos
+
+
+def _usuario_por_correo(correo):
+    """Busca por User.email y, si no aparece, por UserProfile.email.
+
+    Las cuentas creadas antes de que el email fuera obligatorio guardaban
+    el correo solo en el perfil. Sin este segundo intento, esos usuarios no
+    podrían recuperar nunca su contraseña.
+    """
+    correo = (correo or '').strip()
+    if not correo:
+        return None
+    usuario = User.objects.filter(email__iexact=correo, is_active=True).first()
+    if usuario:
+        return usuario
+    perfil = UserProfile.objects.filter(email__iexact=correo,
+                                        usuario__is_active=True).first()
+    return perfil.usuario if perfil else None
+
+
+def recuperar(request):
+    """Pide el correo y manda el enlace."""
+    from django.contrib.auth.tokens import default_token_generator
+    from django.core.cache import cache
+    from django.template.loader import render_to_string
+    from django.utils.encoding import force_bytes
+    from django.utils.http import urlsafe_base64_encode
+
+    from .correo import configurado as correo_configurado, enviar, url_absoluta
+
+    enviado = False
+    correo_txt = ''
+
+    if request.method == 'POST':
+        correo_txt = (request.POST.get('email') or '').strip()
+
+        # Tope por IP: sin él, alguien puede usar este formulario para
+        # bombardear de correos a una dirección ajena, o para gastar la
+        # cuota de envío de la cuenta.
+        clave = f'reset:{_ip(request)}'
+        usados = cache.get(clave, 0)
+        if usados >= MAX_SOLICITUDES_RESET:
+            messages.warning(
+                request,
+                'Ya pediste varios enlaces. Espera unos minutos antes de intentarlo otra vez.')
+            return render(request, 'registration/recuperar.html',
+                          {'email': correo_txt})
+        cache.set(clave, usados + 1, VENTANA_RESET)
+
+        usuario = _usuario_por_correo(correo_txt)
+        if usuario:
+            enlace = url_absoluta(request, reverse('restablecer', kwargs={
+                'uidb64': urlsafe_base64_encode(force_bytes(usuario.pk)),
+                'token': default_token_generator.make_token(usuario),
+            }))
+            contexto_correo = {
+                'usuario': usuario,
+                'enlace': enlace,
+                'horas': 1,
+            }
+            cuerpo = render_to_string('registration/correo_recuperar.txt', contexto_correo)
+            cuerpo_html = render_to_string('registration/correo_recuperar.html', contexto_correo)
+            if not enviar(usuario.email or correo_txt,
+                          'Recupera tu contraseña de FinApp', cuerpo, cuerpo_html):
+                # Falla de configuración o de red. Se avisa, porque decir
+                # "revisa tu correo" cuando no salió nada es peor.
+                logging.getLogger('finanzas').error(
+                    'Reset solicitado para %s pero el correo no salió', usuario.pk)
+                if not correo_configurado():
+                    messages.error(
+                        request,
+                        'El envío de correos no está configurado todavía. '
+                        'Escríbeme y te ayudo a restablecerla a mano.')
+                    return render(request, 'registration/recuperar.html',
+                                  {'email': correo_txt})
+        # Mismo mensaje exista o no la cuenta: si cambiara, este formulario
+        # serviría para averiguar qué correos están registrados.
+        enviado = True
+
+    return render(request, 'registration/recuperar.html',
+                  {'enviado': enviado, 'email': correo_txt})
+
+
+def restablecer(request, uidb64, token):
+    """Valida el enlace y cambia la contraseña."""
+    from django.contrib.auth.forms import SetPasswordForm
+    from django.contrib.auth.tokens import default_token_generator
+    from django.utils.encoding import force_str
+    from django.utils.http import urlsafe_base64_decode
+
+    try:
+        uid = force_str(urlsafe_base64_decode(uidb64))
+        usuario = User.objects.get(pk=uid, is_active=True)
+    except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+        usuario = None
+
+    valido = usuario is not None and default_token_generator.check_token(usuario, token)
+    if not valido:
+        # No se dice si el enlace es viejo o falso: es la misma respuesta.
+        return render(request, 'registration/restablecer.html', {'valido': False})
+
+    factor = SegundoFactor.objects.filter(usuario=usuario, activo=True).first()
+    form = SetPasswordForm(usuario)
+
+    if request.method == 'POST':
+        form = SetPasswordForm(usuario, request.POST)
+
+        # El segundo factor se comprueba ANTES de guardar: si el código no
+        # cuadra, la contraseña no se toca.
+        codigo_ok = True
+        if factor:
+            codigo = (request.POST.get('codigo') or '').strip()
+            es_respaldo = request.POST.get('es_respaldo') == '1'
+            if es_respaldo:
+                codigo_ok = CodigoRespaldo.consumir(usuario, codigo)
+            else:
+                codigo_ok = factor.verificar(codigo)
+            if not codigo_ok:
+                form.add_error(None, 'El código de verificación no es correcto.')
+
+        if form.is_valid() and codigo_ok:
+            form.save()
+            # Los intentos fallidos previos ya no cuentan: la contraseña que
+            # se estaba fallando dejó de existir.
+            limpiar_intentos(usuario.username, _ip(request))
+            messages.success(request, 'Tu contraseña quedó cambiada. Entra con ella.')
+            return redirect('login')
+
+    return render(request, 'registration/restablecer.html', {
+        'valido': True,
+        'form': form,
+        'usuario': usuario,
+        'pide_codigo': factor is not None,
+        'tiene_respaldo': factor is not None and CodigoRespaldo.objects.filter(
+            usuario=usuario, usado=False).exists(),
+    })
+
+
 @limitar(5, 3600, 'Demasiados registros desde esta conexión. Prueba más tarde.')
 def registro(request):
     if request.method == 'POST':
         form = UserCreationForm(request.POST)
-        if form.is_valid():
-            user = form.save()
+        correo = (request.POST.get('email_perfil') or '').strip()
+        error_correo = ''
+
+        # El email pasó a ser obligatorio: es la única vía de recuperación
+        # de contraseña. Sin él, quien la olvida pierde la cuenta y sus
+        # datos, y no hay forma de devolvérsela sin entrar a la base.
+        if not correo:
+            error_correo = 'Necesitamos tu email para poder recuperar tu contraseña.'
+        else:
+            try:
+                forms.EmailField().clean(correo)
+            except forms.ValidationError:
+                error_correo = 'Ese email no parece válido. Revísalo.'
+            else:
+                # Dos cuentas con el mismo correo hacen ambiguo el "olvidé mi
+                # contraseña": no se sabría a cuál mandar el enlace.
+                if User.objects.filter(email__iexact=correo).exists():
+                    error_correo = 'Ya hay una cuenta con ese email.'
+
+        if form.is_valid() and not error_correo:
+            user = form.save(commit=False)
+            # El correo va también en el User, no solo en el perfil: es donde
+            # lo busca la recuperación de contraseña.
+            user.email = correo
+            user.save()
             login(request, user)
             # get_or_create evita el IntegrityError si ya existe un perfil
             # (por ejemplo si hay una señal post_save que lo crea).
             profile, _ = UserProfile.objects.get_or_create(usuario=user)
             profile.nombre_completo = request.POST.get('nombre_completo', '').strip()
-            profile.email = request.POST.get('email_perfil', '').strip()
+            profile.email = correo
             profile.save()
             return redirect('onboarding')
+
+        if error_correo:
+            form.add_error(None, error_correo)
     else:
         form = UserCreationForm()
     return render(request, 'registration/registro.html', {'form': form})
@@ -2601,6 +2805,20 @@ def perfil(request):
                     request.user.first_name = partes[0]
                     request.user.last_name = partes[1] if len(partes) > 1 else ''
                     request.user.save(update_fields=['first_name', 'last_name'])
+                # El correo se copia al User: es donde lo busca la
+                # recuperación de contraseña. Si solo viviera en el perfil,
+                # quien lo agregue desde acá seguiría sin poder recuperarla.
+                correo = (perfil_form.cleaned_data.get('email') or '').strip()
+                if correo and correo.lower() != (request.user.email or '').lower():
+                    if not User.objects.filter(email__iexact=correo).exclude(
+                            pk=request.user.pk).exists():
+                        request.user.email = correo
+                        request.user.save(update_fields=['email'])
+                    else:
+                        messages.warning(
+                            request,
+                            'Ese email ya está en otra cuenta, así que no se usará '
+                            'para recuperar la contraseña de esta.')
                 messages.success(request, 'Perfil actualizado correctamente.')
                 return redirect('perfil')
         elif accion == 'password':

@@ -2,11 +2,11 @@
 {% block title %}Entrar · FinApp{% endblock %}
 
 {% block card %}
-<div class="modal-title" style="font-size:19px">Entra a tu cuenta</div>
-<div class="modal-sub" style="margin-bottom:22px">Sigue donde lo dejaste.</div>
+<h2 class="auth-h">Entra a tu cuenta</h2>
+<p style="margin:8px 0 30px;font-size:13.5px;color:var(--text-secondary)">Sigue donde lo dejaste.</p>
 
-{% if form.errors %}
-<div class="glass-coral" style="padding:13px 15px;border-radius:14px;margin-bottom:18px;display:flex;gap:10px;align-items:flex-start">
+{% if form.errors and not bloqueado %}
+<div style="display:flex;gap:10px;align-items:flex-start;padding:13px 15px;margin-bottom:20px;border-radius:14px;background:var(--coral-tenue);border:1px solid rgba(226,92,92,.3)">
   <i class="fas fa-circle-exclamation" style="font-size:12px;color:var(--coral);margin-top:2px"></i>
   <div style="font-size:12px;color:var(--text-secondary);line-height:1.5">
     Usuario o contraseña incorrectos. Revisa las mayúsculas.
@@ -14,43 +14,88 @@
 </div>
 {% endif %}
 
+{% if bloqueado %}
+<div style="display:flex;gap:10px;align-items:flex-start;padding:13px 15px;margin-bottom:20px;border-radius:14px;background:var(--coral-tenue);border:1px solid rgba(226,92,92,.3)">
+  <i class="fas fa-clock" style="font-size:12px;color:var(--coral);margin-top:2px"></i>
+  <div style="font-size:12px;color:var(--text-secondary);line-height:1.5">
+    Demasiados intentos fallidos. Espera unos minutos antes de volver a probar.
+  </div>
+</div>
+{% endif %}
+
 <form method="post">
   {% csrf_token %}
 
-  <div class="field">
-    <label class="label" for="{{ form.username.id_for_label }}">Usuario</label>
-    <div style="position:relative">
-      <i class="fas fa-user" style="position:absolute;left:15px;top:50%;transform:translateY(-50%);font-size:11px;color:var(--text-muted);pointer-events:none"></i>
-      <input type="text" name="username" id="{{ form.username.id_for_label }}"
-             style="padding-left:38px" placeholder="tu usuario" autocomplete="username" required autofocus>
+  <div style="display:flex;flex-direction:column;gap:18px">
+    <div>
+      <label class="auth-label" for="{{ form.username.id_for_label }}">Usuario</label>
+      <div style="position:relative;display:flex;align-items:center">
+        <i class="fas fa-user auth-icono"></i>
+        <input type="text" name="username" id="{{ form.username.id_for_label }}"
+               class="auth-campo" placeholder="tu usuario"
+               autocomplete="username" required autofocus
+               {% if bloqueado %}disabled{% endif %}>
+      </div>
     </div>
-  </div>
 
-  <div class="field" style="margin-bottom:22px">
-    <label class="label" for="{{ form.password.id_for_label }}">Contraseña</label>
-    <div style="position:relative">
-      <i class="fas fa-lock" style="position:absolute;left:15px;top:50%;transform:translateY(-50%);font-size:11px;color:var(--text-muted);pointer-events:none"></i>
-      <input type="password" name="password" id="{{ form.password.id_for_label }}"
-             style="padding-left:38px;padding-right:42px" placeholder="••••••••" autocomplete="current-password" required>
-      <button type="button" class="icon-btn" data-ver-pass="{{ form.password.id_for_label }}"
-              style="position:absolute;right:8px;top:50%;transform:translateY(-50%);
-                     width:32px;height:32px;border-radius:50%;border:none;cursor:pointer;
-                     display:flex;align-items:center;justify-content:center;
-                     background:#454545;color:rgba(245,245,245,.72)"
-              aria-label="Ver contraseña">
-        <i class="fas fa-eye" style="font-size:11px"></i>
-      </button>
+    <div>
+      <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:9px">
+        <label class="auth-label" style="margin:0" for="{{ form.password.id_for_label }}">Contraseña</label>
+        <a href="{% url 'recuperar' %}" style="font-size:11.5px;font-weight:700;color:var(--text-muted);text-decoration:none">¿La olvidaste?</a>
+      </div>
+      <div style="position:relative;display:flex;align-items:center">
+        <i class="fas fa-lock auth-icono"></i>
+        <input type="password" name="password" id="{{ form.password.id_for_label }}"
+               class="auth-campo" style="padding-right:52px" placeholder="••••••••"
+               autocomplete="current-password" required
+               {% if bloqueado %}disabled{% endif %}>
+        <button type="button" id="btnVerPass"
+                data-ver-pass="{{ form.password.id_for_label }}"
+                style="position:absolute;right:9px;display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border:none;border-radius:50%;background:var(--surface-2);color:var(--text-secondary);cursor:pointer;font-size:12px"
+                aria-label="Ver contraseña">
+          <i class="fas fa-eye"></i>
+        </button>
+      </div>
     </div>
   </div>
 
   {% if next %}<input type="hidden" name="next" value="{{ next }}">{% endif %}
 
-  <button type="submit" class="btn btn-purple btn-block">Entrar</button>
+  <button type="submit" class="btn btn-amber btn-block"
+          style="margin-top:26px;padding:16px;font-size:14.5px;font-weight:800"
+          {% if bloqueado %}disabled{% endif %}>
+    Entrar
+  </button>
 </form>
 
-<div style="text-align:center;font-size:12px;color:var(--text-muted);margin-top:16px">
-  ¿Primera vez? <a href="{% url 'registro' %}">Crea tu cuenta</a>
+<div style="display:flex;align-items:center;gap:14px;margin:26px 0 22px">
+  <span style="flex:1;height:1px;background:var(--line)"></span>
+  <span style="font-size:11px;font-weight:700;color:var(--text-muted)">O</span>
+  <span style="flex:1;height:1px;background:var(--line)"></span>
 </div>
+
+<a href="{% url 'registro' %}"
+   style="display:flex;align-items:center;justify-content:center;gap:9px;padding:15px;border:1.5px solid var(--line-fuerte);border-radius:100px;color:var(--text-primary);text-decoration:none;font-size:13.5px;font-weight:700">
+  <i class="fas fa-user-plus" style="font-size:12px;color:var(--amber)"></i>Crear una cuenta nueva
+</a>
 {% endblock %}
 
-
+{% block extra_js %}
+<script nonce="{{ csp_nonce }}">
+/* Ver la contraseña. finapp.js ya maneja [data-ver-pass], pero esta
+   pantalla tiene que funcionar aunque ese archivo no cargue: es la única
+   puerta de entrada a la app. */
+(function () {
+  var btn = document.getElementById('btnVerPass');
+  if (!btn) return;
+  btn.addEventListener('click', function () {
+    var campo = document.getElementById(btn.getAttribute('data-ver-pass'));
+    if (!campo) return;
+    var oculta = campo.type === 'password';
+    campo.type = oculta ? 'text' : 'password';
+    btn.querySelector('i').className = oculta ? 'fas fa-eye-slash' : 'fas fa-eye';
+    campo.focus();
+  });
+})();
+</script>
+{% endblock %}

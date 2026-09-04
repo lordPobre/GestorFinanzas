@@ -144,22 +144,45 @@
 <div class="grid-chart ancho-der" style="margin-bottom:16px">
 
   <div class="glass card" style="padding:22px" data-spot>
-    <div class="modal-title" style="font-size:15px;font-weight:500">Por qué ese número</div>
-    <div class="hint" style="font-size:11.5px;margin:3px 0 16px">Cada factor suma puntos de riesgo</div>
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:18px">
+      <div>
+        <div class="modal-title" style="font-size:15px;font-weight:500">Por qué ese número</div>
+        <div class="hint" style="font-size:11.5px;margin-top:3px">Cada factor suma puntos de riesgo</div>
+      </div>
+      <span class="badge badge-mute" style="flex-shrink:0">
+        {{ analisis.riesgo_factores|length }} factor{{ analisis.riesgo_factores|length|pluralize:"es" }}
+      </span>
+    </div>
 
-    <div style="display:flex;flex-direction:column;gap:10px">
+    {% comment %}
+      El peso se muestra con tres marcas, no con la palabra "bajo" en una
+      píldora: el color del icono ya decía lo mismo, así que la píldora
+      repetía información y no aportaba la idea de "suma puntos". Con las
+      marcas se ve de un vistazo cuánto pesa cada factor y cómo se comparan
+      entre ellos — es el mismo recurso que las cuotas de una compra.
+
+      El color va una sola vez, en --tono, y de ahí lo toman el icono, las
+      marcas y el borde. Así no hay que repetir el {% if %} en cada
+      elemento de la tarjeta.
+    {% endcomment %}
+    <div style="display:flex;flex-direction:column;gap:9px">
       {% for f in analisis.riesgo_factores %}
-      <div class="row" style="display:block;padding:15px;border-radius:17px">
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;flex-wrap:wrap">
-          <span class="icon-tile {% if f.peso == 'alto' %}coral{% elif f.peso == 'medio' %}orange{% else %}green{% endif %}"
-                style="width:26px;height:26px;border-radius:9px;flex-shrink:0">
-            <i class="fas {% if f.peso == 'alto' %}fa-triangle-exclamation{% elif f.peso == 'medio' %}fa-circle-exclamation{% else %}fa-circle-check{% endif %}" style="font-size:10px"></i>
+      <div style="--tono:{% if f.peso == 'alto' %}#e25c5c{% elif f.peso == 'medio' %}#ffaa2c{% else %}#53d258{% endif %};
+                  padding:15px 16px;border-radius:var(--r-md);background:var(--surface-2);
+                  border:1px solid rgba(255,255,255,.07);
+                  border-color:color-mix(in srgb, var(--tono) 30%, transparent)">
+        <div style="display:flex;align-items:center;gap:11px;margin-bottom:9px">
+          <span style="display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;flex-shrink:0;border-radius:10px;font-size:11px;color:var(--tono);background:rgba(255,255,255,.06);background:color-mix(in srgb, var(--tono) 15%, transparent)">
+            <i class="fas {% if f.peso == 'alto' %}fa-triangle-exclamation{% elif f.peso == 'medio' %}fa-circle-exclamation{% else %}fa-circle-check{% endif %}"></i>
           </span>
-          <span style="font-size:12.5px;font-weight:500;flex:1;min-width:110px">{{ f.factor }}</span>
-          <span class="badge {% if f.peso == 'alto' %}badge-coral{% elif f.peso == 'medio' %}badge-orange{% else %}badge-green{% endif %}"
-                style="font-size:9.5px">{{ f.peso }}</span>
+          <span style="flex:1;min-width:0;font-size:13px;font-weight:600;line-height:1.35">{{ f.factor }}</span>
+          <span style="display:flex;gap:3px;flex-shrink:0" title="Peso: {{ f.peso }}">
+            <span style="width:13px;height:4px;border-radius:100px;background:var(--tono)"></span>
+            <span style="width:13px;height:4px;border-radius:100px;background:{% if f.peso != 'bajo' %}var(--tono){% else %}var(--surface-3){% endif %}"></span>
+            <span style="width:13px;height:4px;border-radius:100px;background:{% if f.peso == 'alto' %}var(--tono){% else %}var(--surface-3){% endif %}"></span>
+          </span>
         </div>
-        <div class="hint" style="font-size:11.5px">{{ f.detalle }}</div>
+        <div style="font-size:11.5px;line-height:1.55;color:var(--text-secondary);text-wrap:pretty">{{ f.detalle }}</div>
       </div>
       {% endfor %}
     </div>

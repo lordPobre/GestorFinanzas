@@ -149,3 +149,71 @@ Traceback (most recent call last):
     factor, _ = SegundoFactor.objects.get_or_create(
                 ^^^^^^^^^^^^^
 NameError: name 'SegundoFactor' is not defined
+2026-09-03 16:09:56,093 ERROR django.request Internal Server Error: /login/
+Traceback (most recent call last):
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\core\handlers\base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\finanzas\views.py", line 2295, in entrar
+    return render(request, 'registration/login.html',
+                  {'form': AuthenticationForm()})
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\template\loader.py", line 62, in render_to_string
+    return template.render(context, request)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\template\backends\django.py", line 107, in render
+    return self.template.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\template\base.py", line 174, in render
+    return self._render(context)
+           ~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\template\base.py", line 166, in _render
+    return self.nodelist.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\template\base.py", line 1091, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\template\base.py", line 1052, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\template\loader_tags.py", line 160, in render
+    return compiled_parent._render(context)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\template\base.py", line 166, in _render
+    return self.nodelist.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\template\base.py", line 1091, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\template\base.py", line 1052, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\template\loader_tags.py", line 66, in render
+    result = block.nodelist.render(context)
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\template\base.py", line 1091, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\template\base.py", line 1052, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\template\defaulttags.py", line 511, in render
+    url = reverse(view_name, args=args, kwargs=kwargs, current_app=current_app)
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\urls\base.py", line 98, in reverse
+    resolved_url = resolver._reverse_with_prefix(view, prefix, *args, **kwargs)
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\urls\resolvers.py", line 842, in _reverse_with_prefix
+    raise NoReverseMatch(msg)
+django.urls.exceptions.NoReverseMatch: Reverse for 'recuperar' not found. 'recuperar' is not a valid view function or pattern name.
+2026-09-03 16:11:38,800 ERROR finanzas Mailgun devolvió 403: {"message":"Domain sandbox10012fbd2c274a3aafa1b4a4b9d13ee3.mailgun.org is not allowed to send: Free accounts are for test purposes only. Please upgrade or add the address to your authorized recipients."}
+
+2026-09-03 16:11:38,800 ERROR finanzas Reset solicitado para 1 pero el correo no salió
+2026-09-03 16:19:50,573 ERROR finanzas Mailgun devolvió 403: {"message":"Domain sandbox10012fbd2c274a3aafa1b4a4b9d13ee3.mailgun.org is not allowed to send: Free accounts are for test purposes only. Please upgrade or add the address to your authorized recipients."}
+
+2026-09-03 16:19:50,573 ERROR finanzas Reset solicitado para 1 pero el correo no salió
+2026-09-03 16:29:32,452 ERROR finanzas El proveedor de correo devolvió 403: error code: 1010
+
+2026-09-03 16:29:32,453 ERROR finanzas Reset solicitado para 1 pero el correo no salió
+2026-09-03 16:30:30,073 INFO finanzas Correo aceptado: 579e0910-bd7e-44de-8ea2-1b1d9bd738ab
+2026-09-03 17:17:25,203 INFO finanzas Correo aceptado: d2cb8deb-350c-4051-85d4-74dcb349fe88
+2026-09-03 17:19:42,387 INFO finanzas Correo aceptado: 57f386e2-4856-477a-8f13-b915d080d701
