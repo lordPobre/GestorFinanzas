@@ -16,6 +16,68 @@ from .models import Deuda, PagoCuota, Transaccion
 from .views import resumen_mes
 
 
+class ArrastreCuotasAtrasadasTests(TestCase):
+    """Una cuota impaga de un mes anterior tiene que pesar en el mes actual.
+
+    Antes no pesaba: cada mes contaba solo su propia cuota, así que dejar una
+    sin pagar la hacía desaparecer del cálculo y 'disponible' quedaba más
+    alto de lo real. El arrastre va SOLO al mes en curso — al navegar a un
+    mes pasado hay que verlo como fue.
+    """
+
+    def setUp(self):
+        self.usuario = User.objects.create_user('ana', password='x')
+        self.hoy = date.today()
+        # Una compra que empezó hace tres meses, sin ningún pago.
+        inicio = (self.hoy.replace(day=10) - timedelta(days=70)).replace(day=10)
+        self.deuda = Deuda.objects.create(
+            usuario=self.usuario, acreedor='Tienda',
+            monto_total=Decimal('300000'), cuotas_totales=6,
+            fecha_inicio=inicio,
+        )
+        Transaccion.objects.create(
+            usuario=self.usuario, tipo='INGRESO', monto=Decimal('1000000'),
+            categoria='Sueldo', fecha=self.hoy.replace(day=1),
+        )
+
+    def test_el_mes_actual_descuenta_las_cuotas_no_pagadas(self):
+        r = resumen_mes(self.usuario, self.hoy.year, self.hoy.month)
+        self.assertGreater(r['atrasado_arrastrado'], 0)
+        self.assertEqual(
+            len(r['cuotas_arrastradas']),
+            len([p for p in self.deuda.periodos_atrasados
+                 if p < self.hoy.year * 100 + self.hoy.month]),
+        )
+        # El disponible ya viene con el arrastre descontado.
+        esperado = (r['ingresos'] - r['gastos']
+                    - r['total_cuotas_mes'] - r['atrasado_arrastrado'])
+        self.assertAlmostEqual(r['disponible'], esperado, places=2)
+
+    def test_no_cuenta_dos_veces_la_cuota_del_mes_en_curso(self):
+        """periodos_atrasados incluye el mes actual si ya venció; ese ya está
+        en cuotas_pendientes y no debe sumarse otra vez."""
+        periodo_actual = self.hoy.year * 100 + self.hoy.month
+        r = resumen_mes(self.usuario, self.hoy.year, self.hoy.month)
+        self.assertTrue(all(c['periodo'] < periodo_actual
+                            for c in r['cuotas_arrastradas']))
+
+    def test_un_mes_pasado_no_arrastra_nada(self):
+        anterior = (self.hoy.replace(day=1) - timedelta(days=1))
+        r = resumen_mes(self.usuario, anterior.year, anterior.month)
+        self.assertEqual(r['atrasado_arrastrado'], 0)
+        self.assertEqual(r['cuotas_arrastradas'], [])
+
+    def test_pagar_la_cuota_atrasada_la_saca_del_arrastre(self):
+        antes = resumen_mes(self.usuario, self.hoy.year, self.hoy.month)
+        p = antes['cuotas_arrastradas'][0]['periodo']
+        PagoCuota.objects.create(deuda=self.deuda, periodo=p,
+                                 monto=self.deuda.monto_cuota_de(p))
+        despues = resumen_mes(self.usuario, self.hoy.year, self.hoy.month)
+        self.assertLess(despues['atrasado_arrastrado'],
+                        antes['atrasado_arrastrado'])
+        self.assertGreater(despues['disponible'], antes['disponible'])
+
+
 class MontoCuotaDeTests(TestCase):
     """La última cuota debe absorber el residuo del redondeo, siempre."""
 

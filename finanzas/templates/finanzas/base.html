@@ -3,7 +3,6 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  {# El color de la barra del navegador en móvil: el fondo real de la app. #}
   <meta name="theme-color" content="#191919">
   <title>{% block title %}FinApp{% endblock %}</title>
 
@@ -17,8 +16,6 @@
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="FinApp">
-  {# black-translucent deja que el fondo suba bajo la isla dinámica;
-     el padding lo resuelve viewport-fit=cover + safe-area en el CSS. #}
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="format-detection" content="telephone=no">
 
@@ -475,6 +472,11 @@
           <div class="label" style="margin-bottom:6px;text-align:center">Monto</div>
           <div class="amount-display" id="montoView" style="color:var(--coral)">$0</div>
 
+          <div id="avisoMonto" role="alert" aria-live="polite"
+               style="display:none;text-align:center;margin-top:8px;font-size:12.5px;font-weight:600;color:var(--coral)">
+            Escribe un monto para continuar
+          </div>
+
           <div class="keypad" data-keypad data-target="#campoMonto" data-display="#montoView">
             <button type="button" data-key="1">1</button><button type="button" data-key="2">2</button><button type="button" data-key="3">3</button>
             <button type="button" data-key="4">4</button><button type="button" data-key="5">5</button><button type="button" data-key="6">6</button>
@@ -620,15 +622,23 @@
   });
 
   document.querySelectorAll('[data-preset-tipo]').forEach(function (btn) {
-    btn.addEventListener('click', function () { setTipo(btn.dataset.presetTipo); });
+    btn.addEventListener('click', function () {
+      setTipo(btn.dataset.presetTipo);
+      // Al reabrir el panel el aviso de la vez anterior no debe seguir ahí.
+      var av = document.getElementById('avisoMonto');
+      if (av) av.style.display = 'none';
+    });
   });
 
   /* El teclado propio del panel: no depende de finapp.js, para que el
      monto quede escrito en el input del form pase lo que pase. */
   var teclado = form.querySelector('.keypad');
+  var avisoMonto = document.getElementById('avisoMonto');
   var valor = '';
   function pintarMonto() {
     campoMonto.value = valor;
+    // Al escribir el primer dígito el aviso sobra: ya se corrigió.
+    if (valor && avisoMonto) avisoMonto.style.display = 'none';
     montoView.textContent = valor ? '$' + Number(valor).toLocaleString('es-CL') : '$0';
     var prev = document.querySelector('[data-preview]');
     if (prev) {
@@ -654,6 +664,9 @@
   form.addEventListener('submit', function (e) {
     if (!Number(campoMonto.value || 0)) {
       e.preventDefault();
+      // El pulso solo se entiende si ya sabes cuál era el problema. El
+      // texto lo dice; el pulso lleva la vista hasta él.
+      if (avisoMonto) avisoMonto.style.display = 'block';
       montoView.style.transition = 'transform .12s';
       montoView.style.transform = 'scale(1.08)';
       montoView.style.color = 'var(--coral)';

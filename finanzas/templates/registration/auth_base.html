@@ -5,9 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#191919">
   <title>{% block title %}Entrar · FinApp{% endblock %}</title>
-
-  {# Mismos meta de app instalable que base.html: si el usuario abre la app
-     ya guardada y la sesión caducó, el login también debe verse sin barra. #}
   <link rel="manifest" href="{% static 'site.webmanifest' %}">
   <meta name="application-name" content="FinApp">
   <meta name="mobile-web-app-capable" content="yes">
@@ -15,16 +12,12 @@
   <meta name="apple-mobile-web-app-title" content="FinApp">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="format-detection" content="telephone=no">
-
-  {# Favicon: SVG con respaldo PNG, igual que en base.html. #}
   <link rel="icon" type="image/svg+xml" href="{% static 'img/favicon.svg' %}">
   <link rel="alternate icon" href="{% static 'img/favicon.png' %}">
   <link rel="apple-touch-icon" href="{% static 'img/favicon-180.png' %}">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  {# Solo las dos familias que la app usa de verdad. Antes se cargaban
-     Sora, DM Sans y DM Mono, que no aparecen en ninguna regla del CSS. #}
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
   <link rel="stylesheet" href="{% static 'css/finapp.css' %}">

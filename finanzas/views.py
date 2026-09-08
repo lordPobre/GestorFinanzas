@@ -22,6 +22,7 @@ from django.utils import timezone
 from django.views.decorators.cache import cache_control
 
 from .forms import DeudaForm, MetaAhorroForm, TransaccionForm
+from . import exportar
 from .seguridad import (MAX_INTENTOS as MAX_INTENTOS_LOGIN, _ip, esta_bloqueado,
                         limitar, limpiar_intentos, registrar_fallo)
 from .models import (AbonoPrestamo, AporteMeta, Categoria, CodigoRespaldo, Deuda, GastoPendiente,
@@ -202,7 +203,35 @@ def resumen_mes(usuario, year, month):
         else:
             servicios_pendientes += monto
 
-    comprometido = gastos + total_cuotas
+    # Cuotas de meses ANTERIORES que nadie pagó.
+    #
+    # Hasta acá el mes solo contaba su propia cuota, así que una cuota impaga
+    # simplemente desaparecía al pasar de mes y "puedes gastar" quedaba
+    # optimista: la plata seguía debiéndose y el número no la veía.
+    #
+    # Se arrastra SOLO al mes en curso. Al navegar a un mes pasado hay que
+    # verlo como fue, no reescrito con lo que se debe hoy; si se arrastrara
+    # a todos, la misma cuota aparecería sumada en cada mes posterior.
+    atrasado_arrastrado = 0.0
+    cuotas_arrastradas = []
+    if (year, month) == (hoy.year, hoy.month):
+        for d in deudas:
+            for p in d.periodos_atrasados:
+                # periodos_atrasados incluye el mes en curso si su fecha de
+                # cobro ya pasó, y ese ya está en cuotas_pendientes.
+                if p >= periodo:
+                    continue
+                monto_p = float(d.monto_cuota_de(p))
+                atrasado_arrastrado += monto_p
+                cuotas_arrastradas.append({
+                    'deuda': d,
+                    'periodo': p,
+                    'monto': monto_p,
+                    'etiqueta': nombre_mes_es(p // 100, p % 100),
+                })
+    cuotas_arrastradas.sort(key=lambda c: c['periodo'])
+
+    comprometido = gastos + total_cuotas + atrasado_arrastrado
     disponible = ingresos - comprometido
 
     # Días que quedan del mes. Si se está mirando un mes pasado o futuro,
@@ -227,6 +256,10 @@ def resumen_mes(usuario, year, month):
         'servicios_pagados_mes': servicios_pagados,
         'servicios_pendientes_mes': servicios_pendientes,
         'total_servicios_mes': servicios_pagados + servicios_pendientes,
+        # Deuda de meses anteriores que pesa sobre este mes. Vacío cuando se
+        # mira un mes que no es el actual.
+        'atrasado_arrastrado': atrasado_arrastrado,
+        'cuotas_arrastradas': cuotas_arrastradas,
         'comprometido': comprometido,
         'disponible': disponible,
         'dias_restantes': dias_restantes,
@@ -855,6 +888,12 @@ def dashboard(request):
                              if r['gastos'] else 0),
         'total_comprometido_mes': round(r['comprometido']),
         'disponible': round(r['disponible']),
+
+        # Cuotas de meses anteriores sin pagar. Ya están descontadas de
+        # 'disponible'; esto es para la franja de aviso del dashboard.
+        'atrasado_arrastrado': round(r['atrasado_arrastrado']),
+        'cuotas_arrastradas': r['cuotas_arrastradas'],
+        'n_cuotas_arrastradas': len(r['cuotas_arrastradas']),
         'deuda_total': round(deuda_total),
 
         # Deuda en cuotas, vista completa
@@ -1527,9 +1566,16 @@ def detalle_persona(request, persona_id):
     Pasa también la lista completa de personas para que la columna izquierda
     siga visible y se pueda cambiar de persona sin volver atrás.
     """
-    persona = get_object_or_404(Persona, id=persona_id, usuario=request.user)
     personas = list(Persona.objects.filter(usuario=request.user)
                     .prefetch_related('prestamos__abonos'))
+
+    # La persona se toma de la lista que ya se trajo con prefetch, no con un
+    # get_object_or_404 aparte. Con la consulta separada, persona.prestamos y
+    # los abonos de cada préstamo no tenían caché y se consultaban de nuevo,
+    # uno por préstamo, para pintar la misma pantalla.
+    persona = next((p for p in personas if p.id == persona_id), None)
+    if persona is None:
+        raise Http404('Persona no encontrada')
 
     context = {
         'persona': persona,
@@ -2848,13 +2894,42 @@ def perfil(request):
 
 @login_required(login_url='/login/')
 def exportar_excel(request):
+    """Movimientos en Excel, agrupados por mes y con formato.
+
+    Si openpyxl no está instalado devuelve el CSV en su lugar en vez de
+    reventar con un 500: el botón del perfil es el mismo, y en un hosting
+    donde falte la librería es mejor entregar el archivo crudo que nada.
+    """
+    hoy = timezone.localdate()
+    cuenta = request.user.get_username()
+
+    try:
+        contenido = exportar.libro_excel(request.user, cuenta, hoy)
+    except ImportError:
+        return exportar_csv(request)
+
+    response = HttpResponse(
+        contenido,
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    )
+    archivo = f'FinApp_movimientos_{hoy:%Y-%m-%d}.xlsx'
+    response['Content-Disposition'] = f'attachment; filename="{archivo}"'
+    return response
+
+
+@login_required(login_url='/login/')
+def exportar_csv(request):
+    """El mismo contenido en texto plano, para quien quiera el archivo crudo.
+
+    Un CSV no admite color, negrita ni ancho de columna: las bandas de mes
+    son filas de texto y los subtotales, filas normales.
+    """
+    hoy = timezone.localdate()
     response = HttpResponse(content_type='text/csv; charset=utf-8-sig')
-    response['Content-Disposition'] = 'attachment; filename="Mis_Finanzas.csv"'
-    writer = csv.writer(response, delimiter=';')
-    writer.writerow(['Fecha', 'Tipo', 'Categoria', 'Descripcion', 'Monto ($)'])
-    for t in Transaccion.objects.filter(usuario=request.user).order_by('-fecha'):
-        writer.writerow([t.fecha.strftime('%d/%m/%Y'), t.get_tipo_display(),
-                         t.categoria, t.descripcion, int(t.monto)])
+    archivo = f'FinApp_movimientos_{hoy:%Y-%m-%d}.csv'
+    response['Content-Disposition'] = f'attachment; filename="{archivo}"'
+    exportar.escribir_csv(csv.writer(response, delimiter=';'),
+                          request.user, request.user.get_username(), hoy)
     return response
 
 

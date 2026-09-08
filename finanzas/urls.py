@@ -55,6 +55,7 @@ urlpatterns = [
     path('gasto-pendiente/eliminar/<int:gasto_id>/', views.eliminar_gasto_pendiente, name='eliminar_gasto_pendiente'),
 
     path('exportar/', views.exportar_excel, name='exportar_excel'),
+    path('exportar/csv/', views.exportar_csv, name='exportar_csv'),
 
     path('suscripciones/', views.suscripciones, name='suscripciones'),
     path('suscripciones/nueva/', views.crear_suscripcion, name='crear_suscripcion'),

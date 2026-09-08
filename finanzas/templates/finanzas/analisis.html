@@ -6,11 +6,12 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 {% endblock %}
 
-{% block topbar_left %}
-<div>
-  <div class="label" style="color:var(--amber)">Sobre tus últimos 3 meses</div>
-</div>
-{% endblock %}
+{% comment %}
+  Solo la segunda línea de la píldora del saludo. Pisar "topbar_left" entero
+  dejaba una etiqueta de 10px suelta, sin avatar ni superficie, al lado de la
+  barra de búsqueda.
+{% endcomment %}
+{% block topbar_sub %}Sobre tus últimos 3 meses{% endblock %}
 
 
 
@@ -112,30 +113,29 @@
 </div>
 
 {# ============ Interpretación IA (bajo demanda) ============ #}
-<div class="glass card" style="padding:22px;margin-bottom:16px;display:none" id="cajaIA" data-spot>
-  <div style="display:flex;align-items:center;gap:10px;margin-bottom:15px">
-    <span class="icon-tile"><i class="fas fa-wand-magic-sparkles"></i></span>
-    <div class="modal-title" style="font-size:15px;font-weight:500">En palabras simples</div>
+<div class="glass card ia-card" style="padding:22px;margin-bottom:16px;display:none" id="cajaIA" data-spot>
+  <div class="ia-head">
+    <span class="ia-tile"><i class="fas fa-lightbulb"></i></span>
+    <div class="ia-titulo">En palabras simples</div>
   </div>
 
   <div class="hint" style="font-size:13px;line-height:1.7" id="iaEstado">Leyendo tus números…</div>
 
   <div id="iaContenido" style="display:none">
-    <div style="font-size:13.5px;line-height:1.65;color:var(--text-primary);text-wrap:pretty" id="iaDiagnostico"></div>
+    <div class="ia-diag" id="iaDiagnostico"></div>
 
-    <div id="iaBloqueRecs" style="margin-top:18px;display:none">
-      <div class="label" style="margin-bottom:10px">Qué hacer</div>
-      <div style="display:flex;flex-direction:column;gap:9px" id="iaRecs"></div>
+    <div id="iaBloqueRecs" style="margin-top:22px;display:none">
+      <div class="ia-label">Qué hacer</div>
+      <div style="display:flex;flex-direction:column;gap:10px" id="iaRecs"></div>
     </div>
 
-    <div id="iaBloqueProy" style="margin-top:18px;display:none">
-      <div class="label" style="margin-bottom:8px">Si mantienes el ritmo</div>
-      <div class="hint" style="font-size:12.5px;line-height:1.6" id="iaProyeccion"></div>
+    <div id="iaBloqueProy" style="margin-top:22px;display:none">
+      <div class="ia-label">Si mantienes el ritmo</div>
+      <div class="ia-proy" id="iaProyeccion"></div>
     </div>
 
-    <div id="iaBloqueMotiv" class="glass-purple"
-         style="margin-top:18px;padding:14px 16px;border-radius:15px;display:none">
-      <div style="font-size:12.5px;line-height:1.6;color:var(--amber-claro);text-wrap:pretty" id="iaMotivacional"></div>
+    <div id="iaBloqueMotiv" class="ia-cierre" style="margin-top:20px;display:none">
+      <div class="ia-cierre-txt" id="iaMotivacional"></div>
     </div>
   </div>
 </div>
@@ -481,14 +481,12 @@
     cajaRecs.innerHTML = '';
     recs.forEach(function (r, i) {
       var fila = document.createElement('div');
-      fila.className = 'row';
-      fila.style.cssText = 'align-items:flex-start;padding:13px 15px';
+      fila.className = 'ia-rec';
       var num = document.createElement('span');
-      num.className = 'icon-tile';
-      num.style.cssText = 'width:24px;height:24px;border-radius:8px;font-size:11px;font-weight:600;flex-shrink:0';
+      num.className = 'ia-rec-num';
       num.textContent = i + 1;
       var txt = document.createElement('div');
-      txt.style.cssText = 'font-size:12.5px;line-height:1.6;flex:1;text-wrap:pretty';
+      txt.className = 'ia-rec-txt';
       txt.textContent = r;
       fila.appendChild(num);
       fila.appendChild(txt);

@@ -53,9 +53,32 @@
   ámbar del saldo; las otras dos son los números que en esta app pesan
   igual — lo que debes y lo que te deben.
 {% endcomment %}
+{% comment %}
+  Cuotas de meses anteriores que siguen impagas.
+
+  Va arriba de las tarjetas y no dentro de una: el monto ya está descontado
+  de "puedes gastar", así que si no se dice en alguna parte, el usuario ve
+  una cifra más baja sin explicación. Solo aparece en el mes en curso.
+{% endcomment %}
+{% if atrasado_arrastrado %}
+<a href="{% url 'deudas' %}" class="aviso-atraso">
+  <span class="aviso-atraso-icono"><i class="fas fa-triangle-exclamation"></i></span>
+  <span style="flex:1;min-width:0">
+    <span style="display:block;font-size:14px;font-weight:700;letter-spacing:-.01em">
+      {{ atrasado_arrastrado|money }} de cuotas que no pagaste
+    </span>
+    <span style="display:block;font-size:12px;line-height:1.45;margin-top:2px;color:var(--text-muted)">
+      {% for c in cuotas_arrastradas|slice:":3" %}{{ c.deuda.acreedor }}, {{ c.etiqueta|lower }}{% if not forloop.last %} · {% endif %}{% endfor %}{% if n_cuotas_arrastradas > 3 %} · y {{ n_cuotas_arrastradas|add:"-3" }} más{% endif %}.
+      Se sumaron a este mes y ya están descontadas de lo que puedes gastar.
+    </span>
+  </span>
+  <i class="fas fa-chevron-right" style="font-size:12px;color:var(--text-muted);flex-shrink:0"></i>
+</a>
+{% endif %}
+
 <div class="balance-carrusel" data-carrusel>
 
-  <div class="balance-card">
+  <a href="{% url 'estadisticas' %}" class="balance-card" data-tarjeta-link>
     <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px">
       <div>
         <div style="font-size:17px;font-weight:700;letter-spacing:-.02em">
@@ -63,9 +86,6 @@
         </div>
         <div class="label" style="margin-top:2px">{{ hoy_texto|default:nombre_mes }}</div>
       </div>
-      <a href="{% url 'estadisticas' %}" class="balance-mas" style="font-size:15px" title="Ver detalle">
-        <i class="fas fa-ellipsis"></i>
-      </a>
     </div>
 
     <div class="display" style="font-size:32px;margin:18px 0 0">
@@ -77,21 +97,18 @@
         {{ por_dia|money }} por día · quedan {{ dias_restantes }} días
       </div>
     </div>
-  </div>
+  </a>
 
   {% comment %}
     Coral: es plata que sale. El color identifica la tarjeta, así que se
     mantiene aunque el monto sea cero.
   {% endcomment %}
-  <div class="balance-card deuda" data-spot>
+  <a href="{% url 'deudas' %}" class="balance-card deuda" data-spot data-tarjeta-link>
     <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px">
       <div>
         <div style="font-size:17px;font-weight:700;letter-spacing:-.02em">Debes en cuotas</div>
         <div class="label" style="margin-top:2px">{{ mis_cuotas|length }} compra{{ mis_cuotas|length|pluralize:"s" }} a plazo</div>
       </div>
-      <a href="{% url 'deudas' %}" class="balance-mas" style="font-size:15px" title="Ver cuotas">
-        <i class="fas fa-ellipsis"></i>
-      </a>
     </div>
     {% comment %}
       La cuota del mes en grande, el total debajo. Es lo que hay que pagar
@@ -105,21 +122,18 @@
       {% if total_cuotas_mes %}a pagar este mes · {% endif %}{{ deuda_total|money }} de deuda restante
       {% if cuotas_atrasadas %} · {{ cuotas_atrasadas }} atrasada{{ cuotas_atrasadas|pluralize:"s" }}{% endif %}
     </div>
-  </div>
+  </a>
 
   {% comment %}
     Verde: es plata que vuelve. Mismo tratamiento que la ámbar, distinto
     color, para que las tres se lean como la misma familia.
   {% endcomment %}
-  <div class="balance-card cobrar" data-spot>
+  <a href="{% url 'prestamos' %}" class="balance-card cobrar" data-spot data-tarjeta-link>
     <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px">
       <div>
         <div style="font-size:17px;font-weight:700;letter-spacing:-.02em">Te deben</div>
         <div class="label" style="margin-top:2px">{{ prestamos_activos }} préstamo{{ prestamos_activos|pluralize:"s" }} activo{{ prestamos_activos|pluralize:"s" }}</div>
       </div>
-      <a href="{% url 'prestamos' %}" class="balance-mas" style="font-size:15px" title="Ver préstamos">
-        <i class="fas fa-ellipsis"></i>
-      </a>
     </div>
     {% comment %}
       money y no intcomma: intcomma usa el separador de miles del locale
@@ -132,7 +146,7 @@
     <div class="balance-pie" style="font-size:11.5px;margin-top:16px">
       No cuenta en tu balance hasta que te paguen
     </div>
-  </div>
+  </a>
 </div>
 
 <div class="balance-dots" data-dots>
@@ -1138,6 +1152,34 @@
       chart.update();
     });
   }
+})();
+
+/* ============================================================
+   Tarjetas de saldo: no navegar cuando el gesto fue un deslizamiento.
+
+   Bajo 900px las tres tarjetas son un carrusel con scroll nativo. Ahora la
+   tarjeta entera es un enlace, y arrastrar para pasar a la siguiente termina
+   con el dedo levantado encima de un <a>: el navegador lo toma como clic y
+   te saca de la pantalla sin que lo hayas pedido.
+
+   La guardia mide cuánto se movió el puntero entre pointerdown y el clic.
+   Más de 10px es un deslizamiento, no un toque.
+   ============================================================ */
+(function () {
+  var x0 = 0, y0 = 0;
+  document.addEventListener('pointerdown', function (e) {
+    x0 = e.clientX; y0 = e.clientY;
+  }, true);
+
+  document.querySelectorAll('[data-tarjeta-link]').forEach(function (a) {
+    a.addEventListener('click', function (e) {
+      var dx = Math.abs(e.clientX - x0);
+      var dy = Math.abs(e.clientY - y0);
+      // clientX 0/0 es un clic de teclado (Enter): ese sí debe pasar.
+      if (e.detail === 0) return;
+      if (dx > 10 || dy > 10) e.preventDefault();
+    });
+  });
 })();
 </script>
 {% endblock %}

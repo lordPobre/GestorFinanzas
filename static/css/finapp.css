@@ -116,7 +116,37 @@ h1, h2, h3, h4 { margin: 0; font-weight: 700; letter-spacing: -.015em; }
 .label + .chips, .label + .seg, .label + .keypad,
 .field > .label + * { margin-top: 8px; }
 .hint { font-size: 12.5px; color: var(--text-secondary); line-height: 1.55; }
-.page-title { font-family: 'Manrope', sans-serif; font-size: 22px; font-weight: 800; letter-spacing: -.025em; }
+
+/* El título de pantalla: 22px con -.025em quedaba al mismo peso óptico que
+   los títulos de sección de 17px que vienen después. Sube a 27px y cierra
+   el tracking, para que el escalón se lea.
+
+   La marca ámbar al canto es lo que le da presentación al bloque: va en el
+   título y no en un contenedor, así alcanza a todas las pantallas sin
+   depender de cómo esté armado el encabezado de cada una. */
+.page-title {
+  position: relative;
+  font-family: 'Manrope', sans-serif;
+  font-size: 27px; font-weight: 800; letter-spacing: -.03em;
+  line-height: 1.12; text-wrap: balance;
+  padding-left: 16px;
+}
+.page-title::before {
+  content: ''; position: absolute; left: 0; top: .17em; bottom: .17em;
+  width: 4px; border-radius: 100px;
+  background: linear-gradient(var(--amber-claro), var(--amber-oscuro));
+  box-shadow: 0 0 14px -2px rgba(255, 170, 44, .6);
+}
+
+/* La bajada entra a la misma sangría que el título y con medida corta: así
+   las dos líneas se leen como un bloque y no como dos textos sueltos. A
+   ancho completo la bajada pasaba de 100 caracteres por línea. */
+.page-title + .hint,
+div:has(> .page-title) + .hint {
+  padding-left: 16px; margin-top: 8px;
+  font-size: 13.5px; line-height: 1.6;
+  max-width: 64ch; text-wrap: pretty;
+}
 .hero-line { font-size: 20px; font-weight: 600; line-height: 1.35; letter-spacing: -.015em; }
 .hero-line b { font-weight: 800; color: var(--amber); }
 .stat-value { font-family: 'Manrope', sans-serif; font-size: 26px; font-weight: 800; letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
@@ -219,6 +249,44 @@ h1, h2, h3, h4 { margin: 0; font-weight: 700; letter-spacing: -.015em; }
 .balance-card.deuda .balance-mas { color: rgba(43, 6, 6, .5); }
 .balance-card.cobrar .balance-mas { color: rgba(4, 41, 29, .5); }
 .balance-card .balance-mas:hover { filter: brightness(.7); }
+
+/* Antes el único enlace era el "…" de la esquina: la tarjeta entera se veía
+   pulsable pero no lo era. Ahora la tarjeta ES el enlace y el "…" sobra.
+   Estas reglas solo neutralizan lo que el navegador le pone a un <a>. */
+.balance-card {
+  display: block; text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
+}
+a.balance-card:hover { filter: brightness(1.04); }
+/* La tinta oscura tiene que ganarle a la regla global de enlaces:
+   `a:hover { color: var(--amber-claro) }` pesa más que `.balance-card`, así
+   que sin esto el título se aclaraba al pasar el puntero. */
+a.balance-card,
+a.balance-card:hover { color: #1a1200; }
+a.balance-card.deuda,
+a.balance-card.deuda:hover { color: #2b0606; }
+a.balance-card.cobrar,
+a.balance-card.cobrar:hover { color: #04291d; }
+a.balance-card:active { transform: scale(.99); }
+a.balance-card:focus-visible {
+  outline: 2px solid var(--text-primary); outline-offset: 3px;
+}
+
+/* Aviso de cuotas de meses anteriores sin pagar. Discreto a propósito: el
+   monto ya se descontó del saldo, esto explica por qué, no alarma. */
+.aviso-atraso {
+  display: flex; align-items: flex-start; gap: 12px;
+  padding: 13px 16px; margin: 0 0 14px;
+  border-radius: var(--r-lg); text-decoration: none;
+  background: var(--bg-elev); border: 1px solid rgba(226, 92, 92, .3);
+  color: var(--text-primary);
+}
+.aviso-atraso:hover { border-color: rgba(226, 92, 92, .55); }
+.aviso-atraso-icono {
+  flex-shrink: 0; width: 30px; height: 30px; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(226, 92, 92, .16); color: var(--coral); font-size: 13px;
+}
 
 /* La nota al pie, sobre fondo saturado. */
 .balance-card .balance-pie { color: rgba(26, 18, 0, .68); font-weight: 600; }
@@ -640,7 +708,9 @@ h1, h2, h3, h4 { margin: 0; font-weight: 700; letter-spacing: -.015em; }
 
 .swipe-mov .swipe-card {
   display: flex; align-items: center; gap: 13px;
-  padding: 13px 4px 13px 10px;
+  /* 16px a la derecha: con 4px el monto quedaba pegado al canto de la fila
+     y se leía como recortado. */
+  padding: 13px 16px 13px 10px;
   background: transparent; border: none; border-radius: 0;
   /* Quieto: desplazar la fila es lo que recortaba el icono contra el borde
      del panel. */
@@ -732,8 +802,10 @@ h1, h2, h3, h4 { margin: 0; font-weight: 700; letter-spacing: -.015em; }
 
 .meta-cuerpo { flex: 1; min-width: 0; display: block; }
 .meta-linea {
-  display: flex; align-items: baseline; justify-content: space-between;
-  gap: 12px; margin-bottom: 8px;
+  /* Centrado óptico, no por línea base: con el monto a 17px/800 contra un
+     nombre de 13px, alinear las bases dejaba la cifra flotando arriba. */
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 12px; margin-bottom: 9px;
 }
 .meta-nombre {
   font-size: 13px; font-weight: 600;
@@ -755,6 +827,43 @@ h1, h2, h3, h4 { margin: 0; font-weight: 700; letter-spacing: -.015em; }
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 .meta-flecha { font-size: 11px; color: var(--text-muted); flex-shrink: 0; }
+
+/* --- Barra de avance de la meta ---
+   Se rellena al entrar (revelado por clip, no por escala: escalar deforma
+   el radio de las puntas) y lleva un brillo que recorre lo ya ahorrado, así
+   se distingue de una barra estática pintada. */
+.meta-fila .progress-bar {
+  display: block;
+  background: rgba(255, 255, 255, .07);
+  border-radius: 100px; overflow: hidden;
+}
+.meta-fila .progress-fill {
+  position: relative;
+  /* Al 1% de un millón el relleno medía menos de un píxel y la barra se
+     leía como vacía. Ocho píxeles siempre dejan ver el color de la meta. */
+  min-width: 8px;
+  animation: meta-revelar 1s var(--ease-out) both;
+}
+.meta-fila .progress-fill::after {
+  content: ''; position: absolute; inset: 0; border-radius: inherit;
+  background: linear-gradient(100deg,
+    transparent 20%, rgba(255, 255, 255, .5) 50%, transparent 80%);
+  animation: meta-brillo 2.6s 1s cubic-bezier(.5, 0, .5, 1) infinite;
+}
+
+@keyframes meta-revelar {
+  from { clip-path: inset(0 100% 0 0); }
+  to   { clip-path: inset(0 0 0 0); }
+}
+@keyframes meta-brillo {
+  0%      { transform: translateX(-105%); }
+  55%,
+  100%    { transform: translateX(105%); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .meta-fila .progress-fill { animation: none; }
+  .meta-fila .progress-fill::after { animation: none; opacity: 0; }
+}
 
 /* Compatibilidad con el marcado anterior. */
 .metas-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
@@ -954,6 +1063,9 @@ h1, h2, h3, h4 { margin: 0; font-weight: 700; letter-spacing: -.015em; }
 
 /* ===== Barras de progreso ===== */
 .progress-bar {
+  /* display:block explícito: en las metas la barra es un <span>, y sobre una
+     caja inline el alto y el overflow no se aplican — la barra medía cero. */
+  display: block;
   height: 7px; border-radius: 100px; overflow: hidden;
   background: var(--surface-3);
 }
@@ -1133,9 +1245,20 @@ label { display: block; }
 }
 .section-head:first-child { margin-top: 0; }
 .section-title {
+  position: relative;
   font-family: 'Manrope', sans-serif; font-size: 17px; font-weight: 800;
   letter-spacing: -.02em; color: var(--text-primary); margin: 0;
+  /* La misma marca ámbar del título de pantalla, a escala: 3px y 12px de
+     sangría contra los 4 y 16 del título grande. El bloque de sección queda
+     con el mismo gesto que el encabezado, un escalón más abajo. */
+  padding-left: 12px;
   min-width: 0;
+}
+.section-title::before {
+  content: ''; position: absolute; left: 0; top: .19em; bottom: .19em;
+  width: 3px; border-radius: 100px;
+  background: linear-gradient(var(--amber-claro), var(--amber-oscuro));
+  box-shadow: 0 0 11px -2px rgba(255, 170, 44, .55);
 }
 /* "Ver mas" a la derecha, en ámbar — el patrón de la referencia */
 .section-sub {
@@ -2237,7 +2360,10 @@ select:focus-visible, textarea:focus-visible, [tabindex]:focus-visible {
   .fab-group .fab { display: flex; }
   .grid-metrics { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
   .hide-mobile, .solo-medio, .solo-ancho { display: none !important; }
-  .page-title { font-size: 19px; }
+  .page-title { font-size: 21px; padding-left: 13px; }
+  .page-title::before { width: 3.5px; }
+  .page-title + .hint,
+  div:has(> .page-title) + .hint { padding-left: 13px; font-size: 13px; margin-top: 7px; }
   .stat-value { font-size: 22px; }
   .card, .card-lg { padding: 18px; }
   .modal-box { padding: 20px; border-radius: var(--r-lg); }
@@ -2357,7 +2483,7 @@ select:focus-visible, textarea:focus-visible, [tabindex]:focus-visible {
   .main { padding-bottom: calc(66px + 40px + env(safe-area-inset-bottom)); }
 
   /* Las secciones se ven como en la plantilla: título grande, "Ver mas" */
-  .section-title { font-size: 19px; }
+  .section-title { font-size: 19px; padding-left: 11px; }
   .section-head { margin: 24px 0 12px; }
 
   /* El divisor arranca tras el icono, que en móvil es más pequeño. */
@@ -2365,7 +2491,7 @@ select:focus-visible, textarea:focus-visible, [tabindex]:focus-visible {
 
   /* Filas más compactas: con las acciones tras el gesto sobra el aire que
      antes necesitaban los botones. */
-  .swipe-mov .swipe-card { gap: 11px; padding: 12px 2px 12px 8px; }
+  .swipe-mov .swipe-card { gap: 11px; padding: 12px 14px 12px 8px; }
   .mov-list .icon-tile, .mov-list .marca-tile { width: 34px; height: 34px; font-size: 13px; }
   .mov-monto { font-size: 12.5px; }
 
@@ -2377,6 +2503,138 @@ select:focus-visible, textarea:focus-visible, [tabindex]:focus-visible {
   .meta-monto { font-size: 15px; }
   .meta-linea { gap: 9px; margin-bottom: 7px; }
   .meta-pie { font-size: 10px; margin-top: 6px; }
+}
+
+/* ===== Interpretación IA =====
+   La tarjeta tenía todo entre 12,5 y 13,5px: diagnóstico, recomendaciones,
+   proyección y cierre pesaban lo mismo y el bloque se leía como un muro.
+   Ahora hay tres voces — el diagnóstico manda a 16px, las instrucciones
+   bajan a 13,5 dentro de su propia superficie, y el cierre vuelve a subir
+   en ámbar. Los números van tabulares en las tres: el texto viene lleno de
+   importes y sin eso las cifras bailan de línea a línea. */
+
+.ia-head { display: flex; align-items: center; gap: 13px; margin-bottom: 18px; }
+.ia-titulo {
+  font-size: 16px; font-weight: 700; letter-spacing: -.015em;
+  color: var(--text-primary);
+}
+
+/* La tarjeta era una masa gris uniforme. Un resplandor ámbar muy bajo en la
+   esquina superior derecha le da dirección a la luz y ata el bloque al
+   acento de la app, sin teir el texto ni bajarle contraste. */
+.ia-card { position: relative; overflow: hidden; }
+.ia-card::after {
+  content: ''; position: absolute; top: -60px; right: -40px;
+  width: 260px; height: 260px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 170, 44, .13), transparent 68%);
+  pointer-events: none;
+}
+.ia-card > * { position: relative; z-index: 1; }
+
+/* La ficha del icono, en ámbar y con un halo: es el único punto de color
+   antes del primer párrafo, y en blanco quedaba como un botón suelto. */
+.ia-tile {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 38px; height: 38px; flex-shrink: 0;
+  border-radius: 13px; font-size: 16px;
+  color: var(--amber);
+  background: linear-gradient(150deg, rgba(255, 170, 44, .26), rgba(255, 170, 44, .1));
+  border: 1px solid rgba(255, 170, 44, .3);
+  box-shadow: 0 0 0 1px rgba(255, 170, 44, .06),
+              0 6px 18px -6px rgba(255, 170, 44, .45);
+}
+
+.ia-diag {
+  font-size: 16px; line-height: 1.62; letter-spacing: -.005em;
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+  text-wrap: pretty;
+}
+
+/* La etiqueta de sección arrastra una línea hasta el borde: separa los
+   bloques sin gastar 18px de margen en cada uno. */
+.ia-label {
+  display: flex; align-items: center; gap: 10px;
+  font-size: 10px; font-weight: 700; letter-spacing: .16em;
+  text-transform: uppercase; color: rgba(245, 245, 245, .55);
+  margin-bottom: 13px;
+}
+/* Un punto ámbar abre la etiqueta y la línea la cierra: el gris solo se
+   perdía contra el fondo. */
+.ia-label::before {
+  content: ''; width: 5px; height: 5px; border-radius: 50%;
+  background: var(--amber); flex-shrink: 0;
+  box-shadow: 0 0 8px rgba(255, 170, 44, .7);
+}
+.ia-label::after {
+  content: ''; flex: 1; height: 1px;
+  background: linear-gradient(to right, rgba(255, 170, 44, .22), var(--line) 40%);
+}
+
+.ia-rec {
+  display: flex; align-items: flex-start; gap: 13px;
+  padding: 15px 17px; border-radius: var(--r-md);
+  /* Un degradado apenas perceptible más una luz de canto arriba: el
+     rectángulo plano de --surface-2 era lo que se sentía apagado. */
+  background: linear-gradient(158deg, rgba(255, 255, 255, .045), rgba(255, 255, 255, .012));
+  border: 1px solid var(--line);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .05);
+  animation: ia-entra .5s var(--ease-out) both;
+}
+.ia-rec:nth-child(2) { animation-delay: .07s; }
+.ia-rec:nth-child(3) { animation-delay: .14s; }
+.ia-rec:nth-child(4) { animation-delay: .21s; }
+.ia-rec:nth-child(5) { animation-delay: .28s; }
+
+@keyframes ia-entra {
+  from { opacity: 0; transform: translateY(7px); }
+  to   { opacity: 1; transform: none; }
+}
+
+.ia-rec-num {
+  display: flex; align-items: center; justify-content: center;
+  width: 27px; height: 27px; flex-shrink: 0; border-radius: 9px;
+  font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 600;
+  /* Ámbar pleno con dígito oscuro: la ficha tenue se leía como texto
+     descolorido en vez de un número de paso. */
+  background: linear-gradient(150deg, var(--amber-claro), var(--amber-oscuro));
+  color: #221703;
+  box-shadow: 0 4px 12px -4px rgba(255, 170, 44, .55);
+}
+.ia-rec-txt {
+  flex: 1; min-width: 0;
+  font-size: 13.5px; line-height: 1.62; color: var(--text-primary);
+  font-variant-numeric: tabular-nums; text-wrap: pretty;
+}
+
+.ia-proy {
+  font-size: 13.5px; line-height: 1.62; color: var(--text-secondary);
+  font-variant-numeric: tabular-nums; text-wrap: pretty;
+}
+
+.ia-cierre {
+  position: relative; overflow: hidden;
+  padding: 17px 19px 17px 22px; border-radius: var(--r-md);
+  background: linear-gradient(100deg, rgba(255, 170, 44, .17), rgba(255, 170, 44, .06));
+  border: 1px solid rgba(255, 170, 44, .18);
+}
+.ia-cierre::before {
+  content: ''; position: absolute; left: 0; top: 0; bottom: 0;
+  width: 3px; background: linear-gradient(var(--amber-claro), var(--amber-oscuro));
+}
+.ia-cierre-txt {
+  font-size: 14.5px; line-height: 1.6; font-weight: 500;
+  color: #ffd79a; text-wrap: pretty;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ia-rec { animation: none; }
+}
+
+@media (max-width: 720px) {
+  .ia-diag { font-size: 15px; }
+  .ia-rec { padding: 13px 14px; gap: 11px; }
+  .ia-cierre-txt { font-size: 13.5px; }
 }
 
 @media (prefers-reduced-motion: reduce) {

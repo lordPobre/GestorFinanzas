@@ -363,7 +363,20 @@ class Deuda(models.Model):
 
     @property
     def periodos_pagados(self):
-        return set(self.pagos.values_list('periodo', flat=True))
+        """Los meses ya pagados de esta compra.
+
+        Se itera self.pagos.all() y NO values_list(). Parece un rodeo —
+        values_list trae solo la columna que hace falta— pero values_list
+        construye una consulta nueva cada vez, ignorando el prefetch_related
+        que la vista ya hizo. Las pantallas que listan deudas prefetchean
+        'pagos' y aun así terminaban con una consulta por deuda, y esta
+        propiedad la usan periodos_pendientes, periodo_a_pagar,
+        periodos_atrasados y rango_cuotas: varias por fila.
+
+        .all() sobre una relación prefetcheada lee de memoria y no consulta.
+        Sin prefetch se comporta igual que antes.
+        """
+        return {p.periodo for p in self.pagos.all()}
 
     def esta_pagada_en(self, periodo):
         return periodo in self.periodos_pagados
@@ -1128,7 +1141,14 @@ class Persona(models.Model):
 
     @property
     def cantidad_prestamos(self):
-        return self.prestamos.count()
+        """len() sobre la relación prefetcheada, no .count().
+
+        .count() emite un SELECT COUNT(*) aunque la vista ya haya traído los
+        préstamos con prefetch_related. La lista de personas la llama una vez
+        por fila a través de resumen_meta, así que eran tantas consultas de
+        más como personas hubiera.
+        """
+        return len(self.prestamos.all())
 
     @property
     def prestamos_activos(self):
@@ -1487,7 +1507,9 @@ class Suscripcion(models.Model):
 
     @property
     def periodos_pagados(self):
-        return set(self.pagos.values_list('periodo', flat=True))
+        """Meses ya pagados. Itera el prefetch en vez de consultar de nuevo:
+        ver la explicación en Deuda.periodos_pagados, es el mismo caso."""
+        return {p.periodo for p in self.pagos.all()}
 
     def esta_pagada_en(self, periodo):
         return periodo in self.periodos_pagados

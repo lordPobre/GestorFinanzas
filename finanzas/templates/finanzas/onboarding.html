@@ -6,7 +6,6 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Bienvenido · FinApp</title>
 
-  {# Favicon: SVG con respaldo PNG, igual que en base.html. #}
   <link rel="icon" type="image/svg+xml" href="{% static 'img/favicon.svg' %}">
   <link rel="alternate icon" href="{% static 'img/favicon.png' %}">
   <link rel="apple-touch-icon" href="{% static 'img/favicon-180.png' %}">
@@ -46,9 +45,11 @@
 
 <div class="ob">
 
-  <div style="display:flex;justify-content:center;margin-bottom:26px">
-    {% include 'finanzas/logo.html' %}
-  </div>
+  <div style="display:flex;justify-content:center;align-items:center;gap:11px;margin-bottom:26px">
+    <span class="brand-mark" style="width:44px;height:44px;border-radius:15px;font-size:17px">
+      <i class="fas fa-chart-line"></i>
+    </span>
+    <span style="font-family:'Manrope',sans-serif;font-size:20px;font-weight:800;letter-spacing:-.02em;color:var(--text-primary)">FinApp</span>  </div>
 
   <div class="pasos" id="pasos">
     <span class="on"></span><span></span><span></span>
