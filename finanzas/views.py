@@ -815,6 +815,48 @@ def _insights_dashboard(resumen, datos_gastos, pendientes, proyecciones_deuda, p
     return insights, presupuesto_pct
 
 
+def _primeros_pasos(usuario):
+    """Lista de arranque de una cuenta nueva.
+
+    No hay campo ni tabla nueva: cada punto se marca solo mirando si el dato
+    ya existe. Así la lista dice la verdad aunque el usuario haya cargado sus
+    cosas antes de ver el tour, y no queda estado que mantener.
+    """
+    pasos = [
+        {'titulo': 'Anota lo que entra',
+         'nota': 'Tu sueldo o ingreso del mes',
+         'icono': 'fa-arrow-down',
+         'hecho': Transaccion.objects.filter(usuario=usuario, tipo='INGRESO').exists(),
+         'url': '#', 'abrir': '#modalGasto', 'preset': 'INGRESO'},
+        {'titulo': 'Anota un gasto',
+         'nota': 'Para que el saldo del mes sea real',
+         'icono': 'fa-plus',
+         'hecho': Transaccion.objects.filter(usuario=usuario, tipo='EGRESO').exists(),
+         'url': '#', 'abrir': '#modalGasto', 'preset': 'EGRESO'},
+        {'titulo': 'Agrega tus compras en cuotas',
+         'nota': 'La cuota queda puesta en cada mes',
+         'icono': 'fa-credit-card',
+         'hecho': Deuda.objects.filter(usuario=usuario).exists(),
+         'url': reverse('deudas')},
+        {'titulo': 'Suma tus suscripciones',
+         'nota': 'Se cobran solas cada mes',
+         'icono': 'fa-rotate',
+         'hecho': Suscripcion.objects.filter(usuario=usuario).exists(),
+         'url': reverse('suscripciones')},
+        {'titulo': 'Crea una meta de ahorro',
+         'nota': 'Cuánto juntar y para cuándo',
+         'icono': 'fa-bullseye',
+         'hecho': MetaAhorro.objects.filter(usuario=usuario).exists(),
+         'url': reverse('metas')},
+        {'titulo': 'Pon tu presupuesto del mes',
+         'nota': 'Un techo para el día a día',
+         'icono': 'fa-gauge-high',
+         'hecho': Presupuesto.objects.filter(usuario=usuario).exists(),
+         'url': reverse('perfil')},
+    ]
+    return pasos, sum(1 for p in pasos if p['hecho'])
+
+
 @login_required(login_url='/login/')
 def dashboard(request):
     generar_cobros_suscripciones(request.user)
@@ -986,6 +1028,13 @@ def dashboard(request):
         context['variacion_saldo'] = None
         context['variacion_saldo_abs'] = None
     context['mes_anterior_nombre'] = MESES_LARGOS[f_ant.month - 1]
+
+    # Primeros pasos: la tarjeta se va sola cuando están todos hechos.
+    pasos, pasos_hechos = _primeros_pasos(request.user)
+    context['primeros_pasos'] = pasos if pasos_hechos < len(pasos) else None
+    context['pasos_hechos'] = pasos_hechos
+    context['pasos_total'] = len(pasos)
+    context['pasos_pct'] = int(pasos_hechos * 100 / len(pasos))
 
     context['mapa_categorias'] = Categoria.mapa(request.user)
     # Si se está viendo el mes en curso, 'r' YA es el resumen que
@@ -2769,15 +2818,17 @@ def completar_onboarding(request):
         )
 
     acreedor = request.POST.get('deuda_acreedor', '').strip()
-    deuda_monto = _monto_post(request, 'deuda_monto')
-    if acreedor and deuda_monto > 0:
+    # El onboarding pide el valor de la cuota, igual que el formulario de
+    # compras: el total se calcula acá y es lo que se guarda.
+    deuda_cuota = _monto_post(request, 'deuda_cuota')
+    if acreedor and deuda_cuota > 0:
         try:
             cuotas = max(1, int(request.POST.get('deuda_cuotas', 1)))
         except (ValueError, TypeError):
             cuotas = 1
         Deuda.objects.create(
             usuario=request.user, acreedor=acreedor,
-            monto_total=deuda_monto, cuotas_totales=cuotas,
+            monto_total=deuda_cuota * cuotas, cuotas_totales=cuotas,
             fecha_inicio=timezone.localdate(),
         )
 
@@ -2792,7 +2843,9 @@ def completar_onboarding(request):
     profile.onboarding_completado = True
     profile.save(update_fields=['onboarding_completado'])
     messages.success(request, f'Listo, {profile.nombre_display}. Tu mes ya está armado.')
-    return redirect('dashboard')
+    # ?tour=1 arranca el recorrido guiado en el dashboard. El paso vive en el
+    # navegador, así que un F5 no lo reinicia (el JS limpia el parámetro).
+    return redirect(reverse('dashboard') + '?tour=1')
 
 
 # ============================================================

@@ -13,7 +13,7 @@
       del mes; si te equivocas, la puedes anular.
     </div>
   </div>
-  <button class="btn btn-purple" data-open="#modalDeuda"><i class="fas fa-plus" style="font-size:11px"></i>Nueva compra en cuotas</button>
+  <button class="btn btn-purple" data-open="#modalDeuda" data-tour="cuotas"><i class="fas fa-plus" style="font-size:11px"></i>Nueva compra en cuotas</button>
 </div>
 
 {% comment %}
@@ -111,7 +111,6 @@
       </div>
     </div>
 
-    {# Una marca por cuota #}
     <div class="pips" style="margin-bottom:12px">
       {% for m in d.rango_cuotas %}
         <span class="pip {{ m.clase }}" title="Cuota {{ m.indice }}"></span>
@@ -215,9 +214,12 @@
 <div class="modal-overlay" id="modalDeuda">
   <div class="modal-box">
     <div class="modal-head">
-      <div>
-        <div class="modal-title">Nueva compra en cuotas</div>
-        <div class="modal-sub">Pon el total y en cuántas cuotas quedó. Calculamos el resto.</div>
+      <div class="modal-titulo">
+        <span class="modal-icon"><i class="fas fa-credit-card"></i></span>
+        <div>
+          <div class="modal-title">Nueva compra en cuotas</div>
+          <div class="modal-sub">Pon el valor de la cuota y cuántas son. Calculamos el total.</div>
+        </div>
       </div>
       <button class="modal-close" data-close>✕</button>
     </div>
@@ -231,16 +233,16 @@
         {{ form.acreedor }}
       </div>
 
-      <div class="form-row" style="margin-bottom:16px">
-        <div style="flex:1.4">
-          <label class="label" for="{{ form.monto_total.id_for_label }}">Monto total</label>
-          {{ form.monto_total }}
+      <div class="form-cuotas">
+        <div>
+          <label class="label" for="{{ form.valor_cuota.id_for_label }}">Valor de la cuota</label>
+          {{ form.valor_cuota }}
         </div>
-        <div style="flex:1">
+        <div>
           <label class="label" for="{{ form.cuotas_totales.id_for_label }}">Cuotas</label>
           {{ form.cuotas_totales }}
         </div>
-        <div style="flex:1.1">
+        <div>
           <label class="label" for="{{ form.fecha_inicio.id_for_label }}">Primer pago</label>
           {{ form.fecha_inicio }}
         </div>
@@ -254,13 +256,13 @@
         {% endfor %}
       </div>
 
-      <div class="preview-box">
-        <div class="label" style="color:var(--amber);margin-bottom:9px">Quedaría así</div>
-        <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:5px">
-          <span style="font-size:12px;color:var(--text-secondary)">Cada cuota</span>
-          <span class="display" style="font-size:19px;color:var(--purple)" id="cuotaPreview">$0</span>
+      <div class="preview-box preview-cuota">
+        <div class="preview-eyebrow">Quedaría así</div>
+        <div class="preview-fila">
+          <span class="preview-etiqueta">Total de la compra</span>
+          <span class="preview-monto" id="cuotaPreview">$0</span>
         </div>
-        <div style="font-size:11.5px;color:var(--text-muted)" id="finPreview">Elige cuántas cuotas</div>
+        <div class="preview-nota" id="finPreview">Pon la cuota y cuántas son</div>
       </div>
 
       <button type="submit" class="btn btn-purple btn-block">Guardar compra</button>
@@ -272,21 +274,29 @@
 
 {% block extra_js %}
 <script nonce="{{ csp_nonce }}">
-/* Cuota y mes final en vivo mientras el usuario escribe */
+/* Total y mes final en vivo: la persona escribe la cuota, y lo que no sabe
+   -- cuánto termina pagando -- se muestra antes de guardar. */
 (function () {
-  var total = document.getElementById('{{ form.monto_total.id_for_label }}');
+  var cuota = document.getElementById('{{ form.valor_cuota.id_for_label }}');
   var cuotas = document.getElementById('{{ form.cuotas_totales.id_for_label }}');
+  var inicio = document.getElementById('{{ form.fecha_inicio.id_for_label }}');
   var out = document.getElementById('cuotaPreview');
   var fin = document.getElementById('finPreview');
   var meses = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
   function paint() {
-    var t = Number(total.value || 0), c = Number(cuotas.value || 0);
-    out.textContent = t && c ? '$' + Math.round(t / c).toLocaleString('es-CL') : '$0';
-    if (!c) { fin.textContent = 'Elige cuántas cuotas'; return; }
-    var d = new Date(); d.setMonth(d.getMonth() + c - 1);
-    fin.textContent = 'Última cuota en ' + meses[d.getMonth()] + ' ' + d.getFullYear();
+    var v = Number(cuota.value || 0), c = Number(cuotas.value || 0);
+    if (!v || !c) {
+      out.textContent = '$0';
+      fin.textContent = 'Pon la cuota y cuántas son';
+      return;
+    }
+    out.textContent = '$' + Math.round(v * c).toLocaleString('es-CL');
+    var texto = c + ' cuota' + (c === 1 ? '' : 's') + ' de $' + Math.round(v).toLocaleString('es-CL');
+    var base = inicio && inicio.value ? new Date(inicio.value + 'T00:00:00') : new Date();
+    base.setMonth(base.getMonth() + c - 1);
+    fin.textContent = texto + ' · última en ' + meses[base.getMonth()] + ' ' + base.getFullYear();
   }
-  [total, cuotas].forEach(function (el) { if (el) el.addEventListener('input', paint); });
+  [cuota, cuotas, inicio].forEach(function (el) { if (el) el.addEventListener('input', paint); });
   paint();
 })();
 </script>

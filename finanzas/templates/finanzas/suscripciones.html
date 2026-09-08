@@ -35,7 +35,7 @@
       <div class="display" style="font-size:20px;color:var(--purple)">{{ total_mensual|money }}</div>
       <div style="font-size:10.5px;color:var(--text-muted);margin-top:3px">{{ total_anual|money }} al año</div>
     </div>
-    <button class="btn btn-purple" data-open="#modalSub"><i class="fas fa-plus" style="font-size:11px"></i>Nueva suscripción</button>
+    <button class="btn btn-purple" data-open="#modalSub" data-tour="suscripciones"><i class="fas fa-plus" style="font-size:11px"></i>Nueva suscripción</button>
   </div>
 </div>
 
@@ -121,7 +121,6 @@
       {% endif %}
     {% endif %}
 
-    {# El interruptor ES el botón de cancelar/reactivar #}
     <form method="post" action="{% url 'cancelar_suscripcion' s.pk %}" style="margin:0;display:flex;align-items:center"
           {% if s.activa %}data-confirm="¿Dejar de pagar {{ s.nombre }}? Ahorras {{ s.monto_anual|money }} al año."{% endif %}>
       {% csrf_token %}

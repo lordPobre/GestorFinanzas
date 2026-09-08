@@ -19,7 +19,7 @@
       </div>
     </div>
     <div class="hint" style="margin-bottom:22px">
-      Pon el precio total de la compra, no el valor de la cuota. Nosotros la dividimos.
+      Pon el valor de la cuota y en cuántas quedó. Nosotros sumamos el total.
     </div>
 
     <form method="post">
@@ -39,10 +39,10 @@
 
       <div class="form-row">
         <div style="flex:1.5">
-          <label class="label" for="{{ form.monto_total.id_for_label }}">{{ form.monto_total.label }}</label>
-          {{ form.monto_total }}
-          <div class="hint" style="font-size:10.5px;margin-top:5px">{{ form.monto_total.help_text }}</div>
-          {% for e in form.monto_total.errors %}<div class="hint" style="color:var(--coral);font-size:11px;margin-top:5px">{{ e }}</div>{% endfor %}
+          <label class="label" for="{{ form.valor_cuota.id_for_label }}">{{ form.valor_cuota.label }}</label>
+          {{ form.valor_cuota }}
+          <div class="hint" style="font-size:10.5px;margin-top:5px">{{ form.valor_cuota.help_text }}</div>
+          {% for e in form.valor_cuota.errors %}<div class="hint" style="color:var(--coral);font-size:11px;margin-top:5px">{{ e }}</div>{% endfor %}
         </div>
         <div style="flex:1">
           <label class="label" for="{{ form.cuotas_totales.id_for_label }}">{{ form.cuotas_totales.label }}</label>
@@ -58,13 +58,13 @@
         {% for e in form.fecha_inicio.errors %}<div class="hint" style="color:var(--coral);font-size:11px;margin-top:5px">{{ e }}</div>{% endfor %}
       </div>
 
-      <div class="preview-box" id="cajaCuota" style="display:none">
-        <div class="label" style="color:var(--amber);margin-bottom:9px">Quedaría así</div>
-        <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:5px">
-          <span style="font-size:12px;color:var(--text-secondary)">Cada cuota</span>
-          <span class="display" style="font-size:19px;color:var(--amber)" id="cuotaMonto">$0</span>
+      <div class="preview-box preview-cuota" id="cajaCuota" style="display:none">
+        <div class="preview-eyebrow">Quedaría así</div>
+        <div class="preview-fila">
+          <span class="preview-etiqueta">Total de la compra</span>
+          <span class="preview-monto" id="cuotaMonto">$0</span>
         </div>
-        <div style="font-size:11.5px;color:var(--text-muted)" id="cuotaFin"></div>
+        <div class="preview-nota" id="cuotaFin"></div>
       </div>
 
       <div style="display:flex;gap:10px">
@@ -90,10 +90,10 @@
 
 {% block extra_js %}
 <script nonce="{{ csp_nonce }}">
-/* El valor de la cuota y el mes final, en vivo. Es lo que evita que alguien
-   confunda el total con la cuota: se ve el resultado antes de guardar. */
+/* El total y el mes final, en vivo. La persona pone la cuota, que es el dato
+   que tiene; lo que se calcula se ve antes de guardar. */
 (function () {
-  var total = document.getElementById('{{ form.monto_total.id_for_label }}');
+  var cuota = document.getElementById('{{ form.valor_cuota.id_for_label }}');
   var cuotas = document.getElementById('{{ form.cuotas_totales.id_for_label }}');
   var inicio = document.getElementById('{{ form.fecha_inicio.id_for_label }}');
   var caja = document.getElementById('cajaCuota');
@@ -101,14 +101,14 @@
   var fin = document.getElementById('cuotaFin');
   var MESES = ['enero','febrero','marzo','abril','mayo','junio','julio',
                'agosto','septiembre','octubre','noviembre','diciembre'];
-  if (!total || !cuotas) return;
+  if (!cuota || !cuotas) return;
 
   function pintar() {
-    var t = Number(total.value || 0), n = Number(cuotas.value || 0);
-    if (t <= 0 || n <= 0) { caja.style.display = 'none'; return; }
+    var v = Number(cuota.value || 0), n = Number(cuotas.value || 0);
+    if (v <= 0 || n <= 0) { caja.style.display = 'none'; return; }
     caja.style.display = 'block';
-    monto.textContent = '$' + Math.round(t / n).toLocaleString('es-CL');
-    var texto = n + ' cuota' + (n === 1 ? '' : 's');
+    monto.textContent = '$' + Math.round(v * n).toLocaleString('es-CL');
+    var texto = n + ' cuota' + (n === 1 ? '' : 's') + ' de $' + Math.round(v).toLocaleString('es-CL');
     if (inicio && inicio.value) {
       var f = new Date(inicio.value + 'T00:00:00');
       f.setMonth(f.getMonth() + n - 1);
@@ -116,7 +116,7 @@
     }
     fin.textContent = texto;
   }
-  [total, cuotas, inicio].forEach(function (el) { if (el) el.addEventListener('input', pintar); });
+  [cuota, cuotas, inicio].forEach(function (el) { if (el) el.addEventListener('input', pintar); });
   pintar();
 })();
 </script>

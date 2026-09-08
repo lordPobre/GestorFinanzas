@@ -7,6 +7,7 @@ en este proyecto, así que los campos se veían sin estilo — el navegador les
 daba su apariencia por defecto sobre un fondo oscuro.
 """
 from datetime import date
+from decimal import Decimal
 
 from django import forms
 
@@ -14,27 +15,46 @@ from .models import Categoria, Deuda, MetaAhorro, Transaccion
 
 
 class DeudaForm(forms.ModelForm):
-    """Una compra en cuotas."""
+    """Una compra en cuotas.
+
+    Se pide el VALOR DE LA CUOTA, no el total. Es el dato que la persona tiene
+    a mano: la boleta y la app del banco dicen "12 cuotas de $12.500", no el
+    precio con intereses. El total se calcula (cuota x cuotas) y se sigue
+    guardando en Deuda.monto_total, que es lo que lee el resto de la app
+    (dashboard, análisis, exportaciones), así que no hay migración.
+    """
+
+    valor_cuota = forms.DecimalField(
+        label='Valor de cada cuota',
+        max_digits=10, decimal_places=2, min_value=Decimal('1'),
+        help_text='Lo que te cobran cada mes, no el precio total.',
+        widget=forms.NumberInput(attrs={'placeholder': '12500', 'min': '1', 'step': '1'}),
+    )
+
+    # Los campos declarados en la clase van antes de los del modelo: sin esto
+    # "Valor de cada cuota" quedaba arriba de "¿A quién le pagas?".
+    field_order = ['acreedor', 'valor_cuota', 'cuotas_totales', 'fecha_inicio', 'categoria']
 
     class Meta:
         model = Deuda
-        fields = ['acreedor', 'monto_total', 'categoria', 'cuotas_totales', 'fecha_inicio']
+        fields = ['acreedor', 'categoria', 'cuotas_totales', 'fecha_inicio']
         labels = {
             'acreedor': '¿A quién le pagas?',
-            'monto_total': 'Monto total de la compra',
             'cuotas_totales': '¿En cuántas cuotas?',
             'fecha_inicio': 'Fecha del primer pago',
         }
         help_texts = {
-            'monto_total': 'El precio completo, no el valor de la cuota.',
             'fecha_inicio': 'El día del mes se toma de acá para todos los cobros.',
         }
         widgets = {
             'acreedor': forms.TextInput(attrs={'placeholder': 'Ej: Tarjeta Visa, Falabella'}),
-            'monto_total': forms.NumberInput(attrs={'placeholder': '150000', 'min': '1', 'step': '1'}),
             'cuotas_totales': forms.NumberInput(attrs={'placeholder': '12', 'min': '1', 'max': '120'}),
             'fecha_inicio': forms.DateInput(attrs={'type': 'date'}, format='%Y-%m-%d'),
         }
+
+    # El total tiene 10 dígitos con 2 decimales en el modelo: más que esto no
+    # entra en la columna y Django tiraría un error de base de datos.
+    TOTAL_MAXIMO = Decimal('99999999')
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -42,12 +62,16 @@ class DeudaForm(forms.ModelForm):
         self.fields['categoria'].choices = Deuda.CATEGORIAS_CUOTAS
         if not self.instance.pk:
             self.fields['fecha_inicio'].initial = date.today()
+        else:
+            # Al editar, el formulario no conoce la cuota: se reconstruye
+            # dividiendo el total guardado.
+            self.fields['valor_cuota'].initial = self.instance.monto_cuota
 
-    def clean_monto_total(self):
-        monto = self.cleaned_data.get('monto_total')
-        if monto is None or monto <= 0:
-            raise forms.ValidationError('El monto tiene que ser mayor que cero.')
-        return monto
+    def clean_valor_cuota(self):
+        cuota = self.cleaned_data.get('valor_cuota')
+        if cuota is None or cuota <= 0:
+            raise forms.ValidationError('La cuota tiene que ser mayor que cero.')
+        return cuota
 
     def clean_cuotas_totales(self):
         """cuotas_totales es un IntegerField sin validadores en el modelo, así
@@ -62,14 +86,27 @@ class DeudaForm(forms.ModelForm):
 
     def clean(self):
         datos = super().clean()
-        monto = datos.get('monto_total')
+        cuota = datos.get('valor_cuota')
         cuotas = datos.get('cuotas_totales')
-        # Una cuota que no llega a $1 significa que los datos están al revés
-        # (por ejemplo el monto de la cuota puesto como total).
-        if monto and cuotas and monto / cuotas < 1:
-            self.add_error('cuotas_totales',
-                           'Con ese monto, cada cuota sería menos de $1. Revisa los datos.')
+        if cuota and cuotas:
+            total = (cuota * cuotas).quantize(Decimal('1'))
+            if total > self.TOTAL_MAXIMO:
+                self.add_error('valor_cuota',
+                               'Ese total es demasiado grande. Revisa la cuota y las cuotas.')
+            else:
+                datos['monto_total'] = total
         return datos
+
+    def save(self, commit=True):
+        """El total no se escribe: se calcula acá, que es el único lugar donde
+        se conocen la cuota y la cantidad ya validadas."""
+        deuda = super().save(commit=False)
+        deuda.monto_total = (
+            self.cleaned_data['valor_cuota'] * self.cleaned_data['cuotas_totales']
+        ).quantize(Decimal('1'))
+        if commit:
+            deuda.save()
+        return deuda
 
 
 class TransaccionForm(forms.ModelForm):

@@ -17,17 +17,50 @@
 
 {% block content %}
 
-{% if es_nuevo %}
-<div class="glass empty" style="margin-bottom:18px">
-  <i class="fas fa-hand-sparkles"></i>
-  <div class="empty-title">Empecemos por lo que entra</div>
-  <div class="empty-text">
-    Registra tu sueldo y, si tienes compras en cuotas, agrégalas. Con esos dos datos
-    ya podemos decirte cuánto puedes gastar cada día sin apretarte.
+{% comment %}
+  Primeros pasos. Reemplaza al bloque vacío de "empecemos por lo que entra":
+  hacía la misma invitación pero no decía qué falta ni qué ya está hecho.
+  Cada punto se marca solo cuando el dato existe, y la tarjeta desaparece
+  cuando están todos (o cuando el usuario la esconde).
+{% endcomment %}
+{% if primeros_pasos %}
+<div class="glass pasos-card" data-pasos data-spot>
+  <div class="pasos-cab">
+    <div>
+      <div class="pasos-eyebrow">Primeros pasos</div>
+      <div class="pasos-titulo">Deja tu mes armado</div>
+      <div class="hint" style="font-size:12px;margin-top:5px;max-width:430px">
+        Con esto la app ya puede decirte cuánto puedes gastar por día sin apretarte.
+      </div>
+    </div>
+    <div class="pasos-acciones">
+      <button type="button" class="btn btn-purple btn-sm" data-tour-iniciar>
+        <i class="fas fa-route" style="font-size:10px"></i>Ver el tour
+      </button>
+      <button type="button" class="btn btn-glass btn-sm" data-pasos-ocultar>Ocultar</button>
+    </div>
   </div>
-  <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
-    <button class="btn btn-purple" data-open="#modalGasto" data-preset-tipo="INGRESO">Registrar un ingreso</button>
-    <a href="{% url 'deudas' %}" class="btn btn-glass">Agregar una compra en cuotas</a>
+
+  <div class="pasos-progreso">
+    <div class="progress-bar" style="height:6px">
+      <div class="progress-fill" style="width:{{ pasos_pct }}%"></div>
+    </div>
+    <span class="pasos-cuenta">{{ pasos_hechos }} de {{ pasos_total }}</span>
+  </div>
+
+  <div class="pasos-lista">
+    {% for p in primeros_pasos %}
+    <a class="paso-item {% if p.hecho %}hecho{% endif %}" href="{{ p.url }}"
+       {% if p.abrir %}data-open="{{ p.abrir }}"{% endif %}
+       {% if p.preset %}data-preset-tipo="{{ p.preset }}"{% endif %}>
+      <span class="paso-check"><i class="fas {% if p.hecho %}fa-check{% else %}{{ p.icono }}{% endif %}"></i></span>
+      <span class="paso-txt">
+        <span class="paso-titulo">{{ p.titulo }}</span>
+        <span class="paso-nota">{{ p.nota }}</span>
+      </span>
+      {% if not p.hecho %}<i class="fas fa-chevron-right paso-flecha"></i>{% endif %}
+    </a>
+    {% endfor %}
   </div>
 </div>
 {% endif %}
@@ -78,7 +111,7 @@
 
 <div class="balance-carrusel" data-carrusel>
 
-  <a href="{% url 'estadisticas' %}" class="balance-card" data-tarjeta-link>
+  <a href="{% url 'estadisticas' %}" class="balance-card" data-tarjeta-link data-tour="saldo">
     <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px">
       <div>
         <div style="font-size:17px;font-weight:700;letter-spacing:-.02em">
@@ -189,7 +222,6 @@
     </div>
   </div>
 
-  {# La barra reparte lo que entró en sus tres destinos #}
   <div class="split-bar" style="height:12px;margin-bottom:14px">
     <span style="width:{{ pct_gastado }}%;background:var(--blue)" title="Ya gastado"></span>
     <span style="width:{{ pct_por_pagar }}%;background:var(--amber)" title="Por pagar"></span>
@@ -284,7 +316,6 @@
     </div>
   </div>
 
-  {# Avance total: la única forma de ver que la deuda se está achicando #}
   <div style="margin-top:20px">
     <div class="progress-bar" style="height:10px">
       <div class="progress-fill green shine" style="width:{{ deuda_pct_pagado }}%"></div>
@@ -295,7 +326,6 @@
     </div>
   </div>
 
-  {# Una fila por compra. Se abre para ver el detalle y pagar sin salir. #}
   <div class="deuda-lista">
     {% for c in mis_cuotas %}
     <details class="deuda-item" data-searchable>
@@ -486,7 +516,6 @@
       {% endif %}
     </div>
 
-    {# La barra va pegada a la cifra: es la misma información en otra forma #}
     <div class="split-bar" style="height:7px;margin-top:12px">
       {% if monto_ya_pagado %}<span style="width:{% widthratio monto_ya_pagado total_comprometido_mes 100 %}%;background:linear-gradient(90deg,#059669,var(--green))"></span>{% endif %}
       {% if monto_sin_pagar %}<span style="width:{% widthratio monto_sin_pagar total_comprometido_mes 100 %}%;background:linear-gradient(90deg,#ea580c,#fb923c)"></span>{% endif %}

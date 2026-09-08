@@ -190,7 +190,8 @@
 
   {# ---- Tus datos, tuyos ---- #}
   <div class="glass" style="border-radius:24px;overflow:hidden" data-spot>
-    <div style="display:flex;align-items:center;gap:14px;padding:17px 20px;border-bottom:1px solid rgba(255,255,255,.05)">
+    <div style="display:flex;align-items:center;gap:14px;padding:17px 20px;border-bottom:1px solid rgba(255,255,255,.05)"
+         data-tour="exportar">
       <span class="icon-tile"><i class="fas fa-file-excel"></i></span>
       <div class="row-main">
         <div class="row-title">Exportar todo</div>
@@ -200,6 +201,16 @@
         <a href="{% url 'exportar_excel' %}" class="btn btn-glass btn-sm">Excel</a>
         <a href="{% url 'exportar_csv' %}" class="btn btn-glass btn-sm" title="El mismo contenido en texto plano">CSV</a>
       </div>
+    </div>
+
+    {# El tour se puede repetir cuando sea: el avance vive en el navegador. #}
+    <div style="display:flex;align-items:center;gap:14px;padding:17px 20px;border-bottom:1px solid rgba(255,255,255,.05)">
+      <span class="icon-tile orange"><i class="fas fa-route"></i></span>
+      <div class="row-main">
+        <div class="row-title">Cómo funciona la app</div>
+        <div class="row-meta">Un recorrido de 8 pasos por cada pantalla</div>
+      </div>
+      <button type="button" class="btn btn-glass btn-sm" data-tour-iniciar>Ver el tour</button>
     </div>
 
     <div style="display:flex;align-items:center;gap:14px;padding:17px 20px;border-bottom:1px solid rgba(255,255,255,.05)">

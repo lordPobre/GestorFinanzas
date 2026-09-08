@@ -12,6 +12,7 @@ from decimal import Decimal
 from django.contrib.auth.models import User
 from django.test import TestCase
 
+from .forms import DeudaForm
 from .models import Deuda, PagoCuota, Transaccion
 from .views import resumen_mes
 
@@ -236,3 +237,48 @@ class ResumenMesTests(TestCase):
 
         r = resumen_mes(self.usuario, self.year, self.month)
         self.assertEqual(r['gastos'], 30000.0)
+
+
+class DeudaFormCuotaTests(TestCase):
+    """El formulario pide el valor de la cuota; el total se calcula.
+
+    Antes se pedía el total y se dividía. Si alguien vuelve a invertirlo, los
+    montos del dashboard y de las exportaciones quedan mal sin que nada avise.
+    """
+
+    def setUp(self):
+        self.usuario = User.objects.create_user('bruno', password='x')
+        self.base = {
+            'acreedor': 'Falabella',
+            'valor_cuota': '12500',
+            'cuotas_totales': '12',
+            'fecha_inicio': '2026-09-08',
+            'categoria': 'Tecnologia',
+        }
+
+    def test_el_total_es_la_cuota_por_la_cantidad(self):
+        form = DeudaForm(self.base)
+        self.assertTrue(form.is_valid(), form.errors)
+        deuda = form.save(commit=False)
+        deuda.usuario = self.usuario
+        deuda.save()
+        self.assertEqual(deuda.monto_total, Decimal('150000'))
+        self.assertEqual(deuda.monto_cuota, Decimal('12500'))
+
+    def test_cuota_en_cero_no_pasa(self):
+        datos = dict(self.base, valor_cuota='0')
+        self.assertFalse(DeudaForm(datos).is_valid())
+
+    def test_al_editar_la_cuota_viene_cargada(self):
+        deuda = Deuda.objects.create(
+            usuario=self.usuario, acreedor='Tienda',
+            monto_total=Decimal('300000'), cuotas_totales=6,
+            fecha_inicio=date(2026, 1, 10))
+        form = DeudaForm(instance=deuda)
+        self.assertEqual(form.fields['valor_cuota'].initial, Decimal('50000'))
+
+    def test_total_desbordado_da_error_en_vez_de_reventar_la_columna(self):
+        datos = dict(self.base, valor_cuota='9000000', cuotas_totales='120')
+        form = DeudaForm(datos)
+        self.assertFalse(form.is_valid())
+        self.assertIn('valor_cuota', form.errors)

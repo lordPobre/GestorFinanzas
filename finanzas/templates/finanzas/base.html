@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  {# El color de la barra del navegador en móvil: el fondo real de la app. #}
   <meta name="theme-color" content="#191919">
   <title>{% block title %}FinApp{% endblock %}</title>
 
@@ -59,6 +60,13 @@
     window.finappOpen = open;
     window.finappClose = closeAll;
   })();
+  /* Si el usuario escondió la lista de primeros pasos, no debe alcanzar a
+     verse. Se decide antes de pintar, acá en <head>. */
+  try {
+    if (localStorage.getItem('finapp.pasos.oculto') === '1') {
+      document.documentElement.classList.add('pasos-ocultos');
+    }
+  } catch (e) {}
   </script>
 
   <script nonce="{{ csp_nonce }}">
@@ -250,7 +258,7 @@
         <i class="fas fa-arrow-down" style="font-size:11px"></i><span>Anotar ingreso</span>
       </button>
       <button class="btn btn-purple solo-ancho" data-open="#modalGasto" data-preset-tipo="EGRESO"
-              title="Anotar gasto" aria-label="Anotar gasto">
+              data-tour="registrar" title="Anotar gasto" aria-label="Anotar gasto">
         <i class="fas fa-plus" style="font-size:11px"></i><span>Anotar gasto</span>
       </button>
 
@@ -322,7 +330,7 @@
     <i class="fas fa-arrow-down" style="font-size:13px"></i>
   </button>
   <button class="fab" data-open="#modalGasto" data-preset-tipo="EGRESO"
-          aria-label="Registrar un gasto" title="Registrar un gasto">
+          data-tour="registrar" aria-label="Registrar un gasto" title="Registrar un gasto">
     <i class="fas fa-plus" style="font-size:18px"></i>
   </button>
   {% endblock %}
@@ -701,6 +709,23 @@
   var overlay = document.getElementById('modalGasto');
   if (overlay) { overlay.classList.add('open'); document.body.style.overflow = 'hidden'; }
   {% endif %}
+})();
+</script>
+<script src="{% static 'js/tour.js' %}"></script>
+<script nonce="{{ csp_nonce }}">
+(function () {
+  if (!window.finappTour) return;
+  window.finappTour.iniciar({
+    rutas: {
+      inicio: '{% url "dashboard" %}',
+      cuotas: '{% url "deudas" %}',
+      suscripciones: '{% url "suscripciones" %}',
+      prestamos: '{% url "prestamos" %}',
+      metas: '{% url "metas" %}',
+      estadisticas: '{% url "estadisticas" %}',
+      perfil: '{% url "perfil" %}'
+    }
+  });
 })();
 </script>
 {% block extra_js %}{% endblock %}
