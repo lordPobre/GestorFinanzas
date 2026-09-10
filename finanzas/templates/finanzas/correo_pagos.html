@@ -1,0 +1,140 @@
+{% comment %}
+  Aviso mensual de pagos pendientes, en HTML.
+
+  Mismas reglas que el correo de recuperación: maquetación con <table>,
+  estilos en línea y tipografías del sistema. La versión de texto plano
+  (correo_pagos.txt) viaja en el mismo envío.
+
+  El monto va en su propia celda alineada a la derecha, no en la misma línea
+  del nombre: en el ancho de un teléfono la línea se parte y el importe
+  termina debajo del nombre de otro cobro.
+{% endcomment %}<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lo que te queda por pagar</title>
+</head>
+<body style="margin:0;padding:0;background-color:#141414;">
+
+<div style="display:none;font-size:1px;color:#141414;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;">
+  {{ cantidad }} pago{{ cantidad|pluralize:"s" }} sin pagar en {{ mes }} · {{ total }} en total.
+</div>
+
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#141414;">
+<tr>
+<td align="center" style="padding:32px 16px;">
+
+  <table role="presentation" width="440" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:440px;">
+
+    <!-- Marca -->
+    <tr>
+      <td style="padding:0 4px 22px;">
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td width="38" style="vertical-align:middle;">
+            <div style="width:38px;height:38px;border-radius:12px;background-color:#ffaa2c;text-align:center;line-height:38px;font-size:19px;font-weight:700;color:#1a1200;font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">F</div>
+          </td>
+          <td style="padding-left:11px;vertical-align:middle;font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:18px;font-weight:700;color:#f5f5f5;letter-spacing:-.02em;">
+            FinApp
+          </td>
+        </tr>
+        </table>
+      </td>
+    </tr>
+
+    <!-- Tarjeta -->
+    <tr>
+      <td style="background-color:#212121;border-radius:22px;padding:34px 28px 32px;">
+
+        <p style="margin:0 0 8px;font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:12px;font-weight:700;letter-spacing:.04em;color:#ffaa2c;text-transform:uppercase;">
+          {{ mes }} {{ anio }}
+        </p>
+
+        <h1 style="margin:0 0 14px;font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:23px;font-weight:700;line-height:1.3;letter-spacing:-.02em;color:#f5f5f5;">
+          {{ nombre }}, te quedan {{ cantidad }} pago{{ cantidad|pluralize:"s" }} este mes
+        </h1>
+
+        <p style="margin:0 0 26px;font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:14.5px;line-height:1.65;color:rgba(245,245,245,.72);">
+          {% if atrasados %}{{ atrasados }} de ellos ya venci{{ atrasados|pluralize:"ó,eron" }}.{% else %}Ninguno está vencido todavía.{% endif %}
+        </p>
+
+        <!-- Total -->
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:26px;background-color:#2b2b2b;border-radius:16px;">
+        <tr>
+          <td style="padding:18px 20px;font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+            <div style="font-size:11.5px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;color:rgba(245,245,245,.58);">
+              Total por pagar
+            </div>
+            <div style="margin-top:6px;font-size:28px;font-weight:700;letter-spacing:-.03em;color:#f5f5f5;">
+              {{ total }}
+            </div>
+          </td>
+        </tr>
+        </table>
+
+        {% for grupo in grupos %}
+        <p style="margin:0 0 10px;font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:11.5px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;color:rgba(245,245,245,.58);">
+          {{ grupo.titulo }}
+        </p>
+
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:24px;">
+        {% for fila in grupo.filas %}
+        <tr>
+          <td style="padding:11px 0;border-bottom:1px solid rgba(255,255,255,.07);font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+            <div style="font-size:14.5px;font-weight:600;color:#f5f5f5;">{{ fila.nombre }}</div>
+            <div style="margin-top:3px;font-size:12px;color:{% if fila.atrasado %}#ffaa2c{% else %}rgba(245,245,245,.58){% endif %};">
+              {{ fila.detalle }}{% if fila.atrasado %} · sin pagar{% endif %}
+            </div>
+          </td>
+          <td align="right" width="90" style="padding:11px 0 11px 12px;border-bottom:1px solid rgba(255,255,255,.07);vertical-align:top;font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:14.5px;font-weight:700;color:#f5f5f5;white-space:nowrap;">
+            {{ fila.monto }}
+          </td>
+        </tr>
+        {% endfor %}
+        </table>
+        {% endfor %}
+
+        {% if por_cobrar %}
+        {% comment %}
+          Lo que te deben cierra el correo y no suma al total: es plata que
+          entra. Mezclarla arriba haría parecer que el mes cuesta menos.
+        {% endcomment %}
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#2b2b2b;border-radius:16px;">
+        <tr>
+          <td style="padding:18px 20px;font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+            <div style="font-size:11.5px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;color:#53d258;">
+              Y a ti te deben
+            </div>
+            {% for fila in por_cobrar %}
+            <div style="margin-top:12px;font-size:13.5px;color:rgba(245,245,245,.72);">
+              <strong style="color:#f5f5f5;font-weight:600;">{{ fila.nombre }}</strong> · {{ fila.detalle }} — {{ fila.monto }}
+            </div>
+            {% endfor %}
+          </td>
+        </tr>
+        </table>
+        {% endif %}
+
+      </td>
+    </tr>
+
+    <!-- Pie -->
+    <tr>
+      <td style="padding:22px 8px 0;font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:12px;line-height:1.6;color:rgba(245,245,245,.42);">
+        <p style="margin:0 0 6px;">
+          Este aviso sale una vez al mes. Puedes cambiar el día o apagarlo en
+          tu perfil, en "Aviso mensual por correo".
+        </p>
+        <p style="margin:0;">FinApp · Tus finanzas, claras</p>
+      </td>
+    </tr>
+
+  </table>
+
+</td>
+</tr>
+</table>
+
+</body>
+</html>

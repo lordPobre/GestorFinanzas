@@ -1556,26 +1556,38 @@ label { display: block; }
 @container contenido (min-width: 1100px) {
   .grid-metrics { grid-template-columns: repeat(4, 1fr); }
 }
-.grid-chart   { display: grid; grid-template-columns: 1.5fr 1fr; gap: 16px; margin-bottom: 18px; align-items: start; }
+/* minmax(0, …) en todas las pistas, no 1fr a secas: una pista 1fr no baja
+   de su contenido mínimo, así que un hijo ancho —una fila con un nombre
+   largo, una barra, un monto que no encoge— estira la columna, la columna
+   estira la página y en el teléfono aparece scroll horizontal: los títulos
+   de sección quedan cortados a la derecha y las tarjetas se salen del ancho
+   de la pantalla. Con minmax(0, …) la pista se queda en el ancho disponible
+   y el contenido recorta como ya sabe hacerlo. */
+.grid-chart   { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: 16px; margin-bottom: 18px; align-items: start; }
 /* Proporciones como clase, no en línea: un estilo en línea gana sobre las
    consultas de medios y la cuadrícula nunca colapsaría en el teléfono. */
-.grid-chart.par       { grid-template-columns: 1fr 1fr; }
-.grid-chart.ancho-izq { grid-template-columns: 1.4fr 1fr; }
-.grid-chart.ancho-der { grid-template-columns: 1fr 1.25fr; }
-.grid-pagos   { display: grid; grid-template-columns: 1fr 1.15fr; gap: 16px; margin-bottom: 18px; align-items: start; }
-.grid-registro{ display: grid; grid-template-columns: 1.35fr 1fr; gap: 16px; align-items: start; }
+.grid-chart.par       { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+.grid-chart.ancho-izq { grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); }
+.grid-chart.ancho-der { grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr); }
+.grid-pagos   { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); gap: 16px; margin-bottom: 18px; align-items: start; }
+.grid-registro{ display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: 16px; align-items: start; }
 /* 320px es el mínimo para que la cuota, el contador y el badge de urgencia
    entren sin partirse. Con 280 el texto caía en dos líneas y el botón de
    pagar se apretaba contra Anular. */
 .grid-cards   { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px; }
-.grid-detail  { display: grid; grid-template-columns: 320px 1fr; gap: 16px; align-items: start; }
-.grid-bottom  { display: grid; grid-template-columns: 1fr 1.2fr; gap: 16px; }
+.grid-detail  { display: grid; grid-template-columns: 320px minmax(0, 1fr); gap: 16px; align-items: start; }
+.grid-bottom  { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); gap: 16px; }
 .grid-registro > :only-child { grid-column: 1 / -1; }
+
+/* Y lo mismo para los hijos: una tarjeta que no puede encogerse por debajo
+   de su contenido desborda su celda aunque la pista sí se haya recortado. */
+.grid-chart > *, .grid-pagos > *, .grid-registro > *,
+.grid-detail > *, .grid-bottom > *, .grid-cards > * { min-width: 0; }
 
 @media (max-width: 1100px) {
   .grid-chart, .grid-chart.par, .grid-chart.ancho-izq, .grid-chart.ancho-der,
   .grid-pagos, .grid-registro, .grid-detail, .grid-bottom {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 
@@ -1591,19 +1603,19 @@ label { display: block; }
 }
 
 @container contenido (min-width: 860px) {
-  .grid-chart   { grid-template-columns: 1.5fr 1fr; }
-  .grid-chart.par       { grid-template-columns: 1fr 1fr; }
-  .grid-chart.ancho-izq { grid-template-columns: 1.4fr 1fr; }
-  .grid-chart.ancho-der { grid-template-columns: 1fr 1.25fr; }
-  .grid-pagos   { grid-template-columns: 1fr 1.15fr; }
-  .grid-registro{ grid-template-columns: 1.35fr 1fr; }
-  .grid-detail  { grid-template-columns: 320px 1fr; }
-  .grid-bottom  { grid-template-columns: 1fr 1.2fr; }
+  .grid-chart   { grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); }
+  .grid-chart.par       { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .grid-chart.ancho-izq { grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); }
+  .grid-chart.ancho-der { grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr); }
+  .grid-pagos   { grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); }
+  .grid-registro{ grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); }
+  .grid-detail  { grid-template-columns: 320px minmax(0, 1fr); }
+  .grid-bottom  { grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); }
 }
 @container contenido (max-width: 859px) {
   .grid-chart, .grid-chart.par, .grid-chart.ancho-izq, .grid-chart.ancho-der,
   .grid-pagos, .grid-registro, .grid-detail, .grid-bottom {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 
@@ -2086,7 +2098,11 @@ label { display: block; }
   /* En un teléfono 300px de gráfico dejan la mitad de la pantalla sin nada
      más; 220 basta para leer la tendencia. */
   .flujo-lienzo { height: 220px; }
-  .flujo-pista { display: none; }
+  /* Con el selector suelto (.flujo-pista) no se ocultaba nunca: el
+     .flujo-leyenda > span de arriba pesa más en la cascada y le devolvía el
+     display. De ahí que la pista siguiera saliendo en el teléfono, encima
+     del área del gráfico. */
+  .flujo-leyenda > .flujo-pista { display: none; }
   .flujo-cabecera { gap: 12px; }
   .flujo-cabecera .display { font-size: 26px !important; }
 }

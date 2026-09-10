@@ -114,7 +114,12 @@
     <span class="flujo-pista">Desliza sobre el gráfico para ver cada mes</span>
   </div>
 
-  <div class="flujo-lienzo" style="position:relative;height:300px"><canvas id="chartFlujo" data-om-raster
+  {% comment %}
+    El alto lo pone la hoja de estilo (300px, 220 en móvil). Iba en línea, y
+    un estilo en línea gana sobre la consulta de medios: en el teléfono el
+    gráfico seguía midiendo 300px y dejaba media pantalla vacía.
+  {% endcomment %}
+  <div class="flujo-lienzo"><canvas id="chartFlujo" data-om-raster
             data-meses="{{ meses_json|a_json }}"
             data-ingresos="{{ ingresos_json|a_json }}"
             data-gastos="{{ gastos_json|a_json }}"></canvas></div>
@@ -208,6 +213,10 @@
   var TEXTO = 'rgba(245,245,245,.72)';
   var FONT  = "'Manrope', sans-serif";
   var quieto = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  /* En el teléfono no caben doce "Oct 2025" seguidos: se pisaban entre ellos.
+     Se mide el lienzo en cada dibujado, no una vez al cargar, para que al
+     girar el teléfono la etiqueta cambie sola. */
+  function angosto() { return (el.clientWidth || window.innerWidth) < 520; }
 
   var meses = serie('meses');
   var ingresos = serie('ingresos');
@@ -303,7 +312,7 @@
       responsive: true, maintainAspectRatio: false,
       animation: quieto ? false : { duration: 900, easing: 'easeOutQuart' },
       interaction: { mode: 'index', intersect: false, axis: 'x' },
-      layout: { padding: { top: 10, right: 4, bottom: 0, left: 0 } },
+      layout: { padding: { top: 10, right: 10, bottom: 0, left: 0 } },
       plugins: {
         legend: { display: false },
         tooltip: {
@@ -334,8 +343,17 @@
         x: {
           grid: { display: false },
           border: { color: 'rgba(255,255,255,.08)' },
-          ticks: { color: TICK, font: { family: FONT, size: 11, weight: '600' },
-                   maxRotation: 0, minRotation: 0, padding: 8 },
+          ticks: { color: TICK,
+                   font: function () { return { family: FONT, size: angosto() ? 10 : 11, weight: '600' }; },
+                   maxRotation: 0, minRotation: 0, padding: 8,
+                   autoSkip: true, autoSkipPadding: 14,
+                   /* Solo el mes cuando la pantalla es angosta: el año se
+                      repite en toda la serie y el mes completo va en el
+                      globo al tocar el gráfico. */
+                   callback: function (v) {
+                     var l = this.getLabelForValue(v);
+                     return angosto() ? String(l).split(' ')[0] : l;
+                   } },
         },
         y: {
           /* Sin rejilla horizontal: en un gráfico de área las líneas cruzadas

@@ -188,6 +188,73 @@
     </div>
   </form>
 
+  {% comment %}
+    Aviso mensual por correo. El interruptor va en su propio formulario: es
+    una preferencia que se aplica al toque, no algo que se guarde junto con
+    el nombre y la ciudad.
+  {% endcomment %}
+  <div class="glass card" style="padding:0;margin-bottom:16px;overflow:hidden" data-spot>
+    <div style="display:flex;align-items:center;gap:14px;padding:20px 22px">
+      <span class="icon-tile {% if profile.aviso_mensual %}orange{% endif %}"
+            style="width:42px;height:42px;border-radius:15px;font-size:15px;flex-shrink:0">
+        <i class="fas fa-envelope-open-text"></i>
+      </span>
+      <div class="row-main">
+        <div class="row-title">Aviso mensual por correo</div>
+        <div class="row-meta">
+          {% if not profile.email and not request.user.email %}
+            <span style="color:var(--amber)">Falta tu email: agrégalo abajo para recibirlo</span>
+          {% elif profile.aviso_mensual %}
+            Cada día {{ profile.aviso_dia }} te llega a
+            {{ request.user.email|default:profile.email }}
+          {% else %}
+            Apagado. No te mandamos ningún recordatorio
+          {% endif %}
+        </div>
+      </div>
+      <form method="post" style="margin:0">
+        {% csrf_token %}
+        <input type="hidden" name="accion" value="aviso_mensual">
+        <input type="hidden" name="activar" value="{% if profile.aviso_mensual %}0{% else %}1{% endif %}">
+        <button type="submit" class="switch {% if profile.aviso_mensual %}on{% endif %}"
+                title="{% if profile.aviso_mensual %}Apagar{% else %}Encender{% endif %} el aviso mensual"
+                aria-label="{% if profile.aviso_mensual %}Apagar{% else %}Encender{% endif %} el aviso mensual">
+          <span class="knob"></span>
+        </button>
+      </form>
+    </div>
+
+    {% if profile.aviso_mensual %}
+    <div style="padding:18px 22px;border-top:1px solid rgba(255,255,255,.05)">
+      <div style="font-size:13px;font-weight:600;margin-bottom:10px">Día del envío</div>
+
+      {% comment %}
+        El select lleva su propio padding derecho: el global reserva sitio
+        para la flecha, y al pisarlo con un padding corto la flecha caía
+        encima del número.
+      {% endcomment %}
+      <form method="post" style="margin:0;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        {% csrf_token %}
+        <input type="hidden" name="accion" value="aviso_dia">
+        <select name="aviso_dia" aria-label="Día del mes en que sale el aviso"
+                style="width:auto;min-width:104px;padding:12px 40px 12px 16px;font-size:13.5px;font-weight:600">
+          {% for d in dias_aviso %}
+          <option value="{{ d }}" {% if d == profile.aviso_dia %}selected{% endif %}>Día {{ d }}</option>
+          {% endfor %}
+        </select>
+        <button type="submit" class="btn btn-glass" style="padding:12px 20px;border-radius:14px;font-size:13px">Cambiar</button>
+      </form>
+
+      <div class="hint" style="font-size:11.5px;margin-top:12px;line-height:1.55;max-width:60ch">
+        Llegan las cuotas del mes, las suscripciones y las cuentas sin pagar,
+        con el total. En los meses que no alcanzan el día elegido —febrero con
+        el 30, por ejemplo— sale el último día del mes. Si no queda nada por
+        pagar, no te escribimos.
+      </div>
+    </div>
+    {% endif %}
+  </div>
+
   {# ---- Tus datos, tuyos ---- #}
   <div class="glass" style="border-radius:24px;overflow:hidden" data-spot>
     <div style="display:flex;align-items:center;gap:14px;padding:17px 20px;border-bottom:1px solid rgba(255,255,255,.05)"

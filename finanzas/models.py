@@ -1009,6 +1009,20 @@ class UserProfile(models.Model):
     foto = models.ImageField(
         upload_to=_ruta_avatar, storage=obtener_almacen, null=True, blank=True)
 
+    # Aviso mensual por correo de lo que queda por pagar. Encendido por
+    # defecto: es un recordatorio de lo que el propio usuario anotó, y
+    # apagarlo es un clic en el perfil.
+    #
+    # El día es configurable pero arranca en 20 (antes del cierre de la
+    # mayoría de las tarjetas). Se admite del 1 al 31: en los meses que no
+    # llegan al día elegido, el envío se recorta al último día del mes
+    # (dia_aviso_efectivo), así que elegir 31 no deja a febrero sin aviso.
+    aviso_mensual = models.BooleanField(default=True)
+    aviso_dia     = models.IntegerField(default=20)
+    # Mes del último envío (año*100+mes). Es lo que evita el correo repetido
+    # si la tarea del hosting corre dos veces el mismo día.
+    aviso_ultimo_periodo = models.IntegerField(default=0)
+
     def __str__(self):
         return f"Perfil de {self.usuario.username}"
 
@@ -1073,6 +1087,18 @@ class UserProfile(models.Model):
     def ubicacion(self):
         parts = [p for p in [self.ciudad, self.pais] if p]
         return ', '.join(parts) if parts else None
+
+    @property
+    def dia_aviso_efectivo(self):
+        """El día en que sale el aviso este mes.
+
+        Se recorta al último día del mes: con el día 30 elegido, en febrero
+        la comparación con hoy.day nunca sería cierta y el aviso no saldría.
+        """
+        from calendar import monthrange
+        hoy = date.today()
+        _, ultimo = monthrange(hoy.year, hoy.month)
+        return min(max(1, self.aviso_dia), ultimo)
 
 
 @receiver(post_delete, sender=UserProfile)

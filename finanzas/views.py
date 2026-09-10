@@ -2935,9 +2935,31 @@ def perfil(request):
                 update_session_auth_hash(request, user)
                 messages.success(request, 'Contraseña actualizada.')
                 return redirect('perfil')
+        elif accion == 'aviso_mensual':
+            # El interruptor manda su estado nuevo en el propio botón: así
+            # una sola acción sirve para encender y para apagar.
+            profile.aviso_mensual = request.POST.get('activar') == '1'
+            profile.save(update_fields=['aviso_mensual'])
+            messages.success(
+                request,
+                f'Te avisaremos cada día {profile.aviso_dia} lo que quede por pagar.'
+                if profile.aviso_mensual else 'Aviso mensual desactivado.')
+            return redirect('perfil')
+        elif accion == 'aviso_dia':
+            try:
+                dia = int(request.POST.get('aviso_dia') or 20)
+            except (TypeError, ValueError):
+                dia = 20
+            # 1 a 31. Un día que el mes no alcanza no se pierde: el envío lo
+            # recorta al último día (UserProfile.dia_aviso_efectivo).
+            profile.aviso_dia = min(31, max(1, dia))
+            profile.save(update_fields=['aviso_dia'])
+            messages.success(request, f'El aviso saldrá cada día {profile.aviso_dia}.')
+            return redirect('perfil')
 
     context = {
         'perfil_form': perfil_form, 'pw_form': pw_form, 'profile': profile,
+        'dias_aviso': range(1, 32),
         'total_trans': Transaccion.objects.filter(usuario=request.user).count(),
         'total_deudas': Deuda.objects.filter(usuario=request.user).count(),
         'miembro_desde': nombre_mes_es(request.user.date_joined.year,

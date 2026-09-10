@@ -1,0 +1,15 @@
+{{ nombre }}, te quedan {{ cantidad }} pago{{ cantidad|pluralize:"s" }} este mes ({{ mes }} {{ anio }}).
+{% if atrasados %}{{ atrasados }} ya venci{{ atrasados|pluralize:"ó,eron" }}.{% else %}Ninguno está vencido todavía.{% endif %}
+
+TOTAL POR PAGAR: {{ total }}
+{% for grupo in grupos %}
+{{ grupo.titulo|upper }}{% for fila in grupo.filas %}
+- {{ fila.nombre }} · {{ fila.detalle }} — {{ fila.monto }}{% endfor %}
+{% endfor %}{% if por_cobrar %}
+Y A TI TE DEBEN{% for fila in por_cobrar %}
+- {{ fila.nombre }} · {{ fila.detalle }} — {{ fila.monto }}{% endfor %}
+{% endif %}
+--
+Este aviso sale una vez al mes. Puedes cambiar el día o apagarlo en tu
+perfil, en "Aviso mensual por correo".
+FinApp · Tus finanzas, claras
