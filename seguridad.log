@@ -285,3 +285,259 @@ Traceback (most recent call last):
         "'%s' takes at least one argument, a URL pattern name." % bits[0]
     )
 django.template.exceptions.TemplateSyntaxError: Template: C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\finanzas\templates\finanzas\base.html, 'url' takes at least one argument, a URL pattern name.
+2026-09-08 22:16:59,448 ERROR django.request Internal Server Error: /
+Traceback (most recent call last):
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\core\handlers\base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\contrib\auth\decorators.py", line 59, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\finanzas\views.py", line 1047, in dashboard
+    return render(request, 'finanzas/dashboard.html', context)
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\template\loader.py", line 62, in render_to_string
+    return template.render(context, request)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\template\backends\django.py", line 107, in render
+    return self.template.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\template\base.py", line 174, in render
+    return self._render(context)
+           ~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\template\base.py", line 166, in _render
+    return self.nodelist.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\template\base.py", line 1091, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\template\base.py", line 1052, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\template\loader_tags.py", line 135, in render
+    compiled_parent = self.get_parent(context)
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\template\loader_tags.py", line 132, in get_parent
+    return self.find_template(parent, context)
+           ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\template\loader_tags.py", line 110, in find_template
+    template, origin = context.template.engine.find_template(
+                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        template_name,
+        ^^^^^^^^^^^^^^
+        skip=history,
+        ^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\template\engine.py", line 159, in find_template
+    template = loader.get_template(name, skip=skip)
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\template\loaders\cached.py", line 57, in get_template
+    template = super().get_template(template_name, skip)
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\template\loaders\base.py", line 28, in get_template
+    return Template(
+        contents,
+    ...<2 lines>...
+        self.engine,
+    )
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\template\base.py", line 157, in __init__
+    self.nodelist = self.compile_nodelist()
+                    ~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\template\base.py", line 199, in compile_nodelist
+    nodelist = parser.parse()
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\template\base.py", line 585, in parse
+    raise self.error(token, e)
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\template\base.py", line 583, in parse
+    compiled_result = compile_func(self, token)
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\template\defaulttags.py", line 1556, in url
+    raise TemplateSyntaxError(
+        "'%s' takes at least one argument, a URL pattern name." % bits[0]
+    )
+django.template.exceptions.TemplateSyntaxError: Template: C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\finanzas\templates\finanzas\base.html, 'url' takes at least one argument, a URL pattern name.
+2026-09-08 22:25:15,426 ERROR django.request Internal Server Error: /
+Traceback (most recent call last):
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\core\handlers\base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\contrib\auth\decorators.py", line 59, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\finanzas\views.py", line 1047, in dashboard
+    return render(request, 'finanzas/dashboard.html', context)
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\template\loader.py", line 62, in render_to_string
+    return template.render(context, request)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\template\backends\django.py", line 107, in render
+    return self.template.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\template\base.py", line 174, in render
+    return self._render(context)
+           ~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\template\base.py", line 166, in _render
+    return self.nodelist.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\template\base.py", line 1091, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\template\base.py", line 1052, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\template\loader_tags.py", line 135, in render
+    compiled_parent = self.get_parent(context)
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\template\loader_tags.py", line 132, in get_parent
+    return self.find_template(parent, context)
+           ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\template\loader_tags.py", line 110, in find_template
+    template, origin = context.template.engine.find_template(
+                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        template_name,
+        ^^^^^^^^^^^^^^
+        skip=history,
+        ^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\template\engine.py", line 159, in find_template
+    template = loader.get_template(name, skip=skip)
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\template\loaders\cached.py", line 57, in get_template
+    template = super().get_template(template_name, skip)
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\template\loaders\base.py", line 28, in get_template
+    return Template(
+        contents,
+    ...<2 lines>...
+        self.engine,
+    )
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\template\base.py", line 157, in __init__
+    self.nodelist = self.compile_nodelist()
+                    ~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\template\base.py", line 199, in compile_nodelist
+    nodelist = parser.parse()
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\template\base.py", line 585, in parse
+    raise self.error(token, e)
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\template\base.py", line 583, in parse
+    compiled_result = compile_func(self, token)
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\template\defaulttags.py", line 1556, in url
+    raise TemplateSyntaxError(
+        "'%s' takes at least one argument, a URL pattern name." % bits[0]
+    )
+django.template.exceptions.TemplateSyntaxError: Template: C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\finanzas\templates\finanzas\base.html, 'url' takes at least one argument, a URL pattern name.
+2026-09-09 16:27:14,064 INFO finanzas Acceso con Google: clopez (vinculada)
+2026-09-09 17:17:54,577 ERROR django.request Internal Server Error: /perfil/
+Traceback (most recent call last):
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\core\handlers\base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\contrib\auth\decorators.py", line 59, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\finanzas\views.py", line 2941, in perfil
+    return render(request, 'finanzas/perfil.html', context)
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\template\loader.py", line 62, in render_to_string
+    return template.render(context, request)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\template\backends\django.py", line 107, in render
+    return self.template.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\template\base.py", line 174, in render
+    return self._render(context)
+           ~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\template\base.py", line 166, in _render
+    return self.nodelist.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\template\base.py", line 1091, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\template\base.py", line 1052, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\template\loader_tags.py", line 135, in render
+    compiled_parent = self.get_parent(context)
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\template\loader_tags.py", line 132, in get_parent
+    return self.find_template(parent, context)
+           ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\template\loader_tags.py", line 110, in find_template
+    template, origin = context.template.engine.find_template(
+                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        template_name,
+        ^^^^^^^^^^^^^^
+        skip=history,
+        ^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\template\engine.py", line 159, in find_template
+    template = loader.get_template(name, skip=skip)
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\template\loaders\cached.py", line 57, in get_template
+    template = super().get_template(template_name, skip)
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\template\loaders\base.py", line 28, in get_template
+    return Template(
+        contents,
+    ...<2 lines>...
+        self.engine,
+    )
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\template\base.py", line 157, in __init__
+    self.nodelist = self.compile_nodelist()
+                    ~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\template\base.py", line 199, in compile_nodelist
+    nodelist = parser.parse()
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\template\base.py", line 585, in parse
+    raise self.error(token, e)
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\template\base.py", line 583, in parse
+    compiled_result = compile_func(self, token)
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\template\defaulttags.py", line 1556, in url
+    raise TemplateSyntaxError(
+        "'%s' takes at least one argument, a URL pattern name." % bits[0]
+    )
+django.template.exceptions.TemplateSyntaxError: Template: C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\finanzas\templates\finanzas\base.html, 'url' takes at least one argument, a URL pattern name.
+2026-09-09 17:19:04,952 ERROR django.request Internal Server Error: /cartola/revisar/
+Traceback (most recent call last):
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\core\handlers\base.py", line 198, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\contrib\auth\decorators.py", line 59, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\finanzas\views_cartola.py", line 135, in revisar_cartola
+    return render(request, 'finanzas/revisar_cartola.html', {
+        'c': datos,
+    ...<7 lines>...
+        'cats_ingreso': [c for c in INGRESOS],
+    })
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\template\loader.py", line 62, in render_to_string
+    return template.render(context, request)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\template\backends\django.py", line 107, in render
+    return self.template.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\template\base.py", line 174, in render
+    return self._render(context)
+           ~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\template\base.py", line 166, in _render
+    return self.nodelist.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\template\base.py", line 1091, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\template\base.py", line 1052, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\template\loader_tags.py", line 160, in render
+    return compiled_parent._render(context)
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\template\base.py", line 166, in _render
+    return self.nodelist.render(context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\template\base.py", line 1091, in render
+    return SafeString("".join([node.render_annotated(context) for node in self]))
+                               ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\template\base.py", line 1052, in render_annotated
+    return self.render(context)
+           ~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\template\defaulttags.py", line 237, in render
+    raise ValueError(
+    ...<3 lines>...
+    )
+ValueError: Need 2 values to unpack in for loop; got 6. 

@@ -31,6 +31,11 @@ ALLOWED_HOSTS = os.environ.get(
     'localhost,127.0.0.1,finanzas.pythonanywhere.com,www.finanzas.pythonanywhere.com'
 ).split(',')
 
+# Acceso con cuenta de Google (ver finanzas/google_login.py). Si no están,
+# el botón no se dibuja y el acceso con usuario y contraseña sigue igual.
+GOOGLE_CLIENT_ID = os.environ.get('GOOGLE_CLIENT_ID', '')
+GOOGLE_CLIENT_SECRET = os.environ.get('GOOGLE_CLIENT_SECRET', '')
+
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -70,6 +75,7 @@ TEMPLATES = [
                 'django.contrib.messages.context_processors.messages',
                 'finanzas.context_processors.moneda_usuario',   
                 'finanzas.middleware.nonce_contexto',
+                'finanzas.google_login.google_disponible',
             ],
         },
     },
@@ -174,6 +180,11 @@ if not DEBUG:
         o.strip() for o in os.environ.get('CSRF_TRUSTED_ORIGINS', '').split(',')
         if o.strip()
     ]
+
+# Acceso con cuenta de Google (ver finanzas/google_login.py). Si no están,
+# el botón no se dibuja y el acceso con usuario y contraseña sigue igual.
+GOOGLE_CLIENT_ID = os.environ.get('GOOGLE_CLIENT_ID', '')
+GOOGLE_CLIENT_SECRET = os.environ.get('GOOGLE_CLIENT_SECRET', '')
 
 SESSION_COOKIE_AGE = 60 * 60 * 8         
 SESSION_SAVE_EVERY_REQUEST = True        

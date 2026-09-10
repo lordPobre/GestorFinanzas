@@ -1,0 +1,172 @@
+{% extends 'finanzas/base.html' %}
+{% load moneda %}
+{% block title %}Revisar cartola · FinApp{% endblock %}
+{% block topbar_sub %}Nada se guarda hasta que confirmes{% endblock %}
+
+{% block content %}
+<div class="section-head" style="margin-top:0">
+  <div>
+    <h1 class="section-title" style="font-size:22px">Revisa antes de guardar</h1>
+    <div class="hint" style="margin-top:4px">
+      {{ c.banco }}{% if c.periodo %} · {{ c.periodo }}{% endif %}{% if c.cuenta %} · cuenta {{ c.cuenta }}{% endif %}
+    </div>
+  </div>
+  <a href="{% url 'descartar_cartola' %}" class="btn btn-glass btn-sm">Descartar</a>
+</div>
+
+{% comment %}
+  El saldo de una cartola es una cadena: cada fila deja un saldo que la
+  siguiente continúa. Si esa cadena cierra contra el saldo que el propio
+  banco declara arriba, entonces no se perdió ninguna fila al leer el PDF.
+  Es la única garantía real que se puede dar, así que se muestra primero.
+{% endcomment %}
+{% if c.cuadra %}
+<div class="cartola-aviso ok">
+  <i class="fas fa-circle-check"></i>
+  <div>
+    <b>La cartola cuadra.</b>
+    {{ c.nota_cuadre }}
+  </div>
+</div>
+{% else %}
+<div class="cartola-aviso mal">
+  <i class="fas fa-triangle-exclamation"></i>
+  <div>
+    <b>No cuadra.</b>
+    {{ c.nota_cuadre }} La diferencia es de {{ descuadre|money }}. Revisa fila por
+    fila antes de guardar, o descarta e inténtalo con otro PDF.
+  </div>
+</div>
+{% endif %}
+
+<div class="cartola-resumen">
+  <div><span class="label">Movimientos nuevos</span><b class="mono">{{ nuevas }}</b></div>
+  <div><span class="label">Ya estaban</span><b class="mono">{{ repetidas }}</b></div>
+  <div><span class="label">Suman de ingreso</span><b class="mono" style="color:var(--green)">{{ suma_ingresos|money }}</b></div>
+  <div><span class="label">Suman de gasto</span><b class="mono" style="color:var(--coral)">{{ suma_egresos|money }}</b></div>
+</div>
+
+<form method="post" action="{% url 'confirmar_cartola' %}" id="formConfirmar">
+  {% csrf_token %}
+
+  <div class="cartola-barra">
+    <button type="button" class="btn btn-glass btn-sm" data-marcar="nuevos">Solo los nuevos</button>
+    <button type="button" class="btn btn-glass btn-sm" data-marcar="todos">Todos</button>
+    <button type="button" class="btn btn-glass btn-sm" data-marcar="ninguno">Ninguno</button>
+  </div>
+
+  <div class="glass card-lg" style="padding:0;overflow:hidden">
+    <div class="cartola-cabecera">
+      <span></span><span>Fecha</span><span>Descripción</span><span>Categoría</span><span style="text-align:right">Monto</span>
+    </div>
+
+    {% for f in filas %}
+    <div class="cartola-fila{% if f.ya_existe %} repetida{% endif %}">
+      <input type="checkbox" name="sel_{{ f.i }}" id="sel_{{ f.i }}" class="cartola-check"
+             {% if f.marcada %}checked{% endif %}>
+
+      <label class="cartola-fecha mono" for="sel_{{ f.i }}">{{ f.fecha_obj|date:"d/m" }}</label>
+
+      {% comment %}
+        La descripción va sola en su celda. Las marcas y la casilla de extras
+        cuelgan abajo, en una segunda línea de la grilla que abarca de la
+        descripción al monto: así el selector y el monto quedan a la altura
+        del campo de texto en vez de flotar en el centro de una fila alta.
+      {% endcomment %}
+      <div class="cartola-desc">
+        <input type="text" name="desc_{{ f.i }}" value="{{ f.descripcion }}" maxlength="200">
+      </div>
+
+      <select name="cat_{{ f.i }}" class="cartola-cat">
+        {% if f.tipo == 'INGRESO' %}
+          {% for valor, etiqueta in cartola_cats_ingreso %}
+          <option value="{{ valor }}" {% if valor == f.categoria %}selected{% endif %}>{{ etiqueta }}</option>
+          {% endfor %}
+        {% else %}
+          {% for valor, etiqueta in cartola_cats_egreso %}
+          <option value="{{ valor }}" {% if valor == f.categoria %}selected{% endif %}>{{ etiqueta }}</option>
+          {% endfor %}
+        {% endif %}
+      </select>
+
+      <div class="cartola-monto mono {% if f.tipo == 'INGRESO' %}entra{% else %}sale{% endif %}">
+        {% if f.tipo == 'INGRESO' %}+{% else %}−{% endif %}{{ f.monto_dec|money }}
+      </div>
+
+      {% comment %}
+        Solo se dibuja si tiene algo que decir: una fila corriente no gasta
+        una línea vacía.
+      {% endcomment %}
+      {% if f.ya_existe or f.es_cuota or f.es_suscripcion or f.aviso %}
+      <div class="cartola-detalle">
+        <div class="cartola-marcas">
+          {% if f.ya_existe %}<span class="badge badge-mute">Ya está</span>{% endif %}
+          {% if f.es_cuota %}<span class="badge badge-orange">{{ f.texto_cuota }}</span>{% endif %}
+          {% if f.es_suscripcion %}<span class="badge badge-blue">Se repite cada mes</span>{% endif %}
+          {% comment %}
+            El aviso de una cuota es una explicación, no una advertencia: en
+            ámbar, repetido en veinte filas, gritaba que algo andaba mal.
+          {% endcomment %}
+          {% if f.aviso %}<span class="cartola-nota-fila{% if f.es_cuota %} suave{% endif %}">{{ f.aviso }}</span>{% endif %}
+        </div>
+
+        {% if f.es_cuota %}
+        <label class="cartola-extra">
+          <input type="checkbox" name="deuda_{{ f.i }}">
+          Crear también la compra en cuotas ({{ f.cuota_total }} cuotas)
+        </label>
+        {% elif f.es_suscripcion %}
+        <label class="cartola-extra">
+          <input type="checkbox" name="sub_{{ f.i }}">
+          Crear también la suscripción
+        </label>
+        {% endif %}
+      </div>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+
+  <div class="cartola-pie">
+    <span class="hint" id="cuenta">Se guardarán {{ nuevas }} movimientos.</span>
+    <button type="submit" class="btn btn-green" id="btnGuardar">Guardar los marcados</button>
+  </div>
+</form>
+{% endblock %}
+
+{% block extra_js %}
+<script nonce="{{ csp_nonce }}">
+(function () {
+  var form = document.getElementById('formConfirmar');
+  if (!form) return;
+  var checks = form.querySelectorAll('.cartola-check');
+  var cuenta = document.getElementById('cuenta');
+
+  function actualizar() {
+    var n = 0;
+    checks.forEach(function (c) { if (c.checked) n++; });
+    cuenta.textContent = n === 0
+      ? 'No hay nada marcado.'
+      : 'Se guardará' + (n === 1 ? ' 1 movimiento.' : 'n ' + n + ' movimientos.');
+    document.getElementById('btnGuardar').disabled = n === 0;
+  }
+
+  checks.forEach(function (c) { c.addEventListener('change', actualizar); });
+
+  form.querySelectorAll('[data-marcar]').forEach(function (b) {
+    b.addEventListener('click', function () {
+      var modo = b.dataset.marcar;
+      checks.forEach(function (c) {
+        var repetida = c.closest('.cartola-fila').classList.contains('repetida');
+        c.checked = modo === 'todos' ? true
+                  : modo === 'ninguno' ? false
+                  : !repetida;
+      });
+      actualizar();
+    });
+  });
+
+  actualizar();
+})();
+</script>
+{% endblock %}

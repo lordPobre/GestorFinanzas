@@ -153,6 +153,34 @@
           <div class="mini-monto">{{ persona.unicos_pendientes|money }}</div>
         </div>
       </div>
+
+      {% comment %}
+        La suma de las dos de al lado: lo que toca cobrar ahora. No es el
+        total de la deuda — eso es la primera tarjeta — sino la cuota de este
+        mes más los pagos únicos que siguen sin saldarse. Estaban las dos
+        partes por separado y había que sumarlas de cabeza.
+
+        Solo se dibuja si hay algo que cobrar: en una persona ya saldada
+        sería una cuarta tarjeta en cero repitiendo lo que dicen las otras.
+      {% endcomment %}
+      {% if persona.cobro_del_mes %}
+      <div class="mini-card destacada">
+        <span class="mini-icono"><i class="fas fa-equals"></i></span>
+        <div>
+          <div class="label">A cobrar ahora</div>
+          <div class="mini-monto">{{ persona.cobro_del_mes|money }}</div>
+          <div class="mini-nota">
+            {% if persona.cuotas_del_mes and persona.unicos_pendientes %}
+              cuota del mes + pagos únicos
+            {% elif persona.cuotas_del_mes %}
+              solo la cuota de este mes
+            {% else %}
+              solo pagos únicos
+            {% endif %}
+          </div>
+        </div>
+      </div>
+      {% endif %}
     </div>
 
     <div class="label" style="margin-bottom:11px">Préstamos</div>

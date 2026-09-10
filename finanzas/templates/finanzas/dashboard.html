@@ -222,6 +222,7 @@
     </div>
   </div>
 
+  {# La barra reparte lo que entró en sus tres destinos #}
   <div class="split-bar" style="height:12px;margin-bottom:14px">
     <span style="width:{{ pct_gastado }}%;background:var(--blue)" title="Ya gastado"></span>
     <span style="width:{{ pct_por_pagar }}%;background:var(--amber)" title="Por pagar"></span>
@@ -535,9 +536,24 @@
       apagado, porque eso es lo que hay que atender primero.
     {% endcomment %}
     <div class="pago-fila t-{{ i.tipo }}{% if i.atrasado %} atrasado{% elif i.pagado %} pagado{% endif %}" data-searchable>
-      <span class="pago-ficha">
-        <i class="fas {% if i.pagado %}fa-check{% else %}{{ i.icono }}{% endif %}"></i>
+      {% comment %}
+        Con la marca reconocida la ficha lleva el logo y el color oficial de
+        la plataforma. Las que Font Awesome no tiene (Netflix, HBO, Disney+)
+        usan su inicial sobre el color de la marca, igual que en la pantalla
+        de Suscripciones.
+
+        Pagada gana sobre todo lo demás: el check es el estado, y verlo vale
+        más que volver a ver de qué plataforma era.
+      {% endcomment %}
+      {% if i.pagado %}
+      <span class="pago-ficha"><i class="fas fa-check"></i></span>
+      {% elif i.marca.reconocida %}
+      <span class="pago-ficha marca" style="color:{{ i.marca.color }};background:{{ i.marca.color }}1f;border-color:{{ i.marca.color }}3d">
+        {% if i.marca.usa_inicial %}<b>{{ i.inicial }}</b>{% else %}<i class="{{ i.marca.icono }}"></i>{% endif %}
       </span>
+      {% else %}
+      <span class="pago-ficha"><i class="fas {{ i.icono }}"></i></span>
+      {% endif %}
 
       <div class="row-main">
         <div class="row-title" {% if i.pagado %}style="color:var(--text-secondary)"{% endif %}>{{ i.nombre }}</div>
@@ -687,7 +703,6 @@
     </div>
   </div>
 
-  {# La leyenda va arriba y a mano: la de Chart.js no deja poner los montos #}
   <div class="flujo-leyenda">
     <span><i class="punto" style="background:var(--green)"></i>Entra</span>
     <span><i class="punto" style="background:var(--coral)"></i>Sale</span>
@@ -995,6 +1010,10 @@
   var TEXTO = 'rgba(245,245,245,.72)';
   var FONT  = "'Manrope', sans-serif";
   var quieto = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  /* En un teléfono no caben seis "Abr 2026" seguidos: se pisaban entre ellos.
+     Se mide en cada dibujado, no una vez, para que al girar el teléfono la
+     etiqueta cambie sola. */
+  function angosto() { return (el.clientWidth || window.innerWidth) < 520; }
 
   var meses = serie('meses');
   var ingresos = serie('ingresos');
@@ -1122,8 +1141,17 @@
         x: {
           grid: { display: false },
           border: { color: 'rgba(255,255,255,.08)' },
-          ticks: { color: TICK, font: { family: FONT, size: 11, weight: '600' },
-                   maxRotation: 0, minRotation: 0, padding: 8 },
+          ticks: { color: TICK,
+                   font: function () { return { family: FONT, size: angosto() ? 10 : 11, weight: '600' }; },
+                   maxRotation: 0, minRotation: 0, padding: 8,
+                   autoSkip: true, autoSkipPadding: 14,
+                   /* Solo el mes cuando la pantalla es angosta: el año se
+                      repite en toda la serie y el mes completo va en el
+                      globo al tocar el gráfico. */
+                   callback: function (v) {
+                     var l = this.getLabelForValue(v);
+                     return angosto() ? String(l).split(' ')[0] : l;
+                   } },
         },
         y: {
           /* Sin rejilla horizontal: en un gráfico de área las líneas cruzadas

@@ -3,7 +3,6 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  {# El color de la barra del navegador en móvil: el fondo real de la app. #}
   <meta name="theme-color" content="#191919">
   <title>{% block title %}FinApp{% endblock %}</title>
 
@@ -31,13 +30,11 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
   <link rel="stylesheet" href="{% static 'css/finapp.css' %}">
   {% block extra_head %}{% endblock %}
   <script nonce="{{ csp_nonce }}">
-  /* Respaldo mínimo: abre y cierra modales aunque finapp.js no cargue.
-     finapp.js sobreescribe estas funciones cuando sí está disponible. */
   (function () {
     function open(id) {
       var m = document.querySelector(id);
@@ -155,6 +152,14 @@
         </a>
         <a href="{% url 'categorias' %}" data-label="Categorías" class="nav-item {% if request.resolver_match.url_name == 'categorias' %}active{% endif %}">
           <i class="fas fa-tags"></i><span>Categorías</span>
+        </a>
+        {% comment %}
+          Las tres pantallas de la cartola comparten el mismo destacado: al
+          revisar o confirmar se sigue estando "en" Importar cartola, y sin
+          esto el menú se apagaba a mitad del recorrido.
+        {% endcomment %}
+        <a href="{% url 'importar_cartola' %}" data-label="Importar cartola" class="nav-item {% if request.resolver_match.url_name == 'importar_cartola' or request.resolver_match.url_name == 'revisar_cartola' %}active{% endif %}">
+          <i class="fas fa-file-import"></i><span>Importar cartola</span>
         </a>
       </div>
 
@@ -280,7 +285,7 @@
       <div class="saludo-card">
         <a href="{% url 'perfil' %}" class="avatar">{% if profile.foto_url %}<img src="{{ profile.foto_url }}" alt="" data-quitar-si-falla>{% endif %}<span class="avatar-letra">{{ profile.inicial|default:"?" }}</span></a>
         <div class="saludo-txt">
-          <div class="saludo-hola">{% block saludo %}Buenos días{% endblock %}</div>
+          <div class="saludo-hola" data-saludo>{% block saludo %}Buenos días{% endblock %}</div>
           <div class="saludo-nombre">{{ profile.nombre_display|default:user.username }}</div>
         </div>
         <button class="saludo-campana" data-open="#modalAvisos" aria-label="Avisos">
@@ -289,6 +294,33 @@
         </button>
       </div>
 
+      {% comment %}
+        El saludo sigue la hora del teléfono, no la del servidor: es la que
+        tiene el usuario delante. Va acá, pegado a la tarjeta, para que se
+        corrija antes de que la pantalla se pinte y no haya parpadeo.
+      {% endcomment %}
+      <script nonce="{{ csp_nonce }}">
+      (function () {
+        function texto(h) {
+          if (h >= 7 && h < 12) return 'Buenos días';
+          if (h >= 12 && h < 20) return 'Buenas tardes';
+          return 'Buenas noches';
+        }
+        function pintar() {
+          var t = texto(new Date().getHours());
+          var nodos = document.querySelectorAll('[data-saludo]');
+          for (var i = 0; i < nodos.length; i++) nodos[i].textContent = t;
+        }
+        pintar();
+        /* Si la pantalla queda abierta cruzando las 12 o las 20, el saludo se
+           actualiza solo; y al volver a la pestaña, por si el teléfono
+           suspendió los temporizadores. */
+        window.setInterval(pintar, 60000);
+        document.addEventListener('visibilitychange', function () {
+          if (!document.hidden) pintar();
+        });
+      })();
+      </script>
       {% block content %}{% endblock %}
     </main>
   </div>
@@ -358,8 +390,15 @@
         <span class="icon-tile orange"><i class="fas fa-brain"></i></span><span>Análisis IA</span></a>
       <a href="{% url 'categorias' %}" class="hoja-item">
         <span class="icon-tile blue"><i class="fas fa-tags"></i></span><span>Categorías</span></a>
+      <a href="{% url 'importar_cartola' %}" class="hoja-item">
+        <span class="icon-tile green"><i class="fas fa-file-import"></i></span><span>Importar cartola</span></a>
+      {% comment %}
+        La ficha muestra la foto del perfil, como la píldora del saludo. El
+        icono queda debajo: si la imagen falla, data-quitar-si-falla la saca
+        del DOM y vuelve a verse sin dejar un cuadro vacío.
+      {% endcomment %}
       <a href="{% url 'perfil' %}" class="hoja-item">
-        <span class="icon-tile"><i class="fas fa-user"></i></span><span>Mi perfil</span></a>
+        <span class="icon-tile tile-avatar">{% if profile.foto_url %}<img src="{{ profile.foto_url }}" alt="" data-quitar-si-falla>{% endif %}<i class="fas fa-user"></i></span><span>Mi perfil</span></a>
     </div>
     <form method="post" action="{% url 'logout' %}" style="margin-top:16px">
       {% csrf_token %}
@@ -562,19 +601,12 @@
   var form = document.getElementById('formRegistro');
   if (!form) return;
 
-  /* Las de gasto ya están en el HTML; este arreglo solo sirve para volver
-     a ellas si el usuario cambia de Ingreso a Gasto. */
+
   var catsGasto = leerDatos('egreso');
   var catsIngreso = leerDatos('ingreso');
 
   var chips = document.getElementById('chipsGasto');
-  /* Lee una lista embebida con json_script.
-     Devuelve [] si no está o viene vacía: solo el panel de Inicio recibe
-     las categorías, y en las demás pantallas un JSON.parse directo daba ""
-     y el forEach siguiente reventaba, dejando muerto el resto del script. */
-  /* Las categorías viajan en atributos del contenedor de fichas: la política
-     de contenidos bloquea los <script type="application/json">, y ahí los
-     datos nunca llegaban. */
+
   function leerDatos(cual) {
     var cont = document.getElementById('chipsGasto');
     if (!cont || !cont.dataset[cual]) return [];
@@ -703,8 +735,6 @@
   setTipo('EGRESO');
   pintarMonto();
 
-  /* ?registrar=1 abre el panel al cargar. Lo usan el botón flotante de las
-     pantallas sin panel propio y el retorno de un POST con error. */
   {% if abrir_panel or request.GET.registrar %}
   var overlay = document.getElementById('modalGasto');
   if (overlay) { overlay.classList.add('open'); document.body.style.overflow = 'hidden'; }

@@ -1,0 +1,126 @@
+{% extends 'finanzas/base.html' %}
+{% block title %}Importar cartola · FinApp{% endblock %}
+{% block topbar_sub %}Traer tus movimientos del banco{% endblock %}
+
+{% block content %}
+<div class="section-head" style="margin-top:0">
+  <div>
+    <h1 class="section-title" style="font-size:22px">Importar cartola</h1>
+    <div class="hint" style="margin-top:4px">
+      Sube el PDF que descargas del banco y revisa los movimientos antes de guardarlos.
+    </div>
+  </div>
+</div>
+
+{% comment %}
+  Clase y no estilo inline: el layout tiene que pasar a una columna en el
+  teléfono, y un style= no admite media queries. Con las dos columnas fijas
+  la lista de pasos quedaba en una tira de 150px con una palabra por línea.
+{% endcomment %}
+<div class="cartola-layout">
+
+  <form class="glass card-lg" method="post" enctype="multipart/form-data" id="formCartola">
+    {% csrf_token %}
+
+    {% comment %}
+      El input de archivo va oculto y la etiqueta hace de zona: un input de
+      archivo del navegador no se puede estilar y aquí tiene que ser el
+      elemento más grande de la pantalla.
+    {% endcomment %}
+    <label class="cartola-zona" id="zona">
+      <input type="file" name="cartola" accept="application/pdf,.pdf" id="inputCartola" class="visually-hidden">
+      <span class="cartola-icono"><i class="fas fa-file-pdf"></i></span>
+      <span class="cartola-titulo" id="zonaTitulo">Arrastra aquí el PDF de tu cartola</span>
+      <span class="cartola-nota" id="zonaNota">o toca para buscarlo · máximo 6 MB</span>
+    </label>
+
+    <div class="field" style="margin-top:18px">
+      <label class="label" for="banco">Banco</label>
+      <select name="banco" id="banco">
+        <option value="">Reconocerlo solo</option>
+        {% for clave, nombre in bancos %}
+        <option value="{{ clave }}">{{ nombre }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <button type="submit" class="btn btn-amber btn-block" style="margin-top:18px" id="btnLeer" disabled>
+      Leer cartola
+    </button>
+  </form>
+
+  <div style="display:flex;flex-direction:column;gap:14px">
+    <div class="glass card-lg">
+      <div class="label" style="margin-bottom:12px">Cómo funciona</div>
+      <ol class="cartola-pasos">
+        <li><b>Se lee el PDF.</b> Tiene que ser el archivo que descarga el banco, no una foto ni una captura: una imagen no trae el texto adentro.</li>
+        <li><b>Si tu banco no está en la lista</b>, se intenta igual. La app comprueba que los saldos de la cartola formen una cadena coherente; si no cuadran, te avisa y no guarda nada.</li>
+        <li><b>Se revisa.</b> Verás cada movimiento con su categoría propuesta. Puedes cambiarla, corregir la descripción o dejar fuera lo que no quieras.</li>
+        <li><b>Se guarda</b> solo lo que dejaste marcado.</li>
+      </ol>
+    </div>
+
+    <div class="glass card-lg">
+      <div class="label" style="margin-bottom:10px">Sobre tus datos</div>
+      <div class="hint" style="font-size:11.5px;line-height:1.6">
+        El PDF no se guarda. Se lee en memoria, se saca el texto y el archivo
+        se descarta ahí mismo. Tampoco sale de tu servidor: la cartola se
+        interpreta acá, sin mandarla a ningún servicio externo.
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script nonce="{{ csp_nonce }}">
+(function () {
+  var input = document.getElementById('inputCartola');
+  var zona = document.getElementById('zona');
+  var titulo = document.getElementById('zonaTitulo');
+  var nota = document.getElementById('zonaNota');
+  var btn = document.getElementById('btnLeer');
+  if (!input) return;
+
+  function kb(n) { return (n / 1024 / 1024).toFixed(1) + ' MB'; }
+
+  function mostrar(archivo) {
+    if (!archivo) return;
+    zona.classList.add('con-archivo');
+    titulo.textContent = archivo.name;
+    nota.textContent = kb(archivo.size) + ' · toca para cambiarlo';
+    btn.disabled = false;
+  }
+
+  input.addEventListener('change', function () { mostrar(input.files[0]); });
+
+  /* Arrastrar el archivo encima. Sin esto la etiqueta parece una zona de
+     arrastre y no lo es, que es peor que no ofrecerla. */
+  ['dragenter', 'dragover'].forEach(function (ev) {
+    zona.addEventListener(ev, function (e) {
+      e.preventDefault();
+      zona.classList.add('encima');
+    });
+  });
+  ['dragleave', 'drop'].forEach(function (ev) {
+    zona.addEventListener(ev, function (e) {
+      e.preventDefault();
+      zona.classList.remove('encima');
+    });
+  });
+  zona.addEventListener('drop', function (e) {
+    var f = e.dataTransfer && e.dataTransfer.files[0];
+    if (!f) return;
+    input.files = e.dataTransfer.files;
+    mostrar(f);
+  });
+
+  /* Leer una cartola larga toma unos segundos: sin aviso, la gente vuelve a
+     apretar y sube el archivo dos veces. */
+  document.getElementById('formCartola').addEventListener('submit', function () {
+    btn.disabled = true;
+    btn.textContent = 'Leyendo…';
+  });
+})();
+</script>
+{% endblock %}

@@ -1,6 +1,6 @@
 from django.urls import path
 from django.contrib.auth import views as auth_views
-from . import views
+from . import google_login, views, views_cartola
 
 urlpatterns = [
     path('', views.dashboard, name='dashboard'),
@@ -66,6 +66,11 @@ urlpatterns = [
 
     # Vista propia en vez de LoginView: la de Django no limita los intentos.
     path('login/', views.entrar, name='login'),
+
+    # Acceso con cuenta de Google. 'listo' es la dirección de vuelta que
+    # hay que registrar en Google Cloud Console, con la barra final.
+    path('entrar/google/', google_login.entrar_google, name='google_entrar'),
+    path('entrar/google/listo/', google_login.google_listo, name='google_listo'),
     path('logout/', auth_views.LogoutView.as_view(next_page='/login/'), name='logout'),
     path('verificar/', views.verificar_codigo, name='verificar_codigo'),
     path('perfil/dos-pasos/', views.configurar_2fa, name='configurar_2fa'),
@@ -76,6 +81,11 @@ urlpatterns = [
     # activo, y PasswordResetConfirmView no sabe de eso.
     path('recuperar/', views.recuperar, name='recuperar'),
     path('recuperar/<uidb64>/<token>/', views.restablecer, name='restablecer'),
+
+    path('cartola/', views_cartola.importar_cartola, name='importar_cartola'),
+    path('cartola/revisar/', views_cartola.revisar_cartola, name='revisar_cartola'),
+    path('cartola/confirmar/', views_cartola.confirmar_cartola, name='confirmar_cartola'),
+    path('cartola/descartar/', views_cartola.descartar_cartola, name='descartar_cartola'),
 
     path('perfil/', views.perfil, name='perfil'),
 

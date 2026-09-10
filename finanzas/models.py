@@ -1176,6 +1176,19 @@ class Persona(models.Model):
         return total
 
     @property
+    def cobro_del_mes(self):
+        """Lo que corresponde cobrarle ahora: la cuota del mes más los pagos
+        únicos pendientes.
+
+        No es lo mismo que total_pendiente. Si alguien debe una compra en 6
+        cuotas de $30.000 y además un préstamo suelto de $10.000, debe
+        $190.000 en total pero este mes hay que cobrarle $40.000. Ese era el
+        número que la pantalla no daba: estaban la cuota y los únicos por
+        separado, y había que sumarlos de cabeza.
+        """
+        return self.cuotas_del_mes + self.unicos_pendientes
+
+    @property
     def resumen_meta(self):
         """Línea bajo el nombre en la lista de personas."""
         n = self.cantidad_prestamos

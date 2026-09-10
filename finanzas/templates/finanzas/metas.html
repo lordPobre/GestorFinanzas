@@ -42,7 +42,13 @@
 
 <div class="grid-cards">
   {% for d in metas_datos %}
-  <div class="glass card-lg glass-lift" data-spot data-searchable
+  {% comment %}
+    El id es el destino de los enlaces del dashboard, que ya apuntaban a
+    "metas#meta<pk>" y no llegaban a ninguna parte: la tarjeta no tenía id,
+    así que el navegador se quedaba arriba de la página. Ahora baja a la
+    meta tocada y la tarjeta se señala sola (.meta-card:target).
+  {% endcomment %}
+  <div class="glass card-lg glass-lift meta-card" id="meta{{ d.meta.pk }}" data-spot data-searchable
        {% if d.meta.esta_completa %}style="border-color:rgba(83,210,88,.28)"{% endif %}>
 
     <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:16px">
@@ -74,9 +80,18 @@
       <span style="font-size:12px;color:var(--text-muted)">de {{ d.meta.monto_meta|money }}</span>
     </div>
 
+    {% comment %}
+      "viva" es lo que hace que la barra se rellene al entrar y lleve el
+      brillo que recorre lo ahorrado, igual que en el dashboard. Sin ella la
+      única animación era "transition: width", que no se dispara nunca al
+      cargar porque el ancho ya nace en su valor final.
+
+      El color es el de la meta, el mismo con que se dibuja en el dashboard,
+      salvo cuando está cumplida: ahí manda el verde.
+    {% endcomment %}
     <div class="progress-bar" style="height:9px">
-      <div class="progress-fill {% if d.meta.esta_completa %}green{% endif %}"
-           style="width:{{ d.meta.porcentaje|floatformat:0 }}%"></div>
+      <div class="progress-fill viva {% if d.meta.esta_completa %}green{% endif %}"
+           style="width:{{ d.meta.porcentaje|floatformat:0 }}%{% if not d.meta.esta_completa %};background:{{ d.meta.color }}{% endif %}"></div>
     </div>
     <div style="display:flex;justify-content:space-between;margin-top:7px;font-size:10.5px;color:var(--text-muted)">
       <span>{{ d.meta.porcentaje|floatformat:0 }}% logrado</span>
@@ -92,20 +107,23 @@
         </span>
       </div>
 
-      <div style="display:flex;align-items:flex-end;gap:6px;height:64px">
+      {% comment %}
+        Cada mes es un botón y no un div con title=: el title solo aparece
+        con el puntero quieto un segundo, así que en el teléfono el monto de
+        cada mes no había forma de verlo. Ahora se toca y se muestra encima.
+      {% endcomment %}
+      <div class="aportes-chart">
         {% for s in d.serie %}
-        <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:5px;height:100%;justify-content:flex-end"
-             title="{{ s.label }}: {{ s.monto|money }}">
-          {% comment %}
-            Un mes sin aportes deja una marca fina en vez de nada: así se ve
-            el hueco. Con altura cero la barra desaparecía y parecía que ese
-            mes no existía.
-          {% endcomment %}
-          <div style="width:100%;border-radius:6px 6px 3px 3px;transition:height .5s var(--ease-out);
-                      {% if s.monto %}height:{{ s.alto }}%;min-height:8px;background:var(--amber);
-                      {% else %}height:3px;background:var(--surface-3);{% endif %}"></div>
-          <span style="font-size:9.5px;color:var(--text-muted)">{{ s.label }}</span>
-        </div>
+        <button type="button"
+                class="aporte-col{% if not s.monto %} vacio{% endif %}"
+                style="--alto:{{ s.alto|default:0 }}%;--i:{{ forloop.counter0 }}"
+                aria-label="{{ s.label }}: {{ s.monto|money }}">
+          <span class="aporte-pista">
+            <span class="aporte-valor">{{ s.monto|money }}</span>
+            <span class="aporte-barra"{% if s.monto and not d.meta.esta_completa %} style="background:{{ d.meta.color }}"{% endif %}></span>
+          </span>
+          <span class="aporte-mes">{{ s.label }}</span>
+        </button>
         {% endfor %}
       </div>
 
@@ -262,13 +280,61 @@
    y no hacía nada al tocarlo. */
 document.addEventListener('click', function (e) {
   var chip = e.target.closest('[data-montos] > button');
-  if (!chip) return;
-  e.preventDefault();
-  var grupo = chip.parentElement;
-  var campo = document.querySelector(grupo.dataset.montos);
-  grupo.querySelectorAll('button').forEach(function (b) { b.classList.remove('on'); });
-  chip.classList.add('on');
-  if (campo) { campo.value = chip.dataset.monto; campo.focus(); }
+  if (chip) {
+    e.preventDefault();
+    var grupo = chip.parentElement;
+    var campo = document.querySelector(grupo.dataset.montos);
+    grupo.querySelectorAll('button').forEach(function (b) { b.classList.remove('on'); });
+    chip.classList.add('on');
+    if (campo) { campo.value = chip.dataset.monto; campo.focus(); }
+    return;
+  }
+
+  /* El gráfico de meses en pantalla táctil: un toque deja el monto a la
+     vista. En escritorio el hover ya lo muestra, pero el clic no molesta.
+     Solo un mes abierto a la vez dentro de la misma tarjeta. */
+  var col = e.target.closest('.aporte-col');
+  if (col) {
+    e.preventDefault();
+    var abierta = col.classList.contains('on');
+    col.closest('.aportes-chart')
+       .querySelectorAll('.aporte-col.on')
+       .forEach(function (c) { c.classList.remove('on'); });
+    if (!abierta) col.classList.add('on');
+    return;
+  }
+
+  /* Tocar fuera cierra el monto abierto. */
+  document.querySelectorAll('.aporte-col.on').forEach(function (c) {
+    c.classList.remove('on');
+  });
 });
+
+/* Las barras arrancan animadas solo cuando la tarjeta entra en pantalla: con
+   varias metas, las de más abajo terminaban su animación antes de que nadie
+   las viera y aparecían ya quietas. */
+(function () {
+  if (!('IntersectionObserver' in window)) return;
+  var pendientes = document.querySelectorAll('.meta-card');
+  if (!pendientes.length) return;
+
+  pendientes.forEach(function (card) {
+    /* En pausa hasta que asome. Los estilos ya declaran "both", así que la
+       barra se queda en su fotograma inicial (vacía) sin parpadeos. */
+    card.querySelectorAll('.progress-fill.viva, .aporte-barra')
+        .forEach(function (el) { el.style.animationPlayState = 'paused'; });
+  });
+
+  var obs = new IntersectionObserver(function (entradas) {
+    entradas.forEach(function (en) {
+      if (!en.isIntersecting) return;
+      en.target.querySelectorAll('.progress-fill.viva, .aporte-barra')
+               .forEach(function (el) { el.style.animationPlayState = ''; });
+      obs.unobserve(en.target);
+    });
+  }, { threshold: .25 });
+
+  pendientes.forEach(function (card) { obs.observe(card); });
+})();
 </script>
 {% endblock %}

@@ -5,36 +5,65 @@
 
 {% block content %}
 
-<div style="display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap;margin-bottom:18px">
-  <div>
+{% comment %}
+  El título cede ancho (flex:1) y el bloque de la derecha no se parte
+  (flex:0 0 auto): antes el grupo era flexible y, cuando el título se
+  quedaba con su ancho natural, al botón no le alcanzaba el sitio y bajaba
+  solo a una segunda línea debajo de las tarjetas.
+{% endcomment %}
+<div style="display:flex;justify-content:space-between;align-items:flex-end;gap:16px 20px;flex-wrap:wrap;margin-bottom:18px">
+  <div style="flex:1 1 300px;min-width:0">
     <div class="page-title">Suscripciones</div>
     <div class="hint" style="margin-top:5px;max-width:600px">
       Lo que se cobra solo cada mes. Apaga el interruptor para dejar de pagarla; el historial se mantiene.
     </div>
   </div>
 
-  <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:stretch">
+  {% comment %}
+    Las dos cifras de resumen, con el mismo color pleno que las de Me deben.
+    Cada color dice qué tipo de dato es, no solo decora:
+
+      coral — plata que debes y todavía no pagaste
+      verde — al día, nada pendiente
+      lila  — el compromiso recurrente; es el color que ya marca las cuotas
+              del dashboard y la categoría Servicios, y una suscripción es
+              exactamente eso: un servicio que se cobra todos los meses
+
+    Antes las tres usaban el mismo ámbar sobre --surface, así que "falta
+    pagar" y "total al mes" se veían idénticas pese a ser cosas opuestas.
+  {% endcomment %}
+  <div class="cabecera-cifras">
     {% if monto_pendiente_mes %}
-    <div class="glass-orange" style="padding:13px 18px;border-radius:16px">
-      <div class="label" style="color:rgba(251,146,60,.7);margin-bottom:5px">Falta pagar este mes</div>
-      <div class="display" style="font-size:20px;color:var(--orange)">{{ monto_pendiente_mes|money }}</div>
-      <div style="font-size:10.5px;color:var(--text-muted);margin-top:3px">
+    <div class="tarjeta-color coral tc-resumen">
+      <div class="tc-cabecera">
+        <span class="tc-icono"><i class="fas fa-hourglass-half" style="font-size:12px"></i></span>
+        <span class="tc-label">Falta pagar este mes</span>
+      </div>
+      <div class="tc-monto">{{ monto_pendiente_mes|money }}</div>
+      <div class="tc-nota">
         {{ pendientes_mes }} de {{ cantidad_activas }} suscripción{{ pendientes_mes|pluralize:"es" }}
       </div>
     </div>
     {% else %}
-    <div class="glass-green" style="padding:13px 18px;border-radius:16px">
-      <div class="label" style="color:var(--green);margin-bottom:5px">Este mes</div>
-      <div class="display" style="font-size:20px;color:var(--green)">Al día</div>
-      <div style="font-size:10.5px;color:var(--text-muted);margin-top:3px">{{ monto_pagado_mes|money }} pagados</div>
+    <div class="tarjeta-color verde tc-resumen">
+      <div class="tc-cabecera">
+        <span class="tc-icono"><i class="fas fa-circle-check" style="font-size:12px"></i></span>
+        <span class="tc-label">Este mes</span>
+      </div>
+      <div class="tc-monto">Al día</div>
+      <div class="tc-nota">{{ monto_pagado_mes|money }} pagados</div>
     </div>
     {% endif %}
 
-    <div class="glass-purple" style="padding:13px 18px;border-radius:16px">
-      <div class="label" style="color:var(--amber);margin-bottom:5px">Total activo al mes</div>
-      <div class="display" style="font-size:20px;color:var(--purple)">{{ total_mensual|money }}</div>
-      <div style="font-size:10.5px;color:var(--text-muted);margin-top:3px">{{ total_anual|money }} al año</div>
+    <div class="tarjeta-color lila tc-resumen">
+      <div class="tc-cabecera">
+        <span class="tc-icono"><i class="fas fa-rotate" style="font-size:12px"></i></span>
+        <span class="tc-label">Total activo al mes</span>
+      </div>
+      <div class="tc-monto">{{ total_mensual|money }}</div>
+      <div class="tc-nota">{{ total_anual|money }} al año</div>
     </div>
+
     <button class="btn btn-purple" data-open="#modalSub" data-tour="suscripciones"><i class="fas fa-plus" style="font-size:11px"></i>Nueva suscripción</button>
   </div>
 </div>
@@ -121,6 +150,7 @@
       {% endif %}
     {% endif %}
 
+    {# El interruptor ES el botón de cancelar/reactivar #}
     <form method="post" action="{% url 'cancelar_suscripcion' s.pk %}" style="margin:0;display:flex;align-items:center"
           {% if s.activa %}data-confirm="¿Dejar de pagar {{ s.nombre }}? Ahorras {{ s.monto_anual|money }} al año."{% endif %}>
       {% csrf_token %}
@@ -141,20 +171,38 @@
   {% endfor %}
 </div>
 
-{% for grupo in duplicadas %}
-<div class="glass-orange" style="margin-top:16px;padding:18px 20px;border-radius:20px;display:flex;align-items:flex-start;gap:13px">
-  <span class="icon-tile orange" style="width:30px;height:30px"><i class="fas fa-lightbulb" style="font-size:12px"></i></span>
-  <div>
-    <div style="font-size:12.5px;font-weight:500;margin-bottom:4px">
-      Pagas {{ grupo.items|length }} servicios de {{ grupo.categoria|lower }}
+{% comment %}
+  El consejo usa las mismas clases que las tarjetas de "Me deben"
+  (.tarjeta-color + .tc-*): color pleno con tinta oscura encima, en vez de un
+  tinte translúcido sobre la superficie de siempre, que se leía igual que
+  cualquier otra tarjeta.
+
+  Y se reordena: lo que importa de un consejo es cuánto ahorras, y ese número
+  estaba enterrado al final de la segunda línea. Ahora es la cifra grande y
+  el motivo pasa a la nota.
+
+  Verde agua y no ámbar porque en esta app cada color ya dice algo: verde es
+  "al día", coral "atrasado", azul "prestado", lila "cuota". El agua era el
+  único hueco libre de la paleta.
+{% endcomment %}
+{% if duplicadas %}
+<div class="tarjetas-color" style="margin-top:16px">
+  {% for grupo in duplicadas %}
+  <div class="tarjeta-color agua">
+    <div class="tc-cabecera">
+      <span class="tc-icono"><i class="fas fa-lightbulb" style="font-size:12px"></i></span>
+      <span class="tc-label">Puedes ahorrar</span>
     </div>
-    <div class="hint" style="font-size:11.5px">
+    <div class="tc-monto">{{ grupo.ahorro_anual|money }}<span class="tc-unidad">al año</span></div>
+    <div class="tc-nota">
+      Pagas {{ grupo.items|length }} servicios de {{ grupo.categoria|lower }}:
       {% for i in grupo.items %}{{ i.nombre }}{% if not forloop.last %} y {% endif %}{% endfor %}
-      se superponen. Dejando uno ahorras {{ grupo.ahorro_anual|money }} al año.
+      se superponen. Deja uno.
     </div>
   </div>
+  {% endfor %}
 </div>
-{% endfor %}
+{% endif %}
 
 {% else %}
 <div class="glass empty">

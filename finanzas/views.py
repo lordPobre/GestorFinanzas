@@ -435,6 +435,12 @@ def pendientes_del_mes(usuario, year, month):
             'pagado': bool(pago),
             'fecha_pago': pago.fecha_pago if pago else None,
             'icono': 'fa-rotate',
+            # El logo de la plataforma, que el modelo ya sabe deducir del
+            # nombre. Acá estaba fijo en fa-rotate, así que Netflix, Spotify
+            # y Amazon salían todos con la flecha genérica — el logo solo
+            # aparecía en la pantalla de Suscripciones, que sí usa s.marca.
+            'marca': s.marca,
+            'inicial': s.inicial,
             'url_pagar': f'/suscripciones/pagar/{s.pk}/',
             'url_anular': f'/suscripciones/anular-pago/{s.pk}/',
             'periodo': periodo,
