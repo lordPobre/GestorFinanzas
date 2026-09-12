@@ -416,8 +416,9 @@ a.balance-card:focus-visible {
   background: var(--surface);
 }
 
-/* Un carril con dos acciones se parte por la mitad: verde a la izquierda,
-   coral a la derecha, con el corte en el borde entre los dos botones.
+/* Un carril con las dos acciones se parte por la mitad: verde a la
+   izquierda, coral a la derecha. Con un panel a cada lado, el color que
+   asoma es el de la acción que el gesto descubre.
    :has() permite pintarlo desde el carril sin marcar nada en el HTML. */
 .swipe:has(.swipe-btn.borrar) { background: var(--coral); }
 .swipe:has(.swipe-btn.editar):has(.swipe-btn.borrar) {
@@ -430,6 +431,11 @@ a.balance-card:focus-visible {
   display: flex; align-items: stretch;
   z-index: 0;
 }
+/* Editar vive en el canto izquierdo: se descubre arrastrando la tarjeta
+   hacia la derecha, y eliminar hacia el otro lado. Dos gestos opuestos para
+   dos acciones opuestas — una constructiva y una destructiva — en vez de
+   las dos juntas bajo el mismo borde, donde el pulgar se equivoca. */
+.swipe-acciones.izq { left: 0; right: auto; }
 
 .swipe-btn {
   display: flex; flex-direction: column; align-items: center; justify-content: center;
@@ -456,9 +462,9 @@ a.balance-card:focus-visible {
      tarjeta siga el dedo sin retraso. */
   transition: transform .28s var(--ease-out);
   touch-action: pan-y;
-  /* La sombra al canto derecho: es lo que hace ver la tarjeta POR ENCIMA del
-     carril. Sin ella, tarjeta y color se leen como piezas del mismo plano. */
-  box-shadow: 6px 0 16px rgba(0, 0, 0, .4);
+  /* La sombra a los dos cantos: la tarjeta se separa del color por
+     cualquiera de los dos lados, según hacia dónde se arrastre. */
+  box-shadow: 6px 0 16px rgba(0, 0, 0, .4), -6px 0 16px rgba(0, 0, 0, .4);
 }
 
 /* Variante en una lista: la fila es más baja que una tarjeta, así que la
@@ -494,11 +500,17 @@ a.balance-card:focus-visible {
      una, 164 por dos, 78 en una fila de lista. Cualquier diferencia entre
      estos números y los anchos de arriba deja asomar un filo de tarjeta o
      un hueco de carril. */
+  /* En escritorio no hay gesto: las dos acciones asoman juntas por el canto
+     derecho, como antes. El panel de editar se coloca al lado del de
+     eliminar en vez de quedarse en el borde opuesto, donde el cursor no
+     tendría forma de llegar. */
+  .swipe-acciones.izq { left: auto; right: 82px; }
+
   .swipe:hover .swipe-card,
-  .swipe:focus-within .swipe-card { transform: translateX(-164px); }
-  .swipe:has(.swipe-acciones > :only-child):hover .swipe-card,
-  .swipe:has(.swipe-acciones > :only-child):focus-within .swipe-card {
-    transform: translateX(-82px);
+  .swipe:focus-within .swipe-card { transform: translateX(-82px); }
+  .swipe:has(.swipe-btn.editar):has(.swipe-btn.borrar):hover .swipe-card,
+  .swipe:has(.swipe-btn.editar):has(.swipe-btn.borrar):focus-within .swipe-card {
+    transform: translateX(-164px);
   }
   .swipe-fila:hover .swipe-card,
   .swipe-fila:focus-within .swipe-card { transform: translateX(-78px); }
@@ -516,10 +528,10 @@ a.balance-card:focus-visible {
 @media (max-width: 720px) {
   /* Un poco más anchas: cómodas con el pulgar, no solo con el ratón. */
   .swipe-btn { width: 86px; }
-  .swipe.abierta .swipe-card { transform: translateX(-172px); }
-  .swipe:has(.swipe-acciones > :only-child).abierta .swipe-card {
-    transform: translateX(-86px);
-  }
+  /* Respaldo si finapp.js no cargara: mide el ancho real y lo aplica en
+     línea, pero sin él el gesto necesita un valor. Uno por lado. */
+  .swipe.abierta-der .swipe-card { transform: translateX(-86px); }
+  .swipe.abierta-izq .swipe-card { transform: translateX(86px); }
   .swipe-fila .swipe-btn { width: 82px; }
   .swipe-fila.abierta .swipe-card { transform: translateX(-82px); }
   /* Respaldo si finapp.js no cargara: el JS mide el ancho real y lo aplica
@@ -2779,17 +2791,26 @@ select:focus-visible, textarea:focus-visible, [tabindex]:focus-visible {
 
   .sub-row > .sub-acciones {
     grid-area: acciones;
-    /* Los controles reparten el ancho en vez de amontonarse a la derecha:
-       cada uno queda separado del de al lado y con su propia zona de toque. */
-    display: flex; align-items: center; gap: 8px;
+    /* A la derecha, con Pagar empujado al extremo opuesto: así los tres
+       controles quedan siempre en el mismo sitio, tenga la fila botón de
+       pagar o no. Antes el primer hijo se estiraba, así que en una fila ya
+       pagada el ↺ salía solo a la izquierda con 200px de vacío al lado. */
+    display: flex; align-items: center; justify-content: flex-end; gap: 8px;
     padding: 10px 0 0; border: none;
     border-top: 1px solid rgba(255, 255, 255, .06);
   }
   .sub-acciones form { margin: 0 !important; }
-  /* El de pagar se estira y los otros dos quedan al final: es la acción
-     principal de la fila y la única con palabra. */
-  .sub-acciones > form:first-child { flex: 1; }
-  .sub-acciones > form:first-child .btn { width: 100%; }
+  /* Pagar al extremo izquierdo y al ancho de su texto. Estirado a toda la
+     ficha pesaba más que el nombre y el monto, que es lo que se viene a
+     leer. */
+  .sub-acciones > .form-pagar { margin-right: auto !important; }
+
+  /* El borrado se separa del resto: pegado al interruptor, un pulgar que
+     apunta a pausar la suscripción puede borrarla. */
+  .sub-acciones > .form-borrar {
+    margin-left: 6px !important; padding-left: 10px;
+    border-left: 1px solid rgba(255, 255, 255, .07);
+  }
 
   /* El monto bajo el nombre, solo en móvil. */
   .sub-monto-movil {
@@ -2812,11 +2833,29 @@ select:focus-visible, textarea:focus-visible, [tabindex]:focus-visible {
   .sub-row .row-title .badge { margin-left: 0 !important; }
 
   /* Zonas de toque de verdad: 40px el basurero, 44 el interruptor. */
-  .sub-acciones .icon-btn { width: 40px; height: 40px; min-width: 40px; min-height: 40px; }
+  /* El fondo por defecto del .icon-btn es --surface-2, el mismo de la ficha:
+     dentro de la ficha el bot\u00f3n desaparece y el \u21ba parec\u00eda desactivado al
+     lado del interruptor. Un paso m\u00e1s claro y se lee como control. */
+  .sub-acciones .icon-btn {
+    width: 40px; height: 40px; min-width: 40px; min-height: 40px;
+    background: var(--surface-3);
+  }
+  .sub-acciones .icon-btn:hover { background: var(--surface-4, rgba(255, 255, 255, .12)); }
   .sub-acciones .switch { width: 46px; height: 28px; }
+  /* El interruptor mide 28px de alto: se ve bien, pero como zona de toque
+     se queda corto. El pseudo-elemento la estira a 44 sin cambiar nada de
+     lo que se ve. */
+  .sub-acciones .switch::before {
+    content: ''; position: absolute; inset: -8px -3px;
+  }
   .sub-acciones .switch .knob { width: 22px; height: 22px; }
   .sub-acciones .switch.on .knob { transform: translateX(18px); }
   .sub-acciones .btn { min-height: 40px; padding: 0 16px; }
+
+  /* Aire al pie de la lista: el botón flotante tapaba la última ficha. El
+     padding del contenedor no alcanza cuando la lista es lo último de la
+     página. */
+  .glass:has(> .sub-row):last-child { padding-bottom: 84px; }
 
   .deuda-item > summary { gap: 10px; padding: 12px 10px; }
   .deuda-item-detalle { padding-left: 14px; }
@@ -3519,6 +3558,34 @@ input[type=date]::-webkit-datetime-edit-fields-wrapper { padding: 0; }
 }
 .cartola-extra input { width: 14px; height: 14px; accent-color: var(--green); flex-shrink: 0; }
 
+/* "Esta compra no es mía": el selector de persona cuelga de la casilla, con
+   una sangría que lo alinea con el texto de la etiqueta para que se lea como
+   su continuación y no como un control aparte de la fila. */
+.cartola-deben { display: flex; flex-direction: column; gap: 6px; }
+/* Lo que se va a anotar, al lado de la etiqueta: la casilla dice qué hace y
+   esto dice cuánto, antes de marcarla. */
+.cartola-deben-cuanto {
+  font-family: var(--mono, ui-monospace, monospace);
+  font-size: 10.5px; font-weight: 700; color: var(--green);
+  background: rgba(83, 210, 88, .12);
+  padding: 2px 7px; border-radius: 100px; white-space: nowrap;
+}
+.cartola-deben-quien {
+  display: flex; gap: 7px; align-items: center; flex-wrap: wrap;
+  padding-left: 21px;
+}
+.cartola-deben-quien select,
+.cartola-deben-quien input[type=text] {
+  width: auto; min-width: 0; padding: 7px 10px; font-size: 11.5px;
+}
+.cartola-deben-quien select { padding-right: 30px; }
+.cartola-deben-quien input[type=text] { flex: 1; max-width: 200px; }
+/* Un `display` en la hoja gana al atributo `hidden`, que solo trae el
+   display:none del navegador: sin estas dos reglas el selector salía visible
+   en todas las filas desde el primer momento. */
+.cartola-deben-quien[hidden] { display: none; }
+.cartola-deben-quien input[type=text][hidden] { display: none; }
+
 .cartola-cat { padding: 9px 11px; font-size: 12px; }
 .cartola-monto { text-align: right; font-size: 13.5px; font-weight: 700; white-space: nowrap; }
 .cartola-monto.entra { color: var(--green); }
@@ -3599,4 +3666,12 @@ input[type=date]::-webkit-datetime-edit-fields-wrapper { padding: 0; }
   .cartola-nota-fila { font-size: 10px; }
   .cartola-extra { font-size: 11px; align-items: flex-start; }
   .cartola-extra input { margin-top: 1px; }
+  /* En el teléfono el selector ocupa la línea completa: al 11,5px de
+     escritorio Safari hace zoom al enfocarlo y descoloca la ficha. */
+  .cartola-deben-quien { padding-left: 0; }
+  .cartola-deben-quien select { width: 100%; font-size: 16px; padding: 9px 30px 9px 11px; }
+  .cartola-deben-quien input[type=text] {
+    width: 100%; max-width: none; font-size: 16px; padding: 9px 11px;
+    background: var(--surface-2);
+  }
 }

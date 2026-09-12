@@ -31,11 +31,6 @@ ALLOWED_HOSTS = os.environ.get(
     'localhost,127.0.0.1,finanzas.pythonanywhere.com,www.finanzas.pythonanywhere.com'
 ).split(',')
 
-# Acceso con cuenta de Google (ver finanzas/google_login.py). Si no están,
-# el botón no se dibuja y el acceso con usuario y contraseña sigue igual.
-GOOGLE_CLIENT_ID = os.environ.get('GOOGLE_CLIENT_ID', '')
-GOOGLE_CLIENT_SECRET = os.environ.get('GOOGLE_CLIENT_SECRET', '')
-
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -75,7 +70,6 @@ TEMPLATES = [
                 'django.contrib.messages.context_processors.messages',
                 'finanzas.context_processors.moneda_usuario',   
                 'finanzas.middleware.nonce_contexto',
-                'finanzas.google_login.google_disponible',
             ],
         },
     },
@@ -181,11 +175,6 @@ if not DEBUG:
         if o.strip()
     ]
 
-# Acceso con cuenta de Google (ver finanzas/google_login.py). Si no están,
-# el botón no se dibuja y el acceso con usuario y contraseña sigue igual.
-GOOGLE_CLIENT_ID = os.environ.get('GOOGLE_CLIENT_ID', '')
-GOOGLE_CLIENT_SECRET = os.environ.get('GOOGLE_CLIENT_SECRET', '')
-
 SESSION_COOKIE_AGE = 60 * 60 * 8         
 SESSION_SAVE_EVERY_REQUEST = True        
 SESSION_EXPIRE_AT_BROWSER_CLOSE = False 
@@ -193,7 +182,11 @@ SESSION_EXPIRE_AT_BROWSER_CLOSE = False
 DATA_UPLOAD_MAX_MEMORY_SIZE = 6 * 1024 * 1024   
 FILE_UPLOAD_MAX_MEMORY_SIZE = 6 * 1024 * 1024
 
-DATA_UPLOAD_MAX_NUMBER_FIELDS = 500
+# La revisión de cartola manda varios campos por movimiento (marca,
+# descripción, categoría, y los extras de cuotas, suscripción y "Me deben").
+# Con 500 una cartola de más de ~70 líneas se caía con TooManyFieldsSent.
+# 3000 cubre un extracto largo; el tamaño sigue topado por DATA_UPLOAD_MAX_MEMORY_SIZE.
+DATA_UPLOAD_MAX_NUMBER_FIELDS = 3000
 
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},

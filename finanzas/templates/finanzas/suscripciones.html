@@ -131,10 +131,16 @@
     <div class="sub-acciones">
     {% if s.activa %}
       {% if s.periodo_a_pagar %}
-      <form method="post" action="{% url 'pagar_servicio' s.pk %}" style="margin:0">
+      <form method="post" action="{% url 'pagar_servicio' s.pk %}" class="form-pagar" style="margin:0">
         {% csrf_token %}
         <input type="hidden" name="periodo" value="{{ s.periodo_a_pagar }}">
-        <button type="submit" class="btn {% if s.periodos_atrasados %}btn-orange{% else %}btn-soft{% endif %} btn-sm"
+        {% comment %}
+          Un solo estilo, esté atrasada o al día. Antes las atrasadas lo
+          llevaban sólido y el resto tenue, y el tenue sobre la ficha sale
+          café apagado: se leía como deshabilitado. Lo atrasado ya lo dice
+          el badge del nombre.
+        {% endcomment %}
+        <button type="submit" class="btn btn-orange btn-sm"
                 title="{{ s.texto_a_pagar }}">
           <i class="fas fa-check" style="font-size:9px"></i>Pagar
         </button>
@@ -161,7 +167,7 @@
       </button>
     </form>
 
-    <form method="post" action="{% url 'eliminar_suscripcion' s.pk %}" style="margin:0"
+    <form method="post" action="{% url 'eliminar_suscripcion' s.pk %}" class="form-borrar" style="margin:0"
           data-confirm="¿Eliminar {{ s.nombre }} por completo? El historial de gastos se mantiene.">
       {% csrf_token %}
       <button type="submit" class="icon-btn" title="Eliminar"><i class="fas fa-trash-can" style="font-size:11px"></i></button>

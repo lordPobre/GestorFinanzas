@@ -532,9 +532,15 @@
   var carriles = $$('.swipe');
   if (carriles.length) {
     /* El ancho no es fijo: una tarjeta de cuotas tiene dos acciones y una
-       fila de personas solo una. Se mide del propio carril. */
-    function anchoDe(carril) {
-      var acc = $('.swipe-acciones', carril);
+       fila de personas solo una. Se mide del propio carril.
+       `lado` es 'izq' o 'der': con un panel a cada lado, cada gesto descubre
+       solo el suyo, y el desplazamiento es el ancho de ESE panel. */
+    function panelDe(carril, lado) {
+      return $('.swipe-acciones.' + lado, carril) ||
+             (lado === 'der' ? $('.swipe-acciones:not(.izq)', carril) : null);
+    }
+    function anchoDe(carril, lado) {
+      var acc = panelDe(carril, lado || 'der');
       return acc ? Math.round(acc.getBoundingClientRect().width) + 8 : 144;
     }
     var UMBRAL = 40;          // a partir de acá se queda abierta al soltar
@@ -546,23 +552,28 @@
 
     function cerrar(c) {
       if (!c) return;
-      c.classList.remove('abierta');
+      c.classList.remove('abierta', 'abierta-izq', 'abierta-der');
       var card = $('.swipe-card', c);
       if (card) card.style.transform = '';
       if (abierta === c) abierta = null;
     }
 
-    function abrir(c) {
+    function abrir(c, lado) {
       /* Solo una abierta a la vez: dos tarjetas con las acciones al aire se
          prestan a tocar la equivocada. */
       if (abierta && abierta !== c) cerrar(abierta);
       c.classList.add('abierta');
+      c.classList.toggle('abierta-izq', lado === 'izq');
+      c.classList.toggle('abierta-der', lado !== 'izq');
       var card = $('.swipe-card', c);
       /* El desplazamiento se MIDE, no se toma del CSS.
          Las reglas .abierta traían un valor fijo por tipo de carril (-60px
          para una fila), y una fila de movimiento con dos acciones dejaba la
          segunda tapada. Medirlo sirve para 1, 2 o N botones. */
-      if (card) card.style.transform = 'translateX(-' + anchoDe(c) + 'px)';
+      if (card) {
+        var d = anchoDe(c, lado);
+        card.style.transform = 'translateX(' + (lado === 'izq' ? d : -d) + 'px)';
+      }
       abierta = c;
     }
 
@@ -592,13 +603,23 @@
           decidido = true;
         }
 
-        var tope = anchoDe(carril);
-        var base = carril.classList.contains('abierta') ? -tope : 0;
+        /* Cada lado solo se abre si tiene panel: una fila con una sola
+           acción no debe despegarse hacia el lado vacío. */
+        var hayIzq = !!panelDe(carril, 'izq');
+        var hayDer = !!panelDe(carril, 'der');
+        var ladoAbierto = carril.classList.contains('abierta-izq') ? 'izq'
+                        : carril.classList.contains('abierta-der') ? 'der' : null;
+        var base = ladoAbierto
+          ? (ladoAbierto === 'izq' ? anchoDe(carril, 'izq') : -anchoDe(carril, 'der'))
+          : 0;
         dx = base + mx;
-        /* No pasa de abierta ni se va hacia la derecha; con resistencia en
-           los extremos, para que el tope se sienta en vez de trabarse. */
-        if (dx > 0) dx = mx * 0.25;
-        else if (dx < -tope) dx = -tope + (dx + tope) * 0.25;
+        /* Tope en el ancho del panel de cada lado, y resistencia pasado el
+           tope o hacia un lado sin acciones, para que el límite se sienta
+           en vez de trabarse. */
+        var topeDer = hayDer ? anchoDe(carril, 'der') : 0;
+        var topeIzq = hayIzq ? anchoDe(carril, 'izq') : 0;
+        if (dx > topeIzq) dx = topeIzq + (dx - topeIzq) * 0.25;
+        else if (dx < -topeDer) dx = -topeDer + (dx + topeDer) * 0.25;
         card.style.transform = 'translateX(' + dx + 'px)';
       }, { passive: true });
 
@@ -608,7 +629,8 @@
         card.style.transition = '';
         card.style.transform = '';
         if (!decidido) return;
-        if (dx < -UMBRAL) abrir(carril);
+        if (dx < -UMBRAL && panelDe(carril, 'der')) abrir(carril, 'der');
+        else if (dx > UMBRAL && panelDe(carril, 'izq')) abrir(carril, 'izq');
         else cerrar(carril);
       }
       card.addEventListener('touchend', soltar);

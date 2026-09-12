@@ -541,3 +541,38 @@ Traceback (most recent call last):
     ...<3 lines>...
     )
 ValueError: Need 2 values to unpack in for loop; got 6. 
+2026-09-12 11:25:50,758 ERROR django.security.TooManyFieldsSent The number of GET/POST parameters exceeded settings.DATA_UPLOAD_MAX_NUMBER_FIELDS.
+Traceback (most recent call last):
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\http\request.py", line 580, in __init__
+    for key, value in parse_qsl(query_string, **parse_qsl_kwargs):
+                      ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\celf_\AppData\Local\Programs\Python\Python313\Lib\urllib\parse.py", line 816, in parse_qsl
+    raise ValueError('Max number of fields exceeded')
+ValueError: Max number of fields exceeded
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\core\handlers\base.py", line 186, in _get_response
+    response = middleware_method(
+        request, callback, callback_args, callback_kwargs
+    )
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\middleware\csrf.py", line 466, in process_view
+    self._check_token(request)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\middleware\csrf.py", line 368, in _check_token
+    request_csrf_token = request.POST.get("csrfmiddlewaretoken", "")
+                         ^^^^^^^^^^^^
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\core\handlers\wsgi.py", line 93, in _get_post
+    self._load_post_and_files()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\http\request.py", line 449, in _load_post_and_files
+    self._post = QueryDict(self.body, encoding="utf-8")
+                 ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\http\request.py", line 587, in __init__
+    raise TooManyFieldsSent(
+    ...<2 lines>...
+    ) from e
+django.core.exceptions.TooManyFieldsSent: The number of GET/POST parameters exceeded settings.DATA_UPLOAD_MAX_NUMBER_FIELDS.

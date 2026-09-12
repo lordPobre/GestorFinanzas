@@ -95,9 +95,10 @@
 
       {% comment %}
         Solo se dibuja si tiene algo que decir: una fila corriente no gasta
-        una línea vacía.
+        una línea vacía. Un egreso siempre la lleva, porque cualquier compra
+        puede no ser suya.
       {% endcomment %}
-      {% if f.ya_existe or f.es_cuota or f.es_suscripcion or f.aviso %}
+      {% if f.ya_existe or f.es_cuota or f.es_suscripcion or f.aviso or f.tipo == 'EGRESO' %}
       <div class="cartola-detalle">
         <div class="cartola-marcas">
           {% if f.ya_existe %}<span class="badge badge-mute">Ya está</span>{% endif %}
@@ -113,13 +114,50 @@
         {% if f.es_cuota %}
         <label class="cartola-extra">
           <input type="checkbox" name="deuda_{{ f.i }}">
-          Crear también la compra en cuotas ({{ f.cuota_total }} cuotas)
+          Crear también la compra en cuotas
+          <span class="cartola-deben-cuanto">{{ f.cuotas_deben }} por pagar · {{ f.monto_deben|money }}</span>
         </label>
         {% elif f.es_suscripcion %}
         <label class="cartola-extra">
           <input type="checkbox" name="sub_{{ f.i }}">
           Crear también la suscripción
         </label>
+        {% endif %}
+
+        {% if f.tipo == 'EGRESO' %}
+        {% comment %}
+          La compra de otro. El selector aparece al marcar la casilla: veinte
+          filas con un desplegable cada una son veinte decisiones que nadie
+          pidió tomar. "Otra persona" abre el campo de nombre en la misma
+          línea, para no salir de la revisión a crear la persona aparte.
+        {% endcomment %}
+        <div class="cartola-deben">
+          <label class="cartola-extra">
+            <input type="checkbox" name="deben_{{ f.i }}" data-deben>
+            Esta compra no es mía · agregar a Me deben
+            {% if f.cuotas_deben > 1 %}
+            <span class="cartola-deben-cuanto">{{ f.cuotas_deben }} cuotas · {{ f.monto_deben|money }}</span>
+            {% endif %}
+          </label>
+          <div class="cartola-deben-quien" hidden>
+            {% comment %}
+              Deshabilitados mientras la casilla esté apagada: un campo
+              deshabilitado no viaja en el POST. Con veinte filas eran
+              cuarenta parámetros de más por nada, y Django corta el envío
+              al pasar su límite de campos.
+            {% endcomment %}
+            <select name="deben_persona_{{ f.i }}" data-deben-persona disabled
+                    aria-label="Quién te debe esta compra">
+              <option value="">¿Quién te la debe?</option>
+              {% for p in personas %}
+              <option value="{{ p.pk }}">{{ p.nombre }}</option>
+              {% endfor %}
+              <option value="nueva">Otra persona…</option>
+            </select>
+            <input type="text" name="deben_nombre_{{ f.i }}" maxlength="80"
+                   placeholder="Nombre" data-deben-nombre disabled hidden>
+          </div>
+        </div>
         {% endif %}
       </div>
       {% endif %}
@@ -152,6 +190,33 @@
   }
 
   checks.forEach(function (c) { c.addEventListener('change', actualizar); });
+
+  /* "No es mía": el selector de persona aparece al marcar, y el campo de
+     nombre solo al elegir "Otra persona". Marcar la casilla también marca la
+     fila: pedir que se anote un préstamo de un movimiento que no se va a
+     importar no lleva a nada. */
+  form.querySelectorAll('[data-deben]').forEach(function (cb) {
+    var caja = cb.closest('.cartola-deben');
+    var quien = caja.querySelector('.cartola-deben-quien');
+    var sel = caja.querySelector('[data-deben-persona]');
+    var nombre = caja.querySelector('[data-deben-nombre]');
+
+    function pintar() {
+      quien.hidden = !cb.checked;
+      sel.disabled = !cb.checked;
+      nombre.hidden = !cb.checked || sel.value !== 'nueva';
+      nombre.disabled = nombre.hidden;
+      if (!nombre.hidden) nombre.focus();
+    }
+    cb.addEventListener('change', function () {
+      if (cb.checked) {
+        var fila = cb.closest('.cartola-fila').querySelector('.cartola-check');
+        if (fila && !fila.checked) { fila.checked = true; actualizar(); }
+      }
+      pintar();
+    });
+    sel.addEventListener('change', pintar);
+  });
 
   form.querySelectorAll('[data-marcar]').forEach(function (b) {
     b.addEventListener('click', function () {

@@ -73,10 +73,19 @@
     donde no hay dedo con que arrastrar.
   {% endcomment %}
   <div class="swipe" data-searchable>
-    <div class="swipe-acciones" aria-hidden="true">
+    {% comment %}
+      Un panel a cada lado: editar se descubre arrastrando la tarjeta hacia
+      la derecha y eliminar hacia la izquierda. Juntos bajo el mismo borde,
+      el pulgar llegaba al botón de borrar buscando el de editar.
+      En escritorio el CSS los vuelve a poner juntos a la derecha, donde el
+      cursor los descubre al pasar por encima.
+    {% endcomment %}
+    <div class="swipe-acciones izq" aria-hidden="true">
       <a href="{% url 'editar_deuda' d.pk %}" class="swipe-btn editar" title="Editar {{ d.acreedor }}">
         <i class="fas fa-pen"></i><span>Editar</span>
       </a>
+    </div>
+    <div class="swipe-acciones der" aria-hidden="true">
       <form method="post" action="{% url 'eliminar_deuda' d.pk %}" style="margin:0;display:contents"
             data-confirm="¿Eliminar {{ d.acreedor }}? Se borran también sus {{ d.cuotas_pagadas }} pago{{ d.cuotas_pagadas|pluralize:'s' }} registrado{{ d.cuotas_pagadas|pluralize:'s' }}.">
         {% csrf_token %}
