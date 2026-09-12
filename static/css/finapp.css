@@ -3528,6 +3528,20 @@ input[type=date]::-webkit-datetime-edit-fields-wrapper { padding: 0; }
 
 .cartola-check { width: 17px; height: 17px; accent-color: var(--amber); cursor: pointer; }
 .cartola-fecha { font-size: 12px; color: var(--text-secondary); cursor: pointer; }
+/* En escritorio no existe: sus tres hijos son celdas de la tabla. La franja
+   de cabecera es cosa del teléfono.
+   Con `display: contents` el orden del HTML manda, y el monto — que en el
+   marcado va junto a la fecha para armar esa franja — caía en la columna de
+   la descripción. Cada celda se coloca explícitamente. */
+.cartola-linea { display: contents; }
+.cartola-check { grid-column: 1; grid-row: 1; }
+.cartola-fecha { grid-column: 2; grid-row: 1; }
+.cartola-desc  { grid-column: 3; grid-row: 1; }
+.cartola-cat   { grid-column: 4; grid-row: 1; }
+.cartola-monto { grid-column: 5; grid-row: 1; }
+/* Las etiquetas de campo tampoco: la cabecera de la tabla ya dice qué es
+   cada columna, y repetirlo en cada fila sería ruido. */
+.cartola-etq { display: none; }
 
 .cartola-desc { min-width: 0; }
 .cartola-desc input[type=text] {
@@ -3556,6 +3570,9 @@ input[type=date]::-webkit-datetime-edit-fields-wrapper { padding: 0; }
   display: flex; align-items: center; gap: 7px;
   font-size: 11px; color: var(--text-secondary); cursor: pointer;
 }
+/* El texto encoge y la cifra no: al revés, un nombre largo empujaba la
+   pastilla a una segunda línea y la casilla quedaba suelta arriba. */
+.cartola-extra-txt { min-width: 0; }
 .cartola-extra input { width: 14px; height: 14px; accent-color: var(--green); flex-shrink: 0; }
 
 /* "Esta compra no es mía": el selector de persona cuelga de la casilla, con
@@ -3603,6 +3620,10 @@ input[type=date]::-webkit-datetime-edit-fields-wrapper { padding: 0; }
 }
 .cartola-pie .btn:disabled { opacity: .45; cursor: not-allowed; }
 
+/* El contenedor de la lista. En escritorio es una tabla: filas a ras, sin
+   aire entre ellas, con la cabecera arriba. */
+.cartola-tabla { padding: 0; overflow: hidden; }
+
 @media (max-width: 900px) {
   .cartola-layout { grid-template-columns: minmax(0, 1fr); }
 
@@ -3612,20 +3633,73 @@ input[type=date]::-webkit-datetime-edit-fields-wrapper { padding: 0; }
      (uno indentado, otro no) hacía ver la ficha desordenada aunque cada
      pieza estuviera en su sitio. */
   .cartola-cabecera { display: none; }
-  .cartola-fila {
-    grid-template-columns: 24px minmax(0, 1fr) auto;
-    row-gap: 9px; padding: 13px 14px;
+  /* Y cada ficha se separa de la siguiente. Con 152 filas del mismo color
+     pegadas por una hairline no se ve dónde termina una compra y empieza la
+     otra: el bloque de casillas de una parece pertenecer a la de abajo. */
+  .cartola-tabla {
+    display: flex; flex-direction: column; gap: 8px;
+    padding: 8px; background: none; border: none; overflow: visible;
   }
-  .cartola-fecha   { grid-column: 2; grid-row: 1; justify-self: start; }
-  .cartola-monto   { grid-column: 3; grid-row: 1; }
+
+  /* La ficha: franja de cabecera con la plata, y debajo los datos con su
+     etiqueta. Dos recuadros idénticos uno sobre otro — la descripción y la
+     categoría, sin nada que dijera cuál era cuál — era lo que hacía ver la
+     ficha rota. */
+  .cartola-fila {
+    display: flex; flex-direction: column; align-items: stretch;
+    padding: 0 0 13px; gap: 0;
+    background: var(--surface); border-radius: var(--r-md);
+    border-top: none; border-bottom: none; overflow: hidden;
+  }
+  .cartola-fila > * { align-self: auto; }
+  /* La colocación explícita de la tabla se apaga: acá la ficha es una
+     columna y cada bloque va en su orden. */
+  .cartola-check, .cartola-fecha, .cartola-desc,
+  .cartola-cat, .cartola-monto { grid-column: auto; grid-row: auto; }
+
+  .cartola-linea {
+    display: flex; align-items: center; gap: 11px;
+    padding: 11px 14px; margin-bottom: 13px;
+    background: var(--bg-elev);
+  }
+  .cartola-check { width: 19px; height: 19px; flex-shrink: 0; }
+  .cartola-fecha { font-size: 11.5px; font-weight: 700; letter-spacing: .02em; }
+  .cartola-monto { margin-left: auto; font-size: 16px; }
+
+  .cartola-etq {
+    display: block; margin: 0 14px 5px;
+    font-size: 9.5px; font-weight: 800; letter-spacing: .07em;
+    text-transform: uppercase; color: var(--text-muted);
+  }
+  .cartola-etq + * { margin-bottom: 11px; }
   .cartola-desc,
   .cartola-cat,
-  .cartola-detalle { grid-column: 1 / -1; padding-left: 0; }
-  .cartola-cat     { width: 100%; }
-  /* Sin la tabla alrededor, un campo transparente no se lee como editable. */
-  .cartola-desc input[type=text] { background: var(--surface-2); }
+  .cartola-detalle { margin: 0 14px; padding-left: 0; }
+  .cartola-cat     { width: calc(100% - 28px); }
+  /* Los campos ahora viven sobre una ficha --surface-2, que es justo el
+     fondo que la hoja les da: sobre ella desaparecían y la descripción y la
+     categoría se leían como texto suelto, no como algo editable. Un paso
+     más oscuro que la ficha, con borde, y vuelven a ser campos. */
+  /* !important a propósito: la descripción editable se pinta en cuatro
+     sitios (la regla general de campos, la de la tabla, y sus :hover y
+     :focus), y en el teléfono la ficha es del mismo --surface-2 que esos
+     fondos, así que el campo desaparecía. Un paso más oscuro, fijo, y
+     vuelve a leerse como algo que se puede escribir. */
+  .cartola-tabla .cartola-fila .cartola-desc input[type=text] {
+    background: var(--bg-elev) !important;
+    border-color: var(--line) !important;
+  }
+  .cartola-tabla .cartola-fila .cartola-desc input[type=text]:focus {
+    border-color: var(--amber) !important;
+  }
+  .cartola-cat { background: var(--bg-elev); border-color: var(--line); }
 
-  .cartola-pie { flex-direction: column; align-items: stretch; text-align: center; }
+  /* El pie se pega por encima de la barra inferior, no debajo: con bottom:0
+     el botón de guardar quedaba tapado por el menú flotante. */
+  .cartola-pie {
+    flex-direction: column; align-items: stretch; text-align: center;
+    bottom: calc(var(--bottombar-h) + 10px);
+  }
 }
 
 @media (max-width: 560px) {
@@ -3646,10 +3720,12 @@ input[type=date]::-webkit-datetime-edit-fields-wrapper { padding: 0; }
   /* Tres botones no caben en una fila de 360px sin repartirse el ancho. */
   .cartola-barra .btn { flex: 1; justify-content: center; padding: 9px 6px; }
 
-  .cartola-fila { padding: 12px 13px; row-gap: 8px; }
+  .cartola-fila { padding: 0 0 12px; }
   .cartola-fecha { font-size: 11.5px; }
-  .cartola-monto { font-size: 14px; }
-  .cartola-desc input[type=text] { padding: 10px; font-size: 13px; }
+  .cartola-monto { font-size: 15.5px; }
+  /* 16px como el selector: bajo eso iOS hace zoom al enfocar el campo y la
+     ficha queda corrida. */
+  .cartola-tabla .cartola-fila .cartola-desc input[type=text] { padding: 10px 12px; font-size: 16px; }
 
   /* 16px es el mínimo con el que iOS no hace zoom al enfocar un control, y
      ese zoom deja la ficha corrida a la derecha. Se compensa con un alto
@@ -3664,8 +3740,22 @@ input[type=date]::-webkit-datetime-edit-fields-wrapper { padding: 0; }
     margin-top: 2px; padding-top: 9px;
   }
   .cartola-nota-fila { font-size: 10px; }
-  .cartola-extra { font-size: 11px; align-items: flex-start; }
-  .cartola-extra input { margin-top: 1px; }
+  .cartola-extra { font-size: 11.5px; align-items: center; gap: 8px; }
+  /* Una línea por casilla: la cifra a la derecha y el texto recortado si
+     hace falta. Partido en dos líneas, el bloque de extras medía más que la
+     compra misma. */
+  .cartola-extra-txt {
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .cartola-extra input { margin-top: 0; }
+  /* La cifra a la derecha: es el único lugar donde la casilla y su número
+     comparten línea, así que acá sí hay que separarlos. En escritorio la
+     pastilla va pegada a su etiqueta. */
+  .cartola-deben-cuanto { margin-left: auto; flex-shrink: 0; }
+  /* Casillas de 17px: las de 14 son cómodas con el ratón y muy chicas para
+     el pulgar. */
+  .cartola-extra input[type=checkbox] { width: 17px; height: 17px; }
+  .cartola-deben-cuanto { font-size: 10px; padding: 3px 8px; }
   /* En el teléfono el selector ocupa la línea completa: al 11,5px de
      escritorio Safari hace zoom al enfocarlo y descoloca la ficha. */
   .cartola-deben-quien { padding-left: 0; }

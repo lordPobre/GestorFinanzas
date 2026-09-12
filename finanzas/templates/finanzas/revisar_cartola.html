@@ -55,17 +55,29 @@
     <button type="button" class="btn btn-glass btn-sm" data-marcar="ninguno">Ninguno</button>
   </div>
 
-  <div class="glass card-lg" style="padding:0;overflow:hidden">
+  <div class="glass card-lg cartola-tabla">
     <div class="cartola-cabecera">
       <span></span><span>Fecha</span><span>Descripción</span><span>Categoría</span><span style="text-align:right">Monto</span>
     </div>
 
     {% for f in filas %}
     <div class="cartola-fila{% if f.ya_existe %} repetida{% endif %}">
-      <input type="checkbox" name="sel_{{ f.i }}" id="sel_{{ f.i }}" class="cartola-check"
-             {% if f.marcada %}checked{% endif %}>
+      <div class="cartola-linea">
+        <input type="checkbox" name="sel_{{ f.i }}" id="sel_{{ f.i }}" class="cartola-check"
+               {% if f.marcada %}checked{% endif %}>
 
-      <label class="cartola-fecha mono" for="sel_{{ f.i }}">{{ f.fecha_obj|date:"d/m" }}</label>
+        <label class="cartola-fecha mono" for="sel_{{ f.i }}">{{ f.fecha_obj|date:"d/m" }}</label>
+
+        {% comment %}
+          En el teléfono, esta línea es la franja de cabecera de la ficha: la
+          plata arriba y los datos abajo. En escritorio el contenedor es
+          `display: contents`, así que sus tres hijos siguen siendo celdas de
+          la tabla y nada cambia.
+        {% endcomment %}
+        <div class="cartola-monto mono {% if f.tipo == 'INGRESO' %}entra{% else %}sale{% endif %}">
+          {% if f.tipo == 'INGRESO' %}+{% else %}−{% endif %}{{ f.monto_dec|money }}
+        </div>
+      </div>
 
       {% comment %}
         La descripción va sola en su celda. Las marcas y la casilla de extras
@@ -73,10 +85,12 @@
         descripción al monto: así el selector y el monto quedan a la altura
         del campo de texto en vez de flotar en el centro de una fila alta.
       {% endcomment %}
+      <span class="cartola-etq">Descripción</span>
       <div class="cartola-desc">
         <input type="text" name="desc_{{ f.i }}" value="{{ f.descripcion }}" maxlength="200">
       </div>
 
+      <span class="cartola-etq">Categoría</span>
       <select name="cat_{{ f.i }}" class="cartola-cat">
         {% if f.tipo == 'INGRESO' %}
           {% for valor, etiqueta in cartola_cats_ingreso %}
@@ -88,10 +102,6 @@
           {% endfor %}
         {% endif %}
       </select>
-
-      <div class="cartola-monto mono {% if f.tipo == 'INGRESO' %}entra{% else %}sale{% endif %}">
-        {% if f.tipo == 'INGRESO' %}+{% else %}−{% endif %}{{ f.monto_dec|money }}
-      </div>
 
       {% comment %}
         Solo se dibuja si tiene algo que decir: una fila corriente no gasta
@@ -114,13 +124,19 @@
         {% if f.es_cuota %}
         <label class="cartola-extra">
           <input type="checkbox" name="deuda_{{ f.i }}">
-          Crear también la compra en cuotas
+          <span class="cartola-extra-txt">
+            <span class="hide-mobile">Crear también la compra en cuotas</span>
+            <span class="solo-movil">Compra en cuotas</span>
+          </span>
           <span class="cartola-deben-cuanto">{{ f.cuotas_deben }} por pagar · {{ f.monto_deben|money }}</span>
         </label>
         {% elif f.es_suscripcion %}
         <label class="cartola-extra">
           <input type="checkbox" name="sub_{{ f.i }}">
-          Crear también la suscripción
+          <span class="cartola-extra-txt">
+            <span class="hide-mobile">Crear también la suscripción</span>
+            <span class="solo-movil">Crear suscripción</span>
+          </span>
         </label>
         {% endif %}
 
@@ -134,7 +150,10 @@
         <div class="cartola-deben">
           <label class="cartola-extra">
             <input type="checkbox" name="deben_{{ f.i }}" data-deben>
-            Esta compra no es mía · agregar a Me deben
+            <span class="cartola-extra-txt">
+              <span class="hide-mobile">Esta compra no es mía · agregar a Me deben</span>
+              <span class="solo-movil">No es mía · Me deben</span>
+            </span>
             {% if f.cuotas_deben > 1 %}
             <span class="cartola-deben-cuanto">{{ f.cuotas_deben }} cuotas · {{ f.monto_deben|money }}</span>
             {% endif %}
