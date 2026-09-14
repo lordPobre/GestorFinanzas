@@ -62,46 +62,61 @@
 
     {% for f in filas %}
     <div class="cartola-fila{% if f.ya_existe %} repetida{% endif %}">
-      <div class="cartola-linea">
-        <input type="checkbox" name="sel_{{ f.i }}" id="sel_{{ f.i }}" class="cartola-check"
-               {% if f.marcada %}checked{% endif %}>
+      <input type="checkbox" name="sel_{{ f.i }}" id="sel_{{ f.i }}" class="cartola-check"
+             {% if f.marcada %}checked{% endif %} aria-label="Importar este movimiento">
 
-        <label class="cartola-fecha mono" for="sel_{{ f.i }}">{{ f.fecha_obj|date:"d/m" }}</label>
+      {% comment %}
+        En el teléfono estas dos líneas SON la fila: el comercio con su monto
+        arriba, la fecha con su categoría debajo. En escritorio los dos
+        contenedores son `display: contents`, así que sus hijos siguen siendo
+        celdas de la tabla de cinco columnas y nada cambia.
+      {% endcomment %}
+      <div class="cartola-principal">
+        <div class="cartola-desc">
+          {% comment %}
+            La descripción se edita en el sitio: el nombre que imprime el banco
+            ("REDCOMPRA LIDER 4521 CL") casi nunca es el que uno querría leer
+            en el historial, y corregirlo después es entrar movimiento por
+            movimiento. En el teléfono va sin caja — es el título de la fila —
+            y el subrayado punteado es lo que dice que se puede escribir.
+          {% endcomment %}
+          <input type="text" name="desc_{{ f.i }}" value="{{ f.descripcion }}" maxlength="200"
+                 aria-label="Descripción del movimiento">
+        </div>
 
-        {% comment %}
-          En el teléfono, esta línea es la franja de cabecera de la ficha: la
-          plata arriba y los datos abajo. En escritorio el contenedor es
-          `display: contents`, así que sus tres hijos siguen siendo celdas de
-          la tabla y nada cambia.
-        {% endcomment %}
         <div class="cartola-monto mono {% if f.tipo == 'INGRESO' %}entra{% else %}sale{% endif %}">
           {% if f.tipo == 'INGRESO' %}+{% else %}−{% endif %}{{ f.monto_dec|money }}
         </div>
       </div>
 
-      {% comment %}
-        La descripción va sola en su celda. Las marcas y la casilla de extras
-        cuelgan abajo, en una segunda línea de la grilla que abarca de la
-        descripción al monto: así el selector y el monto quedan a la altura
-        del campo de texto en vez de flotar en el centro de una fila alta.
-      {% endcomment %}
-      <span class="cartola-etq">Descripción</span>
-      <div class="cartola-desc">
-        <input type="text" name="desc_{{ f.i }}" value="{{ f.descripcion }}" maxlength="200">
-      </div>
+      <div class="cartola-meta">
+        <label class="cartola-fecha mono" for="sel_{{ f.i }}">{{ f.fecha_obj|date:"d/m" }}</label>
+        <span class="cartola-sep" aria-hidden="true">·</span>
 
-      <span class="cartola-etq">Categoría</span>
-      <select name="cat_{{ f.i }}" class="cartola-cat">
-        {% if f.tipo == 'INGRESO' %}
-          {% for valor, etiqueta in cartola_cats_ingreso %}
-          <option value="{{ valor }}" {% if valor == f.categoria %}selected{% endif %}>{{ etiqueta }}</option>
-          {% endfor %}
-        {% else %}
-          {% for valor, etiqueta in cartola_cats_egreso %}
-          <option value="{{ valor }}" {% if valor == f.categoria %}selected{% endif %}>{{ etiqueta }}</option>
-          {% endfor %}
-        {% endif %}
-      </select>
+        {% comment %}
+          La categoría en el teléfono se lee como texto y se toca como un
+          selector: el <select> nativo queda encima, transparente, y este
+          texto es lo que se ve. Así no hace falta un segundo recuadro gris
+          idéntico al de la descripción, que era justo lo que hacía ver la
+          fila desordenada. En escritorio el texto se oculta y el selector
+          vuelve a ser la cuarta columna de la tabla.
+        {% endcomment %}
+        <span class="cartola-cat-caja">
+          <span class="cartola-cat-txt" data-cat-txt>{% if f.tipo == 'INGRESO' %}{% for valor, etiqueta in cartola_cats_ingreso %}{% if valor == f.categoria %}{{ etiqueta }}{% endif %}{% endfor %}{% else %}{% for valor, etiqueta in cartola_cats_egreso %}{% if valor == f.categoria %}{{ etiqueta }}{% endif %}{% endfor %}{% endif %}</span>
+          <i class="fas fa-chevron-down" aria-hidden="true"></i>
+          <select name="cat_{{ f.i }}" class="cartola-cat" aria-label="Categoría del movimiento">
+            {% if f.tipo == 'INGRESO' %}
+              {% for valor, etiqueta in cartola_cats_ingreso %}
+              <option value="{{ valor }}" {% if valor == f.categoria %}selected{% endif %}>{{ etiqueta }}</option>
+              {% endfor %}
+            {% else %}
+              {% for valor, etiqueta in cartola_cats_egreso %}
+              <option value="{{ valor }}" {% if valor == f.categoria %}selected{% endif %}>{{ etiqueta }}</option>
+              {% endfor %}
+            {% endif %}
+          </select>
+        </span>
+      </div>
 
       {% comment %}
         Solo se dibuja si tiene algo que decir: una fila corriente no gasta
@@ -201,7 +216,14 @@
 
   function actualizar() {
     var n = 0;
-    checks.forEach(function (c) { if (c.checked) n++; });
+    checks.forEach(function (c) {
+      if (c.checked) n++;
+      /* La fila destildada se apaga: con ciento cincuenta filas, mirar
+         casilla por casilla para saber qué se va a guardar no es leer una
+         lista, es auditarla. */
+      var fila = c.closest('.cartola-fila');
+      if (fila) fila.classList.toggle('apagada', !c.checked);
+    });
     cuenta.textContent = n === 0
       ? 'No hay nada marcado.'
       : 'Se guardará' + (n === 1 ? ' 1 movimiento.' : 'n ' + n + ' movimientos.');
@@ -209,6 +231,16 @@
   }
 
   checks.forEach(function (c) { c.addEventListener('change', actualizar); });
+
+  /* En el teléfono la categoría es un texto con el <select> invisible
+     encima, así que el texto hay que moverlo a mano cuando cambia. */
+  form.querySelectorAll('.cartola-cat').forEach(function (sel) {
+    var txt = sel.parentNode.querySelector('[data-cat-txt]');
+    if (!txt) return;
+    sel.addEventListener('change', function () {
+      txt.textContent = sel.options[sel.selectedIndex].text;
+    });
+  });
 
   /* "No es mía": el selector de persona aparece al marcar, y el campo de
      nombre solo al elegir "Otra persona". Marcar la casilla también marca la

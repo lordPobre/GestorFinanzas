@@ -128,7 +128,17 @@ def importar_cartola(request):
         request.session[SESION] = _a_dict(cartola)
         return redirect('revisar_cartola')
 
-    ctx = {'bancos': [(c, p.nombre) for c, p in BANCOS.items()]}
+    # Dos listas y no una: una cartola de cuenta y un estado de cuenta de
+    # tarjeta son documentos distintos, se verifican distinto, y mezclar
+    # treinta nombres en un solo desplegable obliga a leerlos todos para
+    # encontrar el propio.
+    cuentas, tarjetas = [], []
+    for clave, lector in BANCOS.items():
+        destino = tarjetas if getattr(lector, 'es_tarjeta', False) else cuentas
+        destino.append((clave, lector.nombre))
+
+    ctx = {'grupos': [('Cartola de cuenta corriente, vista o ahorro', cuentas),
+                      ('Estado de cuenta de tarjeta', tarjetas)]}
     ctx.update(contadores(request.user))
     return render(request, 'finanzas/importar_cartola.html', ctx)
 

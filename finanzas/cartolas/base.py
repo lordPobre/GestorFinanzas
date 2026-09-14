@@ -195,12 +195,27 @@ def leer_cartola(binario, banco=''):
         if parser().reconoce(texto):
             return parser().parsear(texto)
 
-    # Ninguno lo reconoció: se intenta el lector genérico, que busca la forma
-    # "fecha descripción monto saldo" sin importar de qué banco venga. No
-    # adivina a ciegas — comprueba la cadena de saldos y se niega si no cierra,
-    # así que intentarlo no puede ensuciar la base.
-    generico = BANCOS.get('generico')
-    if generico:
-        return generico().parsear(texto)
+    # Ninguno lo reconoció. Quedan los dos motores genéricos, y se prueban en
+    # ese orden porque comprueban cosas distintas:
+    #
+    #   · el de cartola busca la forma "fecha descripción monto saldo" y
+    #     verifica la cadena de saldos;
+    #   · el de tarjeta busca el detalle de compras y verifica la suma contra
+    #     el total facturado.
+    #
+    # Ninguno adivina a ciegas: los dos se niegan si su comprobación no cierra,
+    # así que intentarlo no puede ensuciar la base. Si los dos fallan se
+    # devuelve el error del primero, que es el caso más común.
+    primero = None
+    for clave in ('generico', 'retail'):
+        lector = BANCOS.get(clave)
+        if not lector:
+            continue
+        try:
+            return lector().parsear(texto)
+        except ErrorCartola as e:
+            primero = primero or e
 
+    if primero:
+        raise primero
     raise ErrorCartola('No reconocí el formato de esta cartola.')

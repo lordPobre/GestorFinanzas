@@ -1,43 +1,3 @@
-"""Estado de cuenta de tarjeta de crédito CMR / Banco Falabella.
-
-OTRO MUNDO
-----------
-Una cartola de cuenta corriente lleva saldo corrido y de ahí sale el signo
-de cada movimiento. Un estado de cuenta de tarjeta no tiene saldo: tiene
-cuotas. Una fila se ve así:
-
-    Santiago 30/09/2025 Mp *mercado libre A1 589.990 589.990 11/12 nov-2025 49.165
-    \______/ \________/ \_______________/ \/ \_____/ \_____/ \___/ \______/ \____/
-      lugar     fecha        comercio     tj   monto   total  cuota  1ª cta  valor
-
-Todo es cargo, así que no hay signo que deducir. Lo que sí hay que decidir
-es QUÉ importar, y ahí está el error fácil de cometer.
-
-QUÉ SE IMPORTA Y POR QUÉ
-------------------------
-Una compra en 12 cuotas aparece en el estado de cuenta de los doce meses.
-Importar los $589.990 completos sería contar en septiembre una compra de
-septiembre del año pasado — y volver a contarla el mes siguiente, y el
-siguiente. Al tercer mes la app diría que gastaste tres millones que nunca
-gastaste.
-
-Lo que sale de tu bolsillo este mes es la CUOTA: $49.165. Así que eso es lo
-que se importa, de cada fila, siempre. Para una compra en una sola cuota la
-cuota es el monto completo, o sea que la regla vale para todas.
-
-Y esa decisión trae su propia verificación: si de cada fila se toma la
-cuota, la suma de todas tiene que dar el Monto Total Facturado que el propio
-estado de cuenta declara al final. En el estado que probé da exacto, hasta
-el peso. Si no da, algo se leyó mal y la pantalla lo dice antes de guardar.
-
-LA FECHA
---------
-Una compra en cuotas se fecha en el día de facturación, no en el de la
-compra: la cuota de agosto es un gasto de agosto aunque la compra sea de
-septiembre del año pasado. Fecharla en 2025 la escondería en un mes cerrado
-y el total de agosto no cuadraría con lo que pagaste. Las compras de una
-sola cuota conservan su fecha real, que sí cae en el período.
-"""
 import re
 from datetime import datetime
 
@@ -77,6 +37,9 @@ MESES = ('Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio',
 
 @registrar('cmr', 'CMR / Banco Falabella (tarjeta)')
 class CMR:
+
+    # Va en la lista de tarjetas del selector, no en la de cartolas.
+    es_tarjeta = True
 
     def reconoce(self, texto):
         t = texto.lower()
