@@ -26,10 +26,19 @@ if not SECRET_KEY:
         )
 
 
-ALLOWED_HOSTS = os.environ.get(
-    'ALLOWED_HOSTS',
-    'localhost,127.0.0.1,finanzas.pythonanywhere.com,www.finanzas.pythonanywhere.com'
-).split(',')
+ALLOWED_HOSTS = [
+    h.strip() for h in os.environ.get(
+        'ALLOWED_HOSTS',
+        'localhost,127.0.0.1,finanzas.pythonanywhere.com,www.finanzas.pythonanywhere.com'
+    ).split(',') if h.strip()
+]
+
+# Railway publica el dominio del servicio en RAILWAY_PUBLIC_DOMAIN y cambia
+# cuando se conecta un dominio propio. Se agrega solo para no tener que
+# editar ALLOWED_HOSTS a mano en cada despliegue.
+DOMINIO_RAILWAY = os.environ.get('RAILWAY_PUBLIC_DOMAIN', '').strip()
+if DOMINIO_RAILWAY and DOMINIO_RAILWAY not in ALLOWED_HOSTS:
+    ALLOWED_HOSTS.append(DOMINIO_RAILWAY)
 
 
 INSTALLED_APPS = [
@@ -79,12 +88,19 @@ WSGI_APPLICATION = 'core.wsgi.application'
 
 database_url = os.environ.get("DATABASE_URL")
 
+# Exigir SSL a la base es lo correcto cuando se cruza internet, pero no
+# cuando la base vive en la red privada del hosting: el Postgres interno de
+# Railway se alcanza por `postgres.railway.internal` y ahí puede rechazar el
+# handshake TLS, con lo que la app no arranca. DB_SSL=0 lo desactiva sin
+# tocar código; el tráfico igual no sale de la red privada.
+DB_SSL = os.environ.get('DB_SSL', '1').lower() not in ('0', 'false', 'no')
+
 if database_url:
     DATABASES = {
         'default': dj_database_url.parse(
             database_url,
             conn_max_age=600,
-            ssl_require=not DEBUG,
+            ssl_require=DB_SSL and not DEBUG,
         )
     }
 else:
@@ -176,6 +192,13 @@ if not DEBUG:
         if o.strip()
     ]
 
+    # El dominio de Railway también tiene que ser origen de confianza, o los
+    # formularios POST se rechazan por CSRF apenas se despliega.
+    if DOMINIO_RAILWAY:
+        origen = f'https://{DOMINIO_RAILWAY}'
+        if origen not in CSRF_TRUSTED_ORIGINS:
+            CSRF_TRUSTED_ORIGINS.append(origen)
+
 # Acceso con cuenta de Google (ver finanzas/google_login.py). Si no están,
 # el botón no se dibuja y el acceso con usuario y contraseña sigue igual.
 GOOGLE_CLIENT_ID = os.environ.get('GOOGLE_CLIENT_ID', '')
@@ -234,6 +257,17 @@ CACHES = {
     }
 }
 
+# Dónde se escribe el log de seguridad.
+#
+# En un contenedor (Railway, cualquier PaaS) el disco es efímero: el archivo
+# se pierde en cada redespliegue, así que escribirlo ahí da una falsa
+# sensación de tener registro. Solo se usa archivo si LOG_DIR apunta a algo
+# persistente — un volumen montado — y en desarrollo, donde el disco es el
+# tuyo. Sin LOG_DIR en producción queda solo la consola, que es lo que el
+# panel del hosting recoge.
+LOG_DIR = os.environ.get('LOG_DIR', '').strip() or (str(BASE_DIR) if DEBUG else '')
+_DESTINOS_LOG = ['consola'] + (['archivo'] if LOG_DIR else [])
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -242,22 +276,24 @@ LOGGING = {
     },
     'handlers': {
         'consola': {'class': 'logging.StreamHandler', 'formatter': 'simple'},
-        'archivo': {
-            'class': 'logging.handlers.RotatingFileHandler',
-            'filename': os.path.join(BASE_DIR, 'seguridad.log'),
-            'maxBytes': 2 * 1024 * 1024,
-            'backupCount': 3,
-            'formatter': 'simple',
-        },
     },
     'loggers': {
         # Intentos de acceso fallidos y peticiones sospechosas
-        'django.security': {'handlers': ['consola', 'archivo'], 'level': 'WARNING'},
+        'django.security': {'handlers': _DESTINOS_LOG, 'level': 'WARNING'},
         # Peticiones con Host inválido, CSRF rechazado, 404 masivos
-        'django.request': {'handlers': ['consola', 'archivo'], 'level': 'ERROR'},
-        'finanzas': {'handlers': ['consola', 'archivo'], 'level': 'INFO'},
+        'django.request': {'handlers': _DESTINOS_LOG, 'level': 'ERROR'},
+        'finanzas': {'handlers': _DESTINOS_LOG, 'level': 'INFO'},
     },
 }
+
+if LOG_DIR:
+    LOGGING['handlers']['archivo'] = {
+        'class': 'logging.handlers.RotatingFileHandler',
+        'filename': os.path.join(LOG_DIR, 'seguridad.log'),
+        'maxBytes': 2 * 1024 * 1024,
+        'backupCount': 3,
+        'formatter': 'simple',
+    }
 
 if not DEBUG and 'runserver' not in sys.argv:
     if SECRET_KEY.startswith('django-insecure'):
