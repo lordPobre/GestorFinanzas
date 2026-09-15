@@ -15,9 +15,17 @@ except ImportError:
 #  SEGURIDAD — valores sensibles vienen de variables de entorno
 # ==========================================================
 DEBUG = os.environ.get('DEBUG', 'False').lower() == 'true'
+
+# `collectstatic` corre en la etapa de construcción, donde el hosting todavía
+# no inyecta las variables del servicio. No toca la base ni firma nada, así
+# que exigirle SECRET_KEY solo hace fallar el build. Se le permite arrancar
+# con una clave de mentira; el guardia del final del archivo sigue cubriendo
+# al proceso que de verdad atiende peticiones.
+_SOLO_ESTATICOS = 'collectstatic' in sys.argv
+
 SECRET_KEY = os.environ.get('SECRET_KEY')
 if not SECRET_KEY:
-    if DEBUG:
+    if DEBUG or _SOLO_ESTATICOS:
         SECRET_KEY = 'django-insecure-solo-desarrollo-local'
     else:
         raise RuntimeError(
@@ -295,6 +303,6 @@ if LOG_DIR:
         'formatter': 'simple',
     }
 
-if not DEBUG and 'runserver' not in sys.argv:
+if not DEBUG and not _SOLO_ESTATICOS and 'runserver' not in sys.argv:
     if SECRET_KEY.startswith('django-insecure'):
         raise RuntimeError('SECRET_KEY de desarrollo en producción.')
