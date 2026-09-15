@@ -207,6 +207,12 @@ if not DEBUG:
         if origen not in CSRF_TRUSTED_ORIGINS:
             CSRF_TRUSTED_ORIGINS.append(origen)
 
+# Cuántos proxies de confianza hay delante de la app. Railway pone uno.
+# seguridad.py lo usa para saber qué parte de X-Forwarded-For creer: ese
+# encabezado lo puede escribir cualquiera, y solo los tramos que agrega la
+# infraestructura propia son fiables. En local, 0.
+PROXIES_CONFIABLES = int(os.environ.get('PROXIES_CONFIABLES', '0' if DEBUG else '1'))
+
 # Acceso con cuenta de Google (ver finanzas/google_login.py). Si no están,
 # el botón no se dibuja y el acceso con usuario y contraseña sigue igual.
 GOOGLE_CLIENT_ID = os.environ.get('GOOGLE_CLIENT_ID', '')
@@ -256,14 +262,38 @@ PASSWORD_RESET_TIMEOUT = 60 * 60   # 1 hora
 DEFAULT_FROM_EMAIL = os.environ.get(
     'CORREO_FROM', os.environ.get('MAILGUN_FROM', 'Rekon <no-responder@localhost>'))
 
-CACHES = {
-    'default': {
-        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
-        'LOCATION': 'finapp',
-        'TIMEOUT': 300,
-        'OPTIONS': {'MAX_ENTRIES': 5000},
+# Dónde viven los contadores de seguridad.
+#
+# LocMemCache es memoria de UN proceso. seguridad.py ya lo advierte: con
+# varios workers de gunicorn los contadores se dividen, y el tope de 5
+# intentos de acceso pasa a ser 5 POR WORKER. Con dos workers son diez
+# intentos reales, y el limitador de analisis_ia (6 por hora) permite doce
+# llamadas pagadas. El bloqueo deja de ser el que crees que es.
+#
+# La caché en base de datos la comparten todos los workers. Cuesta una
+# consulta por comprobación, que al lado de un Argon2 no se nota. Necesita
+# la tabla una vez:  python manage.py createcachetable
+#
+# En local, sin DATABASE_URL, se queda en memoria: un solo proceso y sin
+# tabla que crear.
+if database_url:
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.db.DatabaseCache',
+            'LOCATION': 'cache_finapp',
+            'TIMEOUT': 300,
+            'OPTIONS': {'MAX_ENTRIES': 20000, 'CULL_FREQUENCY': 4},
+        }
     }
-}
+else:
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+            'LOCATION': 'finapp',
+            'TIMEOUT': 300,
+            'OPTIONS': {'MAX_ENTRIES': 5000},
+        }
+    }
 
 # Dónde se escribe el log de seguridad.
 #

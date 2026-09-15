@@ -1,14 +1,17 @@
 """Controles de seguridad propios.
 
-Sin dependencias nuevas: todo se apoya en la caché de Django, que en
-PythonAnywhere y en local funciona en memoria sin configurar nada.
+Sin dependencias nuevas: todo se apoya en la caché de Django.
 
-Si algún día montas más de un proceso (varios workers de gunicorn), la caché
-en memoria NO se comparte entre ellos y los contadores se dividen. Ahí toca
-pasar a Redis o Memcached; el código de aquí no cambia.
+La caché TIENE que estar compartida entre procesos para que los contadores
+de aquí signifiquen algo. En producción es DatabaseCache (ver CACHES en
+core/settings.py): con LocMemCache y varios workers de gunicorn cada proceso
+lleva su propia cuenta, y el tope de intentos se multiplica por el número de
+workers sin que nada avise.
 """
+import time
 from functools import wraps
 
+from django.conf import settings
 from django.core.cache import cache
 from django.http import JsonResponse
 from django.contrib import messages
@@ -18,14 +21,42 @@ from django.shortcuts import redirect
 def _ip(request):
     """La IP real del cliente detrás del proxy.
 
-    REMOTE_ADDR sería la del proxy, la misma para todos: bloquear por ella
-    dejaría fuera a todo el mundo. Se toma la PRIMERA de X-Forwarded-For,
-    que es la del cliente; las siguientes las añaden los intermediarios.
+    X-Forwarded-For lo puede escribir cualquiera: un cliente que manda
+    'X-Forwarded-For: 1.2.3.4' y lo cambia en cada petición se salta todo
+    bloqueo por IP si se cree la primera entrada. Y eso es exactamente lo
+    que hacía la versión anterior de esta función.
+
+    Cómo se lee de verdad: cada proxy AÑADE al final la dirección de quien
+    le habló. Con un proxy de confianza delante (Railway pone uno), el
+    encabezado queda '<lo que invente el cliente>, <IP real>' y la buena es
+    la ÚLTIMA. Con N proxies propios, la buena es la N-ésima contando desde
+    el final. Lo que venga antes es texto del cliente y no se mira.
+
+    PROXIES_CONFIABLES en settings dice cuántos son. Si es 0 (desarrollo),
+    el encabezado se ignora entero y se usa REMOTE_ADDR.
     """
+    directa = request.META.get("REMOTE_ADDR", "desconocida")
+    n = getattr(settings, "PROXIES_CONFIABLES", 0)
+    if n <= 0:
+        return directa
+
     reenviada = request.META.get("HTTP_X_FORWARDED_FOR", "")
-    if reenviada:
-        return reenviada.split(",")[0].strip()
-    return request.META.get("REMOTE_ADDR", "desconocida")
+    if not reenviada:
+        return directa
+
+    tramos = [t.strip() for t in reenviada.split(",") if t.strip()]
+    if not tramos:
+        return directa
+
+    # El proxy más externo escribe el primer tramo; el más cercano a la app,
+    # el último. Se retrocede tantos tramos como proxies propios haya.
+    indice = -n
+    if len(tramos) < n:
+        # Menos tramos que proxies declarados: alguien llegó por un camino
+        # que no es el esperado. La entrada más antigua es lo más conservador
+        # que se puede usar, y si falla se cae a la conexión directa.
+        return tramos[0]
+    return tramos[indice]
 
 
 # ============================================================
@@ -48,7 +79,6 @@ def esta_bloqueado(usuario, ip):
     intentos, hasta = datos
     if intentos < MAX_INTENTOS:
         return 0
-    import time
     restan = int(hasta - time.time())
     return max(0, restan)
 
@@ -60,7 +90,6 @@ def registrar_fallo(usuario, ip):
     podría dejar fuera a otra persona fallando a propósito con su nombre;
     por IP sola, una red compartida se bloquearía entera.
     """
-    import time
     clave = _clave_intentos(usuario, ip)
     datos = cache.get(clave)
     intentos = (datos[0] if datos else 0) + 1
