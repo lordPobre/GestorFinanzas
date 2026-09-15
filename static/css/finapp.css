@@ -74,6 +74,24 @@
 
   --sidebar-w:   250px;
   --bottombar-h: 72px;
+
+  /* Aire del canto inferior: el alto de la zona que se come el indicador de
+     inicio del iPhone. Todo lo que flota abajo (la barra, el botón central,
+     el padding de .main) mide contra ESTA variable y no contra env() suelto,
+     para que los tres se muevan juntos. */
+  --safe-b: env(safe-area-inset-bottom, 0px);
+}
+
+/* Guardada en la pantalla de inicio, Safari devuelve 0 en
+   env(safe-area-inset-bottom) aunque el indicador de inicio siga ahí
+   ocupando su franja — en el navegador sí informa el valor real, y por eso
+   el mismo CSS se ve bien en Safari y pegado al borde en la app.
+
+   max() pone un piso: si Safari informa el valor, se usa; si informa 0, se
+   usan 24px. En un iPhone con botón de inicio el valor real es 0 y también
+   se aplicarían los 24px, que ahí es aire de más y no un defecto. */
+@media (display-mode: standalone) {
+  :root { --safe-b: max(env(safe-area-inset-bottom, 0px), 24px); }
 }
 
 * { box-sizing: border-box; }
@@ -2904,7 +2922,7 @@ select:focus-visible, textarea:focus-visible, [tabindex]:focus-visible {
     /* Igual que el botón flotante: bottom + área segura, no margin-bottom.
        Dos mecanismos distintos para el mismo desplazamiento fue lo que dejó
        al botón montado por debajo en el iPhone. */
-    bottom: calc(14px + env(safe-area-inset-bottom));
+    bottom: calc(14px + var(--safe-b));
     height: 66px; padding: 0 4px;
     border-radius: 24px; border: none;
     background: var(--surface);
@@ -2922,7 +2940,7 @@ select:focus-visible, textarea:focus-visible, [tabindex]:focus-visible {
      en un iPhone la barra subía 34px y el botón se quedaba abajo, montado
      por el lado contrario. */
   .fab-group {
-    right: 50%; bottom: calc(34px + env(safe-area-inset-bottom));
+    right: 50%; bottom: calc(34px + var(--safe-b));
     transform: translateX(50%);
     flex-direction: row-reverse; gap: 0;
   }
@@ -2943,7 +2961,7 @@ select:focus-visible, textarea:focus-visible, [tabindex]:focus-visible {
      sobraban 26px, pero sobre el botón quedaban 10 y el halo se montaba
      encima de la última tarjeta de la página (la meta de ahorro del
      dashboard). Se mide contra el botón, y los 16px son el aire. */
-  .main { padding-bottom: calc(124px + 16px + env(safe-area-inset-bottom)); }
+  .main { padding-bottom: calc(124px + 16px + var(--safe-b)); }
 
   /* Las secciones se ven como en la plantilla: título grande, "Ver mas" */
   .section-title { font-size: 19px; padding-left: 11px; }
