@@ -9,7 +9,7 @@
 {% block topbar_mes %}
 {% include 'finanzas/_mes_nav.html' with variante="mes-nav-desktop" %}
 {% endblock %}
-{% block title %}Inicio · FinApp{% endblock %}
+{% block title %}Inicio · Rekon{% endblock %}
 
 {% block extra_head %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
@@ -203,7 +203,6 @@
 
 <div class="glass card-lg" style="margin-bottom:18px" data-spot>
 
-  {# Entró y salió, la comparación de la que sale todo lo demás #}
   <div class="mes-totales">
     <div>
       <span class="icon-tile green"><i class="fas fa-arrow-down"></i></span>
@@ -222,7 +221,6 @@
     </div>
   </div>
 
-  {# La barra reparte lo que entró en sus tres destinos #}
   <div class="split-bar" style="height:12px;margin-bottom:14px">
     <span style="width:{{ pct_gastado }}%;background:var(--blue)" title="Ya gastado"></span>
     <span style="width:{{ pct_por_pagar }}%;background:var(--amber)" title="Por pagar"></span>
@@ -713,7 +711,7 @@
     La altura va en el elemento, no solo en la clase: sin altura definida
     Chart.js estira el lienzo indefinidamente y no dibuja nada.
   {% endcomment %}
-  <div class="flujo-lienzo" style="position:relative;height:300px">
+  <div class="flujo-lienzo">
     {% comment %}
       Las series viajan en atributos del lienzo. Antes iban en
       <script type="application/json">, pero la política de contenidos

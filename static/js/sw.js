@@ -1,4 +1,4 @@
-/* Service worker de FinApp.
+/* Service worker de Rekon.
    ---------------------------------------------------------------------------
    Existe por dos razones, en este orden:
 
@@ -40,7 +40,7 @@ const HTML_SIN_CONEXION = `<!DOCTYPE html>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#191919">
-<title>Sin conexión · FinApp</title>
+<title>Sin conexión · Rekon</title>
 </head>
 <body style="margin:0;min-height:100dvh;display:flex;align-items:center;justify-content:center;padding:32px;
              background:#191919;color:#f5f5f5;font-family:Manrope,system-ui,-apple-system,sans-serif;

@@ -1,7 +1,7 @@
 {% extends 'finanzas/base.html' %}
 {% load humanize moneda %}
 {% block search_placeholder %}Filtrar compras en cuotas{% endblock %}
-{% block title %}Compras en cuotas · FinApp{% endblock %}
+{% block title %}Compras en cuotas · Rekon{% endblock %}
 
 {% block content %}
 
@@ -72,7 +72,7 @@
     descubren al deslizarla; en escritorio aparecen al pasar el cursor,
     donde no hay dedo con que arrastrar.
   {% endcomment %}
-  <div class="swipe" data-searchable>
+  <div class="swipe" data-searchable{% if forloop.first %} data-tour="gesto"{% endif %}>
     {% comment %}
       Un panel a cada lado: editar se descubre arrastrando la tarjeta hacia
       la derecha y eliminar hacia la izquierda. Juntos bajo el mismo borde,

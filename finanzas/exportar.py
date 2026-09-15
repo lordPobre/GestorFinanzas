@@ -117,7 +117,7 @@ def escribir_csv(writer, usuario, cuenta, hoy):
     filas = filas_movimientos(usuario)
     escribir = writer.writerow
 
-    escribir(['FinApp — Movimientos'])
+    escribir(['Rekon — Movimientos'])
     escribir(['Cuenta', cuenta])
     escribir(['Exportado', hoy.strftime('%d/%m/%Y')])
     escribir(['Movimientos', len(filas)])
@@ -217,7 +217,7 @@ def libro_excel(usuario, cuenta, hoy):
     ws.title = 'Movimientos'
     ws.sheet_view.showGridLines = False
 
-    ws['A1'] = 'FinApp — Movimientos'
+    ws['A1'] = 'Rekon — Movimientos'
     ws['A1'].font = Font(name=fuente, size=15, bold=True, color=AMBAR_TEXTO)
     ws['A2'] = f'Cuenta: {cuenta}'
     ws['A3'] = f'Exportado el {hoy.strftime("%d/%m/%Y")} · {len(filas)} movimiento'\

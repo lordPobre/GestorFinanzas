@@ -1,5 +1,5 @@
 {% extends 'finanzas/base.html' %}
-{% block title %}Importar cartola · FinApp{% endblock %}
+{% block title %}Importar cartola · Rekon{% endblock %}
 {% block topbar_sub %}Traer tus movimientos del banco{% endblock %}
 
 {% block content %}
@@ -27,14 +27,14 @@
       archivo del navegador no se puede estilar y aquí tiene que ser el
       elemento más grande de la pantalla.
     {% endcomment %}
-    <label class="cartola-zona" id="zona">
+    <label class="cartola-zona" id="zona" data-tour="cartola">
       <input type="file" name="cartola" accept="application/pdf,.pdf" id="inputCartola" class="visually-hidden">
       <span class="cartola-icono"><i class="fas fa-file-pdf"></i></span>
       <span class="cartola-titulo" id="zonaTitulo">Arrastra aquí el PDF de tu cartola</span>
       <span class="cartola-nota" id="zonaNota">o toca para buscarlo · cartola de banco o estado de cuenta de tarjeta · máximo 6 MB</span>
     </label>
 
-    <div class="field" style="margin-top:18px">
+    <div class="field" style="margin-top:18px" data-tour="cartola-cuotas">
       <label class="label" for="banco">De dónde viene</label>
       <select name="banco" id="banco">
         <option value="">Reconocerlo solo</option>

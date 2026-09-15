@@ -16,7 +16,7 @@ se usa el que tenga credenciales, con Resend primero.
 
 Resend:
   RESEND_API_KEY    la clave (re_...)
-  CORREO_FROM       remitente, ej: FinApp <no-responder@tudominio.dev>
+  CORREO_FROM       remitente, ej: Rekon <no-responder@tudominio.dev>
 
 Mailgun:
   MAILGUN_API_KEY   clave privada o sending key
@@ -71,7 +71,7 @@ def _remitente():
     if directo:
         return directo
     dominio = os.environ.get('MAILGUN_DOMAIN', 'localhost')
-    return f'FinApp <no-responder@{dominio}>'
+    return f'Rekon <no-responder@{dominio}>'
 
 
 def _pedir(peticion):
@@ -80,7 +80,7 @@ def _pedir(peticion):
     # Cloudflare — que está delante de la API de Resend — lo rechaza con un
     # 403 y el código 1010 ("firma de navegador bloqueada") antes de que la
     # petición llegue al servicio.
-    peticion.add_header('User-Agent', 'FinApp/1.0 (+https://github.com/lordPobre/GestorFinanzas)')
+    peticion.add_header('User-Agent', 'Rekon/1.0 (+https://github.com/lordPobre/GestorFinanzas)')
     peticion.add_header('Accept', 'application/json')
     try:
         with urllib.request.urlopen(peticion, timeout=TIEMPO_ESPERA) as respuesta:

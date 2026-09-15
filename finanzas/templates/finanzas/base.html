@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#191919">
-  <title>{% block title %}FinApp{% endblock %}</title>
+  <title>{% block title %}Rekon{% endblock %}</title>
 
   {% comment %}
     Instalable en la pantalla de inicio. El manifest cubre Android/Chrome;
@@ -12,10 +12,10 @@
     en pantalla completa, sin barra de Safari.
   {% endcomment %}
   <link rel="manifest" href="{% static 'site.webmanifest' %}">
-  <meta name="application-name" content="FinApp">
+  <meta name="application-name" content="Rekon">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-title" content="FinApp">
+  <meta name="apple-mobile-web-app-title" content="Rekon">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="format-detection" content="telephone=no">
 
@@ -35,6 +35,8 @@
   <link rel="stylesheet" href="{% static 'css/finapp.css' %}">
   {% block extra_head %}{% endblock %}
   <script nonce="{{ csp_nonce }}">
+  /* Respaldo mínimo: abre y cierra modales aunque finapp.js no cargue.
+     finapp.js sobreescribe estas funciones cuando sí está disponible. */
   (function () {
     function open(id) {
       var m = document.querySelector(id);
@@ -114,7 +116,7 @@
     <a href="{% url 'dashboard' %}" class="brand">
       <span class="brand-mark"><i class="fas fa-chart-line"></i></span>
       <span>
-        <span class="brand-name">FinApp</span>
+        <span class="brand-name">Rekon</span>
         <span class="brand-sub" style="display:block">Tus finanzas, claras</span>
       </span>
     </a>
@@ -177,7 +179,7 @@
 
     {% block sidebar_foot %}
       {% if salud_score != None %}
-      <div class="sidebar-foot health" data-spot title="Salud del mes: {{ salud_score }}/100 · {{ salud_label }}">
+      <div class="sidebar-foot health" data-spot data-tour="salud" title="Salud del mes: {{ salud_score }}/100 · {{ salud_label }}">
         <div class="label" style="color:var(--amber);margin-bottom:7px">Salud del mes</div>
         {% comment %}
           Alineado a la izquierda, a plomo con el título y la barra. El
@@ -519,6 +521,8 @@
           <div class="label" style="margin-bottom:6px;text-align:center">Monto</div>
           <div class="amount-display" id="montoView" style="color:var(--coral)">$0</div>
 
+          {# Aviso de monto vacío. Vive acá y no se crea desde JS para que
+             tenga su lugar reservado y el panel no salte al aparecer. #}
           <div id="avisoMonto" role="alert" aria-live="polite"
                style="display:none;text-align:center;margin-top:8px;font-size:12.5px;font-weight:600;color:var(--coral)">
             Escribe un monto para continuar
@@ -601,12 +605,19 @@
   var form = document.getElementById('formRegistro');
   if (!form) return;
 
-
+  /* Las de gasto ya están en el HTML; este arreglo solo sirve para volver
+     a ellas si el usuario cambia de Ingreso a Gasto. */
   var catsGasto = leerDatos('egreso');
   var catsIngreso = leerDatos('ingreso');
 
   var chips = document.getElementById('chipsGasto');
-
+  /* Lee una lista embebida con json_script.
+     Devuelve [] si no está o viene vacía: solo el panel de Inicio recibe
+     las categorías, y en las demás pantallas un JSON.parse directo daba ""
+     y el forEach siguiente reventaba, dejando muerto el resto del script. */
+  /* Las categorías viajan en atributos del contenedor de fichas: la política
+     de contenidos bloquea los <script type="application/json">, y ahí los
+     datos nunca llegaban. */
   function leerDatos(cual) {
     var cont = document.getElementById('chipsGasto');
     if (!cont || !cont.dataset[cual]) return [];
@@ -735,6 +746,8 @@
   setTipo('EGRESO');
   pintarMonto();
 
+  /* ?registrar=1 abre el panel al cargar. Lo usan el botón flotante de las
+     pantallas sin panel propio y el retorno de un POST con error. */
   {% if abrir_panel or request.GET.registrar %}
   var overlay = document.getElementById('modalGasto');
   if (overlay) { overlay.classList.add('open'); document.body.style.overflow = 'hidden'; }
@@ -753,6 +766,8 @@
       prestamos: '{% url "prestamos" %}',
       metas: '{% url "metas" %}',
       estadisticas: '{% url "estadisticas" %}',
+      analisis: '{% url "analisis_predictivo" %}',
+      importar: '{% url "importar_cartola" %}',
       perfil: '{% url "perfil" %}'
     }
   });

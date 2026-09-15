@@ -12,4 +12,4 @@ Y A TI TE DEBEN{% for fila in por_cobrar %}
 --
 Este aviso sale una vez al mes. Puedes cambiar el día o apagarlo en tu
 perfil, en "Aviso mensual por correo".
-FinApp · Tus finanzas, claras
+Rekon · Tus finanzas, claras

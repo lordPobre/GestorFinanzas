@@ -1,7 +1,7 @@
 {% extends 'finanzas/base.html' %}
 {% load humanize moneda %}
 {% block search_placeholder %}Filtrar suscripciones{% endblock %}
-{% block title %}Suscripciones · FinApp{% endblock %}
+{% block title %}Suscripciones · Rekon{% endblock %}
 
 {% block content %}
 
@@ -156,7 +156,6 @@
       {% endif %}
     {% endif %}
 
-    {# El interruptor ES el botón de cancelar/reactivar #}
     <form method="post" action="{% url 'cancelar_suscripcion' s.pk %}" style="margin:0;display:flex;align-items:center"
           {% if s.activa %}data-confirm="¿Dejar de pagar {{ s.nombre }}? Ahorras {{ s.monto_anual|money }} al año."{% endif %}>
       {% csrf_token %}
@@ -215,7 +214,7 @@
   <i class="fas fa-rotate"></i>
   <div class="empty-title">No tienes suscripciones registradas</div>
   <div class="empty-text">
-    Agrega las que pagas todos los meses y FinApp las cobra sola, para que aparezcan
+    Agrega las que pagas todos los meses y Rekon las cobra sola, para que aparezcan
     en tus gastos sin que tengas que anotarlas.
   </div>
   <button class="btn btn-purple" data-open="#modalSub">Agregar la primera</button>

@@ -1,6 +1,6 @@
 {% extends 'finanzas/base.html' %}
 {% load humanize moneda %}
-{% block title %}Análisis · FinApp{% endblock %}
+{% block title %}Análisis · Rekon{% endblock %}
 
 {% block extra_head %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
@@ -20,7 +20,7 @@
 <div class="analisis-head">
   <div style="min-width:0">
     <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-      <div class="page-title">Análisis</div>
+      <div class="page-title" data-tour="ia-alt">Análisis</div>
       <span class="badge badge-purple">Calculado, no adivinado</span>
     </div>
     <div class="hint" style="margin-top:5px;max-width:640px">
@@ -30,7 +30,7 @@
   </div>
 
   {% if analisis.tiene_datos %}
-  <button class="btn btn-soft btn-ia" id="btnIA">
+  <button class="btn btn-soft btn-ia" id="btnIA" data-tour="ia">
     <i class="fas fa-wand-magic-sparkles" style="font-size:11px"></i>Explicarlo con IA
   </button>
   {% endif %}

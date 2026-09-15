@@ -2681,7 +2681,7 @@ def recuperar(request):
             cuerpo = render_to_string('registration/correo_recuperar.txt', contexto_correo)
             cuerpo_html = render_to_string('registration/correo_recuperar.html', contexto_correo)
             if not enviar(usuario.email or correo_txt,
-                          'Recupera tu contraseña de FinApp', cuerpo, cuerpo_html):
+                          'Recupera tu contraseña de Rekon', cuerpo, cuerpo_html):
                 # Falla de configuración o de red. Se avisa, porque decir
                 # "revisa tu correo" cuando no salió nada es peor.
                 logging.getLogger('finanzas').error(
@@ -2993,7 +2993,7 @@ def exportar_excel(request):
         contenido,
         content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     )
-    archivo = f'FinApp_movimientos_{hoy:%Y-%m-%d}.xlsx'
+    archivo = f'Rekon_movimientos_{hoy:%Y-%m-%d}.xlsx'
     response['Content-Disposition'] = f'attachment; filename="{archivo}"'
     return response
 
@@ -3007,7 +3007,7 @@ def exportar_csv(request):
     """
     hoy = timezone.localdate()
     response = HttpResponse(content_type='text/csv; charset=utf-8-sig')
-    archivo = f'FinApp_movimientos_{hoy:%Y-%m-%d}.csv'
+    archivo = f'Rekon_movimientos_{hoy:%Y-%m-%d}.csv'
     response['Content-Disposition'] = f'attachment; filename="{archivo}"'
     exportar.escribir_csv(csv.writer(response, delimiter=';'),
                           request.user, request.user.get_username(), hoy)

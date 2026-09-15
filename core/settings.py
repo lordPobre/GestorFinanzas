@@ -70,6 +70,7 @@ TEMPLATES = [
                 'django.contrib.messages.context_processors.messages',
                 'finanzas.context_processors.moneda_usuario',   
                 'finanzas.middleware.nonce_contexto',
+                'finanzas.google_login.google_disponible',
             ],
         },
     },
@@ -175,6 +176,11 @@ if not DEBUG:
         if o.strip()
     ]
 
+# Acceso con cuenta de Google (ver finanzas/google_login.py). Si no están,
+# el botón no se dibuja y el acceso con usuario y contraseña sigue igual.
+GOOGLE_CLIENT_ID = os.environ.get('GOOGLE_CLIENT_ID', '')
+GOOGLE_CLIENT_SECRET = os.environ.get('GOOGLE_CLIENT_SECRET', '')
+
 SESSION_COOKIE_AGE = 60 * 60 * 8         
 SESSION_SAVE_EVERY_REQUEST = True        
 SESSION_EXPIRE_AT_BROWSER_CLOSE = False 
@@ -217,7 +223,7 @@ PASSWORD_RESET_TIMEOUT = 60 * 60   # 1 hora
 #   PROVEEDOR_CORREO=mailgun, MAILGUN_API_KEY, MAILGUN_DOMAIN, CORREO_FROM
 # En ambos casos SITE_URL para que los enlaces salgan absolutos y con https.
 DEFAULT_FROM_EMAIL = os.environ.get(
-    'CORREO_FROM', os.environ.get('MAILGUN_FROM', 'FinApp <no-responder@localhost>'))
+    'CORREO_FROM', os.environ.get('MAILGUN_FROM', 'Rekon <no-responder@localhost>'))
 
 CACHES = {
     'default': {

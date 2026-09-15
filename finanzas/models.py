@@ -702,7 +702,7 @@ class SegundoFactor(models.Model):
         import pyotp
         return pyotp.TOTP(self.secreto).provisioning_uri(
             name=self.usuario.email or self.usuario.username,
-            issuer_name="FinApp",
+            issuer_name="Rekon",
         )
 
     def verificar(self, codigo):
@@ -998,6 +998,13 @@ class UserProfile(models.Model):
     pais            = models.CharField(max_length=60, blank=True)
     ciudad          = models.CharField(max_length=60, blank=True)
     moneda          = models.CharField(max_length=5, choices=MONEDAS, default='CLP')
+
+    # Identificador de la cuenta de Google, cuando el usuario la vinculó.
+    # Es estable: no cambia aunque la persona cambie su correo de Gmail,
+    # que es justo por lo que no alcanza con guardar el correo. Vacío en
+    # las cuentas que solo usan contraseña; null y no cadena vacía porque
+    # el campo es unique y varios NULL no chocan entre sí en SQL.
+    google_sub = models.CharField(max_length=64, null=True, blank=True, unique=True)
 
     # Foto de perfil. Opcional: sin ella el avatar sigue mostrando la
     # inicial, que es lo que hacía hasta ahora.

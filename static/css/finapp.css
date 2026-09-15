@@ -1,5 +1,5 @@
 /* ============================================================
-   FinApp · Hoja de estilo
+   Rekon · Hoja de estilo
    Rediseño sobre la referencia de Figma: fondo neutro cálido,
    acento ámbar, superficies planas y esquinas muy redondeadas.
 
@@ -2937,7 +2937,13 @@ select:focus-visible, textarea:focus-visible, [tabindex]:focus-visible {
      Gasto/Ingreso arriba, así que el ingreso sigue a un toque. */
   .fab-group .fab-mini { display: none; }
 
-  .main { padding-bottom: calc(66px + 40px + env(safe-area-inset-bottom)); }
+  /* El obstáculo más alto del canto inferior no es la barra — que con su
+     bottom llega a 80px — sino el botón central: 34px de bottom, 68px de
+     alto y 22px de halo ámbar, 124px en total. Midiendo contra la barra
+     sobraban 26px, pero sobre el botón quedaban 10 y el halo se montaba
+     encima de la última tarjeta de la página (la meta de ahorro del
+     dashboard). Se mide contra el botón, y los 16px son el aire. */
+  .main { padding-bottom: calc(124px + 16px + env(safe-area-inset-bottom)); }
 
   /* Las secciones se ven como en la plantilla: título grande, "Ver mas" */
   .section-title { font-size: 19px; padding-left: 11px; }
@@ -3354,6 +3360,31 @@ select:focus-visible, textarea:focus-visible, [tabindex]:focus-visible {
 }
 .tour-fin i { color: var(--green); }
 .tour-fin.irse { opacity: 0; transition: opacity .5s; }
+
+/* El paso del gesto de deslizar es el único que no se entiende leyéndolo.
+   El tour pone .tour-gesto sobre la fila y acá se arrastra sola: primero
+   hacia la derecha, que descubre Editar en el canto izquierdo, y después
+   hacia la izquierda, que descubre Eliminar en el derecho. Es una demo, no
+   un estado: al cerrar el paso la clase se quita y la fila vuelve a
+   responder solo al dedo. */
+@keyframes tour-desliza {
+   0%,  8% { transform: translateX(0); }
+  22%, 36% { transform: translateX(84px); }
+  50%, 58% { transform: translateX(0); }
+  72%, 86% { transform: translateX(-84px); }
+ 100%      { transform: translateX(0); }
+}
+.tour-gesto .swipe-card,
+.tour-gesto.swipe-card {
+  animation: tour-desliza 4.6s var(--ease-out) infinite;
+}
+/* Los paneles de acción suelen estar atenuados hasta que la fila se abre:
+   durante la demo se ven, o el gesto no muestra nada. */
+.tour-gesto .swipe-acciones { opacity: 1; }
+@media (prefers-reduced-motion: reduce) {
+  .tour-gesto .swipe-card,
+  .tour-gesto.swipe-card { animation: none; }
+}
 
 /* En el teléfono la barra inferior y los botones flotantes ocupan la esquina
    derecha: la píldora se queda a la izquierda, por encima de la barra. */

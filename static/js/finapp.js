@@ -1,5 +1,5 @@
 /* ============================================================
-   FinApp · Interacciones
+   Rekon · Interacciones
    Sin dependencias. Se carga al final del <body>.
    ============================================================ */
 (function () {

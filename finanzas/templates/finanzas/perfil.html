@@ -1,6 +1,6 @@
 {% extends 'finanzas/base.html' %}
 {% load humanize %}
-{% block title %}Mi perfil · FinApp{% endblock %}
+{% block title %}Mi perfil · Rekon{% endblock %}
 
 {% comment %}
   Solo la segunda línea de la píldora del saludo. Antes esta pantalla pisaba
@@ -194,7 +194,7 @@
     el nombre y la ciudad.
   {% endcomment %}
   <div class="glass card" style="padding:0;margin-bottom:16px;overflow:hidden" data-spot>
-    <div style="display:flex;align-items:center;gap:14px;padding:20px 22px">
+    <div style="display:flex;align-items:center;gap:14px;padding:20px 22px" data-tour="aviso">
       <span class="icon-tile {% if profile.aviso_mensual %}orange{% endif %}"
             style="width:42px;height:42px;border-radius:15px;font-size:15px;flex-shrink:0">
         <i class="fas fa-envelope-open-text"></i>
