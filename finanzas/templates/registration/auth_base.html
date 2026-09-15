@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#191919">
   <title>{% block title %}Entrar · Rekon{% endblock %}</title>
+
   <link rel="manifest" href="{% static 'site.webmanifest' %}">
   <meta name="application-name" content="Rekon">
   <meta name="mobile-web-app-capable" content="yes">
@@ -19,6 +20,8 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  {# Solo las dos familias que la app usa de verdad. Antes se cargaban
+     Sora, DM Sans y DM Mono, que no aparecen en ninguna regla del CSS. #}
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
   <link rel="stylesheet" href="{% static 'css/finapp.css' %}">
@@ -134,9 +137,13 @@
     }
   </style>
 
-  <script>
+  <script nonce="{{ csp_nonce }}">
   /* Respaldo mínimo: abre y cierra modales aunque finapp.js no cargue.
-     finapp.js sobreescribe estas funciones cuando sí está disponible. */
+     finapp.js sobreescribe estas funciones cuando sí está disponible.
+
+     El nonce faltaba: la política de contenido de esta app permite scripts
+     en línea solo con nonce, así que el navegador bloqueaba este bloque
+     entero y el respaldo no existía. */
   (function () {
     function open(id) {
       var m = document.querySelector(id);

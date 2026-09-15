@@ -82,16 +82,21 @@
   --safe-b: env(safe-area-inset-bottom, 0px);
 }
 
-/* Guardada en la pantalla de inicio, Safari devuelve 0 en
-   env(safe-area-inset-bottom) aunque el indicador de inicio siga ahí
-   ocupando su franja — en el navegador sí informa el valor real, y por eso
-   el mismo CSS se ve bien en Safari y pegado al borde en la app.
+/* Guardada en la pantalla de inicio, Safari no informa el área segura de
+   abajo de forma fiable: env(safe-area-inset-bottom) devuelve 0 aunque el
+   indicador de inicio siga ocupando su franja. En el navegador sí la
+   informa, y de ahí que el mismo CSS se vea bien en Safari y pegado al borde
+   en la app.
 
-   max() pone un piso: si Safari informa el valor, se usa; si informa 0, se
-   usan 24px. En un iPhone con botón de inicio el valor real es 0 y también
-   se aplicarían los 24px, que ahí es aire de más y no un defecto. */
+   Por eso acá va el valor literal y no una operación sobre env(): 34px es la
+   franja del indicador en todo iPhone que lo tiene. Si env() funcionara,
+   daría el mismo 34 — el literal solo asegura que no quede en 0.
+
+   En un iPhone con botón de inicio no hay indicador y estos 34px son aire de
+   más abajo. Es el precio de que no exista forma en CSS de preguntar por el
+   indicador cuando Safari no lo informa. */
 @media (display-mode: standalone) {
-  :root { --safe-b: max(env(safe-area-inset-bottom, 0px), 24px); }
+  :root { --safe-b: 34px; }
 }
 
 * { box-sizing: border-box; }

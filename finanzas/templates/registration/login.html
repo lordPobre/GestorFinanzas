@@ -32,7 +32,7 @@
       <div style="position:relative;display:flex;align-items:center">
         <i class="fas fa-user auth-icono"></i>
         <input type="text" name="username" id="{{ form.username.id_for_label }}"
-               class="auth-campo" placeholder="Usuario"
+               class="auth-campo" placeholder="tu usuario"
                autocomplete="username" required autofocus
                {% if bloqueado %}disabled{% endif %}>
       </div>
@@ -45,6 +45,7 @@
       </div>
       <div style="position:relative;display:flex;align-items:center">
         <i class="fas fa-lock auth-icono"></i>
+        {# padding-right mayor: el botón del ojo vive dentro del campo. #}
         <input type="password" name="password" id="{{ form.password.id_for_label }}"
                class="auth-campo" style="padding-right:52px" placeholder="••••••••"
                autocomplete="current-password" required
@@ -77,6 +78,7 @@
 <div style="display:flex;flex-direction:column;gap:12px">
 
   {% if google_activo %}
+
   <a href="{% url 'google_entrar' %}{% if next %}?next={{ next|urlencode }}{% endif %}"
      style="display:flex;align-items:center;justify-content:center;gap:11px;padding:15px;border:1.5px solid var(--line-fuerte);border-radius:100px;color:var(--text-primary);text-decoration:none;font-size:13.5px;font-weight:700">
     <svg width="17" height="17" viewBox="0 0 48 48" aria-hidden="true" focusable="false" style="flex-shrink:0">
@@ -97,21 +99,5 @@
 {% endblock %}
 
 {% block extra_js %}
-<script nonce="{{ csp_nonce }}">
-/* Ver la contraseña. finapp.js ya maneja [data-ver-pass], pero esta
-   pantalla tiene que funcionar aunque ese archivo no cargue: es la única
-   puerta de entrada a la app. */
-(function () {
-  var btn = document.getElementById('btnVerPass');
-  if (!btn) return;
-  btn.addEventListener('click', function () {
-    var campo = document.getElementById(btn.getAttribute('data-ver-pass'));
-    if (!campo) return;
-    var oculta = campo.type === 'password';
-    campo.type = oculta ? 'text' : 'password';
-    btn.querySelector('i').className = oculta ? 'fas fa-eye-slash' : 'fas fa-eye';
-    campo.focus();
-  });
-})();
-</script>
+
 {% endblock %}

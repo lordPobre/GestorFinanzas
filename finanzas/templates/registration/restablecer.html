@@ -164,15 +164,9 @@
     });
   }
 
-  var ver = document.getElementById('btnVerPass');
-  if (ver && p1) {
-    ver.addEventListener('click', function () {
-      var oculta = p1.type === 'password';
-      p1.type = oculta ? 'text' : 'password';
-      ver.querySelector('i').className = oculta ? 'fas fa-eye-slash' : 'fas fa-eye';
-      p1.focus();
-    });
-  }
+  /* El botón del ojo lo maneja finapp.js con [data-ver-pass]. Tenerlo aquí
+     también hacía que un toque disparara los dos manejadores y la contraseña
+     se mostrara y se volviera a ocultar en el mismo clic. */
 
   /* Solo dígitos en el código del segundo factor. */
   var codigo = document.getElementById('id_codigo_2fa');

@@ -131,7 +131,6 @@
 {% endblock %}
 
 {% block extra_js %}
-
 <script nonce="{{ csp_nonce }}">
 (function () {
   var p1 = document.getElementById('{{ form.password1.id_for_label }}');
@@ -168,15 +167,9 @@
     coincide.style.color = igual ? 'var(--green)' : 'var(--coral)';
   });
 
-  var btn = document.getElementById('btnVerPass');
-  if (btn) {
-    btn.addEventListener('click', function () {
-      var oculta = p1.type === 'password';
-      p1.type = oculta ? 'text' : 'password';
-      btn.querySelector('i').className = oculta ? 'fas fa-eye-slash' : 'fas fa-eye';
-      p1.focus();
-    });
-  }
+  /* El botón del ojo lo maneja finapp.js con [data-ver-pass]. Tenerlo aquí
+     también hacía que un toque disparara los dos manejadores y la contraseña
+     se mostrara y se volviera a ocultar en el mismo clic. */
 })();
 </script>
 {% endblock %}

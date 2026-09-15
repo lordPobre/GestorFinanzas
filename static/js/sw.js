@@ -20,7 +20,7 @@
    viejos en 'activate'. Sin ese cambio los usuarios se quedan con el anterior.
 */
 
-const VERSION = 'v1';
+const VERSION = 'v2';
 const CACHE_ESTATICOS = `finapp-estaticos-${VERSION}`;
 
 /* Orígenes de terceros que la app carga en cada página. Se cachean igual que
