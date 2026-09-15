@@ -11,6 +11,8 @@ __pycache__/
 # Base de datos local
 db.sqlite3
 db.sqlite3-journal
+db.sqlite3-wal
+db.sqlite3-shm
 
 # Variables de entorno — CRÍTICO: nunca subir secretos
 .env
@@ -19,6 +21,17 @@ db.sqlite3-journal
 
 # Archivos estáticos recolectados
 staticfiles/
+
+# Archivos que sube el usuario en local (fotos de perfil)
+media/
+
+# Copias de la base de 'manage.py respaldar'. Son la base completa: si una de
+# estas llega al repo, se filtran los datos de todos los usuarios.
+respaldos/
+*.sqlite3.gz
+
+# Volcado de datos de la migración a Postgres. Contiene TODO en texto plano.
+datos_respaldo.json
 
 # Sistema
 .DS_Store
@@ -31,6 +44,6 @@ Thumbs.db
 .claude
 graphify-out
 CLAUDE.md
-datos_respaldo.json
 seguridad.log
 .github
+DESPLIEGUE-RAILWAY.md
