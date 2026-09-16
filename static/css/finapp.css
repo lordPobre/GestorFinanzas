@@ -1896,6 +1896,7 @@ label { display: block; }
    es un rectángulo del mismo gris que el resto del diálogo. */
 .modal-head::before {
   content: ''; position: absolute; inset: 0; pointer-events: none;
+  border-radius: inherit;
   background: radial-gradient(120% 150% at 0% 0%, rgba(255, 170, 44, .13), transparent 58%);
 }
 /* La regla inferior arranca en ámbar y se apaga hacia la derecha, en vez de
@@ -1946,15 +1947,23 @@ label { display: block; }
    desde el borde inferior, que es donde está la mano. */
 .hoja-overlay { align-items: flex-end; padding: 0; }
 .hoja-box {
+  position: relative;
+  --modal-pad: 20px;
   max-width: none; width: 100%; max-height: 82vh;
   border-radius: var(--r-xl) var(--r-xl) 0 0;
-  padding: 22px 20px calc(24px + env(safe-area-inset-bottom));
+  padding: var(--modal-pad) var(--modal-pad) calc(24px + env(safe-area-inset-bottom));
   animation: hojaSube .3s var(--ease-out);
 }
 @keyframes hojaSube { from { transform: translateY(100%); } to { transform: none; } }
 .hoja-box::before {
-  content: ''; display: block; width: 38px; height: 4px; border-radius: 100px;
-  background: var(--surface-3); margin: -8px auto 16px;
+  content: ''; position: absolute; z-index: 4;
+  top: 8px; left: 50%; transform: translateX(-50%);
+  width: 38px; height: 4px; border-radius: 100px;
+  background: var(--surface-3);
+}
+.hoja-box > .modal-head {
+  padding-top: calc(var(--modal-pad) + 6px);
+  border-top-left-radius: var(--r-xl); border-top-right-radius: var(--r-xl);
 }
 .hoja-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
 .hoja-item {
@@ -1975,6 +1984,7 @@ label { display: block; }
     animation: modalUp .28s var(--ease-out);
   }
   .hoja-box::before { display: none; }
+  .hoja-box > .modal-head { padding-top: var(--modal-pad); }
 }
 
 /* ===== Diálogo de confirmación =====

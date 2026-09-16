@@ -502,7 +502,6 @@
       <input type="hidden" name="tipo" id="campoTipo" value="EGRESO">
       <input type="hidden" name="monto" id="campoMonto" value="">
       <input type="hidden" name="categoria" id="campoCategoria" value="Comida">
-      <input type="hidden" name="fecha" id="campoFecha" value="{{ hoy_iso }}">
 
       <div class="seg" style="margin-bottom:18px" id="segTipo">
         <button type="button" class="on-coral" data-tipo="EGRESO">Gasto</button>
@@ -558,6 +557,16 @@
           <div class="field">
             <label class="label" for="campoDesc">Descripción</label>
             <input type="text" name="descripcion" id="campoDesc" placeholder="Ej: Supermercado, sueldo de agosto">
+          </div>
+
+          {% comment %}
+            La fecha era un campo oculto fijo en hoy, así que no había forma
+            de anotar un ingreso ya calculado del mes siguiente ni un gasto
+            de días atrás. Ahora se puede elegir; parte en hoy.
+          {% endcomment %}
+          <div class="field">
+            <label class="label" for="campoFecha" id="labelFecha">Fecha del gasto</label>
+            <input type="date" name="fecha" id="campoFecha" value="{{ hoy_iso }}" required>
           </div>
 
           <div id="bloquePago" style="margin-bottom:18px">
@@ -655,6 +664,8 @@
     // Un ingreso no se "paga": el bloque solo aplica a gastos
     var bloque = document.getElementById('bloquePago');
     if (bloque) bloque.style.display = esGasto ? 'block' : 'none';
+    var labFecha = document.getElementById('labelFecha');
+    if (labFecha) labFecha.textContent = esGasto ? 'Fecha del gasto' : 'Fecha del ingreso';
     pintarChips(campoTipo.value);
   }
 

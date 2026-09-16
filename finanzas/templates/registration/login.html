@@ -32,7 +32,7 @@
       <div style="position:relative;display:flex;align-items:center">
         <i class="fas fa-user auth-icono"></i>
         <input type="text" name="username" id="{{ form.username.id_for_label }}"
-               class="auth-campo" placeholder="tu usuario"
+               class="auth-campo" placeholder="Usuario"
                autocomplete="username" required autofocus
                {% if bloqueado %}disabled{% endif %}>
       </div>
@@ -45,7 +45,6 @@
       </div>
       <div style="position:relative;display:flex;align-items:center">
         <i class="fas fa-lock auth-icono"></i>
-        {# padding-right mayor: el botón del ojo vive dentro del campo. #}
         <input type="password" name="password" id="{{ form.password.id_for_label }}"
                class="auth-campo" style="padding-right:52px" placeholder="••••••••"
                autocomplete="current-password" required
