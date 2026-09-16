@@ -7,27 +7,20 @@ python-dateutil>=2.8,<3.0
 python-dotenv>=1.0,<2.0
 anthropic>=0.40.0
 
-# Foto de perfil
 Pillow>=10.0,<12.0
 
-# Verificacion en dos pasos (TOTP)
 pyotp>=2.9,<3.0
 
-# Codigo QR de la verificacion, generado en el servidor
 qrcode>=7.4,<9.0
 
-# Hash de contrasenas recomendado hoy
 argon2-cffi>=23.1
 
-# Cifrado de campos de texto (finanzas/cifrado.py)
 cryptography>=42.0
 
-# Fotos de perfil en Cloudflare R2 (finanzas/almacenamiento.py)
 django-storages>=1.14
 boto3>=1.34
 
-# Lectura de cartolas en PDF (finanzas/cartolas/base.py) y exportacion a
-# Excel (finanzas/exportar.py). Faltaban: en PythonAnywhere estaban
-# instaladas a mano en el virtualenv, asi que el archivo nunca las declaro.
 pypdf>=4.0,<7.0
 openpyxl>=3.1,<4.0
+
+sentry-sdk>=2.0,<3.0

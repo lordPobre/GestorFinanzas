@@ -1,32 +1,22 @@
-/* ============================================================
-   Rekon · Hoja de estilo
-   Rediseño sobre la referencia de Figma: fondo neutro cálido,
-   acento ámbar, superficies planas y esquinas muy redondeadas.
 
-   Se mantienen los nombres de clase de las plantillas: cambia el
-   lenguaje visual, no el marcado. Por eso .glass ya no lleva blur
-   ni borde translúcido — es una superficie sólida.
-   ============================================================ */
 
 @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
 
 :root {
-  /* Fondo y superficies. Neutro cálido, no azulado ni morado. */
+
   --bg:            #191919;
   --bg-elev:       #212121;
-  --surface:       #383838;   /* el color de tarjeta de la plantilla */
-  --surface-2:     #454545;   /* rellenos dentro de una tarjeta */
-  --surface-3:     #525252;   /* pistas de barras, teclas */
+  --surface:       #383838;
+  --surface-2:     #454545;
+  --surface-3:     #525252;
   --line:          rgba(255, 255, 255, .07);
   --line-fuerte:   rgba(255, 255, 255, .13);
 
-  /* Acento */
   --amber:         #ffaa2c;
   --amber-claro:   #ffbb56;
   --amber-oscuro:  #f09000;
   --amber-tenue:   rgba(255, 170, 44, .14);
 
-  /* Estados */
   --green:         #53d258;
   --green-tenue:   rgba(83, 210, 88, .14);
   --coral:         #e25c5c;
@@ -36,34 +26,19 @@
   --pink:          #f4626c;
   --teal:          #2fd8c8;
   --teal-tenue:    rgba(47, 216, 200, .14);
-  /* El acento propio de la revisión de cartola. Turquesa y no ámbar: en esa
-     pantalla el ámbar ya significa "ojo con esta fila" (los avisos de
-     cuadre), así que usarlo también para lo que se toca — la casilla, la
-     categoría, el campo enfocado — mezclaba advertencia con control. El
-     turquesa es el complemento del ámbar en la misma rueda, así que sigue
-     siendo la paleta de la app. */
+
   --cartola-acento: var(--teal);
-  --purple:        var(--amber);     /* compatibilidad con marcado viejo */
+  --purple:        var(--amber);
   --purple-dim:    var(--amber-oscuro);
   --orange:        var(--amber);
 
-  /* Texto */
   --text-primary:   #f5f5f5;
   --text-secondary: rgba(245, 245, 245, .72);
-  /* Las etiquetas, las notas al pie y los metadatos de fila. Estaba en .42,
-     que sobre una tarjeta (--surface) daba 3.4:1 — por debajo del 4.5:1 que
-     necesita el texto chico para leerse sin esfuerzo. A .58 sube a 5:1 y
-     sigue siendo claramente un segundo plano frente al blanco de los datos.
 
-     Un solo token: lo usan las etiquetas del panel del mes, los .row-meta,
-     los .hint, el menú lateral y las notas de las tarjetas, así que todas
-     esas secciones cambian juntas. */
   --text-muted:     rgba(245, 245, 245, .58);
 
-  /* Compatibilidad con el marcado que aún nombra "glass" */
   --glass-border:  var(--line);
 
-  /* Forma */
   --r-xl: 26px;
   --r-lg: 22px;
   --r-md: 16px;
@@ -75,38 +50,15 @@
   --sidebar-w:   250px;
   --bottombar-h: 72px;
 
-  /* Aire del canto inferior: el alto de la zona que se come el indicador de
-     inicio del iPhone. Todo lo que flota abajo (la barra, el botón central,
-     el padding de .main) mide contra ESTA variable y no contra env() suelto,
-     para que los tres se muevan juntos. */
   --safe-b: env(safe-area-inset-bottom, 0px);
 }
 
-/* Guardada en la pantalla de inicio, Safari no informa el área segura de
-   abajo de forma fiable: env(safe-area-inset-bottom) devuelve 0 aunque el
-   indicador de inicio siga ocupando su franja. En el navegador sí la
-   informa, y de ahí que el mismo CSS se vea bien en Safari y pegado al borde
-   en la app.
-
-   Por eso acá va el valor literal y no una operación sobre env(): 34px es la
-   franja del indicador en todo iPhone que lo tiene. Si env() funcionara,
-   daría el mismo 34 — el literal solo asegura que no quede en 0.
-
-   En un iPhone con botón de inicio no hay indicador y estos 34px son aire de
-   más abajo. Es el precio de que no exista forma en CSS de preguntar por el
-   indicador cuando Safari no lo informa. */
 @media (display-mode: standalone) {
   :root { --safe-b: 34px; }
 }
 
 * { box-sizing: border-box; }
 
-/* Un <button> no hereda color ni tipografía: el navegador le pone su propio
-   'buttontext', que es NEGRO. Sobre fondo oscuro eso deja el texto casi
-   invisible, y pasaba en cada botón que no declara color propio — la leyenda
-   de la dona, que son botones para aislar una categoría, salía en negro.
-   Las variantes con color propio (.btn, .chip, .nav-item, .seg > button…)
-   ganan por especificidad de clase. */
 button { color: inherit; font-family: inherit; }
 
 html { -webkit-text-size-adjust: 100%; }
@@ -128,27 +80,14 @@ a:hover { color: var(--amber-claro); }
 
 h1, h2, h3, h4 { margin: 0; font-weight: 700; letter-spacing: -.015em; }
 
-/* El fondo decorativo del diseño anterior. La referencia usa un fondo
-   plano, así que se apagan en vez de borrarlos del marcado. */
 .aurora, .a1, .a2, .a3, .grain { display: none; }
 
-/* ===== Tipografía utilitaria ===== */
 .display {
   font-family: 'Manrope', sans-serif;
   font-weight: 800; letter-spacing: -.03em;
   font-variant-numeric: tabular-nums;
 }
-/* Las cifras. Ya no es una familia monoespaciada aparte: una fuente de
-   código está hecha para distinguir l de 1 de I en un editor, y en una
-   columna de montos le daba a la app un aire de terminal en vez de dinero.
 
-   Lo único que se necesitaba de ella era que los dígitos midan igual para
-   que las columnas se alineen, y eso lo da font-variant-numeric:
-   tabular-nums, que Manrope trae. El nombre .mono se conserva porque lo usan
-   decenas de plantillas; lo que cambia es lo que significa.
-
-   El peso sube de 500 a 700: la monoespaciada tenía más mancha a igual
-   tamaño, y sin compensar las cifras quedaban más flacas que antes. */
 .mono {
   font-weight: 700; font-variant-numeric: tabular-nums;
   letter-spacing: -.02em;
@@ -157,22 +96,12 @@ h1, h2, h3, h4 { margin: 0; font-weight: 700; letter-spacing: -.015em; }
   font-size: 11px; font-weight: 600; letter-spacing: .01em;
   color: var(--text-muted);
 }
-/* Una etiqueta seguida de su campo necesita aire.
-   Va como margin-top del CONTROL, no como margin-bottom de la etiqueta: así
-   no se suma con los margin-bottom inline que ya traen algunas plantillas,
-   y no afecta a las .label que se usan como título de una cifra. */
+
 .label + input, .label + select, .label + textarea,
 .label + .chips, .label + .seg, .label + .keypad,
 .field > .label + * { margin-top: 8px; }
 .hint { font-size: 12.5px; color: var(--text-secondary); line-height: 1.55; }
 
-/* El título de pantalla: 22px con -.025em quedaba al mismo peso óptico que
-   los títulos de sección de 17px que vienen después. Sube a 27px y cierra
-   el tracking, para que el escalón se lea.
-
-   La marca ámbar al canto es lo que le da presentación al bloque: va en el
-   título y no en un contenedor, así alcanza a todas las pantallas sin
-   depender de cómo esté armado el encabezado de cada una. */
 .page-title {
   position: relative;
   font-family: 'Manrope', sans-serif;
@@ -187,9 +116,6 @@ h1, h2, h3, h4 { margin: 0; font-weight: 700; letter-spacing: -.015em; }
   box-shadow: 0 0 14px -2px rgba(255, 170, 44, .6);
 }
 
-/* La bajada entra a la misma sangría que el título y con medida corta: así
-   las dos líneas se leen como un bloque y no como dos textos sueltos. A
-   ancho completo la bajada pasaba de 100 caracteres por línea. */
 .page-title + .hint,
 div:has(> .page-title) + .hint {
   padding-left: 16px; margin-top: 8px;
@@ -200,27 +126,18 @@ div:has(> .page-title) + .hint {
 .hero-line b { font-weight: 800; color: var(--amber); }
 .stat-value { font-family: 'Manrope', sans-serif; font-size: 26px; font-weight: 800; letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
 .stat-note { font-size: 11.5px; color: var(--text-muted); margin-top: 7px; line-height: 1.5; }
-/* Visibilidad por franja de ancho:
-   .solo-ancho  → escritorio (>1000px)
-   .solo-medio  → tablet (720–1000px)
-   Bajo 720px el topbar desaparece y manda el botón flotante. */
+
 .solo-medio { display: none !important; }
 
 .visually-hidden {
   position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
   overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
 }
-/* Un input dentro tiene que encogerse también.
-   La regla general de input es "input:not([type=checkbox]):not([type=radio])",
-   más específica que esta clase, así que le imponía width:100% y padding: un
-   campo de archivo oculto se estiraba a 1000px y desbordaba la página. */
+
 .visually-hidden input, input.visually-hidden {
   width: 1px; min-width: 0; padding: 0; border: 0;
 }
 
-/* ===== Superficies =====
-   Planas y muy redondeadas. Sin blur: la referencia no lo usa, y el
-   backdrop-filter costaba caro en móvil sin aportar nada al fondo liso. */
 .glass {
   position: relative;
   background: var(--surface);
@@ -233,13 +150,6 @@ div:has(> .page-title) + .hint {
 .glass-lift { transition: transform .22s var(--ease-out), background .22s var(--ease-out); }
 .glass-lift:hover { transform: translateY(-2px); background: var(--surface-2); }
 
-/* Las tarjetas de aviso y de consejo. Llevan el color de su asunto en el
-   fondo, no solo en el borde: con --surface a secas eran del mismo color que
-   cualquier otra tarjeta y el consejo no se distinguía del contenido normal.
-
-   El tinte va como una capa sobre --surface en vez de un color fijo, así
-   sigue siendo la misma superficie de siempre, apenas teñida. Al 11% el
-   fondo se nota sin que el texto pierda contraste. */
 .glass-purple, .glass-orange {
   background: linear-gradient(rgba(255, 170, 44, .11), rgba(255, 170, 44, .11)), var(--surface);
   border-color: rgba(255, 170, 44, .3);
@@ -253,8 +163,6 @@ div:has(> .page-title) + .hint {
   border-color: rgba(226, 92, 92, .3);
 }
 
-/* La luz que sigue el cursor: mucho más sutil que antes, porque sobre
-   una superficie plana un halo fuerte se ve como una mancha. */
 [data-spot] { --spot-opacity: 0; }
 [data-spot]::after {
   content: ''; position: absolute; inset: 0; pointer-events: none; z-index: 0;
@@ -265,9 +173,6 @@ div:has(> .page-title) + .hint {
 }
 [data-spot] > * { position: relative; z-index: 1; }
 
-/* ===== Tarjeta de saldo =====
-   El elemento firma de la referencia: ámbar, muy redondeada, con una
-   curva de luz en diagonal. */
 .balance-card {
   position: relative; overflow: hidden;
   padding: 22px 24px; border-radius: var(--r-xl);
@@ -284,8 +189,6 @@ div:has(> .page-title) + .hint {
 .balance-card .label { color: rgba(26, 18, 0, .6); }
 .balance-card .display { color: #1a1200; }
 
-/* Variantes por lo que mide cada tarjeta. El color no decora: dice de qué
-   lado está el número — lo que debes y lo que te deben no son lo mismo. */
 .balance-card.deuda {
   background: linear-gradient(115deg, #e25c5c 0%, #f08a6e 100%);
   color: #2b0606;
@@ -300,8 +203,6 @@ div:has(> .page-title) + .hint {
 .balance-card.cobrar .label { color: rgba(4, 41, 29, .62); }
 .balance-card.cobrar .display { color: #04291d; }
 
-/* Compacta: para cuadrículas de métricas. Mismo color y curva, menos aire y
-   radio algo menor — 26px en una tarjeta de 100px de alto se ve inflado. */
 .balance-card.compacta {
   padding: 18px 20px; border-radius: var(--r-lg);
 }
@@ -309,23 +210,17 @@ div:has(> .page-title) + .hint {
   right: -40%; bottom: -90%; width: 130%; height: 200%;
 }
 
-/* Los enlaces "…" de la esquina heredan el tono oscuro de su tarjeta. */
 .balance-card .balance-mas { color: rgba(26, 18, 0, .5); }
 .balance-card.deuda .balance-mas { color: rgba(43, 6, 6, .5); }
 .balance-card.cobrar .balance-mas { color: rgba(4, 41, 29, .5); }
 .balance-card .balance-mas:hover { filter: brightness(.7); }
 
-/* Antes el único enlace era el "…" de la esquina: la tarjeta entera se veía
-   pulsable pero no lo era. Ahora la tarjeta ES el enlace y el "…" sobra.
-   Estas reglas solo neutralizan lo que el navegador le pone a un <a>. */
 .balance-card {
   display: block; text-decoration: none;
   -webkit-tap-highlight-color: transparent;
 }
 a.balance-card:hover { filter: brightness(1.04); }
-/* La tinta oscura tiene que ganarle a la regla global de enlaces:
-   `a:hover { color: var(--amber-claro) }` pesa más que `.balance-card`, así
-   que sin esto el título se aclaraba al pasar el puntero. */
+
 a.balance-card,
 a.balance-card:hover { color: #1a1200; }
 a.balance-card.deuda,
@@ -337,8 +232,6 @@ a.balance-card:focus-visible {
   outline: 2px solid var(--text-primary); outline-offset: 3px;
 }
 
-/* Aviso de cuotas de meses anteriores sin pagar. Discreto a propósito: el
-   monto ya se descontó del saldo, esto explica por qué, no alarma. */
 .aviso-atraso {
   display: flex; align-items: flex-start; gap: 12px;
   padding: 13px 16px; margin: 0 0 14px;
@@ -353,13 +246,10 @@ a.balance-card:focus-visible {
   background: rgba(226, 92, 92, .16); color: var(--coral); font-size: 13px;
 }
 
-/* La nota al pie, sobre fondo saturado. */
 .balance-card .balance-pie { color: rgba(26, 18, 0, .68); font-weight: 600; }
 .balance-card.deuda .balance-pie { color: rgba(43, 6, 6, .7); }
 .balance-card.cobrar .balance-pie { color: rgba(4, 41, 29, .72); }
 
-
-/* ===== Botones ===== */
 .btn {
   display: inline-flex; align-items: center; justify-content: center; gap: 8px;
   padding: 11px 18px; border-radius: 100px; border: 1px solid transparent;
@@ -400,7 +290,6 @@ a.balance-card:focus-visible {
 }
 .icon-btn:hover { background: var(--surface-3); color: var(--text-primary); }
 
-/* ===== Fichas de icono ===== */
 .icon-tile {
   display: inline-flex; align-items: center; justify-content: center;
   width: 38px; height: 38px; flex-shrink: 0;
@@ -412,45 +301,23 @@ a.balance-card:focus-visible {
 .icon-tile.orange { background: var(--amber-tenue); color: var(--amber); }
 .icon-tile.blue   { background: rgba(75, 140, 255, .14); color: var(--blue); }
 
-/* Ficha con el logo de una plataforma. El color lo pone el template desde
-   el modelo, así que acá solo va la forma. */
 .marca-tile {
   display: inline-flex; align-items: center; justify-content: center;
   width: 38px; height: 38px; flex-shrink: 0;
   border-radius: 12px; font-size: 17px;
   font-family: 'Manrope', sans-serif; font-weight: 800;
 }
-/* Cuando es la inicial y no un logo, la letra pide menos cuerpo. */
+
 .marca-tile:not(:has(i)) { font-size: 15px; }
 
-/* ===== Tarjeta deslizable =====
-   Las acciones viven detrás de la tarjeta, no dentro. El gesto mueve solo
-   la tarjeta y las descubre; en escritorio aparecen al pasar el cursor,
-   donde no hay dedo con que arrastrar.
-
-   El color va en el CARRIL, no en el botón. Antes cada acción era un velo
-   translúcido con blur sobre un fondo del mismo color, y el resultado se
-   leía como un rectángulo descolorido: el glifo quedaba a 2,3:1 de
-   contraste. Peor, el velo tenía sus propias esquinas redondeadas que había
-   que hacer calzar con las del carril, y cualquier desajuste de un par de
-   píxeles entre el desplazamiento y el ancho dejaba asomar un filo.
-
-   Pintando el carril y dejando los botones transparentes, las dos cosas se
-   arreglan de raíz: el color es pleno (8:1 con el glifo oscuro) y la única
-   curva que existe es la del carril, así que no hay nada que alinear. */
 .swipe {
   position: relative;
   border-radius: var(--r-lg);
   overflow: hidden;
-  /* El fondo de la zona descubierta. Se sobreescribe abajo cuando el carril
-     lleva acciones de color. */
+
   background: var(--surface);
 }
 
-/* Un carril con las dos acciones se parte por la mitad: verde a la
-   izquierda, coral a la derecha. Con un panel a cada lado, el color que
-   asoma es el de la acción que el gesto descubre.
-   :has() permite pintarlo desde el carril sin marcar nada en el HTML. */
 .swipe:has(.swipe-btn.borrar) { background: var(--coral); }
 .swipe:has(.swipe-btn.editar):has(.swipe-btn.borrar) {
   background: linear-gradient(to right, var(--green) 50%, var(--coral) 50%);
@@ -462,10 +329,7 @@ a.balance-card:focus-visible {
   display: flex; align-items: stretch;
   z-index: 0;
 }
-/* Editar vive en el canto izquierdo: se descubre arrastrando la tarjeta
-   hacia la derecha, y eliminar hacia el otro lado. Dos gestos opuestos para
-   dos acciones opuestas — una constructiva y una destructiva — en vez de
-   las dos juntas bajo el mismo borde, donde el pulgar se equivoca. */
+
 .swipe-acciones.izq { left: 0; right: auto; }
 
 .swipe-btn {
@@ -477,64 +341,44 @@ a.balance-card:focus-visible {
   letter-spacing: .01em;
   transition: background .16s var(--ease-out);
 }
-/* Tinta oscura sobre el color pleno: es lo que da el contraste. Un glifo
-   blanco sobre coral queda en 3,1:1 y sobre verde en 2,2:1. */
+
 .swipe-btn.editar { color: #062b08; }
 .swipe-btn.borrar { color: #2a0b0b; }
-/* Al apuntar, la acción se aclara con un velo blanco encima de su propio
-   color, sin cambiar de tono. */
+
 .swipe-btn:hover  { background: rgba(255, 255, 255, .16); }
 .swipe-btn:active { background: rgba(0, 0, 0, .12); }
 .swipe-btn i { font-size: 15px; }
 
 .swipe-card {
   position: relative; z-index: 1;
-  /* La transición se apaga durante el arrastre (lo hace el JS) para que la
-     tarjeta siga el dedo sin retraso. */
+
   transition: transform .28s var(--ease-out);
   touch-action: pan-y;
-  /* La sombra a los dos cantos: la tarjeta se separa del color por
-     cualquiera de los dos lados, según hacia dónde se arrastre. */
+
   box-shadow: 6px 0 16px rgba(0, 0, 0, .4), -6px 0 16px rgba(0, 0, 0, .4);
 }
 
-/* Variante en una lista: la fila es más baja que una tarjeta, así que la
-   acción se ajusta a su alto en vez de imponer 62px. */
 .swipe-fila { border-radius: var(--r-md); background: var(--surface); }
 .swipe-fila .swipe-btn { width: 78px; }
-/* La fila necesita fondo propio (sin él las acciones se ven a través) y su
-   propio aire: el selector .glass > .row-list > .row ya no la alcanza ahora
-   que el hijo directo es el carril. */
+
 .swipe-fila .swipe-card {
   background: var(--surface);
   padding: 12px 14px;
   border-radius: var(--r-md);
-  /* La línea divisoria sobra: las filas ya se separan con el hueco del
-     row-list, y con fondo propio dos bordes seguidos ensucian. */
+
   border-bottom: none;
 }
 .swipe-fila .swipe-card.on {
   background: var(--surface-2);
-  /* La seleccionada se marca con una línea ámbar al canto, que no desplaza
-     el contenido como lo haría un borde completo. La sombra del carril se
-     repite acá porque box-shadow no se acumula entre reglas. */
+
   box-shadow: inset 3px 0 0 var(--amber), 6px 0 16px rgba(0, 0, 0, .4);
 }
 
-/* Las filas de una lista de carriles llevan su propia separación. */
 .row-list:has(.swipe-fila) { gap: 8px; }
 
-/* Escritorio: sin dedo, las acciones asoman al pasar el cursor. */
 @media (hover: hover) and (min-width: 721px) {
   .swipe-card { transform: translateX(0); }
-  /* Los desplazamientos son exactamente el ancho de las acciones: 82 por
-     una, 164 por dos, 78 en una fila de lista. Cualquier diferencia entre
-     estos números y los anchos de arriba deja asomar un filo de tarjeta o
-     un hueco de carril. */
-  /* En escritorio no hay gesto: las dos acciones asoman juntas por el canto
-     derecho, como antes. El panel de editar se coloca al lado del de
-     eliminar en vez de quedarse en el borde opuesto, donde el cursor no
-     tendría forma de llegar. */
+
   .swipe-acciones.izq { left: auto; right: 82px; }
 
   .swipe:hover .swipe-card,
@@ -546,35 +390,23 @@ a.balance-card:focus-visible {
   .swipe-fila:hover .swipe-card,
   .swipe-fila:focus-within .swipe-card { transform: translateX(-78px); }
 
-  /* Una fila de movimiento lleva una acción o dos según si el gasto se puede
-     marcar pagado. Sin distinguirlo, con dos el segundo botón quedaba tapado
-     y con una sobraba medio hueco. */
-  /* Las de movimiento no se desplazan: las acciones aparecen encima. */
   .swipe-acciones { opacity: 0; transition: opacity .2s var(--ease-out); }
   .swipe:hover .swipe-acciones,
   .swipe:focus-within .swipe-acciones { opacity: 1; }
 }
 
-/* Táctil: la tarjeta se arrastra y queda abierta hasta que se toque fuera. */
 @media (max-width: 720px) {
-  /* Un poco más anchas: cómodas con el pulgar, no solo con el ratón. */
+
   .swipe-btn { width: 86px; }
-  /* Respaldo si finapp.js no cargara: mide el ancho real y lo aplica en
-     línea, pero sin él el gesto necesita un valor. Uno por lado. */
+
   .swipe.abierta-der .swipe-card { transform: translateX(-86px); }
   .swipe.abierta-izq .swipe-card { transform: translateX(86px); }
   .swipe-fila .swipe-btn { width: 82px; }
   .swipe-fila.abierta .swipe-card { transform: translateX(-82px); }
-  /* Respaldo si finapp.js no cargara: el JS mide el ancho real y lo aplica
-     en línea, pero sin él una fila de dos acciones necesita más. */
-  /* Toque cómodo con el pulgar. Siguen sin desplazar la fila. */
+
   .swipe-mov .swipe-btn { width: 38px; height: 38px; flex: 0 0 38px; }
   .swipe-mov .swipe-acciones { padding: 0 10px 0 30px; }
 
-  /* Las acciones de una fila solo existen cuando está abierta.
-     En una tarjeta grande da igual que asomen detrás, pero en una fila de
-     lista el fondo de la card las tapaba por poco y cualquier animación las
-     dejaba ver. Ocultas hasta que se arrastra. */
   .swipe-fila:not(.swipe-mov) .swipe-acciones {
     opacity: 0; pointer-events: none;
     transition: opacity .2s var(--ease-out);
@@ -586,9 +418,6 @@ a.balance-card:focus-visible {
   .swipe-card { transition: none; }
 }
 
-/* Una línea por dato en la lista de movimientos: sin esto un nombre largo
-   se parte en tres renglones, la fila mide el triple y el corte del panel
-   cae a mitad de una palabra. */
 .mov-list .row-title,
 .mov-list .row-meta {
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
@@ -596,20 +425,12 @@ a.balance-card:focus-visible {
 .mov-list .row-title { font-size: 14px; letter-spacing: -.01em; }
 .mov-list .row-meta  { margin-top: 3px; }
 
-/* ===== Panel plegable de movimientos =====
-   Altura máxima con desvanecido al pie, no un details: así el movimiento
-   siguiente queda a medias y se ve que hay más abajo. Un details cerrado no
-   da ninguna pista de cuánto esconde. */
 .mov-panel { position: relative; }
 .mov-panel .mov-list {
   overflow: hidden;
   transition: max-height .36s var(--ease-out);
 }
-/* La altura la fija el JS en el estilo en linea, con la medida real de las
-   cinco primeras filas: asi no depende de un valor adivinado ni de que una
-   regla con clase gane la cascada. */
 
-/* El velo que difumina la última fila visible. Se va al abrir. */
 .mov-toggle {
   display: flex; align-items: center; justify-content: center; gap: 8px;
   width: 100%; margin-top: 12px; padding: 11px;
@@ -622,7 +443,6 @@ a.balance-card:focus-visible {
 .mov-toggle i { font-size: 10px; transition: transform .3s var(--ease-out); }
 .mov-panel.abierto .mov-toggle i { transform: rotate(180deg); }
 
-/* ===== Filas ===== */
 .row-list { display: flex; flex-direction: column; }
 .row {
   display: flex; align-items: center; gap: 13px;
@@ -634,39 +454,26 @@ a.balance-card:focus-visible {
 .row-title { font-size: 13.5px; font-weight: 600; }
 .row-meta  { font-size: 11.5px; color: var(--text-muted); margin-top: 2px; }
 
-/* Una fila suelta dentro de un .glass sin .card necesita su propio aire:
-   sin esto el icono queda tocando el borde de la tarjeta. */
 .glass > .row, .glass > .row-list > .row { padding-left: 20px; padding-right: 20px; }
-/* Dentro de una .card el padding lo pone la tarjeta. */
+
 .card > .row, .card > .row-list > .row,
 .card-lg > .row, .card-lg > .row-list > .row { padding-left: 0; padding-right: 0; }
 
-/* Lista de categorías: grilla en vez de flex, para que el monto caiga
-   siempre en la misma columna exista o no el botón de editar. */
 .cat-list .row {
   display: grid;
   grid-template-columns: 34px 1fr auto 32px;
   align-items: center;
 }
 
-/* ============================================================
-   MÓVIL · calcado de la plantilla
-   La referencia es una app de teléfono, así que en móvil no se adapta
-   el escritorio: se reemplazan los componentes por los suyos.
-   ============================================================ */
-
-/* --- Tarjeta de saludo: avatar, "Buenos días", nombre y campana --- */
 .saludo-card { display: none; }
 
-/* --- Carrusel de tarjetas de saldo --- */
 .balance-carrusel {
   display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px;
   margin-bottom: 18px; align-items: stretch;
 }
 .balance-dots { display: none; }
 .balance-carrusel > * { min-width: 0; }
-/* Bajo 900px las tres tarjetas no caben en fila: pasan a carrusel que se
-   desliza con el dedo y encaja en cada una. */
+
 @media (max-width: 900px) {
   .balance-carrusel {
     display: flex; grid-template-columns: none;
@@ -684,8 +491,6 @@ a.balance-card:focus-visible {
   .balance-dots > span.on { width: 22px; background: var(--amber); }
 }
 
-/* --- Fila partida: ingresos | egresos ---
-   La usa la vista previa; en el dashboard la reemplazó .mes-totales. --- */
 .split-card {
   display: flex; align-items: center;
   background: var(--surface); border-radius: var(--r-lg); padding: 18px 20px;
@@ -694,28 +499,11 @@ a.balance-card:focus-visible {
 .split-card > .divisor { flex: 0 0 1px; width: 1px; height: 40px; background: var(--line-fuerte); }
 .split-flecha { font-size: 20px; }
 
-/* --- Ficha de icono blanca, como en la plantilla --- */
 .tile-blanco {
   display: inline-flex; align-items: center; justify-content: center;
   width: 46px; height: 46px; flex-shrink: 0;
   border-radius: 14px; background: #fff; font-size: 18px;
 }
-
-/* ===== Lista de movimientos =====
-
-   Cada movimiento es su propia superficie sobre el panel, separada por un
-   hueco. La versión anterior eran filas planas divididas por una línea
-   fina, pero el divisor colgaba de un ::marker —que no existe fuera de una
-   lista—, así que en pantalla no había ni línea ni hueco: diez filas del
-   mismo color pegadas entre sí. El tinte por tipo tampoco llegaba, anulado
-   más abajo por el fondo transparente del carril.
-
-   Ahora el color y el fondo viven en la tarjeta de la fila, que es lo que
-   se ve, y el carril queda transparente para las acciones.
-
-   Las acciones no desplazan la fila: flotan sobre el borde derecho con un
-   velo del color de la fila. El contenido no se mueve, así que el icono y
-   el nombre nunca quedan recortados. */
 
 .mov-list { gap: 9px; }
 
@@ -726,18 +514,12 @@ a.balance-card:focus-visible {
   border-radius: var(--r-md);
 }
 
-/* Color por tipo de movimiento: el canto izquierdo pleno más un lavado que
-   se apaga antes de llegar al monto. Agrupa la lista de un vistazo sin
-   competir con las cifras, que son lo que se viene a leer. */
 .swipe-mov { --tono: var(--surface-3); --tono-rgb: 245, 245, 245; }
 .swipe-mov.tono-ingreso     { --tono: var(--green); --tono-rgb: 83, 210, 88; }
 .swipe-mov.tono-cuota       { --tono: #818cf8;      --tono-rgb: 129, 140, 248; }
 .swipe-mov.tono-suscripcion { --tono: #fb923c;      --tono-rgb: 251, 146, 60; }
 .swipe-mov.tono-gasto       { --tono: var(--coral); --tono-rgb: 226, 92, 92; }
 
-/* Las filas de movimiento son la excepción: sus acciones no se descubren
-   deslizando, flotan encima de la fila. No hay carril que pintar, así que
-   conservan sus fichas redondas y anulan lo que heredarían del panel. */
 .swipe-mov, .swipe-mov:has(.swipe-btn.borrar),
 .swipe-mov:has(.swipe-btn.editar):has(.swipe-btn.borrar) { background: transparent; }
 .swipe-mov .swipe-card { box-shadow: none; }
@@ -746,21 +528,17 @@ a.balance-card:focus-visible {
 
 .swipe-mov .swipe-card {
   display: flex; align-items: center; gap: 13px;
-  /* 18px a la derecha: con 4px el monto quedaba pegado al canto de la fila
-     y se leía como recortado. */
+
   padding: 14px 18px 14px 15px;
   border: none; border-radius: var(--r-md);
-  /* La superficie de la fila: un nivel por encima del panel (#454545 sobre
-     #383838) y el lavado de su tono entrando por la izquierda. */
+
   background:
     linear-gradient(rgba(var(--tono-rgb), .07), rgba(var(--tono-rgb), .07)),
     var(--surface-2);
-  /* El canto de color, dentro de la caja: un border-left desplazaría el
-     contenido y rompería la columna de iconos. */
+
   box-shadow: inset 3px 0 0 var(--tono);
   transition: background .16s var(--ease-out), box-shadow .16s var(--ease-out);
-  /* Quieto: desplazar la fila es lo que recortaba el icono contra el borde
-     del panel. */
+
   transform: none !important;
 }
 .swipe-mov:hover .swipe-card,
@@ -770,15 +548,9 @@ a.balance-card:focus-visible {
     var(--surface-3);
 }
 
-/* Un gasto sin pagar: el canto pasa a ámbar. Un fondo distinto competiría
-   con los colores de las fichas de marca (Spotify, Netflix…). */
 .swipe-mov.sin-pagar .swipe-card { box-shadow: inset 3px 0 0 var(--amber); }
 
-/* Con el plegado por max-height, un hijo flex se comprime hasta caber: las
-   diez filas quedaban en 28px cada una y los iconos cortados por la mitad. */
 .mov-list > .swipe-mov { flex-shrink: 0; }
-
-/* --- Acciones --- */
 
 .swipe-mov { --acciones: 0; }
 .swipe-mov:hover,
@@ -791,36 +563,29 @@ a.balance-card:focus-visible {
   padding: 0 8px 0 44px;
   border-radius: 0 var(--r-md) var(--r-md) 0;
   z-index: 3;
-  /* El velo tapa el monto que queda detrás. Del color de la fila resaltada
-     —que es la única situación en que las acciones se ven—, no del panel. */
+
   background:
     linear-gradient(to right, rgba(82, 82, 82, 0) 0, var(--surface-3) 34px);
   opacity: var(--acciones);
   transition: opacity .16s var(--ease-out);
 }
-/* El puntero sigue al valor: invisible no debe ser clicable. */
+
 .swipe-mov .swipe-acciones { pointer-events: none; }
 .swipe-mov:hover .swipe-acciones,
 .swipe-mov:focus-within .swipe-acciones,
 .swipe-mov.abierta .swipe-acciones { pointer-events: auto; }
-
-/* Aparecen al apuntar la fila, al tabular hasta ella, o al deslizarla en
-   táctil. Antes solo respondían al hover, así que en el teléfono no había
-   forma de llegar a ellas. */
 
 .swipe-mov .swipe-btn {
   position: relative; z-index: 1;
   width: 34px; height: 34px; flex: 0 0 34px;
   display: inline-flex; align-items: center; justify-content: center;
   border-radius: 11px; border: 1px solid transparent;
-  /* Sobre la fila resaltada (--surface-3) un botón --surface-2 casi no se
-     ve: baja a --bg-elev, que sí recorta contra el velo. */
+
   background: var(--bg-elev); color: var(--text-secondary);
   cursor: pointer; padding: 0; gap: 0; box-shadow: none;
   transition: background .16s var(--ease-out), color .16s var(--ease-out);
 }
-/* Sin etiqueta: en 34px la palabra no cabe y quedaba cortada. El title y el
-   color explican la acción. */
+
 .swipe-mov .swipe-btn > span { display: none; }
 .swipe-mov .swipe-btn i {
   width: auto; height: auto; background: none; border-radius: 0; font-size: 12px;
@@ -833,15 +598,12 @@ a.balance-card:focus-visible {
 .swipe-mov .swipe-btn.borrar:hover {
   background: rgba(226, 92, 92, .16); color: #f28080;
 }
-/* El monto: tabular y sin encoger, para que la columna quede a plomo entre
-   filas aunque los importes tengan distinto largo. A 13px/400 pesaba menos
-   que el nombre del movimiento, que es el dato de apoyo. */
+
 .mov-monto {
   font-size: 14px; font-weight: 700; letter-spacing: -.01em;
   flex-shrink: 0; font-variant-numeric: tabular-nums;
 }
 
-/* --- Metas: filas a lo ancho --- */
 .metas-lista { display: flex; flex-direction: column; gap: 9px; }
 
 .meta-fila {
@@ -860,16 +622,13 @@ a.balance-card:focus-visible {
 
 .meta-cuerpo { flex: 1; min-width: 0; display: block; }
 .meta-linea {
-  /* Centrado óptico, no por línea base: con el monto a 17px/800 contra un
-     nombre de 13px, alinear las bases dejaba la cifra flotando arriba. */
+
   display: flex; align-items: center; justify-content: space-between;
   gap: 12px; margin-bottom: 9px;
 }
 .meta-nombre {
   font-size: 13px; font-weight: 600;
-  /* min-width:0 en el propio elemento: .meta-cuerpo ya lo tiene, pero el
-     nombre es hijo de .meta-linea y sin él su nowrap fija el ancho mínimo
-     de la fila en vez de recortarse. */
+
   min-width: 0; flex: 1;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
@@ -880,16 +639,11 @@ a.balance-card:focus-visible {
 }
 .meta-pie {
   display: block; font-size: 10.5px; color: var(--text-muted); margin-top: 7px;
-  /* "5% de $1.000.000 · faltan $950.000" es la línea más larga de la fila:
-     recortada antes que partida, o la fila crece de alto en el teléfono. */
+
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 .meta-flecha { font-size: 11px; color: var(--text-muted); flex-shrink: 0; }
 
-/* --- Barra de avance de la meta ---
-   Se rellena al entrar (revelado por clip, no por escala: escalar deforma
-   el radio de las puntas) y lleva un brillo que recorre lo ya ahorrado, así
-   se distingue de una barra estática pintada. */
 .meta-fila .progress-bar {
   display: block;
   background: rgba(255, 255, 255, .07);
@@ -897,8 +651,7 @@ a.balance-card:focus-visible {
 }
 .meta-fila .progress-fill {
   position: relative;
-  /* Al 1% de un millón el relleno medía menos de un píxel y la barra se
-     leía como vacía. Ocho píxeles siempre dejan ver el color de la meta. */
+
   min-width: 8px;
   animation: meta-revelar 1s var(--ease-out) both;
 }
@@ -923,12 +676,6 @@ a.balance-card:focus-visible {
   .meta-fila .progress-fill::after { animation: none; opacity: 0; }
 }
 
-/* --- La misma barra viva, fuera del dashboard ---
-   En la página de Metas la barra era una .progress-fill pelada: su única
-   animación es "transition: width", que no se dispara al cargar porque el
-   ancho ya nace en su valor final. Se veía pintada. Con .viva usa el mismo
-   revelado y el mismo brillo que en el dashboard, así las dos pantallas
-   cuentan lo mismo de la misma manera. */
 .progress-fill.viva {
   position: relative;
   min-width: 8px;
@@ -941,10 +688,6 @@ a.balance-card:focus-visible {
   animation: meta-brillo 2.6s 1s cubic-bezier(.5, 0, .5, 1) infinite;
 }
 
-/* --- Aportes por mes ---
-   Antes las barras eran divs con un title=: en el teléfono no hay hover, así
-   que el monto de cada mes no había forma de verlo. Ahora cada mes es un
-   botón: se toca y muestra su monto encima. */
 .aportes-chart {
   display: flex; align-items: flex-end; gap: 6px;
   height: 78px;
@@ -952,14 +695,13 @@ a.balance-card:focus-visible {
 .aporte-col {
   flex: 1; min-width: 0; height: 100%;
   display: flex; flex-direction: column; align-items: center; gap: 5px;
-  /* Un <button> trae fondo, borde y fuente propios del navegador. */
+
   padding: 0; border: none; background: none; font: inherit; color: inherit;
   cursor: pointer; -webkit-tap-highlight-color: transparent;
 }
 .aporte-pista {
   position: relative;
-  /* flex:1 y no height:100%: así la barra mide contra este hueco y no contra
-     la columna entera, que además carga el nombre del mes debajo. */
+
   flex: 1; width: 100%;
   display: flex; align-items: flex-end;
 }
@@ -969,13 +711,11 @@ a.balance-card:focus-visible {
   border-radius: 6px 6px 3px 3px;
   background: var(--amber);
   transition: filter .18s, box-shadow .18s;
-  /* Crece desde abajo. Se anima la altura y no scaleY porque escalar
-     aplasta el redondeo de las puntas. */
+
   animation: aporte-crecer .5s var(--ease-out) both;
   animation-delay: calc(var(--i, 0) * 60ms);
 }
-/* Un mes sin aportes deja una marca fina en vez de nada: así se ve el hueco.
-   Con altura cero la barra desaparecía y parecía que ese mes no existía. */
+
 .aporte-col.vacio .aporte-barra {
   height: 3px; min-height: 0;
   background: var(--surface-3);
@@ -994,8 +734,6 @@ a.balance-card:focus-visible {
 .aporte-col:hover .aporte-mes,
 .aporte-col.on .aporte-mes { color: var(--text-primary); }
 
-/* El monto flota justo encima de su barra: bottom se mide contra la pista,
-   igual que la altura de la barra, así sigue a cada mes a su altura. */
 .aporte-valor {
   position: absolute; left: 50%; bottom: var(--alto, 0%);
   margin-bottom: 8px;
@@ -1012,7 +750,6 @@ a.balance-card:focus-visible {
 .aporte-col:focus-visible .aporte-valor,
 .aporte-col.on .aporte-valor { opacity: 1; transform: translate(-50%, 0); }
 
-/* La tarjeta a la que apunta el enlace del dashboard se señala sola. */
 .meta-card { scroll-margin-top: 90px; }
 .meta-card:target {
   border-color: var(--amber);
@@ -1030,7 +767,6 @@ a.balance-card:focus-visible {
   .meta-card:target { animation: none; }
 }
 
-/* Compatibilidad con el marcado anterior. */
 .metas-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .meta-mini {
   background: var(--surface); border-radius: var(--r-md); padding: 15px 16px;
@@ -1046,11 +782,6 @@ a.balance-card:focus-visible {
   letter-spacing: -.03em; margin: 8px 0 12px; font-variant-numeric: tabular-nums;
 }
 
-
-
-/* ===== Mini tarjetas de métrica =====
-   Para cifras dentro de un panel que ya es --surface: con el mismo fondo se
-   leerían como texto suelto, así que suben un nivel de superficie. */
 .mini-cards {
   display: grid; grid-template-columns: repeat(auto-fit, minmax(158px, 1fr));
   gap: 10px; margin-bottom: 22px;
@@ -1078,8 +809,6 @@ a.balance-card:focus-visible {
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 
-/* El color tiñe el borde y el icono, no el fondo: tres bloques de color
-   pleno seguidos compiten entre sí y ninguno destaca. */
 .mini-card.verde { border-color: rgba(83, 210, 88, .26); }
 .mini-card.verde .mini-icono { background: var(--green-tenue); color: var(--green); }
 .mini-card.verde .mini-monto { color: var(--green); }
@@ -1090,9 +819,6 @@ a.balance-card:focus-visible {
 .mini-card.ambar .mini-monto { color: var(--amber-claro); }
 .mini-card.ambar .label { color: var(--amber); }
 
-/* La tarjeta del total a cobrar. Es la conclusión de las otras tres, así que
-   sí lleva fondo pleno: entre bordes teñidos, el relleno la separa sin
-   necesidad de hacerla más grande. */
 .mini-card.destacada {
   background: var(--amber); border-color: transparent; color: #1a1200;
 }
@@ -1111,28 +837,15 @@ a.balance-card:focus-visible {
 .mini-card.coral .mini-monto { color: var(--coral); }
 
 @media (max-width: 640px) {
-  /* Dos columnas: en una sola las tres cifras ocupan media pantalla, y a
-     158px de ancho mínimo cabrían dos en cualquier teléfono. */
+
   .mini-cards { grid-template-columns: 1fr 1fr; gap: 8px; }
   .mini-card { padding: 11px 12px; gap: 9px; }
   .mini-icono { width: 30px; height: 30px; border-radius: 10px; font-size: 12px; }
   .mini-monto { font-size: 13.5px; }
-  /* La tercera ocupa la fila entera si queda sola. */
+
   .mini-card:last-child:nth-child(odd) { grid-column: 1 / -1; }
 }
 
-/* ===== Tarjeta de cifra con color =====
-   Un solo componente para los tres números de cabecera de Cuotas y de Me
-   deben. Antes cada pantalla los pintaba con estilos en línea distintos:
-   ninguno reaccionaba igual al estrechar la ventana y los montos largos se
-   partían en dos líneas.
-
-   La forma sigue a la tarjeta ámbar del carrusel: degradado en diagonal y
-   curva de luz en la esquina, que es la firma visual de la app. */
-
-/* Solo definía las columnas: el display y el gap los ponía la clase de
-   grilla que la acompaña en Me deben (.grid-metrics). Usada sola, no era una
-   grilla y las tarjetas se apilaban pegadas una a otra. */
 .tarjetas-color {
   display: grid; gap: 12px;
   grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
@@ -1143,7 +856,7 @@ a.balance-card:focus-visible {
   padding: 18px 20px 17px; border-radius: var(--r-xl);
   min-width: 0;
 }
-/* La curva de luz: el mismo recurso de .balance-card. */
+
 .tarjeta-color::after {
   content: ''; position: absolute; right: -34%; bottom: -68%;
   width: 116%; height: 150%; border-radius: 50%;
@@ -1164,7 +877,7 @@ a.balance-card:focus-visible {
 .tc-label {
   font-family: 'Manrope', sans-serif;
   font-size: 11.5px; font-weight: 700; letter-spacing: .01em;
-  /* Un rótulo de dos palabras no debe partirse ni empujar la tarjeta. */
+
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 
@@ -1172,26 +885,18 @@ a.balance-card:focus-visible {
   font-family: 'Manrope', sans-serif;
   font-size: 26px; font-weight: 800; letter-spacing: -.03em; line-height: 1;
   font-variant-numeric: tabular-nums;
-  /* Los montos largos encogen en vez de desbordar: sin esto, un millón con
-     separadores rompe la caja en pantallas estrechas. */
+
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 
-/* El consejo nombra los servicios que se superponen, así que su nota da para
-   más que dos líneas. Las de arriba siguen recortadas a dos: ahí el recorte
-   existe para que las tres tarjetas queden a la misma altura, y un consejo
-   va solo en su fila. */
 .tarjeta-color.agua .tc-nota { -webkit-line-clamp: 4; }
 
 .tc-nota {
   font-size: 11px; font-weight: 600; line-height: 1.45; margin-top: 9px;
-  /* Dos líneas como mucho: la tercera desalinea las tarjetas entre sí. */
+
   display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
   overflow: hidden;
 }
-
-/* --- Colores. El texto oscuro sobre el fondo saturado da más contraste
-       que el blanco, y es lo que usa la tarjeta del carrusel. --- */
 
 .tarjeta-color.ambar {
   background: linear-gradient(118deg, var(--amber) 0%, var(--amber-claro) 100%);
@@ -1225,37 +930,17 @@ a.balance-card:focus-visible {
 .tarjeta-color.azul .tc-nota  { color: rgba(4, 22, 46, .62); }
 .tarjeta-color.azul .tc-icono { color: #04162e; }
 
-/* El grupo de cifras que acompaña al título de una pantalla.
-   flex: 0 0 auto es la clave: con shrink, el grupo cedía ancho a la vez que
-   el título cuando la fila iba justa, y las tarjetas terminaban a 174px con
-   el rótulo cortado. Las que encogen son inevitables; las tarjetas no. */
 .cabecera-cifras {
-  /* Crece con el sobrante, así el botón se queda en la línea de las tarjetas
-     siempre que haya sitio; y envuelve si no lo hay. Con nowrap y sin
-     encoger se desbordaba del contenedor por la derecha en vez de
-     acomodarse: la fila entera se salía de la caja de contenido. */
+
   flex: 1 1 auto; min-width: 0;
   display: flex; flex-wrap: wrap; gap: 12px;
   justify-content: flex-end; align-items: stretch;
 }
 
-/* Los fragmentos que existen solo en el teléfono. Sin estado base se veían
-   también en escritorio, y la fila de una suscripción repetía el monto y el
-   día de cobro: "$6.500 Se cobra el 1 de cada mes · … · el 1 de cada mes". */
 .solo-movil, .sub-monto-movil { display: none; }
 
-/* Variante de resumen: la misma tarjeta, al tamaño de una cifra de cabecera.
-   La .tarjeta-color completa está pensada para ir de a tres llenando el
-   ancho; en la cabecera de Suscripciones convive con el título y el botón,
-   y a 26px la cifra se comía la fila entera.
-
-   El ancho es flexible entre 190 y 250px: así las dos caben al lado del
-   botón, y en una pantalla angosta bajan solas sin dejar una columna. */
 .tc-resumen {
-  /* Ancho fijo, sin encoger. Con flex-shrink el grupo cedía ancho junto al
-     título cuando la fila iba justa, las tarjetas bajaban a 174px y el
-     rótulo se cortaba en "Falta pagar este …". Antes que un rótulo cortado,
-     que el grupo entero baje a la línea siguiente. */
+
   flex: 0 0 200px; min-width: 0;
   padding: 14px 17px 13px; border-radius: var(--r-lg);
 }
@@ -1265,22 +950,16 @@ a.balance-card:focus-visible {
 .tc-resumen .tc-monto { font-size: 21px; }
 .tc-resumen .tc-nota { font-size: 10.5px; margin-top: 6px; -webkit-line-clamp: 2; }
 
-/* El botón que acompaña a las tarjetas de resumen no se estira al alto de
-   ellas: un botón de 90px de alto no se lee como un botón. */
 .tc-resumen + .btn, .tc-resumen ~ .btn { align-self: center; flex-shrink: 0; }
 
 @media (max-width: 720px) {
-  /* En el teléfono el grupo ocupa el ancho entero: las dos tarjetas se
-     reparten la fila y el botón baja abajo, a lo ancho. */
+
   .cabecera-cifras { flex: 1 1 100%; flex-wrap: wrap; }
   .tc-resumen { flex: 1 1 140px; padding: 12px 14px; }
   .tc-resumen .tc-monto { font-size: 19px; }
   .tc-resumen ~ .btn { flex: 1 1 100%; justify-content: center; }
 }
 
-/* Lila: el compromiso recurrente. Es el color que ya marca las cuotas en el
-   dashboard y la categoría Servicios, y una suscripción es justamente un
-   servicio que se cobra todos los meses. */
 .tarjeta-color.lila {
   background: linear-gradient(118deg, #6f7bf7 0%, #a5adfb 100%);
   color: #0d0b2b;
@@ -1289,10 +968,6 @@ a.balance-card:focus-visible {
 .tarjeta-color.lila .tc-nota  { color: rgba(13, 11, 43, .66); }
 .tarjeta-color.lila .tc-icono { color: #0d0b2b; }
 
-/* Verde agua: el --teal de la paleta, que hasta ahora no se usaba. Es el
-   único color que no tiene un significado ya asignado en la app — verde es
-   "al día", coral "atrasado", azul "prestado", lila "cuota" — así que queda
-   libre para los consejos, que no son un estado sino una sugerencia. */
 .tarjeta-color.agua {
   background: linear-gradient(118deg, #22c4b5 0%, #5ce6d9 100%);
   color: #04211e;
@@ -1301,22 +976,17 @@ a.balance-card:focus-visible {
 .tarjeta-color.agua .tc-nota  { color: rgba(4, 33, 30, .66); }
 .tarjeta-color.agua .tc-icono { color: #04211e; }
 
-/* "al año" pegado a la cifra: es su unidad, no un dato aparte, así que
-   comparte línea en vez de gastar un renglón propio. */
 .tc-unidad {
   font-size: 13px; font-weight: 700; letter-spacing: 0; margin-left: 5px;
   opacity: .62;
 }
 
-/* Bajo 560px de CONTENIDO no caben dos: 167px por tarjeta cortan el rótulo
-   ("Ya te devolvieron" no entra) y aprietan el monto contra los bordes. */
 @container contenido (max-width: 560px) {
   .tarjetas-color { grid-template-columns: 1fr; gap: 10px; }
 }
 
 @media (max-width: 720px) {
-  /* Igual por ventana, para las pantallas que no viven dentro de .main
-     (acceso, onboarding) donde no hay contenedor que consultar. */
+
   .tarjetas-color { grid-template-columns: 1fr !important; gap: 10px; }
   .tarjeta-color { padding: 15px 17px 14px; border-radius: var(--r-lg); }
   .tc-cabecera { margin-bottom: 10px; }
@@ -1324,7 +994,6 @@ a.balance-card:focus-visible {
   .tc-nota { margin-top: 6px; -webkit-line-clamp: 1; }
 }
 
-/* ===== Insignias ===== */
 .badge {
   display: inline-flex; align-items: center; gap: 5px;
   padding: 4px 10px; border-radius: 100px;
@@ -1337,10 +1006,8 @@ a.balance-card:focus-visible {
 .badge-blue   { background: rgba(75, 140, 255, .14); color: var(--blue); }
 .badge-mute   { background: var(--surface-2); color: var(--text-muted); }
 
-/* ===== Barras de progreso ===== */
 .progress-bar {
-  /* display:block explícito: en las metas la barra es un <span>, y sobre una
-     caja inline el alto y el overflow no se aplican — la barra medía cero. */
+
   display: block;
   height: 7px; border-radius: 100px; overflow: hidden;
   background: var(--surface-3);
@@ -1355,19 +1022,12 @@ a.balance-card:focus-visible {
 .progress-fill.blue  { background: var(--blue); }
 .progress-fill.shine { background: linear-gradient(90deg, var(--amber-oscuro), var(--amber-claro)); }
 
-/* Barra de tres tramos: gastado · por pagar · disponible */
 .split-bar {
   display: flex; height: 9px; border-radius: 100px; overflow: hidden;
   background: var(--surface-3); gap: 2px;
 }
 .split-bar > span { display: block; height: 100%; }
 
-/* ===== Cabecera de "Qué hay que pagar" =====
-   El marcado de dashboard.html ya usaba estas clases, pero nunca se
-   escribieron acá: sin ellas los cinco bloques (título, nota, badge, monto
-   y barra) caían apilados sin aire, el badge se iba a su propia línea en
-   vez de quedar a la derecha del título, y el monto — el número que se
-   viene a leer — salía del tamaño del texto corrido. */
 .pagos-cabecera {
   display: flex; flex-direction: column; gap: 18px;
   padding-bottom: 20px; margin-bottom: 18px;
@@ -1383,8 +1043,7 @@ a.balance-card:focus-visible {
 }
 .pagos-monto {
   font-size: 30px; line-height: 1;
-  /* La cifra manda sobre el resto del bloque: es la respuesta a la
-     pregunta del título. */
+
 }
 .pagos-nota {
   font-size: 11.5px; color: var(--text-muted); margin-top: 7px;
@@ -1397,7 +1056,6 @@ a.balance-card:focus-visible {
   .pagos-monto { font-size: 25px; }
 }
 
-/* ===== Marcas de cuota ===== */
 .pips { display: flex; gap: 4px; flex-wrap: wrap; }
 .pip {
   flex: 1; min-width: 7px; height: 5px; border-radius: 100px;
@@ -1407,15 +1065,10 @@ a.balance-card:focus-visible {
 .pip.next { background: var(--amber); }
 .pip.late { background: var(--coral); }
 
-/* ===== Formularios ===== */
 .field { margin-bottom: 18px; }
 .form-row { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 18px; }
 .form-row > div { flex: 1; min-width: 120px; }
 
-/* Monto, cuotas y primer pago. En flex con min-width los tres campos se
-   apilaban a ancho completo bajo 480px y el formulario medía dos pantallas.
-   En rejilla, el monto toma la fila y los otros dos comparten la siguiente:
-   "Cuotas" son dos dígitos y no necesita más de 104px. */
 .form-cuotas {
   display: grid; gap: 14px; margin-bottom: 16px;
   grid-template-columns: 1.4fr .8fr 1.15fr;
@@ -1425,19 +1078,12 @@ a.balance-card:focus-visible {
   .form-cuotas > :first-child { grid-column: 1 / -1; }
 }
 
-/* Las flechas nativas del campo numérico salen en gris claro sobre fondo
-   oscuro y no se usan nunca en un teléfono. */
 input[type=number] { appearance: textfield; -moz-appearance: textfield; }
 input[type=number]::-webkit-outer-spin-button,
 input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
 input[type=date]::-webkit-calendar-picker-indicator { opacity: .45; cursor: pointer; }
 input[type=date]::-webkit-calendar-picker-indicator:hover { opacity: .9; }
 
-
-/* Los inputs de .search quedan fuera: ahí el campo es transparente dentro
-   de una píldora, y esta regla le pintaba una caja gris con su propio radio
-   adentro. No se arregla con ".search input" porque esa combinación pesa
-   menos que los dos :not() de acá. */
 .search input { all: unset; flex: 1; min-width: 0; font: inherit; color: inherit; }
 input:not([type=checkbox]):not([type=radio]):not(.search input), select, textarea {
   width: 100%; padding: 13px 15px;
@@ -1451,8 +1097,7 @@ input:focus, select:focus, textarea:focus {
   outline: none; border-color: var(--amber); background: var(--surface);
 }
 .search input:focus { outline: none; background: none; border: none; }
-/* Un campo de formulario no hereda la fuente de la página si no se le dice,
-   así que acá sí hay que nombrarla. */
+
 input[type=number].mono, input.mono { font-family: 'Manrope', system-ui, sans-serif; }
 input[type=date] { color-scheme: dark; }
 select {
@@ -1469,17 +1114,12 @@ select {
 }
 label { display: block; }
 
-/* ===== Segmentado ===== */
 .seg {
   display: flex; gap: 4px; padding: 4px;
   background: var(--surface-2); border-radius: 100px;
 }
 .seg > button, .seg > a {
-  /* flex:1 se expande a "flex: 1 1 0%", así que flex-basis queda en 0 y el
-     contenido NO aporta al ancho intrínseco del .seg. En un .seg de ancho
-     automático (el del encabezado de un gráfico) el contenedor se resolvía a
-     min-content y "3 meses" se partía en dos líneas. Con basis auto el texto
-     dimensiona el control y los botones siguen repartiéndose el sobrante. */
+
   flex: 1 0 auto; white-space: nowrap;
   padding: 10px 14px; border: none; border-radius: 100px;
   background: none; color: var(--text-muted); cursor: pointer;
@@ -1492,7 +1132,6 @@ label { display: block; }
 .seg > button.on-green { background: var(--green); color: #062b08; }
 .seg > button.on-coral { background: var(--coral); color: #2b0606; }
 
-/* ===== Fichas de categoría ===== */
 .chips { display: flex; flex-wrap: wrap; gap: 8px; }
 .chip {
   display: inline-flex; align-items: center; justify-content: center;
@@ -1500,8 +1139,7 @@ label { display: block; }
   border: 1px solid var(--line-fuerte); background: none;
   color: var(--text-secondary);
   font-family: 'Manrope', sans-serif; font-size: 12.5px; font-weight: 600;
-  /* Sin nowrap, una etiqueta como "Comida y Supermercado" se partía en dos
-     líneas y la segunda quedaba cortada dentro de la píldora. */
+
   white-space: nowrap;
   transition: all .18s var(--ease-out);
 }
@@ -1510,7 +1148,6 @@ label { display: block; }
   background: var(--amber); border-color: var(--amber); color: #1a1200;
 }
 
-/* ===== Interruptor ===== */
 .switch {
   position: relative; width: 44px; height: 26px; flex-shrink: 0;
   border-radius: 100px; border: none; cursor: pointer; padding: 0;
@@ -1526,14 +1163,12 @@ label { display: block; }
 .switch.on { background: var(--green); }
 .switch.on .knob { transform: translateX(18px); }
 
-/* ===== Vista previa dentro de formularios ===== */
 .preview-box {
   padding: 16px; margin-bottom: 18px;
   border-radius: var(--r-md);
   background: var(--surface-2);
 }
-/* El resultado del cálculo es lo único de la pantalla que el usuario no
-   escribió: se lee como cifra, no como otra fila de formulario. */
+
 .preview-box.preview-cuota {
   padding: 15px 17px;
   background: linear-gradient(180deg, rgba(255, 170, 44, .11), rgba(255, 170, 44, .04));
@@ -1555,13 +1190,11 @@ label { display: block; }
 .preview-nota { font-size: 11.5px; color: var(--text-muted); margin-top: 6px; }
 @media (max-width: 400px) { .preview-monto { font-size: 21px; } }
 
-/* ===== Estado vacío ===== */
 .empty { text-align: center; padding: 44px 20px; }
 .empty i { font-size: 30px; color: var(--text-muted); margin-bottom: 14px; display: block; }
 .empty-title { font-family: 'Manrope', sans-serif; font-size: 15px; font-weight: 700; margin-bottom: 6px; }
 .empty-text { font-size: 12.5px; color: var(--text-muted); max-width: 340px; margin: 0 auto 18px; line-height: 1.55; }
 
-/* ===== Encabezados de sección ===== */
 .section-head {
   display: flex; align-items: baseline; justify-content: space-between;
   gap: 12px; flex-wrap: wrap; margin: 28px 0 13px;
@@ -1571,9 +1204,7 @@ label { display: block; }
   position: relative;
   font-family: 'Manrope', sans-serif; font-size: 17px; font-weight: 800;
   letter-spacing: -.02em; color: var(--text-primary); margin: 0;
-  /* La misma marca ámbar del título de pantalla, a escala: 3px y 12px de
-     sangría contra los 4 y 16 del título grande. El bloque de sección queda
-     con el mismo gesto que el encabezado, un escalón más abajo. */
+
   padding-left: 12px;
   min-width: 0;
 }
@@ -1583,47 +1214,34 @@ label { display: block; }
   background: linear-gradient(var(--amber-claro), var(--amber-oscuro));
   box-shadow: 0 0 11px -2px rgba(255, 170, 44, .55);
 }
-/* "Ver mas" a la derecha, en ámbar — el patrón de la referencia */
+
 .section-sub {
   font-size: 12.5px; font-weight: 700; color: var(--amber); cursor: pointer;
   white-space: nowrap; flex-shrink: 0;
 }
 
-/* ===== Cuadrículas ===== */
 .grid-metrics {
   display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   gap: 14px; margin-bottom: 18px;
 }
-/* Con 4 tarjetas y un contenido muy ancho, auto-fit las deja en una sola
-   fila de 340px. Se topan en cuatro columnas para que no se estiren. */
+
 @container contenido (min-width: 1100px) {
   .grid-metrics { grid-template-columns: repeat(4, 1fr); }
 }
-/* minmax(0, …) en todas las pistas, no 1fr a secas: una pista 1fr no baja
-   de su contenido mínimo, así que un hijo ancho —una fila con un nombre
-   largo, una barra, un monto que no encoge— estira la columna, la columna
-   estira la página y en el teléfono aparece scroll horizontal: los títulos
-   de sección quedan cortados a la derecha y las tarjetas se salen del ancho
-   de la pantalla. Con minmax(0, …) la pista se queda en el ancho disponible
-   y el contenido recorta como ya sabe hacerlo. */
+
 .grid-chart   { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: 16px; margin-bottom: 18px; align-items: start; }
-/* Proporciones como clase, no en línea: un estilo en línea gana sobre las
-   consultas de medios y la cuadrícula nunca colapsaría en el teléfono. */
+
 .grid-chart.par       { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
 .grid-chart.ancho-izq { grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); }
 .grid-chart.ancho-der { grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr); }
 .grid-pagos   { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); gap: 16px; margin-bottom: 18px; align-items: start; }
 .grid-registro{ display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: 16px; align-items: start; }
-/* 320px es el mínimo para que la cuota, el contador y el badge de urgencia
-   entren sin partirse. Con 280 el texto caía en dos líneas y el botón de
-   pagar se apretaba contra Anular. */
+
 .grid-cards   { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px; }
 .grid-detail  { display: grid; grid-template-columns: 320px minmax(0, 1fr); gap: 16px; align-items: start; }
 .grid-bottom  { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); gap: 16px; }
 .grid-registro > :only-child { grid-column: 1 / -1; }
 
-/* Y lo mismo para los hijos: una tarjeta que no puede encogerse por debajo
-   de su contenido desborda su celda aunque la pista sí se haya recortado. */
 .grid-chart > *, .grid-pagos > *, .grid-registro > *,
 .grid-detail > *, .grid-bottom > *, .grid-cards > * { min-width: 0; }
 
@@ -1634,13 +1252,6 @@ label { display: block; }
   }
 }
 
-/* Umbrales sobre el ancho real del contenido.
-   860px es donde la columna angosta de un grid 1.5fr/1fr baja de 330px, que
-   es lo mínimo para que el calendario y la leyenda de la dona no se
-   apretujen. */
-/* Las tarjetas de cuotas responden al ancho del contenido, no de la ventana:
-   con el sidebar de 250px las columnas salían 250px más estrechas de lo que
-   la consulta creía. */
 @container contenido (max-width: 700px) {
   .grid-cards { grid-template-columns: 1fr; }
 }
@@ -1662,9 +1273,6 @@ label { display: block; }
   }
 }
 
-/* El carrusel de saldo: tres tarjetas necesitan 300px cada una para que el
-   monto grande no se corte. Antes el umbral era la ventana (900px), así que
-   con el sidebar estrecho quedaban en 280px. */
 @container contenido (min-width: 880px) {
   .balance-carrusel {
     display: grid; grid-template-columns: repeat(3, 1fr);
@@ -1682,7 +1290,6 @@ label { display: block; }
   .balance-dots { display: flex; justify-content: center; gap: 6px; margin: 12px 0 18px; }
 }
 
-/* ===== Estructura ===== */
 .layout { display: flex; min-height: 100vh; }
 
 .sidebar {
@@ -1691,8 +1298,7 @@ label { display: block; }
   background: var(--bg-elev);
   position: sticky; top: 0; height: 100vh; overflow: hidden;
 }
-/* El menú es lo único que se desplaza. Sin min-height:0 un hijo flex no se
-   deja encoger por debajo de su contenido y el scroll nunca aparece. */
+
 .sidebar > nav {
   flex: 1 1 auto; min-height: 0; overflow-y: auto;
   scrollbar-width: none;
@@ -1723,7 +1329,7 @@ label { display: block; }
 }
 .nav-item i { width: 18px; text-align: center; font-size: 14px; }
 .nav-item:hover { background: var(--surface); color: var(--text-primary); }
-/* Activo: relleno ámbar sólido, como en la referencia */
+
 .nav-item.active { background: var(--amber); color: #1a1200; }
 .nav-item.active:hover { background: var(--amber-claro); color: #1a1200; }
 
@@ -1733,53 +1339,39 @@ label { display: block; }
   font-size: 10.5px; font-weight: 700; font-variant-numeric: tabular-nums;
   background: var(--coral); color: #fff;
 }
-/* Solo en el sidebar: ahí el ítem activo lleva relleno ámbar y un badge
-   rojo encima no se leería. En la barra inferior el activo no tiene fondo,
-   así que el contador conserva su coral. */
+
 .sidebar .nav-item.active .nav-count { background: rgba(26, 18, 0, .22); color: #1a1200; }
 .bottomnav .nav-item.active > .nav-count { background: var(--coral); color: #fff; opacity: 1; }
 
 .sidebar-foot {
-  /* flex-shrink: 0 para que no lo comprima el menú cuando hay muchos ítems. */
+
   flex-shrink: 0; margin-top: 14px; padding: 16px;
   border-radius: var(--r-lg); background: var(--surface);
 }
 
 .main {
-  /* OJO con la combinación flex + márgenes automáticos.
-     "flex: 1" es "flex: 1 1 0%": la base es CERO y el ancho sale del
-     flex-grow. Pero los márgenes automáticos se resuelven ANTES del grow y
-     absorben todo el espacio libre, así que el ítem se queda en su base — es
-     decir, en cero. El contenido colapsaba a columnas de una palabra.
-     Con base "auto" + width 100% el ancho sale del width, el max-width lo
-     topa y los márgenes reparten solo el sobrante. */
+
   flex: 1 1 auto; width: 100%; min-width: 0;
   padding: 26px 30px 40px;
   max-width: 1400px;
   margin-inline: auto;
 
-  /* Las media queries miden la VENTANA, no este contenedor. Con un sidebar
-     de 250px el contenido siempre tiene 250px menos de lo que dice la
-     consulta: a 1150px de ventana los grids seguían en dos columnas con
-     840px reales, y el calendario y la dona caían a ~380px.
-     Con container-type las cuadrículas responden al ancho de .main. */
   container-type: inline-size;
   container-name: contenido;
 }
 
 .topbar {
   display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
-  /* Las mismas medidas que .main, para que los bordes coincidan. */
+
   box-sizing: border-box;
   width: 100%; max-width: 1400px; margin-inline: auto;
   padding: 26px 30px 0;
   margin-bottom: 20px;
 }
-/* El aire de arriba lo pone el topbar; si .main lo repitiera habría 52px. */
+
 .topbar + .main { padding-top: 0; }
 .spacer { flex: 1; }
 
-/* Encabezado de saludo: avatar + nombre en una píldora */
 .pill-group {
   display: flex; align-items: center; gap: 4px;
   padding: 4px; border-radius: 100px; background: var(--surface);
@@ -1787,8 +1379,7 @@ label { display: block; }
 .month {
   padding: 0 14px; font-family: 'Manrope', sans-serif;
   font-size: 12.5px; font-weight: 700;
-  /* Sin esto "Agosto 2026" se partía en dos líneas y el "ahora" quedaba
-     fuera de la píldora. */
+
   white-space: nowrap;
 }
 .avatar {
@@ -1799,9 +1390,6 @@ label { display: block; }
 }
 .avatar-lg { width: 64px; height: 64px; font-size: 24px; border-radius: 22px; }
 
-/* El saludo del topbar: una píldora del mismo material que la búsqueda y
-   el selector de mes. Suelto, sin superficie, era el único elemento de la
-   barra que no se leía como un objeto. */
 .saludo-pill {
   display: flex; align-items: center; gap: 10px; min-width: 0;
   padding: 6px 14px 6px 6px; border-radius: 100px;
@@ -1812,9 +1400,7 @@ label { display: block; }
 .saludo-pill .avatar { box-shadow: 0 0 0 2px rgba(255, 170, 44, .38); }
 .saludo-nombre {
   display: block; font-size: 13.5px; font-weight: 700; letter-spacing: -.02em;
-  /* 150px es el ancho que deja caber la barra de búsqueda, el selector de
-     mes y los dos botones en una sola fila. Con más, "Anotar gasto" se
-     iba a un segundo renglón. Un nombre largo se recorta con puntos. */
+
   max-width: 150px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 
@@ -1830,7 +1416,6 @@ label { display: block; }
   font-size: 10px; font-weight: 600; font-variant-numeric: tabular-nums;
 }
 
-/* ===== Calendario ===== */
 .cal-head, .cal-week {
   display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px;
 }
@@ -1855,7 +1440,6 @@ label { display: block; }
 .cal-day .dot.paid { background: var(--green); }
 .cal-day.on .dot { background: #1a1200; }
 
-/* ===== Modales ===== */
 .modal-overlay {
   position: fixed; inset: 0; z-index: 200;
   display: none; align-items: center; justify-content: center; padding: 20px;
@@ -1868,8 +1452,7 @@ label { display: block; }
 .modal-box {
   --modal-pad: 24px;
   width: 100%; max-width: 460px; overflow-y: auto;
-  /* dvh en vez de vh: con la barra del navegador de un teléfono, 88vh mide
-     más que la pantalla visible y el botón de guardar queda debajo. */
+
   max-height: 88vh; max-height: 88dvh;
   overscroll-behavior: contain;
   padding: var(--modal-pad); border-radius: var(--r-xl);
@@ -1880,10 +1463,7 @@ label { display: block; }
   from { opacity: 0; transform: translateY(18px) scale(.98); }
   to { opacity: 1; transform: none; }
 }
-/* Pegado arriba: en un formulario largo (una compra en cuotas con diez
-   categorías) el título se iba de pantalla al desplazarse y no quedaba a la
-   vista ni el título ni la salida. El margen negativo lo lleva al borde de
-   la caja para que el contenido no asome por el costado. */
+
 .modal-head {
   position: sticky; top: calc(var(--modal-pad) * -1); z-index: 3;
   display: flex; align-items: flex-start; justify-content: space-between;
@@ -1892,15 +1472,13 @@ label { display: block; }
   padding: var(--modal-pad) var(--modal-pad) 15px;
   background: var(--bg-elev);
 }
-/* Luz ámbar desde la esquina, como en la tarjeta de IA: sin ella la cabecera
-   es un rectángulo del mismo gris que el resto del diálogo. */
+
 .modal-head::before {
   content: ''; position: absolute; inset: 0; pointer-events: none;
   border-radius: inherit;
   background: radial-gradient(120% 150% at 0% 0%, rgba(255, 170, 44, .13), transparent 58%);
 }
-/* La regla inferior arranca en ámbar y se apaga hacia la derecha, en vez de
-   ser un borde plano de punta a punta. */
+
 .modal-head::after {
   content: ''; position: absolute; bottom: 0;
   left: var(--modal-pad); right: var(--modal-pad); height: 1px;
@@ -1908,8 +1486,6 @@ label { display: block; }
 }
 .modal-head > * { position: relative; }
 
-/* Título con ficha de icono. min-width:0 para que un título largo elipse en
-   vez de empujar la X fuera de la caja. */
 .modal-titulo { display: flex; align-items: center; gap: 13px; min-width: 0; }
 .modal-icon {
   width: 42px; height: 42px; flex-shrink: 0;
@@ -1931,20 +1507,15 @@ label { display: block; }
 .modal-close:hover { background: var(--surface-3); color: var(--text-primary); }
 .modal-close:focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
 
-/* La acción principal queda siempre alcanzable. La segunda sombra tapa el
-   hueco del padding inferior, por donde se veía pasar el contenido. */
 .modal-box form > .btn-block:last-child {
   position: sticky; bottom: 0; z-index: 2;
   box-shadow: 0 -14px 16px 10px var(--bg-elev),
               0 var(--modal-pad) 0 var(--modal-pad) var(--bg-elev);
 }
-/* Diez categorías a tamaño normal ocupaban cinco filas dentro del diálogo. */
+
 .modal-box .chips { gap: 7px; }
 .modal-box .chip { padding: 8px 13px; font-size: 12px; }
 
-/* ===== Hoja inferior =====
-   En un teléfono un diálogo centrado queda lejos del pulgar. La hoja sube
-   desde el borde inferior, que es donde está la mano. */
 .hoja-overlay { align-items: flex-end; padding: 0; }
 .hoja-box {
   position: relative;
@@ -1975,8 +1546,6 @@ label { display: block; }
 .hoja-item:hover { background: var(--surface-2); color: var(--text-primary); }
 .hoja-item .icon-tile { width: 32px; height: 32px; border-radius: 11px; font-size: 12px; }
 
-/* En escritorio se comporta como un diálogo normal: la hoja pegada abajo
-   en una pantalla grande deja la mitad de la ventana vacía. */
 @media (min-width: 721px) {
   .hoja-overlay { align-items: center; padding: 20px; }
   .hoja-box {
@@ -1987,9 +1556,6 @@ label { display: block; }
   .hoja-box > .modal-head { padding-top: var(--modal-pad); }
 }
 
-/* ===== Diálogo de confirmación =====
-   Reemplaza a window.confirm(), que abre el cuadro del navegador: fondo
-   blanco, botón azul y la URL del sitio como título. */
 .confirm-overlay { z-index: 400; align-items: center; justify-content: center; padding: 20px; }
 
 .confirm-box {
@@ -2006,7 +1572,7 @@ label { display: block; }
   border-radius: 18px; font-size: 20px;
   background: rgba(255, 170, 44, .14); color: var(--amber);
 }
-/* En un borrado el icono avisa antes de que se lea el texto. */
+
 .confirm-overlay.destructivo .confirm-icono {
   background: var(--coral-tenue); color: var(--coral);
 }
@@ -2020,19 +1586,17 @@ label { display: block; }
 .confirm-acciones .btn { flex: 1; padding: 13px; font-size: 13px; }
 
 @media (max-width: 640px) {
-  /* Hoja desde abajo, donde está el pulgar. */
+
   .confirm-overlay { align-items: flex-end; padding: 0; }
   .confirm-box {
     max-width: none; border-radius: var(--r-xl) var(--r-xl) 0 0;
     padding: 26px 20px calc(22px + env(safe-area-inset-bottom));
     animation: hojaSube .3s var(--ease-out);
   }
-  /* Confirmar arriba: en una hoja el orden natural de lectura es de arriba
-     abajo, y la acción principal no debe quedar debajo de Cancelar. */
+
   .confirm-acciones { flex-direction: column-reverse; }
 }
 
-/* ===== Teclado numérico ===== */
 .amount-display {
   text-align: center; padding: 22px 0;
   font-family: 'Manrope', sans-serif; font-size: 38px; font-weight: 800;
@@ -2048,8 +1612,6 @@ label { display: block; }
 .keypad button:hover { background: var(--surface-3); }
 .keypad button:active { transform: scale(.94); }
 
-/* Leyenda de la dona: nombre elástico, porcentaje y monto en columnas fijas
-   para que no bailen entre filas. */
 .cat-row {
   display: grid !important; grid-template-columns: 8px 1fr 34px auto;
   align-items: center; gap: 9px;
@@ -2060,9 +1622,6 @@ label { display: block; }
 .cat-row > span:nth-child(3) { text-align: right; }
 .cat-row > span:nth-child(4) { text-align: right; min-width: 74px; }
 
-/* ===== Tarjetas de métrica =====
-   Un color por tarjeta, con la misma mecánica que las filas de movimiento:
-   una variable que alimenta el icono, el tinte y el resplandor. */
 .metrica {
   --tono: #8b8b96; --tono-rgb: 139, 139, 150;
   position: relative; overflow: hidden;
@@ -2097,8 +1656,7 @@ label { display: block; }
   letter-spacing: -.03em; line-height: 1.05;
   font-variant-numeric: tabular-nums; color: var(--tono);
 }
-/* El símbolo de porcentaje, más chico: la cifra es el dato, el símbolo solo
-   la unidad. */
+
 .metrica-unidad { font-size: 16px; font-weight: 700; opacity: .7; margin-left: 1px; }
 
 .metrica-barra {
@@ -2110,12 +1668,9 @@ label { display: block; }
   background: var(--tono); transition: width .6s var(--ease-out);
 }
 
-/* La primera tarjeta no tiene color propio: su cifra en el blanco de
-   siempre, para que el gris no parezca un estado apagado. */
 .metrica:not([class*="tono-"]) .metrica-cifra { color: var(--text-primary); }
 .metrica:not([class*="tono-"]) .metrica-cab .label { color: var(--text-muted); }
 
-/* ===== Panel del gráfico de flujo ===== */
 .flujo-panel { overflow: hidden; }
 
 .flujo-cabecera {
@@ -2123,7 +1678,6 @@ label { display: block; }
   gap: 16px; flex-wrap: wrap; margin-bottom: 18px;
 }
 
-/* La variación contra el mes anterior, en una píldora junto al monto. */
 .flujo-delta {
   display: inline-flex; align-items: center; gap: 5px;
   padding: 4px 10px; border-radius: 100px;
@@ -2141,28 +1695,20 @@ label { display: block; }
 .flujo-leyenda .punto {
   width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0;
 }
-/* La pista se va al extremo y desaparece cuando no hay sitio: es una ayuda,
-   no un dato. */
+
 .flujo-pista { margin-left: auto; font-weight: 500; color: var(--text-muted); font-size: 11px; }
 
 .flujo-lienzo { position: relative; height: 300px; }
 
 @media (max-width: 720px) {
-  /* En un teléfono 300px de gráfico dejan la mitad de la pantalla sin nada
-     más; 220 basta para leer la tendencia. */
+
   .flujo-lienzo { height: 220px; }
-  /* Con el selector suelto (.flujo-pista) no se ocultaba nunca: el
-     .flujo-leyenda > span de arriba pesa más en la cascada y le devolvía el
-     display. De ahí que la pista siguiera saliendo en el teléfono, encima
-     del área del gráfico. */
+
   .flujo-leyenda > .flujo-pista { display: none; }
   .flujo-cabecera { gap: 12px; }
   .flujo-cabecera .display { font-size: 26px !important; }
 }
 
-/* Encabezado de Análisis: el título a la izquierda y el botón de la IA a la
-   derecha. El botón estaba en el topbar, que en móvil no se muestra, así que
-   la acción principal de la pantalla no existía en el teléfono. */
 .analisis-head {
   display: flex; align-items: flex-start; justify-content: space-between;
   gap: 16px; flex-wrap: wrap; margin-bottom: 18px;
@@ -2170,25 +1716,20 @@ label { display: block; }
 .btn-ia { flex-shrink: 0; }
 
 @media (max-width: 720px) {
-  /* A ancho completo bajo el texto: en una fila con el título quedaba en
-     150px y "Explicarlo con IA" se partía en dos líneas. */
+
   .analisis-head { gap: 14px; }
   .btn-ia { width: 100%; justify-content: center; padding: 14px; }
 }
 
-/* La cifra de salud, a plomo con el título y la barra. */
 .health-cifra {
   display: flex; align-items: baseline; gap: 6px;
   justify-content: flex-start; margin-bottom: 9px;
 }
 
-/* Con el sidebar colapsado a 76px solo queda el número: ahí sí centrado, o
-   se pega al canto izquierdo del riel. */
 @media (max-width: 1000px) {
   .health-cifra { justify-content: center; }
 }
 
-/* ===== Cabecera del perfil ===== */
 .perfil-cab {
   display: flex; align-items: center; justify-content: space-between;
   gap: 24px; flex-wrap: wrap; margin-bottom: 16px;
@@ -2202,8 +1743,6 @@ label { display: block; }
   letter-spacing: -.03em; margin: 0; line-height: 1.2;
 }
 
-/* Correo y ubicación en líneas propias con su icono: juntos con un punto en
-   medio se leían como una frase larga y el correo perdía su forma. */
 .perfil-meta {
   display: flex; flex-direction: column; gap: 4px; margin-top: 7px;
 }
@@ -2216,9 +1755,6 @@ label { display: block; }
   width: 13px; font-size: 11px; color: var(--text-muted); flex-shrink: 0;
 }
 
-/* Las tres cifras con el mismo peso: son datos del mismo tipo y ninguno
-   manda sobre los otros. Antes la fecha iba en ámbar y monoespaciada, como
-   si fuera un dato de otra clase. */
 .perfil-cifras { display: flex; gap: 10px; flex-wrap: wrap; }
 .perfil-cifra {
   display: flex; flex-direction: column; align-items: center; gap: 4px;
@@ -2232,31 +1768,25 @@ label { display: block; }
 }
 .perfil-cifra .label { font-size: 10.5px; }
 
-/* El aviso de la foto, bajo el nombre: es un estado pasajero y no debe
-   reordenar la cabecera al aparecer. */
 .perfil-datos .foto-nota { margin-top: 10px; display: inline-flex; }
 
 @media (max-width: 720px) {
   .perfil-cab { gap: 18px; }
   .perfil-id { gap: 14px; }
   .perfil-nombre { font-size: 18px; }
-  /* Las tres reparten el ancho en vez de envolver a dos y una suelta. */
+
   .perfil-cifras { display: grid; grid-template-columns: repeat(3, 1fr); width: 100%; gap: 8px; }
   .perfil-cifra { min-width: 0; padding: 12px 8px; }
   .perfil-cifra-valor { font-size: 15px; }
   .perfil-cifra .label { font-size: 9.5px; text-align: center; line-height: 1.3; }
 }
 
-/* ===== Avatar con foto =====
-   El avatar del perfil ES el control: se toca y abre el selector. Un botón
-   aparte diría dos veces lo mismo. */
 .avatar-foto {
   position: relative; flex-shrink: 0; cursor: pointer;
   display: flex; align-items: center; justify-content: center;
   width: 66px; height: 66px; border-radius: 22px; overflow: hidden;
   background: linear-gradient(140deg, var(--amber-oscuro), var(--amber));
-  /* Un borde fino en vez del halo ámbar: con una foto real el resplandor la
-     teñía y competía con ella. El degradado solo se ve cuando hay inicial. */
+
   box-shadow: 0 0 0 2px rgba(255, 255, 255, .08), 0 6px 18px rgba(0, 0, 0, .35);
   transition: transform .18s var(--ease-out), box-shadow .18s var(--ease-out);
 }
@@ -2269,16 +1799,12 @@ label { display: block; }
 .avatar-foto img {
   position: relative; z-index: 1;
   width: 100%; height: 100%; display: block;
-  /* cover, no fill: una foto vertical se deformaría al cuadrado. */
+
   object-fit: cover;
-  /* Fondo propio: si la foto es un PNG con transparencia, sin esto se vería
-     la inicial a través de ella. */
+
   background: linear-gradient(140deg, var(--amber-oscuro), var(--amber));
 }
-/* El display:block de arriba gana sobre el [hidden] del navegador, así que
-   un <img hidden> seguía ocupando el cuadro entero por encima de la
-   inicial: con alt="" una imagen rota no dibuja nada y el avatar quedaba
-   como un bloque ámbar vacío. */
+
 .avatar-foto img[hidden] { display: none; }
 .avatar-inicial {
   position: absolute; inset: 0; z-index: 0;
@@ -2287,8 +1813,6 @@ label { display: block; }
   color: #fff;
 }
 
-/* La cámara sobre una banda oscura al pie: sobre una foto clara un icono
-   blanco suelto no se ve. */
 .avatar-lapiz {
   position: absolute; left: 0; right: 0; bottom: 0;
   display: flex; align-items: center; justify-content: center;
@@ -2298,8 +1822,7 @@ label { display: block; }
 }
 .avatar-foto:hover .avatar-lapiz,
 .avatar-foto:focus-within .avatar-lapiz { opacity: 1; }
-/* En táctil no hay hover: la banda se queda puesta, o nadie sabe que el
-   avatar se puede tocar. */
+
 @media (hover: none) {
   .avatar-lapiz { opacity: 1; }
 }
@@ -2311,26 +1834,20 @@ label { display: block; }
   background: var(--amber-tenue); color: var(--amber);
 }
 
-/* La letra vive debajo de la foto. Si la imagen falla, el onerror la quita
-   del DOM y la letra queda a la vista sin dejar hueco. */
 .avatar { position: relative; }
 .avatar-letra { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
 .avatar img { position: relative; z-index: 1; }
 
-/* El avatar del menú y del saludo también muestran la foto. */
 .avatar img {
   width: 100%; height: 100%; border-radius: inherit;
   object-fit: cover; display: block;
-  /* Sin fondo propio, un PNG con transparencia deja ver la letra detrás. */
+
   background: var(--amber);
 }
-/* Mismo motivo que en .avatar-foto img: este display:block gana sobre el
-   [hidden] del navegador y un img oculto seguiría tapando la letra. */
+
 .avatar img[hidden] { display: none; }
 .avatar:has(img) { padding: 0; overflow: hidden; }
 
-/* Ficha de icono que muestra la foto del perfil ("Mi perfil" en la hoja de
-   más opciones). La foto tapa el icono; si no carga, el icono sigue ahí. */
 .icon-tile.tile-avatar { position: relative; overflow: hidden; }
 .icon-tile.tile-avatar img {
   position: absolute; inset: 0; z-index: 1;
@@ -2338,23 +1855,12 @@ label { display: block; }
 }
 .icon-tile.tile-avatar img[hidden] { display: none; }
 
-/* ===== Selector de mes =====
-   Vive en el contenido del dashboard, no en la barra superior: ahí no se
-   mostraba en el teléfono y el mes es lo que gobierna toda la pantalla.
-
-   Las flechas a los extremos y el mes al medio: el pulgar llega a las dos
-   sin recolocar la mano, que es la razón de no apilarlas a un lado. */
 .mes-nav {
   display: flex; align-items: center; gap: 10px;
-  /* En un monitor el grupo no tiene que ocupar todo el ancho: con la píldora
-     estirada a 900px se leía como una barra vacía con dos palabras al medio. */
+
   max-width: 420px;
 }
 
-/* Dos copias del mismo control, una por franja.
-   El corte son 1000px, no los 720 en que desaparece el topbar: el selector
-   mide unos 300px y a 900 no cabe junto al saludo, el buscador y el botón —
-   el topbar se partía en dos filas. */
 .mes-nav-movil { display: none; }
 @media (max-width: 1000px) {
   .mes-nav-desktop { display: none; }
@@ -2362,8 +1868,7 @@ label { display: block; }
 }
 .mes-nav-desktop {
   margin-bottom: 0;
-  /* Dentro del topbar el grupo se ajusta a su contenido: con flex:1 el mes se
-     estiraba y empujaba los botones de la derecha. */
+
   max-width: none; flex: 0 0 auto;
 }
 .mes-nav-desktop .mes-actual { flex: 0 0 auto; }
@@ -2381,7 +1886,6 @@ label { display: block; }
 .mes-flecha:hover { background: var(--surface-2); color: var(--text-primary); }
 .mes-flecha:active { transform: scale(.94); }
 
-/* El mes ocupa el centro y empuja las flechas a los cantos. */
 .mes-actual {
   flex: 1; min-width: 0;
   display: flex; align-items: center; justify-content: center;
@@ -2399,7 +1903,7 @@ label { display: block; }
   padding: 3px 9px; border-radius: 100px;
   background: var(--amber-tenue); color: var(--amber);
 }
-/* El atajo de vuelta, solo cuando no se está en el mes corriente. */
+
 .mes-hoy {
   font-size: 11px; font-weight: 700; color: var(--amber);
   text-decoration: none; white-space: nowrap;
@@ -2407,17 +1911,13 @@ label { display: block; }
 .mes-hoy:hover { color: var(--amber-claro); }
 
 @media (max-width: 720px) {
-  /* Toques de 46px: son dos botones que se usan seguido, y 42 con el pulgar
-     en el borde de la pantalla se falla. */
+
   .mes-nav { gap: 8px; margin-bottom: 14px; max-width: none; }
   .mes-flecha { width: 46px; height: 46px; }
   .mes-actual { padding: 12px 12px; gap: 8px; }
   .mes-nombre { font-size: 13.5px; }
 }
 
-/* ===== Bloque "Tu mes" =====
-   Reemplaza tres bloques que repetían cifras. Los dos totales arriba, la
-   barra al medio, cada tramo con su monto abajo. */
 .mes-totales {
   display: flex; align-items: center; gap: 0; margin-bottom: 18px;
 }
@@ -2438,22 +1938,13 @@ label { display: block; }
 }
 
 @media (max-width: 720px) {
-  /* Tres tramos de 100px cada uno cortan los montos. En una columna cada
-     uno tiene el ancho completo. */
+
   .mes-tramos { grid-template-columns: 1fr; gap: 12px; }
   .mes-totales > div:last-child { padding-left: 16px; }
   .mes-totales .display { font-size: 18px !important; }
   .mes-totales .icon-tile { width: 34px; height: 34px; font-size: 12px; }
 }
 
-/* ===== Panel de registro =====
-   Dos columnas en escritorio: el teclado a la izquierda, la categoría y el
-   resto a la derecha. Apilado, el teclado empujaba las categorías fuera de
-   la pantalla, y es lo que más se usa de la app.
-
-   Tiene su propio overlay en vez de reutilizar el del cajón lateral: ahí
-   dos clases se peleaban el display y hacía falta un :has() para
-   distinguirlas. */
 .registro-overlay {
   position: fixed; inset: 0; z-index: 200; display: none;
   align-items: center; justify-content: center; padding: 20px;
@@ -2463,13 +1954,10 @@ label { display: block; }
 .registro-overlay.open { display: flex; }
 
 .registro-box {
-  /* .modal-head calcula sus márgenes con --modal-pad y acá no estaba
-     definida: el calc() quedaba inválido, así que el título se pegaba al
-     borde y la luz ámbar salía a todo el ancho como una mancha. */
+
   --modal-pad: 24px;
   width: 100%; max-width: 720px;
-  /* Puede encoger (en flex el hijo no baja de su min-content si no se le
-     dice) y nunca pasa del ancho ni del alto disponibles. */
+
   min-width: 0; box-sizing: border-box;
   max-height: 90vh; overflow-y: auto;
   padding: var(--modal-pad); border-radius: var(--r-xl);
@@ -2478,9 +1966,7 @@ label { display: block; }
 }
 
 @media (max-width: 640px) {
-  /* Hoja pegada al fondo, a todo el ancho: en un teléfono el pulgar está
-     abajo, y centrar un diálogo más ancho que la pantalla lo recorta por
-     los dos lados. */
+
   .registro-overlay { align-items: flex-end; padding: 0; }
   .registro-box {
     --modal-pad: 18px;
@@ -2491,9 +1977,6 @@ label { display: block; }
   }
 }
 
-/* El panel de registro es casi el doble de ancho que un diálogo normal: con
-   el mismo radial la luz ámbar cruzaba media cabecera. Acá se cierra sobre la
-   esquina. */
 .registro-box .modal-head::before {
   background: radial-gradient(65% 165% at 0% 0%, rgba(255, 170, 44, .14), transparent 60%);
 }
@@ -2509,27 +1992,20 @@ label { display: block; }
 .registro-monto .keypad button { padding: 13px 0; font-size: 17px; }
 .registro-datos { min-width: 0; }
 
-/* Guardar queda pegado al fondo del panel. La sombra del mismo color que el
-   panel tapa el contenido que pasa por detrás. */
 .registro-box form > .btn-block:last-child {
   position: sticky; bottom: 0; z-index: 2;
   box-shadow: 0 -16px 18px 6px var(--bg-elev);
 }
 
 @media (max-width: 640px) {
-  /* Una columna, y el teclado más bajo para que la categoría quede a la
-     vista sin desplazarse. */
+
   .registro-grid { grid-template-columns: minmax(0, 1fr); gap: 16px; }
 
-  /* Un nombre largo de categoría envuelve en vez de estirar el panel: el
-     nowrap sirve en escritorio, donde hay ancho de sobra, pero en 390px es
-     lo que empujaba el diálogo fuera de la pantalla. */
   .registro-datos .chip { white-space: normal; text-align: center; }
   .registro-monto .amount-display { padding: 4px 0 12px; font-size: 27px; }
   .registro-monto .keypad button { padding: 11px 0; font-size: 16px; }
 }
 
-/* ===== Avisos ===== */
 .toast-container {
   position: fixed; top: 20px; right: 20px; z-index: 300;
   display: flex; flex-direction: column; gap: 9px; max-width: 340px;
@@ -2546,7 +2022,6 @@ label { display: block; }
 .toast.error, .toast.danger { border-left: 3px solid var(--coral); }
 .toast.warning { border-left: 3px solid var(--amber); }
 
-/* ===== Panel de deuda ===== */
 .deuda-panel { position: relative; overflow: hidden; }
 .deuda-cabecera { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 22px; }
 .deuda-datos { display: flex; gap: 10px; flex-wrap: wrap; }
@@ -2586,26 +2061,22 @@ label { display: block; }
 .deuda-item-detalle .pips { justify-content: flex-start; }
 .deuda-item-detalle .pip { max-width: 26px; }
 
-/* ===== Suscripciones ===== */
 .sub-row {
   display: grid; align-items: center; gap: 13px;
   grid-template-columns: 38px 1fr auto auto auto;
   padding: 15px 20px; border-bottom: 1px solid var(--line);
 }
-/* Dentro de una .card el padding ya lo pone la tarjeta: si la fila sumara el
-   suyo, el contenido quedaría a 40px del borde. */
+
 .card > .sub-row, .card .row-list > .sub-row { padding-left: 0; padding-right: 0; }
 .sub-row:last-child { border-bottom: none; }
 .sub-acciones { display: flex; align-items: center; gap: 8px; }
 
-/* ===== Plegables ===== */
 summary { list-style: none; }
 summary::-webkit-details-marker { display: none; }
 summary::marker { content: ''; }
 details[open] summary .fa-chevron-down { transform: rotate(180deg); }
 summary .fa-chevron-down { transition: transform .2s var(--ease-out); }
 
-/* ===== Foco ===== */
 a:focus-visible, button:focus-visible, input:focus-visible,
 select:focus-visible, textarea:focus-visible, [tabindex]:focus-visible {
   outline: 2px solid var(--amber); outline-offset: 2px; border-radius: var(--r-sm);
@@ -2618,7 +2089,6 @@ select:focus-visible, textarea:focus-visible, [tabindex]:focus-visible {
   .chip { min-height: 38px; }
 }
 
-/* ===== Barra inferior ===== */
 .bottomnav {
   display: none; position: fixed; bottom: 0; left: 0; right: 0; z-index: 50;
   height: var(--bottombar-h); padding: 0 6px;
@@ -2643,7 +2113,6 @@ select:focus-visible, textarea:focus-visible, [tabindex]:focus-visible {
   min-width: 16px; padding: 1px 5px; font-size: 9px;
 }
 
-/* Botón flotante */
 .fab-group {
   display: none; position: fixed; right: 16px; z-index: 55;
   bottom: calc(var(--bottombar-h) + 16px);
@@ -2664,7 +2133,6 @@ select:focus-visible, textarea:focus-visible, [tabindex]:focus-visible {
   box-shadow: 0 6px 18px rgba(83, 210, 88, .34);
 }
 
-/* ===== Cajón lateral en móvil ===== */
 .drawer-overlay {
   position: fixed; inset: 0; z-index: 150; display: none;
   background: rgba(0, 0, 0, .6);
@@ -2678,25 +2146,18 @@ select:focus-visible, textarea:focus-visible, [tabindex]:focus-visible {
 }
 @keyframes drawerIn { from { transform: translateX(-100%); } to { transform: none; } }
 
-/* ===== Adaptación ===== */
 @media (max-width: 1000px) {
   :root { --sidebar-w: 76px; }
   .sidebar { padding: 20px 10px; align-items: center; }
   .brand-name, .brand-sub, .nav-title,
   .sidebar .nav-item > span:not(.nav-count) { display: none; }
 
-  /* El logo queda solo: sin quitarle el gap y el padding lateral, la fila
-     seguía midiendo 65px en una caja de 56px y era la que desbordaba. */
   .brand { gap: 0; padding: 4px 0 20px; justify-content: center; width: 100%; }
   .brand > span:last-child { display: none; }
 
-  /* Ambos hijos ocupan el ancho: .sidebar-foot dimensionaba por contenido
-     y se salía por los dos lados. */
   .sidebar > nav, .nav-group, .sidebar-foot { width: 100%; }
   .sidebar-foot { padding: 12px 8px; }
 
-  /* La barra de scroll se dibujaba dentro del riel y dejaba los iconos
-     centrados en 61px en vez de 76. Sigue desplazándose con la rueda. */
   .sidebar { scrollbar-width: none; }
   .sidebar::-webkit-scrollbar { display: none; }
   .sidebar .nav-item { justify-content: center; padding: 13px 0; }
@@ -2721,22 +2182,16 @@ select:focus-visible, textarea:focus-visible, [tabindex]:focus-visible {
   .sidebar .nav-item[data-label]:hover::after { opacity: 1; transform: translateY(-50%) translateX(0); }
   .health .label, .health .progress-bar,
   .health .health-nota, .health .health-detalle { display: none; }
-  /* Respaldo: si la clase quedara en el contenedor en vez del texto, se
-     esconde su contenido y no el bloque entero. */
+
   .health.health-nota > div:not(.label) { display: none; }
   .health { text-align: center; padding: 12px 6px; }
   .main { padding: 22px; }
   .topbar + .main { padding-top: 0; }
 
-  /* El topbar caía en cinco filas: el buscador con min-width:200px, la
-     píldora de mes y dos botones no caben en una línea a este ancho.
-     El buscador cede ancho y el saludo se queda con el nombre. */
   .topbar { gap: 10px; padding: 20px 22px 0; }
   .search { min-width: 0; flex: 1 1 150px; }
   .search .kbd { display: none; }
-  /* Con la píldora de mes del dashboard no caben dos botones con texto: se
-     cambian por uno solo. Un icono sin etiqueta no sirve acá — la flecha de
-     ingreso y el más de gasto se confunden. */
+
   .solo-ancho { display: none !important; }
   .solo-medio { display: inline-flex !important; }
   .topbar .saludo-sub { display: none; }
@@ -2744,39 +2199,22 @@ select:focus-visible, textarea:focus-visible, [tabindex]:focus-visible {
 
 @media (max-width: 720px) {
   .sidebar { display: none; }
-  /* Sin topbar en móvil, el padding superior vuelve a .main.
-     Guardada en la pantalla de inicio, la app corre bajo la barra de
-     estado (status-bar-style black-translucent), así que el aire de
-     arriba tiene que contar el notch además de los 18px de diseño. */
+
   .main, .topbar + .main {
     padding: calc(18px + env(safe-area-inset-top)) 16px calc(var(--bottombar-h) + 26px);
   }
   .sub-row { padding-left: 16px; padding-right: 16px; }
 
-  /* ===== Formularios en móvil =====
-     .form-row es flex con min-width:120px por campo, así que dos campos
-     seguían lado a lado en 390px: unos 150px cada uno. En ese ancho el
-     control nativo de fecha se corta, el monto grande no cabe y las
-     etiquetas de dos palabras se parten. Un campo por fila.
-
-     Pasa a grid a propósito: los style="flex:1.5" que traen algunas
-     plantillas se ignoran en un grid item, así que no hay que quitarlos
-     uno por uno para que las columnas queden parejas. */
   .form-row {
     display: grid; grid-template-columns: 1fr;
     gap: 16px; margin-bottom: 16px;
   }
   .form-row > div { min-width: 0; }
 
-  /* El monto grande centrado: 22px con 16px de padding deja el cursor casi
-     pegado al borde en un campo estrecho. */
   .input-amount { font-size: 19px; padding: 14px; }
 
-  /* Un input de fecha o de número no debe imponer su ancho preferido. */
   input[type=date], input[type=number] { min-width: 0; }
 
-  /* Los chips de un formulario envuelven en dos líneas si hace falta, en
-     vez de estirar la tarjeta. */
   .field .chip, .form-row .chip { white-space: normal; text-align: center; }
   .glass > .row, .glass > .row-list > .row { padding-left: 16px; padding-right: 16px; }
   .bottomnav { display: flex; }
@@ -2795,17 +2233,6 @@ select:focus-visible, textarea:focus-visible, [tabindex]:focus-visible {
   .amount-display { font-size: 32px; }
   .toast-container { top: auto; bottom: calc(var(--bottombar-h) + 14px); left: 14px; right: 14px; max-width: none; }
 
-  /* --- Suscripciones en el teléfono ---
-     Antes todo iba en una sola línea: avatar, nombre, y los tres controles
-     apretados a la derecha. En 390px no cabe: al nombre le quedaban 110px,
-     así que "PAC World Vision Chile" se cortaba en "PAC World Vision C…",
-     y los controles bajaban a 34px, por debajo del mínimo cómodo para el
-     pulgar.
-
-     Ahora cada suscripción es una ficha de dos líneas: arriba la marca, el
-     nombre y el monto; abajo los controles con su tamaño real. Ocupa más
-     alto, pero el nombre se lee entero y cada botón se puede tocar sin
-     apuntar. */
   .sub-row {
     grid-template-columns: 38px minmax(0, 1fr) auto;
     grid-template-areas:
@@ -2813,14 +2240,12 @@ select:focus-visible, textarea:focus-visible, [tabindex]:focus-visible {
       'acciones acciones acciones';
     align-items: center; gap: 10px 11px;
     padding: 13px 14px;
-    /* Ficha con fondo propio en vez de filas separadas por una línea: con
-       dos líneas por suscripción, la hairline no alcanzaba para saber dónde
-       terminaba una y empezaba la otra. */
+
     background: var(--surface-2);
     border-radius: var(--r-md);
     border-bottom: none;
   }
-  /* El contenedor pierde su padding: cada ficha trae el suyo. */
+
   .glass:has(> .sub-row) {
     display: flex; flex-direction: column; gap: 8px;
     padding: 8px; background: none; border: none;
@@ -2832,60 +2257,44 @@ select:focus-visible, textarea:focus-visible, [tabindex]:focus-visible {
 
   .sub-row > .sub-acciones {
     grid-area: acciones;
-    /* A la derecha, con Pagar empujado al extremo opuesto: así los tres
-       controles quedan siempre en el mismo sitio, tenga la fila botón de
-       pagar o no. Antes el primer hijo se estiraba, así que en una fila ya
-       pagada el ↺ salía solo a la izquierda con 200px de vacío al lado. */
+
     display: flex; align-items: center; justify-content: flex-end; gap: 8px;
     padding: 10px 0 0; border: none;
     border-top: 1px solid rgba(255, 255, 255, .06);
   }
   .sub-acciones form { margin: 0 !important; }
-  /* Pagar al extremo izquierdo y al ancho de su texto. Estirado a toda la
-     ficha pesaba más que el nombre y el monto, que es lo que se viene a
-     leer. */
+
   .sub-acciones > .form-pagar { margin-right: auto !important; }
 
-  /* El borrado se separa del resto: pegado al interruptor, un pulgar que
-     apunta a pausar la suscripción puede borrarla. */
   .sub-acciones > .form-borrar {
     margin-left: 6px !important; padding-left: 10px;
     border-left: 1px solid rgba(255, 255, 255, .07);
   }
 
-  /* El monto bajo el nombre, solo en móvil. */
   .sub-monto-movil {
     display: inline; font-size: 12.5px; font-weight: 700;
     color: var(--text-primary);
   }
-  /* Una línea siempre: si crece a dos, los controles se desalinean del
-     nombre y la fila da un salto. */
+
   .sub-row .row-meta {
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
-  /* El nombre ya no se recorta: con el ancho de la ficha entera cabe, y si
-     alguno no cupiera, mejor dos líneas que puntos suspensivos. */
+
   .sub-row .row-title {
     white-space: normal; overflow: visible; text-overflow: clip;
     line-height: 1.35;
     display: flex; align-items: center; flex-wrap: wrap; gap: 6px;
   }
-  /* El badge deja su margen en línea: acá lo pone el gap del título. */
+
   .sub-row .row-title .badge { margin-left: 0 !important; }
 
-  /* Zonas de toque de verdad: 40px el basurero, 44 el interruptor. */
-  /* El fondo por defecto del .icon-btn es --surface-2, el mismo de la ficha:
-     dentro de la ficha el bot\u00f3n desaparece y el \u21ba parec\u00eda desactivado al
-     lado del interruptor. Un paso m\u00e1s claro y se lee como control. */
   .sub-acciones .icon-btn {
     width: 40px; height: 40px; min-width: 40px; min-height: 40px;
     background: var(--surface-3);
   }
   .sub-acciones .icon-btn:hover { background: var(--surface-4, rgba(255, 255, 255, .12)); }
   .sub-acciones .switch { width: 46px; height: 28px; }
-  /* El interruptor mide 28px de alto: se ve bien, pero como zona de toque
-     se queda corto. El pseudo-elemento la estira a 44 sin cambiar nada de
-     lo que se ve. */
+
   .sub-acciones .switch::before {
     content: ''; position: absolute; inset: -8px -3px;
   }
@@ -2893,9 +2302,6 @@ select:focus-visible, textarea:focus-visible, [tabindex]:focus-visible {
   .sub-acciones .switch.on .knob { transform: translateX(18px); }
   .sub-acciones .btn { min-height: 40px; padding: 0 16px; }
 
-  /* Aire al pie de la lista: el botón flotante tapaba la última ficha. El
-     padding del contenedor no alcanza cuando la lista es lo último de la
-     página. */
   .glass:has(> .sub-row):last-child { padding-bottom: 84px; }
 
   .deuda-item > summary { gap: 10px; padding: 12px 10px; }
@@ -2905,7 +2311,7 @@ select:focus-visible, textarea:focus-visible, [tabindex]:focus-visible {
 }
 
 @media (max-width: 720px) {
-  /* El saludo del topbar pasa a ser la tarjeta de la plantilla */
+
   .topbar { display: none; }
   .saludo-card {
     display: flex; align-items: center; gap: 13px;
@@ -2930,13 +2336,9 @@ select:focus-visible, textarea:focus-visible, [tabindex]:focus-visible {
     box-shadow: 0 0 0 2px var(--surface);
   }
 
-
-  /* --- Barra inferior flotante, con el botón encima --- */
   .bottomnav {
     left: 14px; right: 14px;
-    /* Igual que el botón flotante: bottom + área segura, no margin-bottom.
-       Dos mecanismos distintos para el mismo desplazamiento fue lo que dejó
-       al botón montado por debajo en el iPhone. */
+
     bottom: calc(14px + var(--safe-b));
     height: 66px; padding: 0 4px;
     border-radius: 24px; border: none;
@@ -2947,13 +2349,8 @@ select:focus-visible, textarea:focus-visible, [tabindex]:focus-visible {
   .bottomnav .nav-item { gap: 3px; padding: 8px 2px; font-size: 10.5px; }
   .bottomnav .nav-item i { font-size: 18px; }
 
-  /* El hueco del botón central: dos ítems a cada lado */
   .bottomnav .nav-hueco { flex: 0 0 66px; }
 
-  /* El botón sale de la barra y la monta por arriba, con su halo ámbar.
-     Se ancla al MISMO sistema que la barra: sin sumarle el área segura,
-     en un iPhone la barra subía 34px y el botón se quedaba abajo, montado
-     por el lado contrario. */
   .fab-group {
     right: 50%; bottom: calc(34px + var(--safe-b));
     transform: translateX(50%);
@@ -2965,34 +2362,20 @@ select:focus-visible, textarea:focus-visible, [tabindex]:focus-visible {
     border: 3px solid var(--bg);
     box-shadow: 0 0 0 2px rgba(255, 170, 44, .5), 0 0 22px rgba(255, 170, 44, .35);
   }
-  /* Un solo botón, como la plantilla. El segundo se montaba sobre la barra
-     y tapaba "Más"; el panel que abre el central ya trae el selector
-     Gasto/Ingreso arriba, así que el ingreso sigue a un toque. */
+
   .fab-group .fab-mini { display: none; }
 
-  /* El obstáculo más alto del canto inferior no es la barra — que con su
-     bottom llega a 80px — sino el botón central: 34px de bottom, 68px de
-     alto y 22px de halo ámbar, 124px en total. Midiendo contra la barra
-     sobraban 26px, pero sobre el botón quedaban 10 y el halo se montaba
-     encima de la última tarjeta de la página (la meta de ahorro del
-     dashboard). Se mide contra el botón, y los 16px son el aire. */
   .main { padding-bottom: calc(124px + 16px + var(--safe-b)); }
 
-  /* Las secciones se ven como en la plantilla: título grande, "Ver mas" */
   .section-title { font-size: 19px; padding-left: 11px; }
   .section-head { margin: 24px 0 12px; }
 
   .mov-list { gap: 7px; }
 
-  /* Filas más compactas: con las acciones tras el gesto sobra el aire que
-     antes necesitaban los botones. */
   .swipe-mov .swipe-card { gap: 11px; padding: 12px 14px 12px 13px; }
   .mov-list .icon-tile, .mov-list .marca-tile { width: 34px; height: 34px; font-size: 13px; }
   .mov-monto { font-size: 13.5px; }
 
-  /* ===== Metas =====
-     El icono baja a 34 y el pie a 10px: son los dos que dejaban al nombre
-     con menos de la mitad de la fila. */
   .meta-fila { gap: 11px; padding: 13px 14px; }
   .meta-icono { width: 34px; height: 34px; font-size: 13px; border-radius: 11px; }
   .meta-monto { font-size: 15px; }
@@ -3000,23 +2383,12 @@ select:focus-visible, textarea:focus-visible, [tabindex]:focus-visible {
   .meta-pie { font-size: 10px; margin-top: 6px; }
 }
 
-/* ===== Interpretación IA =====
-   La tarjeta tenía todo entre 12,5 y 13,5px: diagnóstico, recomendaciones,
-   proyección y cierre pesaban lo mismo y el bloque se leía como un muro.
-   Ahora hay tres voces — el diagnóstico manda a 16px, las instrucciones
-   bajan a 13,5 dentro de su propia superficie, y el cierre vuelve a subir
-   en ámbar. Los números van tabulares en las tres: el texto viene lleno de
-   importes y sin eso las cifras bailan de línea a línea. */
-
 .ia-head { display: flex; align-items: center; gap: 13px; margin-bottom: 18px; }
 .ia-titulo {
   font-size: 16px; font-weight: 700; letter-spacing: -.015em;
   color: var(--text-primary);
 }
 
-/* La tarjeta era una masa gris uniforme. Un resplandor ámbar muy bajo en la
-   esquina superior derecha le da dirección a la luz y ata el bloque al
-   acento de la app, sin teir el texto ni bajarle contraste. */
 .ia-card { position: relative; overflow: hidden; }
 .ia-card::after {
   content: ''; position: absolute; top: -60px; right: -40px;
@@ -3026,8 +2398,6 @@ select:focus-visible, textarea:focus-visible, [tabindex]:focus-visible {
 }
 .ia-card > * { position: relative; z-index: 1; }
 
-/* La ficha del icono, en ámbar y con un halo: es el único punto de color
-   antes del primer párrafo, y en blanco quedaba como un botón suelto. */
 .ia-tile {
   display: inline-flex; align-items: center; justify-content: center;
   width: 38px; height: 38px; flex-shrink: 0;
@@ -3046,16 +2416,13 @@ select:focus-visible, textarea:focus-visible, [tabindex]:focus-visible {
   text-wrap: pretty;
 }
 
-/* La etiqueta de sección arrastra una línea hasta el borde: separa los
-   bloques sin gastar 18px de margen en cada uno. */
 .ia-label {
   display: flex; align-items: center; gap: 10px;
   font-size: 10px; font-weight: 700; letter-spacing: .16em;
   text-transform: uppercase; color: rgba(245, 245, 245, .55);
   margin-bottom: 13px;
 }
-/* Un punto ámbar abre la etiqueta y la línea la cierra: el gris solo se
-   perdía contra el fondo. */
+
 .ia-label::before {
   content: ''; width: 5px; height: 5px; border-radius: 50%;
   background: var(--amber); flex-shrink: 0;
@@ -3069,8 +2436,7 @@ select:focus-visible, textarea:focus-visible, [tabindex]:focus-visible {
 .ia-rec {
   display: flex; align-items: flex-start; gap: 13px;
   padding: 15px 17px; border-radius: var(--r-md);
-  /* Un degradado apenas perceptible más una luz de canto arriba: el
-     rectángulo plano de --surface-2 era lo que se sentía apagado. */
+
   background: linear-gradient(158deg, rgba(255, 255, 255, .045), rgba(255, 255, 255, .012));
   border: 1px solid var(--line);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, .05);
@@ -3090,8 +2456,7 @@ select:focus-visible, textarea:focus-visible, [tabindex]:focus-visible {
   display: flex; align-items: center; justify-content: center;
   width: 27px; height: 27px; flex-shrink: 0; border-radius: 9px;
   font-size: 12.5px; font-weight: 800; font-variant-numeric: tabular-nums;
-  /* Ámbar pleno con dígito oscuro: la ficha tenue se leía como texto
-     descolorido en vez de un número de paso. */
+
   background: linear-gradient(150deg, var(--amber-claro), var(--amber-oscuro));
   color: #221703;
   box-shadow: 0 4px 12px -4px rgba(255, 170, 44, .55);
@@ -3144,10 +2509,6 @@ select:focus-visible, textarea:focus-visible, [tabindex]:focus-visible {
   .glass { background: #fff; border: 1px solid #ddd; }
 }
 
-/* ===== Tarjeta de préstamo =====
-   Una franja de color al canto y un tinte del mismo tono en el fondo. Basta
-   para diferenciarlas sin el peso de una tarjeta rellena: son varias en una
-   lista, y tres fondos saturados seguidos compiten entre sí. */
 .prestamo-card {
   position: relative; display: block; overflow: hidden;
   padding: 17px 17px 17px 20px; border-radius: 19px;
@@ -3159,22 +2520,18 @@ select:focus-visible, textarea:focus-visible, [tabindex]:focus-visible {
   background: var(--acento-prestamo, var(--amber));
 }
 
-/* En cuotas: lila, el mismo tono con que se marcan las cuotas en toda la app */
 .prestamo-card.cuotas {
   --acento-prestamo: #818cf8;
   --linea-prestamo: rgba(129, 140, 248, .22);
   background: linear-gradient(100deg, rgba(129, 140, 248, .1), var(--surface-2) 62%);
 }
 
-/* Pago único: azul */
 .prestamo-card.unico {
   --acento-prestamo: #4b8cff;
   --linea-prestamo: rgba(75, 140, 255, .22);
   background: linear-gradient(100deg, rgba(75, 140, 255, .1), var(--surface-2) 62%);
 }
 
-/* Saldado: verde y más apagado. Ya no hay nada que hacer con él, así que no
-   debe llamar la atención igual que los que siguen abiertos. */
 .prestamo-card.saldado {
   --acento-prestamo: var(--green);
   --linea-prestamo: rgba(83, 210, 88, .2);
@@ -3186,10 +2543,6 @@ select:focus-visible, textarea:focus-visible, [tabindex]:focus-visible {
   .prestamo-card { padding: 15px 15px 15px 18px; }
 }
 
-/* ===== Fila de pago del mes =====
-   Cada pago se distingue por tipo con una franja al canto y el color de su
-   ficha. Franja y no fondo relleno: son siete u ocho seguidas, y otros
-   tantos fondos de color convertirían la lista en un semáforo. */
 .pago-fila {
   position: relative; display: flex; align-items: center; gap: 13px;
   padding: 13px 14px 13px 17px; border-radius: 15px;
@@ -3205,8 +2558,6 @@ select:focus-visible, textarea:focus-visible, [tabindex]:focus-visible {
   background: var(--pago-acento);
 }
 
-/* La ficha con el logo de la plataforma. El borde y el fondo salen del color
-   de la marca en la plantilla; acá solo va lo que no depende de cuál sea. */
 .pago-ficha.marca { border: 1px solid; }
 .pago-ficha.marca b {
   font-size: 15px; font-weight: 800; letter-spacing: -.02em;
@@ -3221,40 +2572,30 @@ select:focus-visible, textarea:focus-visible, [tabindex]:focus-visible {
 
 .pago-monto { font-size: 12.5px; flex-shrink: 0; }
 
-/* --- Por tipo --- */
-
-/* Cuota: lila, el mismo tono que las cuotas en toda la app */
 .pago-fila.t-cuota {
   --pago-acento: #818cf8;
   --pago-tenue: rgba(129, 140, 248, .15);
   --pago-hover: rgba(129, 140, 248, .07);
 }
 
-/* Suscripción: naranja, como la categoría Suscripciones */
 .pago-fila.t-servicio {
   --pago-acento: #fb923c;
   --pago-tenue: rgba(251, 146, 60, .15);
   --pago-hover: rgba(251, 146, 60, .07);
 }
 
-/* Cuenta por pagar: rosa, como la categoría Cuentas */
 .pago-fila.t-cuenta {
   --pago-acento: #f472b6;
   --pago-tenue: rgba(244, 114, 182, .15);
   --pago-hover: rgba(244, 114, 182, .07);
 }
 
-/* Gasto anotado sin pagar: azul */
 .pago-fila.t-gasto {
   --pago-acento: #4b8cff;
   --pago-tenue: rgba(75, 140, 255, .15);
   --pago-hover: rgba(75, 140, 255, .07);
 }
 
-/* --- El estado manda sobre el tipo --- */
-
-/* Atrasado: coral y con fondo, para que salte por encima del resto. Es lo
-   único de la lista que exige atención hoy. */
 .pago-fila.atrasado {
   --pago-acento: var(--coral);
   --pago-tenue: var(--coral-tenue);
@@ -3262,7 +2603,6 @@ select:focus-visible, textarea:focus-visible, [tabindex]:focus-visible {
   --pago-hover: rgba(226, 92, 92, .12);
 }
 
-/* Pagado: verde y apagado. Ya está hecho, no compite por la mirada. */
 .pago-fila.pagado {
   --pago-acento: var(--green);
   --pago-tenue: var(--green-tenue);
@@ -3276,16 +2616,11 @@ select:focus-visible, textarea:focus-visible, [tabindex]:focus-visible {
   .pago-ficha { width: 34px; height: 34px; border-radius: 11px; font-size: 12.5px; }
 }
 
-
-/* ===== Modales en pantalla angosta =====
-   Hoja desde abajo, a todo el ancho: un diálogo centrado de 460px en un
-   teléfono deja franjas muertas a los lados y el pulgar lejos del botón.
-   Va al final del archivo para ganarle al bloque de 720px. */
 @media (max-width: 560px) {
   .modal-overlay { align-items: flex-end; padding: 0; }
   .modal-box {
     --modal-pad: 18px;
-    max-width: none !important;   /* varias plantillas fijan max-width en línea */
+    max-width: none !important;
     width: 100%; max-height: 92dvh;
     border-radius: var(--r-xl) var(--r-xl) 0 0;
     padding-bottom: calc(var(--modal-pad) + env(safe-area-inset-bottom));
@@ -3303,19 +2638,11 @@ select:focus-visible, textarea:focus-visible, [tabindex]:focus-visible {
   .modal-box { animation: none !important; }
 }
 
-
-/* La ficha de icono del modal se encoge un poco en teléfono: 42px + texto a
-   dos líneas hacía una cabecera de 90px de alto. */
 @media (max-width: 560px) {
   .modal-icon { width: 38px; height: 38px; border-radius: 13px; font-size: 14px; }
   .modal-titulo { gap: 11px; }
 }
 
-
-/* ===== Tour guiado =====
-   Un foco sobre el elemento real: el rectángulo transparente lleva una
-   sombra gigante del color del fondo, así que oscurece TODO menos lo que
-   se está explicando, sin tener que mover el elemento de sitio. */
 .tour-capa { position: fixed; inset: 0; z-index: 400; display: none; }
 .tour-capa.on { display: block; }
 .tour-hueco {
@@ -3363,7 +2690,6 @@ select:focus-visible, textarea:focus-visible, [tabindex]:focus-visible {
 }
 .tour-omitir:hover { color: var(--text-secondary); }
 
-/* Retomar el tour después de irse a otra pantalla por su cuenta. */
 .tour-pildora {
   position: fixed; z-index: 390; left: 18px; bottom: 18px;
   display: none; align-items: center; gap: 8px;
@@ -3394,12 +2720,6 @@ select:focus-visible, textarea:focus-visible, [tabindex]:focus-visible {
 .tour-fin i { color: var(--green); }
 .tour-fin.irse { opacity: 0; transition: opacity .5s; }
 
-/* El paso del gesto de deslizar es el único que no se entiende leyéndolo.
-   El tour pone .tour-gesto sobre la fila y acá se arrastra sola: primero
-   hacia la derecha, que descubre Editar en el canto izquierdo, y después
-   hacia la izquierda, que descubre Eliminar en el derecho. Es una demo, no
-   un estado: al cerrar el paso la clase se quita y la fila vuelve a
-   responder solo al dedo. */
 @keyframes tour-desliza {
    0%,  8% { transform: translateX(0); }
   22%, 36% { transform: translateX(84px); }
@@ -3411,16 +2731,13 @@ select:focus-visible, textarea:focus-visible, [tabindex]:focus-visible {
 .tour-gesto.swipe-card {
   animation: tour-desliza 4.6s var(--ease-out) infinite;
 }
-/* Los paneles de acción suelen estar atenuados hasta que la fila se abre:
-   durante la demo se ven, o el gesto no muestra nada. */
+
 .tour-gesto .swipe-acciones { opacity: 1; }
 @media (prefers-reduced-motion: reduce) {
   .tour-gesto .swipe-card,
   .tour-gesto.swipe-card { animation: none; }
 }
 
-/* En el teléfono la barra inferior y los botones flotantes ocupan la esquina
-   derecha: la píldora se queda a la izquierda, por encima de la barra. */
 @media (max-width: 720px) {
   .tour-pildora { left: 14px; bottom: calc(var(--bottombar-h) + 88px); }
   .tour-globo { padding: 16px; }
@@ -3428,9 +2745,6 @@ select:focus-visible, textarea:focus-visible, [tabindex]:focus-visible {
   .tour-fin { left: 14px; right: 14px; transform: none; justify-content: center; bottom: calc(var(--bottombar-h) + 16px); }
 }
 
-/* ===== Primeros pasos =====
-   La lista queda después del tour: el tour explica, esto recuerda lo que
-   falta por hacer. Se marca solo, según los datos que ya existen. */
 .pasos-card { padding: 18px 19px; margin-bottom: 18px; position: relative; overflow: hidden; }
 .pasos-card::before {
   content: ''; position: absolute; inset: 0; pointer-events: none;
@@ -3474,20 +2788,13 @@ select:focus-visible, textarea:focus-visible, [tabindex]:focus-visible {
 .paso-item.hecho { background: none; border-color: var(--line); }
 .paso-item.hecho .paso-check { background: var(--green); border-color: var(--green); color: #062b08; }
 .paso-item.hecho .paso-titulo { color: var(--text-muted); text-decoration: line-through; }
-/* Lo esconde el usuario, y se recuerda en el navegador. La clase la pone el
-   script de <head> para que la tarjeta no alcance a parpadear. */
+
 .pasos-ocultos [data-pasos] { display: none !important; }
 
-/* Ajustes finos: "Saltar el tour" y el contador se partían en dos líneas. */
 .tour-omitir { white-space: nowrap; }
 .pasos-cuenta { white-space: nowrap; }
 .paso-titulo, .paso-nota { display: block; }
 
-/* ===== Campo de fecha en iOS =====
-   Safari de iPhone no usa el input nativo de escritorio: pinta el valor con
-   su propio relleno y CENTRADO, así que "08-09-2026" quedaba al medio del
-   campo mientras "12" de al lado iba a la izquierda — las dos cajas se veían
-   descuadradas. Además, un campo de fecha vacío colapsa de alto en iOS. */
 input[type=date] {
   -webkit-appearance: none; appearance: none;
   text-align: left; min-height: 46px;
@@ -3496,18 +2803,11 @@ input[type=date]::-webkit-date-and-time-value { text-align: left; margin: 0; }
 input[type=date]::-webkit-datetime-edit { text-align: left; padding: 0; }
 input[type=date]::-webkit-datetime-edit-fields-wrapper { padding: 0; }
 
-
-/* =====================================================================
-   Importar cartola
-   ===================================================================== */
-
 .cartola-layout {
   display: grid; gap: 18px; align-items: start;
   grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
 }
 
-/* La zona de arrastre. Es una <label> y no un <div>: así el clic abre el
-   selector de archivos sin una línea de JavaScript, y el teclado la alcanza. */
 .cartola-zona {
   display: flex; flex-direction: column; align-items: center; justify-content: center;
   gap: 8px; min-height: 190px; padding: 28px 20px; text-align: center;
@@ -3529,9 +2829,7 @@ input[type=date]::-webkit-datetime-edit-fields-wrapper { padding: 0; }
   font-size: 14px; font-weight: 700; color: var(--text-primary);
   max-width: 100%; text-wrap: balance;
 }
-/* El recorte con puntos vale para el nombre del archivo, que puede ser
-   larguísimo — no para la instrucción, que en el teléfono se cortaba en
-   "Arrastra aquí el P…" y dejaba de decir qué hay que arrastrar. */
+
 .cartola-zona.con-archivo .cartola-titulo {
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
@@ -3544,8 +2842,6 @@ input[type=date]::-webkit-datetime-edit-fields-wrapper { padding: 0; }
 }
 .cartola-pasos b { color: var(--text-primary); }
 
-/* El veredicto del cuadre. Es lo primero que hay que leer, así que ocupa
-   el ancho entero y lleva color propio. */
 .cartola-aviso {
   display: flex; gap: 12px; align-items: flex-start;
   padding: 14px 16px; margin-bottom: 16px;
@@ -3568,10 +2864,7 @@ input[type=date]::-webkit-datetime-edit-fields-wrapper { padding: 0; }
   padding: 13px 15px; border-radius: var(--r-md);
   background: var(--surface); border: 1px solid var(--line-fuerte);
 }
-/* Cada recuadro con el color de lo que cuenta: turquesa lo que se va a
-   importar, verde lo que entra, coral lo que sale, y gris lo que ya estaba
-   en la base porque no es una cifra que haya que mirar. Los cuatro del
-   mismo gris obligaban a leer las etiquetas para saber cuál es cuál. */
+
 .cartola-resumen > div:nth-child(1) {
   background: color-mix(in srgb, var(--teal) 8%, var(--surface));
   border-color: rgba(47, 216, 200, .3);
@@ -3589,20 +2882,13 @@ input[type=date]::-webkit-datetime-edit-fields-wrapper { padding: 0; }
 
 .cartola-barra { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
 
-/* Las cinco columnas de la tabla. Se declaran una sola vez y las heredan la
-   cabecera y las filas, así los títulos quedan a plomo con los datos. */
-/* Las cinco columnas de la tabla. Se declaran una sola vez y las heredan la
-   cabecera y las filas, así los títulos quedan a plomo con los datos. */
 .cartola-cabecera, .cartola-fila {
   display: grid;
   grid-template-columns: 24px 46px minmax(0, 1fr) 168px 122px;
   column-gap: 12px; row-gap: 8px;
   padding: 12px 18px;
 }
-/* align-items en la celda, no en la fila: con center en la fila entera, una
-   fila alta (la de una cuota, que trae marcas y casilla debajo) dejaba el
-   selector y el monto flotando en el medio, despegados de la descripción a
-   la que pertenecen. Ahora cada celda de la primera línea se alinea sola. */
+
 .cartola-cabecera { align-items: center; }
 .cartola-fila > *, .cartola-principal > *, .cartola-meta > * { align-self: center; }
 .cartola-cabecera {
@@ -3611,21 +2897,16 @@ input[type=date]::-webkit-datetime-edit-fields-wrapper { padding: 0; }
 }
 .cartola-fila { border-top: 1px solid var(--line); }
 .cartola-fila:hover { background: rgba(255, 255, 255, .02); }
-/* Lo que ya está en la base se apaga en vez de esconderse: sigue visible por
-   si el parecido es casualidad y en verdad son dos movimientos distintos. */
+
 .cartola-fila.repetida { opacity: .5; }
 .cartola-fila.repetida:hover { opacity: 1; }
-/* Y lo mismo con lo que se destildó: la fila se apaga para que de un vistazo
-   se vea qué se va a guardar, sin tener que ir leyendo casilla por casilla. */
+
 .cartola-fila.apagada { opacity: .42; }
 .cartola-fila.apagada:hover { opacity: 1; }
 
 .cartola-check { width: 17px; height: 17px; accent-color: var(--cartola-acento); cursor: pointer; }
 .cartola-fecha { font-size: 12px; color: var(--text-secondary); cursor: pointer; }
-/* En escritorio no existen: sus hijos son celdas de la tabla. Agrupar el
-   comercio con su monto, y la fecha con su categoría, es cosa del teléfono.
-   Con `display: contents` el orden del HTML manda, así que cada celda se
-   coloca explícitamente para que no dependa de en qué grupo quedó. */
+
 .cartola-principal, .cartola-meta { display: contents; }
 .cartola-check    { grid-column: 1; grid-row: 1; }
 .cartola-fecha    { grid-column: 2; grid-row: 1; }
@@ -3633,19 +2914,14 @@ input[type=date]::-webkit-datetime-edit-fields-wrapper { padding: 0; }
 .cartola-cat-caja { grid-column: 4; grid-row: 1; }
 .cartola-monto    { grid-column: 5; grid-row: 1; }
 .cartola-cat { width: 100%; }
-/* La categoría en el teléfono es texto, no un selector con caja: el <select>
-   queda encima, invisible, y lo que se ve es este texto. En escritorio sobra,
-   porque ahí la columna sí es un campo. */
+
 .cartola-cat-txt, .cartola-cat-caja > i, .cartola-sep { display: none; }
-/* Las etiquetas de campo tampoco: la cabecera de la tabla ya dice qué es
-   cada columna, y repetirlo en cada fila sería ruido. */
+
 .cartola-etq { display: none; }
 
 .cartola-desc { min-width: 0; }
 .cartola-desc input[type=text] {
-  /* La descripción se edita en el sitio: el nombre que imprime el banco
-     ("REDCOMPRA LIDER 4521 CL") casi nunca es el que uno querría leer
-     después en su propia lista de gastos. */
+
   padding: 9px 11px; font-size: 12.5px;
   background: transparent; border: 1px solid transparent; border-radius: var(--r-sm);
 }
@@ -3654,7 +2930,6 @@ input[type=date]::-webkit-datetime-edit-fields-wrapper { padding: 0; }
   background: var(--surface-2); border-color: var(--cartola-acento);
 }
 
-/* La segunda línea: arranca donde la descripción y llega hasta el borde. */
 .cartola-detalle {
   grid-column: 3 / -1;
   display: flex; flex-direction: column; gap: 6px;
@@ -3662,23 +2937,18 @@ input[type=date]::-webkit-datetime-edit-fields-wrapper { padding: 0; }
 }
 .cartola-marcas { display: flex; flex-wrap: wrap; gap: 6px 8px; align-items: center; }
 .cartola-nota-fila { font-size: 10.5px; line-height: 1.45; color: var(--amber); }
-/* La explicación de una cuota no es una advertencia. */
+
 .cartola-nota-fila.suave { color: var(--text-muted); }
 .cartola-extra {
   display: flex; align-items: center; gap: 7px;
   font-size: 11px; color: var(--text-secondary); cursor: pointer;
 }
-/* El texto encoge y la cifra no: al revés, un nombre largo empujaba la
-   pastilla a una segunda línea y la casilla quedaba suelta arriba. */
+
 .cartola-extra-txt { min-width: 0; }
 .cartola-extra input { width: 14px; height: 14px; accent-color: var(--green); flex-shrink: 0; }
 
-/* "Esta compra no es mía": el selector de persona cuelga de la casilla, con
-   una sangría que lo alinea con el texto de la etiqueta para que se lea como
-   su continuación y no como un control aparte de la fila. */
 .cartola-deben { display: flex; flex-direction: column; gap: 6px; }
-/* Lo que se va a anotar, al lado de la etiqueta: la casilla dice qué hace y
-   esto dice cuánto, antes de marcarla. */
+
 .cartola-deben-cuanto {
   font-family: var(--mono, ui-monospace, monospace);
   font-size: 10.5px; font-weight: 700; color: var(--green);
@@ -3695,9 +2965,7 @@ input[type=date]::-webkit-datetime-edit-fields-wrapper { padding: 0; }
 }
 .cartola-deben-quien select { padding-right: 30px; }
 .cartola-deben-quien input[type=text] { flex: 1; max-width: 200px; }
-/* Un `display` en la hoja gana al atributo `hidden`, que solo trae el
-   display:none del navegador: sin estas dos reglas el selector salía visible
-   en todas las filas desde el primer momento. */
+
 .cartola-deben-quien[hidden] { display: none; }
 .cartola-deben-quien input[type=text][hidden] { display: none; }
 
@@ -3706,8 +2974,6 @@ input[type=date]::-webkit-datetime-edit-fields-wrapper { padding: 0; }
 .cartola-monto.entra { color: var(--green); }
 .cartola-monto.sale  { color: var(--text-primary); }
 
-/* El pie se queda a la vista: con cincuenta filas, el botón de guardar al
-   final de la página obliga a un viaje de ida y vuelta para confirmar. */
 .cartola-pie {
   position: sticky; bottom: 0; z-index: 20;
   display: flex; align-items: center; justify-content: space-between; gap: 14px;
@@ -3718,39 +2984,12 @@ input[type=date]::-webkit-datetime-edit-fields-wrapper { padding: 0; }
 }
 .cartola-pie .btn:disabled { opacity: .45; cursor: not-allowed; }
 
-/* El contenedor de la lista. En escritorio es una tabla: filas a ras, sin
-   aire entre ellas, con la cabecera arriba. */
 .cartola-tabla { padding: 0; overflow: hidden; }
 
-/* ====================================================================
-   El teléfono: una lista, no cien fichas
-   --------------------------------------------------------------------
-   Una cartola trae ciento cincuenta filas y cada una tiene cuatro cosas
-   que se pueden tocar. Puestas como ficha — un recuadro por movimiento,
-   y dentro otro recuadro por campo — la pantalla termina siendo cien
-   rectángulos grises del mismo tamaño: nada resalta, y no se ve dónde
-   termina una compra y empieza la otra.
-
-   Acá no hay recuadros. Hay una lista con jerarquía:
-
-       ✓  Lider Express                        −$10.000
-          31/08 · Supermercado ˅
-
-   El comercio y la plata llevan el peso; la fecha y la categoría van en
-   una sola línea gris debajo. Los campos no tienen caja: se editan en el
-   sitio y se reconocen por el subrayado punteado, que al tocarlos se pone
-   sólido y turquesa. La única caja que queda es la de las casillas
-   accionables — "crear la suscripción", "no es mía" —, que sí necesitan
-   un área de toque.
-   ==================================================================== */
 @media (max-width: 900px) {
   .cartola-layout { grid-template-columns: minmax(0, 1fr); }
   .cartola-cabecera { display: none; }
 
-  /* Una tarjeta por movimiento, con aire entre ellas: con ciento cincuenta
-     filas seguidas cuesta ver dónde termina una compra y empieza la otra,
-     sobre todo cuando la de arriba trae casillas colgando. La tarjeta las
-     separa sin necesidad de líneas. */
   .cartola-tabla {
     display: flex; flex-direction: column; gap: 10px;
     padding: 0; background: none; border: none;
@@ -3764,19 +3003,14 @@ input[type=date]::-webkit-datetime-edit-fields-wrapper { padding: 0; }
     padding: 14px 15px;
     background: color-mix(in srgb, var(--teal) 5%, var(--surface));
     border-radius: var(--r-md);
-    /* El borde de color es lo que saca a la tarjeta del gris, y de paso dice
-       algo: turquesa lo que sale, verde lo que entra. El mismo color tinta el
-       fondo un 5%, para que el borde no se lea como una línea pegada encima
-       de una caja gris. */
+
     border: 1px solid rgba(47, 216, 200, .28);
   }
   .cartola-fila:has(.cartola-monto.entra) {
     background: color-mix(in srgb, var(--green) 5%, var(--surface));
     border-color: rgba(83, 210, 88, .32);
   }
-  /* Lo destildado y lo que ya está en la base pierden el color: la tarjeta
-     apagada no tiene por qué competir por la mirada con las que sí se van a
-     guardar. */
+
   .cartola-fila.apagada, .cartola-fila.repetida {
     background: var(--surface);
     border-color: var(--line-fuerte);
@@ -3785,8 +3019,6 @@ input[type=date]::-webkit-datetime-edit-fields-wrapper { padding: 0; }
   .cartola-fila.apagada:hover, .cartola-fila.repetida:hover { background: var(--surface); }
   .cartola-fila > *, .cartola-principal > *, .cartola-meta > * { align-self: auto; }
 
-  /* La colocación de la tabla se apaga: acá la casilla ocupa la columna de
-     la izquierda y todo lo demás se apila en la de la derecha. */
   .cartola-fecha, .cartola-desc, .cartola-cat-caja, .cartola-monto {
     grid-column: auto; grid-row: auto;
   }
@@ -3796,22 +3028,14 @@ input[type=date]::-webkit-datetime-edit-fields-wrapper { padding: 0; }
   }
   .cartola-principal, .cartola-meta, .cartola-detalle { grid-column: 2; }
 
-  /* Primera línea: el comercio manda y la plata cierra a la derecha. */
   .cartola-principal { display: flex; align-items: baseline; gap: 12px; }
   .cartola-desc { flex: 1; min-width: 0; margin: 0; padding: 0; }
-  /* !important a propósito: la descripción editable se pinta en cuatro
-     reglas de escritorio (la general de campos, la de la tabla, su :hover y
-     su :focus) y todas le ponen fondo y borde. En el teléfono no tiene que
-     parecer un campo hasta que se toque: tiene que parecer el nombre del
-     comercio, que es lo que es. */
+
   .cartola-tabla .cartola-fila .cartola-desc input[type=text] {
     width: 100%; padding: 1px 0 4px;
     font-size: 16px; font-weight: 600; line-height: 1.25;
     color: var(--text-primary);
-    /* Un nombre largo se corta con puntos suspensivos, no a mitad de
-       palabra: "Compra sodimac hc vina del m" parecía un error de lectura
-       del PDF cuando en realidad solo no cabía. Al enfocar el campo el
-       navegador desplaza el texto y se puede leer entero. */
+
     text-overflow: ellipsis;
     background: none !important;
     border: none !important;
@@ -3825,8 +3049,6 @@ input[type=date]::-webkit-datetime-edit-fields-wrapper { padding: 0; }
   .cartola-monto { flex-shrink: 0; font-size: 16.5px; text-align: right; }
   .cartola-monto.sale { color: var(--text-primary); }
 
-  /* Segunda línea: todo lo que no es el comercio ni la plata, en gris y en
-     una sola tira. */
   .cartola-meta {
     display: flex; align-items: center; gap: 7px;
     min-width: 0; margin-top: 1px;
@@ -3837,10 +3059,6 @@ input[type=date]::-webkit-datetime-edit-fields-wrapper { padding: 0; }
   }
   .cartola-sep { display: inline; color: var(--text-muted); opacity: .55; }
 
-  /* La categoría: texto turquesa con una flecha, no un selector con caja.
-     El <select> de verdad queda encima, transparente y a 16px — por debajo
-     de eso iOS hace zoom al enfocarlo y deja la pantalla corrida — así que
-     se toca el nativo y se lee este texto. */
   .cartola-cat-caja {
     position: relative; display: inline-flex; align-items: center; gap: 5px;
     min-width: 0; width: auto;
@@ -3862,8 +3080,6 @@ input[type=date]::-webkit-datetime-edit-fields-wrapper { padding: 0; }
     appearance: none; -webkit-appearance: none;
   }
 
-  /* Tercera línea: contexto. Las marcas van sueltas, sin caja; las casillas
-     que hacen algo sí la llevan, porque son área de toque. */
   .cartola-detalle {
     display: flex; flex-direction: column; gap: 8px;
     margin: 4px 0 0; padding: 0; border: none;
@@ -3881,8 +3097,7 @@ input[type=date]::-webkit-datetime-edit-fields-wrapper { padding: 0; }
     width: 17px; height: 17px; margin: 0;
     accent-color: var(--cartola-acento);
   }
-  /* El texto se recorta antes que partirse en dos líneas: partido, el bloque
-     de casillas medía más que la compra misma. */
+
   .cartola-extra-txt {
     min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
@@ -3898,8 +3113,6 @@ input[type=date]::-webkit-datetime-edit-fields-wrapper { padding: 0; }
     background: var(--bg-elev);
   }
 
-  /* El pie se pega por encima de la barra inferior, no debajo: con bottom:0
-     el botón de guardar quedaba tapado por el menú flotante. */
   .cartola-pie {
     flex-direction: column; align-items: stretch; text-align: center;
     bottom: calc(var(--bottombar-h) + 10px);
@@ -3907,13 +3120,11 @@ input[type=date]::-webkit-datetime-edit-fields-wrapper { padding: 0; }
 }
 
 @media (max-width: 560px) {
-  /* La zona de arrastre no necesita ser tan alta en una pantalla de 640px:
-     ahí el alto se lo tiene que llevar el contenido, no el hueco. */
+
   .cartola-zona { min-height: 150px; padding: 22px 16px; }
   .cartola-icono { width: 40px; height: 40px; font-size: 15px; }
   .cartola-titulo { font-size: 13.5px; }
 
-  /* La lista de pasos: el número colgando afuera comía ancho de la línea. */
   .cartola-pasos { padding-left: 0; list-style-position: inside; gap: 12px; }
   .cartola-pasos li { text-indent: -1.1em; padding-left: 1.1em; }
 
@@ -3921,7 +3132,6 @@ input[type=date]::-webkit-datetime-edit-fields-wrapper { padding: 0; }
   .cartola-resumen > div { padding: 11px 13px; }
   .cartola-resumen b { font-size: 14.5px; }
 
-  /* Tres botones no caben en una fila de 360px sin repartirse el ancho. */
   .cartola-barra .btn { flex: 1; justify-content: center; padding: 9px 6px; }
 
   .cartola-tabla { gap: 9px; }

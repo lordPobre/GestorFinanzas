@@ -5,7 +5,6 @@ más es una superficie más que mantener y actualizar.
 """
 import secrets
 
-
 class PoliticaContenidoMiddleware:
     """Content-Security-Policy: la última barrera contra el XSS.
 
@@ -33,18 +32,13 @@ class PoliticaContenidoMiddleware:
         self.get_response = get_response
 
     def __call__(self, request):
-        # Un valor distinto por respuesta. Los <script> en línea de las
-        # plantillas lo llevan; uno inyectado no puede adivinarlo.
         request.csp_nonce = secrets.token_urlsafe(16)
 
         respuesta = self.get_response(request)
 
-        # El admin de Django usa estilos y scripts en línea sin nonce: con
-        # la política puesta se rompe. Se deja fuera.
         if request.path.startswith("/admin"):
             return respuesta
 
-        # Solo en respuestas HTML: en una imagen o un CSV la cabecera sobra.
         tipo = respuesta.get("Content-Type", "")
         if "text/html" not in tipo:
             return respuesta
@@ -54,35 +48,65 @@ class PoliticaContenidoMiddleware:
         politica = "; ".join([
             "default-src 'self'",
             f"script-src 'self' 'nonce-{request.csp_nonce}' {self.CDN_SCRIPTS}",
-            # unsafe-inline en estilos es inevitable: las plantillas usan
-            # style="" en todas partes y el JS ajusta estilos en vivo. Un
-            # estilo inyectado puede afear la página, no ejecutar código.
             f"style-src 'self' 'unsafe-inline' {self.CDN_ESTILOS}",
             f"font-src 'self' {self.CDN_FUENTES}",
             f"img-src {img}",
-            # A dónde puede hablar la app: solo a sí misma.
             "connect-src 'self'",
-            # Nada de <iframe>, <object> ni Flash.
             "frame-src 'none'",
             "object-src 'none'",
-            # Los formularios solo envían al propio sitio: impide que una
-            # inyección reescriba un action y mande los datos fuera.
             "form-action 'self'",
-            # Nadie puede meter la app en un iframe (clickjacking).
             "frame-ancestors 'none'",
             "base-uri 'self'",
         ])
 
         respuesta["Content-Security-Policy"] = politica
 
-        # Sin acceso a cámara, micrófono ni ubicación: la app no los usa, y
-        # declararlo impide que un script inyectado los pida.
         respuesta["Permissions-Policy"] = (
             "camera=(), microphone=(), geolocation=(), payment=(), usb=()"
         )
         return respuesta
 
-
 def nonce_contexto(request):
     """Context processor: deja el nonce a mano en las plantillas."""
     return {"csp_nonce": getattr(request, "csp_nonce", "")}
+
+class ActividadMiddleware:
+    """Anota una vez al día que la cuenta se usó.
+
+    Hace falta para el borrado por inactividad, y `User.last_login` no
+    sirve: quien deja la sesión abierta no vuelve a pasar por `login()`, así
+    que su `last_login` queda congelado y una cuenta de uso diario parecería
+    abandonada.
+
+    Una escritura por petición sería un UPDATE por cada carga de pantalla.
+    La marca del día vive en la sesión, que ya está cargada, así que el
+    coste real es una escritura al día por usuario.
+    """
+
+    CLAVE = "actividad_dia"
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        respuesta = self.get_response(request)
+
+        usuario = getattr(request, "user", None)
+        if not (usuario and usuario.is_authenticated):
+            return respuesta
+
+        from django.utils import timezone
+
+        hoy = timezone.localdate().isoformat()
+        if request.session.get(self.CLAVE) == hoy:
+            return respuesta
+
+        try:
+            from .models import UserProfile
+            UserProfile.objects.filter(usuario=usuario).update(
+                ultima_actividad=timezone.now())
+            request.session[self.CLAVE] = hoy
+        except Exception:
+            pass
+
+        return respuesta

@@ -25,9 +25,7 @@
   <link rel="stylesheet" href="{% static 'css/finapp.css' %}">
 
   <style>
-    /* Las pantallas de acceso son las únicas con este layout, así que sus
-       reglas viven acá y no en finapp.css. Son las que NO se pueden poner
-       en un atributo style: las consultas de medios. */
+
     .auth {
       display: flex; min-height: 100vh; min-height: 100dvh;
       font-family: 'Manrope', system-ui, sans-serif;
@@ -41,8 +39,7 @@
       background: linear-gradient(140deg, var(--amber) 0%, var(--amber-claro) 100%);
       color: #1a1200;
     }
-    /* La curva de luz en diagonal: el mismo recurso de la tarjeta de saldo,
-       que es la firma visual de la app. */
+
     .auth-marca::after {
       content: ''; position: absolute; right: -28%; bottom: -46%;
       width: 110%; height: 130%; border-radius: 50%;
@@ -62,14 +59,6 @@
       margin: 0; font-size: 26px; font-weight: 800; letter-spacing: -.03em;
     }
 
-    /* Los campos del acceso: más altos y con más radio que los del resto de
-       la app, que viven dentro de tarjetas más pequeñas.
-
-       El selector es aparatoso a propósito. finapp.css estiliza los campos
-       con "input:not([type=checkbox]):not([type=radio]):not(.search input)",
-       que pesa (0,3,2) — más que una clase suelta. Con solo .auth-campo, su
-       "padding: 13px 15px" ganaba y el texto se metía debajo del icono. Los
-       dos :not() de acá suben esta regla a (0,4,1) y la dejan por encima. */
     .auth input.auth-campo:not([type=checkbox]):not([type=radio]) {
       width: 100%; box-sizing: border-box;
       padding: 15px 16px 15px 42px;
@@ -87,9 +76,6 @@
       letter-spacing: .02em; color: var(--text-secondary); margin-bottom: 9px;
     }
 
-    /* Las seis casillas del código. Mismo motivo que arriba para el
-       selector: sin los :not() la regla global les imponía 13px 15px de
-       relleno y el dígito se descentraba. */
     .auth-digitos { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; }
     .auth input.auth-digito:not([type=checkbox]):not([type=radio]) {
       width: 100%; box-sizing: border-box; padding: 16px 0;
@@ -111,14 +97,11 @@
     }
     .auth-salida:hover { background: var(--bg-elev); color: var(--text-primary); }
 
-    /* Bajo 900px el panel de marca no cabe al lado: pasa arriba, en una
-       banda baja que mantiene la identidad sin comerse la pantalla. */
     @media (max-width: 900px) {
       .auth { flex-direction: column; }
       .auth-marca {
         flex: 0 0 auto; min-width: 0;
-        /* Guardada en la pantalla de inicio la banda ámbar arranca bajo la
-           barra de estado, así que suma el notch a su aire de arriba. */
+
         padding: calc(26px + env(safe-area-inset-top)) 22px 26px; gap: 18px;
       }
       .auth-marca .auth-pie,
@@ -136,12 +119,7 @@
   </style>
 
   <script nonce="{{ csp_nonce }}">
-  /* Respaldo mínimo: abre y cierra modales aunque finapp.js no cargue.
-     finapp.js sobreescribe estas funciones cuando sí está disponible.
 
-     El nonce faltaba: la política de contenido de esta app permite scripts
-     en línea solo con nonce, así que el navegador bloqueaba este bloque
-     entero y el respaldo no existía. */
   (function () {
     function open(id) {
       var m = document.querySelector(id);
@@ -167,9 +145,7 @@
   </script>
 
   <script nonce="{{ csp_nonce }}">
-  /* Mismo registro que en base.html. Va aca tambien porque la primera visita
-     de cualquier usuario es el login: si el worker solo se registrara adentro
-     de la app, Chrome no ofreceria instalar hasta despues de iniciar sesion. */
+
   (function () {
     if (!('serviceWorker' in navigator)) return;
     window.addEventListener('load', function () {
@@ -182,7 +158,6 @@
 
 <div class="auth">
 
-  {# ---- Panel de marca ---- #}
   <div class="auth-marca">
     <div style="display:flex;align-items:center;gap:12px">
       <span style="display:inline-flex;align-items:center;justify-content:center;width:42px;height:42px;border-radius:14px;background:#1a1200;color:var(--amber);font-size:16px">
@@ -222,9 +197,15 @@
     </div>
   </div>
 
-  {# ---- Panel del formulario ---- #}
   <div class="auth-panel">
-    <div>{% block card %}{% endblock %}</div>
+    <div>
+      {% block card %}{% endblock %}
+      <div style="display:flex;gap:10px;justify-content:center;margin-top:30px;font-size:11px">
+        <a href="{% url 'privacidad' %}" style="color:var(--text-muted);text-decoration:none">Privacidad</a>
+        <span style="color:var(--text-muted);opacity:.5">·</span>
+        <a href="{% url 'terminos' %}" style="color:var(--text-muted);text-decoration:none">Términos de uso</a>
+      </div>
+    </div>
   </div>
 </div>
 

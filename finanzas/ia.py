@@ -7,7 +7,9 @@ la app sigue funcionando con solo los números del motor determinístico.
 """
 import os
 import json
+import logging
 
+log = logging.getLogger('finanzas')
 
 def _construir_prompt(analisis, moneda='$'):
     factores_texto = "\n".join(
@@ -41,7 +43,6 @@ Responde ÚNICAMENTE con un JSON válido (sin markdown, sin ```), con esta estru
 
 Sé concreto, usa los números reales, y evita jerga financiera complicada. Habla directo a la persona (tú/tu)."""
 
-
 def interpretar_con_ia(analisis, moneda='$'):
     """
     Llama a la API de Anthropic para interpretar el análisis.
@@ -49,6 +50,7 @@ def interpretar_con_ia(analisis, moneda='$'):
     """
     api_key = os.environ.get('ANTHROPIC_API_KEY', '').strip()
     if not api_key:
+        log.info('Analisis con IA no disponible: falta ANTHROPIC_API_KEY.')
         return None
 
     if not analisis.get('tiene_datos'):
@@ -57,6 +59,7 @@ def interpretar_con_ia(analisis, moneda='$'):
     try:
         import anthropic
     except ImportError:
+        log.warning('Analisis con IA no disponible: el paquete anthropic no esta instalado.')
         return None
 
     try:
@@ -85,7 +88,13 @@ def interpretar_con_ia(analisis, moneda='$'):
 
         if 'diagnostico' in datos and 'recomendaciones' in datos:
             return datos
+        log.warning('La IA respondio sin las claves esperadas: %s', list(datos)[:8])
+        return None
+
+    except json.JSONDecodeError:
+        log.warning('La IA respondio algo que no es JSON valido.')
         return None
 
     except Exception:
+        log.exception('Fallo la llamada a la API de Anthropic.')
         return None

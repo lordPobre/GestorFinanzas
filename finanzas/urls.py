@@ -1,12 +1,11 @@
 from django.urls import path
 from django.contrib.auth import views as auth_views
 from . import google_login, views, views_cartola
+from . import legal
 
 urlpatterns = [
     path('', views.dashboard, name='dashboard'),
 
-    # Compras en cuotas — pantalla nueva del rediseño.
-    # Esta es la línea que faltaba y causaba el NoReverseMatch.
     path('cuotas/', views.deudas, name='deudas'),
 
     path('nueva-deuda/', views.crear_deuda, name='crear_deuda'),
@@ -36,7 +35,6 @@ urlpatterns = [
 
     path('estadisticas/', views.estadisticas, name='estadisticas'),
 
-    # Préstamos por cobrar (quién me debe)
     path('prestamos/', views.prestamos, name='prestamos'),
     path('prestamos/persona/nueva/', views.crear_persona, name='crear_persona'),
     path('prestamos/persona/<int:persona_id>/', views.detalle_persona, name='detalle_persona'),
@@ -48,7 +46,6 @@ urlpatterns = [
     path('analisis/', views.analisis_predictivo, name='analisis_predictivo'),
     path('analisis/ia/', views.analisis_ia, name='analisis_ia'),
 
-    # Gastos pendientes de pagar
     path('gasto-pendiente/nuevo/', views.crear_gasto_pendiente, name='crear_gasto_pendiente'),
     path('gasto-pendiente/pagar/<int:gasto_id>/', views.pagar_gasto_pendiente, name='pagar_gasto_pendiente'),
     path('gasto-pendiente/anular/<int:gasto_id>/', views.anular_gasto_pendiente, name='anular_gasto_pendiente'),
@@ -57,6 +54,9 @@ urlpatterns = [
     path('exportar/', views.exportar_excel, name='exportar_excel'),
     path('exportar/csv/', views.exportar_csv, name='exportar_csv'),
 
+    path('perfil/mis-datos/', views.mis_datos, name='mis_datos'),
+    path('perfil/eliminar-cuenta/', views.eliminar_cuenta, name='eliminar_cuenta'),
+
     path('suscripciones/', views.suscripciones, name='suscripciones'),
     path('suscripciones/nueva/', views.crear_suscripcion, name='crear_suscripcion'),
     path('suscripciones/pagar/<int:sub_id>/', views.pagar_servicio, name='pagar_servicio'),
@@ -64,11 +64,8 @@ urlpatterns = [
     path('suscripciones/cancelar/<int:sub_id>/', views.cancelar_suscripcion, name='cancelar_suscripcion'),
     path('suscripciones/eliminar/<int:sub_id>/', views.eliminar_suscripcion, name='eliminar_suscripcion'),
 
-    # Vista propia en vez de LoginView: la de Django no limita los intentos.
     path('login/', views.entrar, name='login'),
 
-    # Acceso con cuenta de Google. 'listo' es la dirección de vuelta que
-    # hay que registrar en Google Cloud Console, con la barra final.
     path('entrar/google/', google_login.entrar_google, name='google_entrar'),
     path('entrar/google/listo/', google_login.google_listo, name='google_listo'),
     path('logout/', auth_views.LogoutView.as_view(next_page='/login/'), name='logout'),
@@ -76,9 +73,6 @@ urlpatterns = [
     path('perfil/dos-pasos/', views.configurar_2fa, name='configurar_2fa'),
     path('registro/', views.registro, name='registro'),
 
-    # Recuperar contraseña. Vistas propias y no las de Django porque el
-    # enlace también tiene que pedir el código de dos pasos cuando está
-    # activo, y PasswordResetConfirmView no sabe de eso.
     path('recuperar/', views.recuperar, name='recuperar'),
     path('recuperar/<uidb64>/<token>/', views.restablecer, name='restablecer'),
 
@@ -92,8 +86,10 @@ urlpatterns = [
     path('bienvenido/', views.onboarding, name='onboarding'),
     path('bienvenido/completar/', views.completar_onboarding, name='completar_onboarding'),
 
-    # El service worker se sirve desde la raiz y no desde /static/ porque su
-    # alcance no puede subir de la carpeta donde vive el archivo. Ver el
-    # comentario largo en views.service_worker.
     path('sw.js', views.service_worker, name='service_worker'),
+
+    path('salud/', views.salud, name='salud'),
+
+    path('privacidad/', legal.privacidad, name='privacidad'),
+    path('terminos/', legal.terminos, name='terminos'),
 ]

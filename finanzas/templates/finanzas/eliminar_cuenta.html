@@ -1,0 +1,99 @@
+{% extends 'finanzas/base.html' %}
+{% block title %}Eliminar mi cuenta · Rekon{% endblock %}
+{% block topbar_sub %}Eliminar mi cuenta{% endblock %}
+
+{% block content %}
+<div style="max-width:620px">
+
+  <div class="glass card-lg" style="border-color:rgba(226,92,92,.32);margin-bottom:16px">
+    <div style="display:flex;gap:14px;align-items:flex-start;margin-bottom:18px">
+      <span class="icon-tile coral" style="width:42px;height:42px;border-radius:15px;font-size:16px;flex-shrink:0">
+        <i class="fas fa-triangle-exclamation"></i>
+      </span>
+      <div>
+        <div class="page-title" style="margin:0 0 6px">Esto no se puede deshacer</div>
+        <div class="hint">
+          Al eliminar la cuenta se borra todo de inmediato y para siempre.
+          No hay copia que puedas pedirnos después.
+        </div>
+      </div>
+    </div>
+
+    <div class="label" style="margin-bottom:10px">Se va a borrar</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:9px;margin-bottom:18px">
+      <div class="preview-box" style="margin:0">
+        <div class="mono" style="font-size:19px">{{ resumen.movimientos }}</div>
+        <div style="font-size:11.5px;color:var(--text-secondary)">movimientos</div>
+      </div>
+      <div class="preview-box" style="margin:0">
+        <div class="mono" style="font-size:19px">{{ resumen.cuotas }}</div>
+        <div style="font-size:11.5px;color:var(--text-secondary)">compras en cuotas</div>
+      </div>
+      <div class="preview-box" style="margin:0">
+        <div class="mono" style="font-size:19px">{{ resumen.personas }}</div>
+        <div style="font-size:11.5px;color:var(--text-secondary)">personas que te deben</div>
+      </div>
+      <div class="preview-box" style="margin:0">
+        <div class="mono" style="font-size:19px">{{ resumen.metas }}</div>
+        <div style="font-size:11.5px;color:var(--text-secondary)">metas de ahorro</div>
+      </div>
+      <div class="preview-box" style="margin:0">
+        <div class="mono" style="font-size:19px">{{ resumen.suscripciones }}</div>
+        <div style="font-size:11.5px;color:var(--text-secondary)">suscripciones</div>
+      </div>
+    </div>
+
+    <div class="hint" style="margin-bottom:0">
+      Tu perfil, tu foto, tus categorías propias, tu presupuesto y la
+      verificación en dos pasos se van con la cuenta.
+    </div>
+  </div>
+
+  <div class="glass card" style="margin-bottom:16px;display:flex;gap:13px;align-items:flex-start">
+    <span style="display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;flex-shrink:0;border-radius:12px;background:var(--amber-tenue);color:var(--amber);font-size:13px">
+      <i class="fas fa-download"></i>
+    </span>
+    <div>
+      <div class="row-title" style="margin-bottom:3px">Antes de irte, llévate tus datos</div>
+      <div class="row-meta" style="margin-bottom:11px">
+        Un archivo con todo lo que la app guarda de ti. Después de eliminar la
+        cuenta ya no se puede generar.
+      </div>
+      <a href="{% url 'mis_datos' %}" class="btn btn-glass btn-sm">Descargar mis datos</a>
+    </div>
+  </div>
+
+  <form method="post" class="glass card-lg">
+    {% csrf_token %}
+
+    <div class="field">
+      <label class="label" for="confirmacion">Escribe ELIMINAR para confirmar</label>
+      <input type="text" name="confirmacion" id="confirmacion" autocomplete="off"
+             placeholder="ELIMINAR" required>
+    </div>
+
+    <div class="field">
+      {% if tiene_password %}
+      <label class="label" for="password">Tu contraseña</label>
+      <input type="password" name="password" id="password" autocomplete="current-password" required>
+      <div class="hint" style="font-size:11.5px;margin-top:7px">
+        Se pide otra vez: tener la sesión abierta no basta para borrar tu historial.
+      </div>
+      {% else %}
+      <label class="label" for="password">Tu nombre de usuario</label>
+      <input type="text" name="password" id="password" autocomplete="off"
+             placeholder="{{ request.user.username }}" required>
+      <div class="hint" style="font-size:11.5px;margin-top:7px">
+        Entraste con Google, así que no hay contraseña que comprobar.
+      </div>
+      {% endif %}
+    </div>
+
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+      <button type="submit" class="btn btn-red">Eliminar mi cuenta para siempre</button>
+      <a href="{% url 'perfil' %}" class="btn btn-glass">Cancelar</a>
+    </div>
+  </form>
+
+</div>
+{% endblock %}

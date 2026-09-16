@@ -1,0 +1,132 @@
+{% extends 'finanzas/legal_base.html' %}
+{% block title %}Términos de uso · Rekon{% endblock %}
+{% block encabezado %}Términos de uso{% endblock %}
+
+{% block cuerpo %}
+
+<p>
+  Estas son las condiciones de uso de Rekon. Están en castellano corriente
+  porque la idea es que se lean, no que se acepten sin mirar.
+</p>
+
+<h2>Qué es Rekon</h2>
+
+<p>
+  Una herramienta para anotar y proyectar tus finanzas personales: ingresos,
+  gastos, compras en cuotas, préstamos, suscripciones y metas de ahorro. Es una
+  libreta con calculadora, no una institución financiera.
+</p>
+
+<p>
+  El servicio lo ofrece {{ responsable }}. Contacto: {{ correo_contacto }}.
+</p>
+
+<h2>Lo que Rekon no es</h2>
+
+<ul>
+  <li><strong>No es asesoría financiera.</strong> Los diagnósticos, las
+    proyecciones y las recomendaciones —incluidas las que genera la
+    inteligencia artificial— son estimaciones automáticas a partir de lo que tú
+    anotaste. No las tomes como consejo profesional. Antes de una decisión
+    importante, consulta a alguien que pueda mirar tu caso completo.</li>
+  <li><strong>No mueve dinero.</strong> No cobra, no paga, no transfiere y no
+    se conecta a tus cuentas bancarias. Marcar una cuota como pagada la marca
+    en la app; el pago lo haces tú por tu banco.</li>
+  <li><strong>No es un respaldo contable ni un registro tributario.</strong>
+    Para eso existen sistemas hechos a propósito.</li>
+</ul>
+
+<h2>Tu cuenta</h2>
+
+<ul>
+  <li>Eres responsable de tu contraseña. Usa una que no repitas en otro sitio
+    y activa la verificación en dos pasos.</li>
+  <li>Una cuenta es de una persona. No la compartas.</li>
+  <li>Los datos que anotas son tuyos. La app no los reclama, no los usa para
+    otra cosa y no los cede.</li>
+  <li>Puedes descargarlos o eliminar la cuenta cuando quieras, desde el perfil,
+    sin pedir permiso ni dar explicaciones.</li>
+</ul>
+
+<h2>Uso aceptable</h2>
+
+<p>No se permite:</p>
+
+<ul>
+  <li>Intentar acceder a datos de otras personas o buscar vulnerabilidades sin
+    aviso previo. Si encuentras un fallo, escribe a {{ correo_contacto }} y se
+    agradecerá el aviso.</li>
+  <li>Automatizar peticiones para sobrecargar el servicio.</li>
+  <li>Subir archivos que no sean cartolas o imágenes de perfil legítimas.</li>
+  <li>Anotar datos de terceros sin fundamento, o información delicada de otras
+    personas.</li>
+</ul>
+
+<p>
+  Una cuenta que haga cualquiera de estas cosas puede suspenderse sin aviso.
+</p>
+
+<h2>Disponibilidad</h2>
+
+<p>
+  El servicio se ofrece tal como está. Se procura que funcione siempre, pero no
+  hay garantía de disponibilidad continua: puede haber cortes por
+  mantenimiento, por fallas del proveedor de alojamiento o por causas fuera de
+  control.
+</p>
+
+<p>
+  <strong>Ten tu propia copia.</strong> La exportación a Excel o a JSON está
+  siempre a un clic en el perfil. Descargarla cada cierto tiempo es la única
+  garantía real de que no vas a perder tu historial.
+</p>
+
+<h2>Responsabilidad</h2>
+
+<p>
+  Rekon no responde por decisiones que tomes a partir de lo que muestra, ni por
+  pérdidas derivadas de datos mal anotados, de la indisponibilidad del servicio
+  o de la pérdida de información. La responsabilidad se limita, en todo caso, a
+  lo que hayas pagado por el servicio.
+</p>
+
+<h2>Precio</h2>
+
+<p>
+  Hoy el uso es gratuito. Si en el futuro aparece un plan de pago, se avisará
+  con antelación y lo que ya usas no dejará de funcionar sin previo aviso.
+</p>
+
+<h2>Cierre de la cuenta</h2>
+
+<ul>
+  <li><strong>Por tu parte:</strong> desde Perfil → Seguridad → Eliminar mi
+    cuenta. El borrado es inmediato y definitivo.</li>
+  <li><strong>Por inactividad:</strong> una cuenta sin ningún acceso durante 12
+    meses recibe un aviso por correo y, si no entras en los 30 días
+    siguientes, se elimina.</li>
+  <li><strong>Por incumplimiento:</strong> una cuenta que use el servicio para
+    lo que estos términos prohíben puede cerrarse.</li>
+</ul>
+
+<h2>Cambios</h2>
+
+<p>
+  Estos términos pueden cambiar. Si el cambio es relevante, se avisa por correo
+  antes de que entre en vigencia. Seguir usando la app después de esa fecha
+  implica aceptar la versión nueva.
+</p>
+
+<h2>Ley aplicable</h2>
+
+<p>
+  Se aplica la ley chilena. Cualquier controversia se somete a los tribunales
+  competentes de Chile.
+</p>
+
+<p style="margin-top:26px;color:var(--text-secondary);font-size:13px">
+  Versión {{ version }}, vigente desde {{ vigente_desde }}.
+  Ver también la <a href="{% url 'privacidad' %}">política de privacidad</a>.
+</p>
+
+{% endblock %}

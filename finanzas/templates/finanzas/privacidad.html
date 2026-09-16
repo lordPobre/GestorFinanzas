@@ -1,0 +1,217 @@
+{% extends 'finanzas/legal_base.html' %}
+{% block title %}Política de privacidad · Rekon{% endblock %}
+{% block encabezado %}Política de privacidad{% endblock %}
+
+{% block cuerpo %}
+
+<p>
+  Rekon es una aplicación para llevar el control de tus finanzas personales.
+  Para que funcione, guarda lo que anotas. Este documento explica qué guarda,
+  para qué, con quién lo comparte y cómo puedes recuperarlo o borrarlo.
+</p>
+
+<p>
+  Está escrito para que se entienda. Si algo no queda claro, escribe a
+  <strong>{{ correo_contacto }}</strong> y se responde.
+</p>
+
+<h2>Quién es responsable</h2>
+
+<table>
+  <tr><th>Responsable</th><td>{{ responsable }}</td></tr>
+  <tr><th>Contacto</th><td>{{ correo_contacto }}</td></tr>
+  <tr><th>Normativa aplicable</th><td>Ley 21.719 sobre protección de datos personales, Chile</td></tr>
+</table>
+
+<h2>Qué datos se guardan</h2>
+
+<h3>Los que entregas al crear la cuenta</h3>
+<ul>
+  <li>Nombre de usuario y contraseña. La contraseña no se guarda: se guarda un
+    hash con Argon2, del que no se puede volver atrás. Nadie puede leerla, ni
+    quien administra el servidor.</li>
+  <li>Correo electrónico, para recuperar el acceso y enviarte el aviso mensual
+    si lo activas.</li>
+  <li>Nombre, ciudad, país y teléfono, si decides completarlos. Son opcionales.</li>
+  <li>Foto de perfil, si subes una. Es opcional.</li>
+</ul>
+
+<h3>Los que anotas al usar la app</h3>
+<ul>
+  <li>Ingresos y gastos: fecha, monto, categoría y la descripción que escribas.</li>
+  <li>Compras en cuotas, suscripciones, metas de ahorro y presupuesto mensual.</li>
+  <li>Personas que te deben dinero: el nombre y el dato de contacto que
+    escribas, con los montos y abonos.</li>
+  <li>Los movimientos que confirmes al importar una cartola bancaria.</li>
+</ul>
+
+<h3>Los que se generan solos</h3>
+<ul>
+  <li>Fecha de creación de la cuenta y de tu última actividad.</li>
+  <li>Dirección IP y usuario intentado cuando un acceso falla, para frenar
+    ataques de fuerza bruta.</li>
+  <li>Si activas la verificación en dos pasos, su clave y los códigos de
+    respaldo, guardados de forma que no se pueden leer.</li>
+</ul>
+
+<h2>Qué NO se guarda</h2>
+<ul>
+  <li><strong>No se guarda tu RUT</strong>, ni números de tarjeta, ni claves
+    de banco. La app nunca se conecta a tu banco: las cartolas las subes tú.</li>
+  <li><strong>El archivo de la cartola no se guarda.</strong> Se lee en memoria,
+    se te muestran los movimientos, y el archivo se descarta. Solo queda lo que
+    tú confirmas.</li>
+  <li>No hay publicidad, ni rastreadores, ni píxeles de terceros, ni venta de
+    datos a nadie. Ese no es el negocio de esta app.</li>
+</ul>
+
+<h2>Para qué se usan</h2>
+
+<table>
+  <tr><th>Finalidad</th><th>Base que la permite</th></tr>
+  <tr><td>Mostrarte tus propios números y proyecciones</td><td>Ejecución del servicio que pediste</td></tr>
+  <tr><td>Identificarte al entrar</td><td>Ejecución del servicio</td></tr>
+  <tr><td>Enviarte el aviso mensual de cobros</td><td>Tu consentimiento, revocable desde el perfil</td></tr>
+  <tr><td>Interpretar tu diagnóstico con IA</td><td>Tu consentimiento, revocable desde el perfil</td></tr>
+  <tr><td>Frenar intentos de acceso no autorizados</td><td>Interés legítimo en la seguridad del servicio</td></tr>
+</table>
+
+<p>
+  Tus datos no se usan para nada más. No se cruzan con los de otros usuarios,
+  no se agregan para estudios, no se ceden.
+</p>
+
+<h2>El análisis con inteligencia artificial</h2>
+
+<p>
+  La pantalla de Análisis calcula tu diagnóstico en el propio servidor. Si el
+  análisis con IA está activado, además se pide una interpretación en lenguaje
+  natural a la API de Anthropic.
+</p>
+
+<p><strong>Lo que se envía, exactamente:</strong> ingreso mensual promedio,
+gasto mensual promedio, cuota mensual total de deudas, deuda total restante,
+flujo libre, ratio deuda/ingreso, meses restantes para saldar, cantidad de
+deudas activas, nivel de riesgo calculado y tendencia.</p>
+
+<p><strong>Lo que no se envía:</strong> tu nombre, tu usuario, tu correo, las
+descripciones de tus movimientos, los nombres de las personas que te deben, ni
+ningún dato que permita identificarte. Salen números, no historias.</p>
+
+<p>
+  Puedes apagarlo en <em>Perfil → Análisis con IA</em>. Apagado, la pantalla de
+  Análisis sigue funcionando con los números del motor propio y nada sale del
+  servidor.
+</p>
+
+<h2>Con quién se comparten</h2>
+
+<p>
+  Con nadie más que los proveedores que hacen funcionar el servicio. Todos
+  están fuera de Chile, lo que constituye una transferencia internacional de
+  datos y por eso se declara aquí:
+</p>
+
+<table>
+  <tr><th>Proveedor</th><th>Qué recibe</th><th>Dónde</th></tr>
+  <tr><td>Railway</td><td>Alojamiento de la aplicación y la base de datos completa</td><td>Estados Unidos</td></tr>
+  <tr><td>Cloudflare R2</td><td>Solo la foto de perfil, si subiste una</td><td>Red global</td></tr>
+  <tr><td>Resend</td><td>Tu correo y el contenido del aviso mensual</td><td>Estados Unidos</td></tr>
+  <tr><td>Anthropic</td><td>Los agregados numéricos del análisis, si lo tienes activado</td><td>Estados Unidos</td></tr>
+  <tr><td>Google</td><td>Tu identidad, solo si entras con cuenta de Google</td><td>Estados Unidos</td></tr>
+  <tr><td>Google Fonts, cdnjs, jsDelivr</td><td>La IP de tu navegador al cargar tipografías e iconos</td><td>Red global</td></tr>
+</table>
+
+<h2>Cuánto tiempo se guardan</h2>
+
+<table>
+  <tr><th>Dato</th><th>Plazo</th></tr>
+  <tr><td>Todo lo de tu cuenta</td><td>Mientras la cuenta exista</td></tr>
+  <tr><td>Cuenta sin ningún acceso</td><td>Se avisa por correo a los 12 meses y se elimina 30 días después si no entras</td></tr>
+  <tr><td>Registros de accesos fallidos</td><td>12 meses</td></tr>
+  <tr><td>Contadores de bloqueo temporal</td><td>15 minutos</td></tr>
+  <tr><td>Archivo de cartola subido</td><td>No se guarda</td></tr>
+</table>
+
+<p>
+  Cuando eliminas tu cuenta, el borrado es inmediato y completo: movimientos,
+  cuotas, personas, préstamos, metas, suscripciones, categorías propias,
+  presupuesto, foto y verificación en dos pasos. No queda una copia en espera
+  ni un período de gracia. No hay forma de recuperarlo después.
+</p>
+
+<h2>Tus derechos</h2>
+
+<p>La ley te da estos derechos, y la app los implementa directamente:</p>
+
+<table>
+  <tr><th>Derecho</th><th>Cómo ejercerlo</th></tr>
+  <tr><td>Saber qué datos hay sobre ti</td><td>Perfil → Descargar todos mis datos. Un archivo con todo, al instante</td></tr>
+  <tr><td>Llevártelos a otro servicio</td><td>El mismo archivo, en formato JSON. También hay exportación a Excel y CSV</td></tr>
+  <tr><td>Corregir lo que esté mal</td><td>Cada dato se edita desde su propia pantalla</td></tr>
+  <tr><td>Borrarlos</td><td>Perfil → Seguridad → Eliminar mi cuenta</td></tr>
+  <tr><td>Oponerte al análisis con IA</td><td>Perfil → Análisis con IA, apagado</td></tr>
+  <tr><td>Oponerte al correo mensual</td><td>Perfil → Aviso mensual, apagado</td></tr>
+  <tr><td>Reclamar</td><td>Escribe a {{ correo_contacto }}. Si no queda resuelto, puedes recurrir a la Agencia de Protección de Datos Personales</td></tr>
+</table>
+
+<p>
+  No hace falta pedir permiso ni esperar respuesta para las primeras seis: son
+  botones en la aplicación. Para cualquier solicitud escrita, el plazo de
+  respuesta es de 30 días corridos.
+</p>
+
+<h2>Cómo se protegen</h2>
+
+<ul>
+  <li>Todo el tráfico va por HTTPS, obligatorio y con HSTS: el navegador se
+    niega a conectarse sin cifrar.</li>
+  <li>Las contraseñas se guardan con Argon2, el estándar recomendado hoy.</li>
+  <li>Cinco intentos fallidos bloquean el acceso durante 15 minutos, por
+    usuario y por dirección a la vez.</li>
+  <li>Verificación en dos pasos disponible, con códigos de respaldo.</li>
+  <li>Política de contenido con valor único por respuesta, que impide que un
+    script ajeno se ejecute en la página.</li>
+  <li>Cada consulta a la base filtra por tu usuario, y hay pruebas automáticas
+    que verifican que nadie alcance los datos de otro cambiando un número en
+    la dirección.</li>
+  <li>Los datos viajan cifrados y la base está en una red privada.</li>
+</ul>
+
+<p>
+  Ningún sistema es invulnerable. Si ocurre un incidente que afecte tus datos,
+  se te avisará por correo con lo que se sepa y lo que convenga que hagas, y se
+  notificará a la autoridad dentro del plazo legal.
+</p>
+
+<h2>Datos de otras personas</h2>
+
+<p>
+  En "Me deben" puedes anotar el nombre y el contacto de personas que no usan
+  la aplicación. Esos datos los ingresas tú, bajo tu responsabilidad: anota lo
+  mínimo necesario y no incluyas información delicada de terceros. Si alguien
+  te pide que borres sus datos, puedes hacerlo desde la misma pantalla.
+</p>
+
+<h2>Menores de edad</h2>
+
+<p>
+  La aplicación está pensada para mayores de 18 años. No se pide la edad, pero
+  si se detecta o se informa que una cuenta pertenece a un menor sin
+  autorización de quien lo represente, se eliminará.
+</p>
+
+<h2>Cambios a esta política</h2>
+
+<p>
+  Si cambia algo relevante —un proveedor nuevo, una finalidad distinta, un
+  plazo de conservación— se publica aquí con una versión nueva y se avisa por
+  correo antes de que entre en vigencia. La versión que aceptaste queda
+  registrada en tu cuenta con su fecha.
+</p>
+
+<p style="margin-top:26px;color:var(--text-secondary);font-size:13px">
+  Versión {{ version }}, vigente desde {{ vigente_desde }}.
+</p>
+
+{% endblock %}

@@ -10,7 +10,6 @@ from django.utils import timezone
 from dateutil.relativedelta import relativedelta
 from datetime import date
 
-
 class Transaccion(models.Model):
     """Un movimiento de dinero: un ingreso o un egreso, en una fecha dada.
 
@@ -30,9 +29,6 @@ class Transaccion(models.Model):
         ('Servicios', 'Luz, Agua, Internet'),
         ('Ocio', 'Entretenimiento y Salidas'),
         ('Salud', 'Salud y Farmacia'),
-        # Estas cuatro son las que se compran a plazo. Antes todas caían en
-        # "Otros Gastos", así que la dona de categorías no distinguía un
-        # televisor de una multa.
         ('Tecnologia', 'Tecnología y electrónica'),
         ('Ropa', 'Ropa y calzado'),
         ('Hogar', 'Hogar y muebles'),
@@ -54,8 +50,6 @@ class Transaccion(models.Model):
 
     CATEGORIAS = CATEGORIAS_EGRESO + CATEGORIAS_INGRESO
 
-    # Color por categoría — lo usa la dona de "En qué se va" y los chips.
-    # Vive acá para que el template no tenga colores hardcodeados.
     COLORES_CATEGORIA = {
         'Comida': '#60a5fa',
         'Transporte': '#53d258',
@@ -72,9 +66,6 @@ class Transaccion(models.Model):
         'Cuentas': '#e25c5c',
         'Otros': '#8b8b96',
 
-        # Las de ingreso: sin esto caían en 'Otros' y todas salían del mismo
-        # color. En verdes y azules, para distinguirlas de un gasto de un
-        # vistazo.
         'Sueldo': '#53d258',
         'Freelance': '#2fd8c8',
         'Negocio': '#4b8cff',
@@ -84,11 +75,6 @@ class Transaccion(models.Model):
         'Otros_Ingresos': '#8b8b96',
     }
 
-    # Icono por categoría, a nivel de clase.
-    #
-    # La property .icono lo resolvía por instancia, así que Categoria.mapa()
-    # no tenía de dónde sacarlo y ponía 'fa-tag' para TODAS: la pantalla de
-    # Categorías mostraba trece etiquetas idénticas.
     ICONOS_CATEGORIA = {
         'Comida': 'fa-cart-shopping',
         'Transporte': 'fa-car',
@@ -121,16 +107,6 @@ class Transaccion(models.Model):
     descripcion = models.CharField(max_length=200, blank=True)
     es_cuota = models.BooleanField(default=False)
 
-    # ¿Esta plata ya salió?
-    #
-    # Un gasto puede estar anotado sin estar pagado todavía: la cuenta que
-    # llegó, lo que quedaste debiendo en el almacén, la compra que va con
-    # transferencia pendiente. Antes no había forma de distinguirlo, así que
-    # "ya gastaste" mezclaba plata que salió con plata que solo estaba
-    # comprometida.
-    #
-    # Por defecto True: la mayoría de los gastos se anotan después de
-    # pagarlos, y así todo lo que ya existe en la base queda como pagado.
     pagado = models.BooleanField(default=True)
     fecha_pago = models.DateField(null=True, blank=True)
 
@@ -212,7 +188,6 @@ class Transaccion(models.Model):
             return self.ICONOS_CATEGORIA.get(self.categoria, 'fa-arrow-down')
         return self.ICONOS_CATEGORIA.get(self.categoria, 'fa-arrow-up')
 
-
 class Deuda(models.Model):
     """Una compra a plazo (cuotas fijas): cel a 12 cuotas, una compra
     en el retail, etc. No es un préstamo — para eso está Persona/Prestamo.
@@ -221,13 +196,6 @@ class Deuda(models.Model):
     PagoCuota por mes real pagado (ver la sección "Periodos" más abajo),
     así que adelantarse o atrasarse no rompe el cálculo.
     """
-    # Las categorías de una compra a plazo no son las del día a día.
-    #
-    # ANTES esta lista era una copia de las de gasto corriente, encabezada
-    # por "Comida y Supermercado" — que además salía preseleccionada. Nadie
-    # compra el supermercado en 12 cuotas; lo que se compra a plazo es
-    # tecnología, ropa, muebles y viajes. El orden importa: lo más probable
-    # va primero, para que la mayoría no tenga que buscar.
     CATEGORIAS_CUOTAS = (
         ('Tecnologia', 'Tecnología y electrónica'),
         ('Compras', 'Compras online'),
@@ -241,7 +209,6 @@ class Deuda(models.Model):
         ('Otros', 'Otra cosa'),
     )
 
-    # Se mantienen los nombres viejos porque otro código los importa.
     CATEGORIAS_EGRESO = CATEGORIAS_CUOTAS
     CATEGORIAS = CATEGORIAS_CUOTAS
 
@@ -259,8 +226,6 @@ class Deuda(models.Model):
 
     def __str__(self):
         return self.acreedor
-
-    # ---------- Plazos ----------
 
     @property
     def fecha_fin_estimada(self):
@@ -327,17 +292,6 @@ class Deuda(models.Model):
         if d == 0:
             return 'Vence hoy'
         return f'Vence el {self.dia_pago} · en {d} día{"s" if d != 1 else ""}'
-
-    # ---------- Periodos ----------
-    #
-    # Un "periodo" es el mes al que pertenece una cuota, guardado como
-    # año*100+mes (2026*100+8 = 202608). Es un entero: se ordena, se compara
-    # y se indexa sin trucos de fecha.
-    #
-    # Esto existe porque antes el estado de una cuota se DEDUCÍA del contador
-    # cuotas_pagadas: "van 3 pagadas, entonces las tres primeras están
-    # pagadas". Eso falla en cuanto alguien se adelanta o se atrasa. Ahora
-    # cada pago dice a qué mes corresponde.
 
     @staticmethod
     def periodo_de(year, month):
@@ -426,8 +380,6 @@ class Deuda(models.Model):
             return f'Pagar {etiqueta} · atrasada'
         return f'Pagar cuota de {etiqueta}'
 
-    # ---------- Cuotas ----------
-
     @property
     def esta_saldada(self):
         return self.cuotas_pagadas >= self.cuotas_totales
@@ -474,8 +426,6 @@ class Deuda(models.Model):
             return 0
         return int((self.cuotas_pagadas / self.cuotas_totales) * 100)
 
-    # ---------- Montos ----------
-
     @property
     def monto_cuota(self):
         """Cuota redondeada al peso. La diferencia por redondeo va en la
@@ -501,7 +451,6 @@ class Deuda(models.Model):
     def monto_restante(self):
         return self.monto_total - self.monto_pagado
 
-
 class PagoCuota(models.Model):
     """Un pago de una cuota, atado al MES al que corresponde.
 
@@ -517,7 +466,6 @@ class PagoCuota(models.Model):
     periodo = models.IntegerField(db_index=True, help_text='Mes al que corresponde: año*100+mes')
     monto = models.DecimalField(max_digits=12, decimal_places=2)
     fecha_pago = models.DateField(default=timezone.now, help_text='Cuándo se pagó de verdad')
-    # El movimiento que este pago generó. Al anular el pago se borra también.
     transaccion = models.OneToOneField('Transaccion', on_delete=models.SET_NULL,
                                        null=True, blank=True, related_name='pago_cuota')
 
@@ -548,7 +496,6 @@ class PagoCuota(models.Model):
     def fue_atrasado(self):
         """Se pagó después de la fecha de cobro de su mes."""
         return self.fecha_pago > self.deuda.fecha_cobro_de(self.periodo)
-
 
 class Categoria(models.Model):
     """Una categoría creada por el usuario.
@@ -660,7 +607,6 @@ class Categoria(models.Model):
             }
         return salida
 
-
 class SegundoFactor(models.Model):
     """Verificación en dos pasos con código temporal (TOTP).
 
@@ -680,9 +626,6 @@ class SegundoFactor(models.Model):
     creado = models.DateTimeField(auto_now_add=True)
     ultimo_uso = models.DateTimeField(null=True, blank=True)
 
-    # El último código usado, para que no valga dos veces. Sin esto, alguien
-    # que vea el código por encima del hombro puede reutilizarlo durante los
-    # segundos que le queden de vida.
     ultimo_codigo = models.CharField(max_length=6, blank=True)
 
     class Meta:
@@ -718,7 +661,7 @@ class SegundoFactor(models.Model):
         if not codigo.isdigit() or len(codigo) != 6:
             return False
         if codigo == self.ultimo_codigo:
-            return False   # ya se usó
+            return False
         if pyotp.TOTP(self.secreto).verify(codigo, valid_window=1):
             from django.utils import timezone as _tz
             self.ultimo_codigo = codigo
@@ -726,7 +669,6 @@ class SegundoFactor(models.Model):
             self.save(update_fields=["ultimo_codigo", "ultimo_uso"])
             return True
         return False
-
 
 class CodigoRespaldo(models.Model):
     """Códigos de un solo uso para cuando se pierde el teléfono.
@@ -761,8 +703,6 @@ class CodigoRespaldo(models.Model):
         cls.objects.filter(usuario=usuario).delete()
         codigos = []
         for _ in range(cantidad):
-            # Sin caracteres ambiguos: 0/O y 1/I se confunden al copiarlos
-            # a mano de un papel, que es donde acaban estos códigos.
             alfabeto = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
             crudo = "".join(secrets.choice(alfabeto) for _ in range(8))
             codigos.append(crudo[:4] + "-" + crudo[4:])
@@ -786,7 +726,6 @@ class CodigoRespaldo(models.Model):
                 return True
         return False
 
-
 class Presupuesto(models.Model):
     """Un límite de gasto mensual por usuario, para el aviso de
     'vas en el X% de tu presupuesto' del dashboard."""
@@ -795,7 +734,6 @@ class Presupuesto(models.Model):
 
     def __str__(self):
         return f"Presupuesto de {self.usuario.username}: ${self.limite_mensual}"
-
 
 class MetaAhorro(models.Model):
     usuario = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -807,8 +745,6 @@ class MetaAhorro(models.Model):
     def __str__(self):
         return self.nombre
 
-    # Se busca por subcadena del nombre, así que "viaje al sur" y "mi viaje"
-    # caen en el mismo icono. El orden importa cuando dos claves se solapan.
     ICONOS_META = [
         ('emergencia', 'fa-shield-halved'),
         ('fondo', 'fa-piggy-bank'),
@@ -850,8 +786,6 @@ class MetaAhorro(models.Model):
         ('deuda', 'fa-credit-card'),
     ]
 
-    # Un color por meta, en el orden en que se crearon. Se reparte por id
-    # para que no cambie al agregar otra.
     COLORES_META = ['#4b8cff', '#f4626c', '#ffd54f', '#53d258',
                     '#818cf8', '#2fd8c8', '#c084fc', '#fb923c']
 
@@ -911,7 +845,6 @@ class MetaAhorro(models.Model):
             return f'Aportando ${int(sugerido):,}'.replace(',', '.') + f' al mes lo logras en {meses} meses.'
         return f'Te faltan ${int(self.monto_faltante):,}'.replace(',', '.') + ' para llegar.'
 
-
 class AporteMeta(models.Model):
     """Registro de cada aporte hecho a una meta de ahorro.
     Permite historial y actualiza monto_actual automáticamente."""
@@ -925,7 +858,6 @@ class AporteMeta(models.Model):
 
     def __str__(self):
         return f"Aporte {self.monto} a {self.meta.nombre}"
-
 
 class PagoServicio(models.Model):
     """Un mes de una suscripción, marcado como pagado.
@@ -959,7 +891,6 @@ class PagoServicio(models.Model):
                    'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre']
         return f'{nombres[self.periodo % 100 - 1]} {self.periodo // 100}'
 
-
 def _ruta_avatar(instance, filename):
     """avatares/<id>/<8 hex>.<ext>
 
@@ -970,7 +901,6 @@ def _ruta_avatar(instance, filename):
     import uuid
     ext = (filename.rsplit('.', 1)[-1] or 'jpg').lower()[:5]
     return f'avatares/{instance.usuario_id}/{uuid.uuid4().hex[:8]}.{ext}'
-
 
 class UserProfile(models.Model):
     """Datos de perfil que no viven en el User de Django: moneda, avatar,
@@ -999,36 +929,22 @@ class UserProfile(models.Model):
     ciudad          = models.CharField(max_length=60, blank=True)
     moneda          = models.CharField(max_length=5, choices=MONEDAS, default='CLP')
 
-    # Identificador de la cuenta de Google, cuando el usuario la vinculó.
-    # Es estable: no cambia aunque la persona cambie su correo de Gmail,
-    # que es justo por lo que no alcanza con guardar el correo. Vacío en
-    # las cuentas que solo usan contraseña; null y no cadena vacía porque
-    # el campo es unique y varios NULL no chocan entre sí en SQL.
     google_sub = models.CharField(max_length=64, null=True, blank=True, unique=True)
 
-    # Foto de perfil. Opcional: sin ella el avatar sigue mostrando la
-    # inicial, que es lo que hacía hasta ahora.
-    #
-    # El almacén se resuelve solo: R2 si hay credenciales en el entorno,
-    # disco local si no. Va con storage= en el campo y no en el STORAGES
-    # global de settings para que solo la foto viaje a la nube; el resto de
-    # los archivos siguen donde estén.
     foto = models.ImageField(
         upload_to=_ruta_avatar, storage=obtener_almacen, null=True, blank=True)
 
-    # Aviso mensual por correo de lo que queda por pagar. Encendido por
-    # defecto: es un recordatorio de lo que el propio usuario anotó, y
-    # apagarlo es un clic en el perfil.
-    #
-    # El día es configurable pero arranca en 20 (antes del cierre de la
-    # mayoría de las tarjetas). Se admite del 1 al 31: en los meses que no
-    # llegan al día elegido, el envío se recorta al último día del mes
-    # (dia_aviso_efectivo), así que elegir 31 no deja a febrero sin aviso.
     aviso_mensual = models.BooleanField(default=True)
     aviso_dia     = models.IntegerField(default=20)
-    # Mes del último envío (año*100+mes). Es lo que evita el correo repetido
-    # si la tarea del hosting corre dos veces el mismo día.
     aviso_ultimo_periodo = models.IntegerField(default=0)
+
+    analisis_ia = models.BooleanField(default=True)
+
+    politica_version  = models.CharField(max_length=20, blank=True)
+    politica_aceptada = models.DateTimeField(null=True, blank=True)
+
+    ultima_actividad = models.DateTimeField(null=True, blank=True)
+    aviso_inactividad_enviado = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
         return f"Perfil de {self.usuario.username}"
@@ -1054,21 +970,15 @@ class UserProfile(models.Model):
 
         super().save(*args, **kwargs)
 
-        # Solo si de verdad cambió: guardar el perfil sin tocar la foto (un
-        # cambio de teléfono, por ejemplo) no debe borrar nada.
         if anterior and anterior.name and anterior.name != self.foto.name:
             try:
                 anterior.delete(save=False)
             except Exception:
-                # Si el archivo ya no está, o R2 no responde, no se rompe el
-                # guardado por un archivo huérfano: es basura, no un error
-                # que el usuario tenga que ver.
                 pass
 
     @property
     def nombre_display(self):
         return self.nombre_completo or self.usuario.username
-
 
     @property
     def inicial(self):
@@ -1107,7 +1017,6 @@ class UserProfile(models.Model):
         _, ultimo = monthrange(hoy.year, hoy.month)
         return min(max(1, self.aviso_dia), ultimo)
 
-
 @receiver(post_delete, sender=UserProfile)
 def _borrar_avatar_al_eliminar_perfil(sender, instance, **kwargs):
     """Borra el archivo del avatar cuando se borra el perfil.
@@ -1130,11 +1039,6 @@ def _borrar_avatar_al_eliminar_perfil(sender, instance, **kwargs):
             instance.foto.delete(save=False)
         except Exception:
             pass
-
-
-# ============================================================
-#  PRÉSTAMOS POR COBRAR (quién me debe)
-# ============================================================
 
 class Persona(models.Model):
     """Alguien que me debe dinero. Agrupa uno o varios préstamos."""
@@ -1229,7 +1133,6 @@ class Persona(models.Model):
             return 'Sin préstamos'
         return f'{n} préstamo{"s" if n != 1 else ""}'
 
-
 class Prestamo(models.Model):
     """Un préstamo individual hecho a una persona.
     Puede ser pago único o dividido en cuotas."""
@@ -1323,7 +1226,6 @@ class Prestamo(models.Model):
         opciones.append({'label': 'Todo lo pendiente', 'monto': round(pendiente)})
         return opciones
 
-
 class AbonoPrestamo(models.Model):
     """Cada pago que la persona me hace para saldar un préstamo."""
     prestamo = models.ForeignKey(Prestamo, on_delete=models.CASCADE, related_name='abonos')
@@ -1337,7 +1239,6 @@ class AbonoPrestamo(models.Model):
     def __str__(self):
         return f"Abono {self.monto} — {self.prestamo.descripcion}"
 
-
 class GastoPendiente(models.Model):
     """Un gasto puntual pendiente (ej: una cuenta que llega).
     Cuenta como gasto del mes desde que se crea (con fecha = vencimiento).
@@ -1350,8 +1251,6 @@ class GastoPendiente(models.Model):
     pagado = models.BooleanField(default=False)
     fecha_pago = models.DateField(null=True, blank=True)
     creado = models.DateField(default=timezone.now)
-    # Transacción de gasto asociada (creada al crear el gasto pendiente).
-    # Así cuenta en el mes de vencimiento sin doble conteo al pagar.
     transaccion = models.OneToOneField('Transaccion', on_delete=models.SET_NULL,
                                        null=True, blank=True, related_name='gasto_pendiente')
 
@@ -1397,7 +1296,6 @@ class GastoPendiente(models.Model):
             return 'Vence hoy'
         return f'En {d} día{"s" if d != 1 else ""}'
 
-
 class Suscripcion(models.Model):
     """Suscripción recurrente (Netflix, Spotify, etc.).
     Genera un gasto automáticamente cada mes hasta que se cancela."""
@@ -1409,7 +1307,6 @@ class Suscripcion(models.Model):
     activa = models.BooleanField(default=True)
     fecha_inicio = models.DateField(default=timezone.now)
     fecha_cancelada = models.DateField(null=True, blank=True)
-    # Hasta qué mes ya se generó el cobro (para no duplicar). Formato: año*100+mes
     ultimo_mes_generado = models.IntegerField(default=0)
 
     class Meta:
@@ -1418,15 +1315,6 @@ class Suscripcion(models.Model):
     def __str__(self):
         return f"{self.nombre} — {self.monto}/mes"
 
-    # Marcas reconocidas: icono de Font Awesome y color oficial.
-    #
-    # Font Awesome trae los logos de algunas plataformas pero no de todas
-    # (Netflix, Disney+, HBO y Max no existen como icono). Para esas se usa
-    # la inicial sobre el color de la marca, que se reconoce igual de rápido
-    # y no obliga a incrustar SVG de logos ajenos.
-    #
-    # El orden importa: se busca por subcadena, así que "apple tv" tiene que
-    # ir antes que "apple".
     MARCAS = [
         ('netflix',      None,                  '#e50914'),
         ('spotify',      'fa-brands fa-spotify', '#1db954'),
@@ -1518,13 +1406,6 @@ class Suscripcion(models.Model):
         _, ultimo_sig = _cal.monthrange(siguiente.year, siguiente.month)
         objetivo = date(siguiente.year, siguiente.month, min(self.dia_cobro, ultimo_sig))
         return (objetivo - hoy).days
-
-    # ---------- Periodos (mismo criterio que las cuotas) ----------
-    #
-    # Una suscripción cobra un mes tras otro. Antes solo se sabía que el
-    # cobro se había GENERADO, no si se había pagado: la fila decía "$9.900
-    # al mes" y nada más. Ahora cada mes se puede marcar como pagado, igual
-    # que una cuota.
 
     @staticmethod
     def periodo_de(year, month):

@@ -2,12 +2,6 @@
 {% load humanize %}
 {% block title %}Mi perfil · Rekon{% endblock %}
 
-{% comment %}
-  Solo la segunda línea de la píldora del saludo. Antes esta pantalla pisaba
-  "topbar_left" entero con una etiqueta de 10px suelta: perdía el avatar, el
-  nombre y la superficie, y quedaba un texto huérfano flotando al lado de la
-  barra de búsqueda.
-{% endcomment %}
 {% block topbar_sub %}Tu cuenta{% endblock %}
 
 {% block topbar_actions %}
@@ -17,14 +11,7 @@
 {% block content %}
 <div style="max-width:780px">
 
-{# ============ Cabecera ============ #}
 {% if not profile.email and not request.user.email %}
-{% comment %}
-  Las cuentas creadas antes de que el email fuera obligatorio no tienen a
-  dónde recibir el enlace de recuperación: si olvidan la contraseña, no hay
-  forma de devolverles la cuenta sin entrar a la base a mano. El aviso pide
-  el correo sin bloquear nada.
-{% endcomment %}
 <div class="glass card" style="margin-bottom:16px;border-color:rgba(255,170,44,.3);display:flex;gap:13px;align-items:flex-start">
   <span style="display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;flex-shrink:0;border-radius:12px;background:var(--amber-tenue);color:var(--amber);font-size:13px">
     <i class="fas fa-envelope"></i>
@@ -39,25 +26,11 @@
 </div>
 {% endif %}
 
-{% comment %}
-  Foto, nombre y datos en un bloque; las cifras en otro, separadas por una
-  línea. Antes el aviso de la foto se metía ENTRE la foto y el nombre y lo
-  empujaba al otro extremo de la tarjeta, y las tres cifras tenían
-  tratamientos distintos: dos apagadas y la de la fecha en ámbar y mono, sin
-  que nada justificara el destaque.
-{% endcomment %}
 <div class="glass card-lg perfil-cab" data-spot>
 
   <div class="perfil-id">
     <label class="avatar-foto" for="{{ perfil_form.foto.id_for_label }}"
            title="{% if profile.foto_url %}Cambiar foto{% else %}Subir una foto{% endif %}">
-      {% comment %}
-        La inicial va SIEMPRE visible, debajo de la foto: si la imagen no
-        carga — archivo borrado del bucket, URL mal formada — se ve la letra
-        en vez de un cuadro vacío. Ocultarla desde el servidor con
-        display:none era el bug: bastaba con que la foto fallara para que no
-        quedara nada que mirar, porque un &lt;img alt=""&gt; roto no dibuja nada.
-      {% endcomment %}
       <span class="avatar-inicial" id="vistaInicial">{{ profile.inicial }}</span>
       <img id="vistaAvatar" alt=""
            {% if profile.foto_url %}src="{{ profile.foto_url }}"{% else %}hidden{% endif %}>
@@ -67,10 +40,6 @@
     <div class="perfil-datos">
       <h1 class="perfil-nombre">{{ profile.nombre_display }}</h1>
 
-      {% comment %}
-        Correo y ubicación en líneas propias con su icono: juntos con un
-        punto en medio se leían como una sola frase larga.
-      {% endcomment %}
       <div class="perfil-meta">
         <span>
           <i class="fas fa-envelope"></i>
@@ -83,20 +52,12 @@
         {% endif %}
       </div>
 
-      {% comment %}
-        El aviso va bajo el nombre, donde no empuja nada: es un estado
-        pasajero y no debe reordenar la cabecera al aparecer.
-      {% endcomment %}
       <div class="foto-nota" id="notaFoto" hidden>
         <i class="fas fa-circle-info" style="font-size:10px"></i>Guarda los cambios para subir la foto
       </div>
     </div>
   </div>
 
-  {% comment %}
-    Las tres con el mismo peso: son tres datos del mismo tipo y ninguno
-    manda sobre los otros.
-  {% endcomment %}
   <div class="perfil-cifras">
     <div class="perfil-cifra">
       <span class="perfil-cifra-valor">{{ total_trans }}</span>
@@ -112,26 +73,16 @@
     </div>
   </div>
 </div>
-{# ============ Pestañas ============ #}
 <div class="seg" style="margin-bottom:16px;max-width:340px" id="segPerfil">
   <button type="button" class="on" data-panel="datos">Tus datos</button>
   <button type="button" data-panel="seguridad">Seguridad</button>
 </div>
 
-{# ============ Panel: datos ============ #}
 <div id="panelDatos">
-  {% comment %}
-    enctype multipart: sin él el navegador manda solo los nombres de los
-    campos de archivo, no el contenido, y la foto nunca llega.
-  {% endcomment %}
   <form method="post" enctype="multipart/form-data">
     {% csrf_token %}
     <input type="hidden" name="accion" value="perfil">
 
-    {% comment %}
-      El campo va oculto: lo dispara el avatar de arriba. Sigue en el
-      formulario para que se envíe con el resto.
-    {% endcomment %}
     <div class="visually-hidden">{{ perfil_form.foto }}</div>
     {% for e in perfil_form.foto.errors %}
     <div class="glass card" style="margin-bottom:14px;border-color:rgba(226,92,92,.3)">
@@ -188,11 +139,6 @@
     </div>
   </form>
 
-  {% comment %}
-    Aviso mensual por correo. El interruptor va en su propio formulario: es
-    una preferencia que se aplica al toque, no algo que se guarde junto con
-    el nombre y la ciudad.
-  {% endcomment %}
   <div class="glass card" style="padding:0;margin-bottom:16px;overflow:hidden" data-spot>
     <div style="display:flex;align-items:center;gap:14px;padding:20px 22px" data-tour="aviso">
       <span class="icon-tile {% if profile.aviso_mensual %}orange{% endif %}"
@@ -228,11 +174,6 @@
     <div style="padding:18px 22px;border-top:1px solid rgba(255,255,255,.05)">
       <div style="font-size:13px;font-weight:600;margin-bottom:10px">Día del envío</div>
 
-      {% comment %}
-        El select lleva su propio padding derecho: el global reserva sitio
-        para la flecha, y al pisarlo con un padding corto la flecha caía
-        encima del número.
-      {% endcomment %}
       <form method="post" style="margin:0;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
         {% csrf_token %}
         <input type="hidden" name="accion" value="aviso_dia">
@@ -255,7 +196,6 @@
     {% endif %}
   </div>
 
-  {# ---- Tus datos, tuyos ---- #}
   <div class="glass" style="border-radius:24px;overflow:hidden" data-spot>
     <div style="display:flex;align-items:center;gap:14px;padding:17px 20px;border-bottom:1px solid rgba(255,255,255,.05)"
          data-tour="exportar">
@@ -267,6 +207,61 @@
       <div style="display:flex;gap:8px;align-items:center;flex-shrink:0">
         <a href="{% url 'exportar_excel' %}" class="btn btn-glass btn-sm">Excel</a>
         <a href="{% url 'exportar_csv' %}" class="btn btn-glass btn-sm" title="El mismo contenido en texto plano">CSV</a>
+      </div>
+    </div>
+
+    <div style="display:flex;align-items:center;gap:14px;padding:17px 20px;border-bottom:1px solid rgba(255,255,255,.05)">
+      <span class="icon-tile"><i class="fas fa-download"></i></span>
+      <div class="row-main">
+        <div class="row-title">Descargar todos mis datos</div>
+        <div class="row-meta">El expediente completo: perfil, personas, metas, suscripciones y movimientos</div>
+      </div>
+      <a href="{% url 'mis_datos' %}" class="btn btn-glass btn-sm">JSON</a>
+    </div>
+
+    <div style="display:flex;align-items:center;gap:14px;padding:17px 20px;border-bottom:1px solid rgba(255,255,255,.05)">
+      <span class="icon-tile {% if profile.analisis_ia %}orange{% endif %}"><i class="fas fa-brain"></i></span>
+      <div class="row-main">
+        <div class="row-title">Análisis con IA</div>
+        <div class="row-meta">
+          {% if profile.analisis_ia %}
+          Salen solo tus números agregados. Nunca descripciones ni nombres.
+          {% else %}
+          Apagado. El análisis usa solo el motor propio y nada sale del servidor.
+          {% endif %}
+        </div>
+      </div>
+      <form method="post" style="margin:0;flex-shrink:0">
+        {% csrf_token %}
+        <input type="hidden" name="accion" value="analisis_ia">
+        <input type="hidden" name="activar" value="{% if profile.analisis_ia %}0{% else %}1{% endif %}">
+        <button type="submit" class="btn btn-glass btn-sm">
+          {% if profile.analisis_ia %}Desactivar{% else %}Activar{% endif %}
+        </button>
+      </form>
+    </div>
+
+    <div style="display:flex;align-items:center;gap:14px;padding:17px 20px;border-bottom:1px solid rgba(255,255,255,.05)">
+      <span class="icon-tile"><i class="fas fa-file-shield"></i></span>
+      <div class="row-main">
+        <div class="row-title">Privacidad y términos</div>
+        <div class="row-meta">
+          {% if politica_al_dia %}
+          Aceptaste la versión {{ profile.politica_version }} el {{ profile.politica_aceptada|date:"j \d\e F \d\e Y" }}
+          {% else %}
+          Hay una versión más reciente que la que aceptaste
+          {% endif %}
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;flex-shrink:0">
+        <a href="{% url 'privacidad' %}" class="btn btn-glass btn-sm">Leer</a>
+        {% if not politica_al_dia %}
+        <form method="post" style="margin:0">
+          {% csrf_token %}
+          <input type="hidden" name="accion" value="aceptar_politica">
+          <button type="submit" class="btn btn-purple btn-sm">Aceptar</button>
+        </form>
+        {% endif %}
       </div>
     </div>
 
@@ -299,21 +294,8 @@
   </div>
 </div>
 
-{# ============ Panel: seguridad ============ #}
 <div id="panelSeguridad" style="display:none">
 
-  {% comment %}
-    La verificación en dos pasos, primero: protege más que cambiar la
-    contraseña, y es lo que la mayoría no tiene activado.
-
-    Fuera del formulario de contraseña: un enlace dentro de un <form> que
-    envía por POST es un sitio equivocado, y al pulsarlo se perdía lo que
-    hubiera escrito.
-  {% endcomment %}
-  {% comment %}
-    Los estilos van en el elemento y no solo en una clase: si el CSS no está
-    al día, la fila igual se ve como tarjeta en vez de apilarse suelta.
-  {% endcomment %}
   <a href="{% url 'configurar_2fa' %}" class="fila-ajuste"
      style="display:flex;align-items:center;gap:14px;padding:18px 20px;margin-bottom:16px;
             border-radius:22px;background:#383838;text-decoration:none;color:#f5f5f5">
@@ -411,17 +393,26 @@
       </form>
     </div>
   </div>
+
+  <div class="glass card" style="margin-top:16px;border-color:rgba(226,92,92,.28)">
+    <div style="display:flex;align-items:center;gap:14px">
+      <span class="icon-tile coral" style="flex-shrink:0"><i class="fas fa-trash-can"></i></span>
+      <div class="row-main">
+        <div class="row-title">Eliminar mi cuenta</div>
+        <div class="row-meta">Borra tu cuenta y todo tu historial. No se puede deshacer.</div>
+      </div>
+      <a href="{% url 'eliminar_cuenta' %}" class="btn btn-glass btn-sm"
+         style="border-color:rgba(226,92,92,.4);color:var(--coral);flex-shrink:0">Eliminar</a>
+    </div>
+  </div>
 </div>
 
 </div>
 {% endblock %}
 
-
 {% block extra_js %}
 <script nonce="{{ csp_nonce }}">
-/* Vista previa de la foto antes de guardar.
-   Sin esto hay que enviar el formulario para ver si la imagen era la
-   correcta, y si no lo era, repetir todo. */
+
 (function () {
   var campo = document.getElementById('{{ perfil_form.foto.id_for_label }}');
   var img = document.getElementById('vistaAvatar');
@@ -429,8 +420,6 @@
   var nota = document.getElementById('notaFoto');
   if (!campo || !img) return;
 
-  /* Si la foto no carga, se oculta la imagen y vuelve a verse la inicial,
-     que está siempre detrás. No hace falta tocar su display. */
   img.addEventListener('error', function () {
     if (!img.getAttribute('src')) return;
     img.removeAttribute('src');
@@ -448,9 +437,7 @@
       btnQuitar.hidden = true;
       if (nota) {
         nota.hidden = false;
-        /* El texto va en el último nodo del div (el icono es el primero).
-           Antes se buscaba un &lt;span&gt; que no existe: querySelector
-           devolvía null y el click reventaba a mitad de camino. */
+
         nota.lastChild.textContent = 'Guarda los cambios para quitar la foto';
       }
     });
@@ -462,7 +449,7 @@
     if (campoQuitar) campoQuitar.value = '';
     img.src = URL.createObjectURL(f);
     img.hidden = false;
-    /* La foto ya se ve, pero no está subida hasta enviar el formulario. */
+
     if (nota) nota.hidden = false;
   });
 })();
@@ -470,9 +457,7 @@
 
 <script nonce="{{ csp_nonce }}">
 (function () {
-  /* Pestañas.
-     En su propio <script>: antes compartía etiqueta con el bloque de la
-     foto, y cualquier error allí dejaba las pestañas muertas. */
+
   var seg = document.getElementById('segPerfil');
   if (!seg) return;
   var paneles = {
@@ -490,20 +475,16 @@
     });
   });
 
-  /* Si el POST de contraseña volvió con errores, abrir esa pestaña */
   {% if pw_form.errors %}
   var bs = seg.querySelector('[data-panel="seguridad"]');
   if (bs) bs.click();
   {% endif %}
 
-  /* La pestaña queda en la URL: al volver desde dos pasos se abre donde
-     estabas, no en la primera. */
   if (location.hash === '#seguridad') {
     var bh = seg.querySelector('[data-panel="seguridad"]');
     if (bh) bh.click();
   }
 
-  /* Aviso de coincidencia */
   var p1 = document.getElementById('{{ pw_form.new_password1.id_for_label }}');
   var p2 = document.getElementById('{{ pw_form.new_password2.id_for_label }}');
   var aviso = document.getElementById('coincide');

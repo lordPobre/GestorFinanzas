@@ -6,13 +6,12 @@ Los widgets NO llevan clases: el CSS estiliza por elemento
 en este proyecto, así que los campos se veían sin estilo — el navegador les
 daba su apariencia por defecto sobre un fondo oscuro.
 """
-from datetime import date
+from datetime import date, timedelta
 from decimal import Decimal
 
 from django import forms
 
 from .models import Categoria, Deuda, MetaAhorro, Transaccion
-
 
 class DeudaForm(forms.ModelForm):
     """Una compra en cuotas.
@@ -31,8 +30,6 @@ class DeudaForm(forms.ModelForm):
         widget=forms.NumberInput(attrs={'placeholder': '12500', 'min': '1', 'step': '1'}),
     )
 
-    # Los campos declarados en la clase van antes de los del modelo: sin esto
-    # "Valor de cada cuota" quedaba arriba de "¿A quién le pagas?".
     field_order = ['acreedor', 'valor_cuota', 'cuotas_totales', 'fecha_inicio', 'categoria']
 
     class Meta:
@@ -52,19 +49,14 @@ class DeudaForm(forms.ModelForm):
             'fecha_inicio': forms.DateInput(attrs={'type': 'date'}, format='%Y-%m-%d'),
         }
 
-    # El total tiene 10 dígitos con 2 decimales en el modelo: más que esto no
-    # entra en la columna y Django tiraría un error de base de datos.
     TOTAL_MAXIMO = Decimal('99999999')
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Solo lo que se compra a plazo, y en ese orden.
         self.fields['categoria'].choices = Deuda.CATEGORIAS_CUOTAS
         if not self.instance.pk:
             self.fields['fecha_inicio'].initial = date.today()
         else:
-            # Al editar, el formulario no conoce la cuota: se reconstruye
-            # dividiendo el total guardado.
             self.fields['valor_cuota'].initial = self.instance.monto_cuota
 
     def clean_valor_cuota(self):
@@ -108,7 +100,6 @@ class DeudaForm(forms.ModelForm):
             deuda.save()
         return deuda
 
-
 class TransaccionForm(forms.ModelForm):
     """Un ingreso o un gasto del día a día."""
 
@@ -116,8 +107,10 @@ class TransaccionForm(forms.ModelForm):
         label='Fecha',
         input_formats=['%Y-%m-%d', '%d/%m/%Y', '%d-%m-%Y'],
         widget=forms.DateInput(attrs={'type': 'date'}, format='%Y-%m-%d'),
-        help_text='Puedes anotar movimientos de días anteriores.',
+        help_text='Días anteriores siempre. Un ingreso también puede ir a futuro.',
     )
+
+    DIAS_FUTURO_INGRESO = 366
 
     class Meta:
         model = Transaccion
@@ -134,29 +127,15 @@ class TransaccionForm(forms.ModelForm):
         if not self.instance.pk and not self.initial.get('fecha'):
             self.fields['fecha'].initial = date.today()
 
-        # Las categorías propias del usuario se suman a las base. Sin esto,
-        # una categoría creada por él no aparecía al registrar un movimiento.
         self._usuario = usuario or getattr(self.instance, 'usuario_id', None) and self.instance.usuario
         if self._usuario:
             self.fields['categoria'].choices = Categoria.opciones(self._usuario)
 
     def clean_monto(self):
         monto = self.cleaned_data.get('monto')
-        # min:0 en el widget dejaba pasar un gasto de $0, que no dice nada y
-        # ensucia los promedios y la dona de categorías.
         if monto is None or monto <= 0:
             raise forms.ValidationError('El monto tiene que ser mayor que cero.')
         return monto
-
-    def clean_fecha(self):
-        fecha = self.cleaned_data.get('fecha')
-        # Una fecha futura descuadra "lo que te queda este mes": el gasto
-        # aparece contado en un mes que todavía no llega.
-        if fecha and fecha > date.today():
-            raise forms.ValidationError(
-                'No puedes anotar un movimiento con fecha futura. '
-                'Si es una cuenta por pagar, regístrala como gasto pendiente.')
-        return fecha
 
     def clean(self):
         """Impide cruzar tipo y categoría.
@@ -168,13 +147,15 @@ class TransaccionForm(forms.ModelForm):
         datos = super().clean()
         tipo = datos.get('tipo')
         categoria = datos.get('categoria')
+
+        self._validar_fecha(datos.get('fecha'), tipo)
+
         if not tipo or not categoria:
             return datos
 
         de_ingreso = {c[0] for c in Transaccion.CATEGORIAS_INGRESO}
         de_egreso = {c[0] for c in Transaccion.CATEGORIAS_EGRESO}
 
-        # Una categoría propia declara su propio tipo.
         if getattr(self, '_usuario', None):
             propia = Categoria.objects.filter(
                 usuario=self._usuario, slug=categoria).first()
@@ -191,6 +172,29 @@ class TransaccionForm(forms.ModelForm):
             self.add_error('categoria', 'Esa categoría es de ingresos. Elige a qué gasto corresponde.')
         return datos
 
+    def _validar_fecha(self, fecha, tipo):
+        """Un gasto futuro descuadra el mes; un ingreso futuro no.
+
+        Un gasto con fecha por venir aparece contado en un mes que todavía no
+        llega: para eso está el gasto pendiente. Un ingreso ya conocido del
+        mes siguiente —un sueldo, un pago acordado— es un caso real, y cae en
+        el mes que le corresponde porque todos los totales se calculan por
+        rango de mes.
+
+        El tope de un año evita que un error de tipeo en el año mande el
+        movimiento a 2099, donde nadie lo vería nunca.
+        """
+        if not fecha or fecha <= date.today():
+            return
+
+        if tipo != 'INGRESO':
+            self.add_error('fecha',
+                           'Un gasto no se puede anotar con fecha futura. '
+                           'Si es una cuenta por pagar, regístrala como gasto pendiente.')
+            return
+
+        if fecha > date.today() + timedelta(days=self.DIAS_FUTURO_INGRESO):
+            self.add_error('fecha', 'Como máximo un año hacia adelante.')
 
 class MetaAhorroForm(forms.ModelForm):
     """Una meta de ahorro."""

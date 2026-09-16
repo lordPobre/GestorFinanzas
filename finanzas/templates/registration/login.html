@@ -32,7 +32,7 @@
       <div style="position:relative;display:flex;align-items:center">
         <i class="fas fa-user auth-icono"></i>
         <input type="text" name="username" id="{{ form.username.id_for_label }}"
-               class="auth-campo" placeholder="Usuario"
+               class="auth-campo" placeholder="tu usuario"
                autocomplete="username" required autofocus
                {% if bloqueado %}disabled{% endif %}>
       </div>
@@ -77,7 +77,6 @@
 <div style="display:flex;flex-direction:column;gap:12px">
 
   {% if google_activo %}
-
   <a href="{% url 'google_entrar' %}{% if next %}?next={{ next|urlencode }}{% endif %}"
      style="display:flex;align-items:center;justify-content:center;gap:11px;padding:15px;border:1.5px solid var(--line-fuerte);border-radius:100px;color:var(--text-primary);text-decoration:none;font-size:13.5px;font-weight:700">
     <svg width="17" height="17" viewBox="0 0 48 48" aria-hidden="true" focusable="false" style="flex-shrink:0">
@@ -88,6 +87,11 @@
     </svg>
     Continuar con Google
   </a>
+  <div style="font-size:11px;color:var(--text-muted);text-align:center;line-height:1.5;margin-top:-4px">
+    Al entrar con Google aceptas la
+    <a href="{% url 'privacidad' %}">política de privacidad</a> y los
+    <a href="{% url 'terminos' %}">términos de uso</a>.
+  </div>
   {% endif %}
 
   <a href="{% url 'registro' %}"
@@ -98,5 +102,4 @@
 {% endblock %}
 
 {% block extra_js %}
-
 {% endblock %}

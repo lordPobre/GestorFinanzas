@@ -9,7 +9,7 @@ from dateutil.relativedelta import relativedelta
 
 from django import forms
 from django.contrib import messages
-from django.contrib.auth import login, update_session_auth_hash
+from django.contrib.auth import login, logout, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.contrib.auth.forms import PasswordChangeForm, UserCreationForm
@@ -22,7 +22,7 @@ from django.utils import timezone
 from django.views.decorators.cache import cache_control
 
 from .forms import DeudaForm, MetaAhorroForm, TransaccionForm
-from . import exportar
+from . import exportar, legal
 from .seguridad import (MAX_INTENTOS as MAX_INTENTOS_LOGIN, _ip, esta_bloqueado,
                         limitar, limpiar_intentos, registrar_fallo)
 from .models import (AbonoPrestamo, AporteMeta, Categoria, CodigoRespaldo, Deuda, GastoPendiente,
@@ -32,10 +32,10 @@ from .models import (AbonoPrestamo, AporteMeta, Categoria, CodigoRespaldo, Deuda
 
 NOMBRES_MESES = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun',
                  'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic']
-
 MESES_LARGOS = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio',
                 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre']
 
+logger = logging.getLogger('finanzas')
 
 def nombre_mes_es(year, month, capitalizado=True):
     """Mes en español.
@@ -46,15 +46,9 @@ def nombre_mes_es(year, month, capitalizado=True):
     texto = f'{MESES_LARGOS[month - 1]} {year}'
     return texto.capitalize() if capitalizado else texto
 
-
-# ============================================================
-#  HELPERS
-# ============================================================
-
 def get_or_create_profile(user):
     profile, _ = UserProfile.objects.get_or_create(usuario=user)
     return profile
-
 
 def _redirigir(request, por_defecto='dashboard'):
     """Vuelve a la pantalla desde la que se hizo la acción.
@@ -77,22 +71,15 @@ def _redirigir(request, por_defecto='dashboard'):
     if not destino:
         return redirect(por_defecto)
 
-    # Solo la cadena de consulta: se completa con la ruta de la que vino.
     if destino.startswith('?'):
         base = request.POST.get('next_path') or request.path
-        # request.path es la URL de la ACCIÓN (por ejemplo
-        # /suscripciones/pagar/4/), no la de la pantalla. Si no viene un
-        # next_path explícito se cae a la pantalla por defecto con la
-        # consulta pegada, que es lo único razonable.
         if base == request.path:
             base = reverse(por_defecto)
         return redirect(f'{base}{destino}')
 
-    # Ruta interna.
     if destino.startswith('/') and not destino.startswith('//'):
         return redirect(destino)
 
-    # Nombre de ruta. Si no existe, no se rompe la acción por un 'next' malo.
     if '/' not in destino and ':' not in destino:
         try:
             return redirect(destino)
@@ -101,14 +88,12 @@ def _redirigir(request, por_defecto='dashboard'):
 
     return redirect(por_defecto)
 
-
 def _monto_post(request, campo='monto'):
     """Lee un monto del POST sin reventar si viene basura."""
     try:
         return Decimal(str(request.POST.get(campo, '0')).replace('.', '').replace(',', '.'))
     except (InvalidOperation, ValueError, AttributeError):
         return Decimal('0')
-
 
 def resumen_mes(usuario, year, month):
     """Los números del mes en un solo lugar.
@@ -127,22 +112,16 @@ def resumen_mes(usuario, year, month):
         fecha__gte=fecha_inicio, fecha__lte=fecha_fin,
     ).aggregate(t=Sum('monto'))['t'] or 0)
 
-    # Gastos del día a día. Excluye los pagos de cuotas (es_cuota=True)
-    # porque las cuotas del mes se suman aparte, completas.
     qs_gastos = Transaccion.objects.filter(
         usuario=usuario, tipo='EGRESO',
         fecha__gte=fecha_inicio, fecha__lte=fecha_fin, es_cuota=False,
     )
     gastos = float(qs_gastos.aggregate(t=Sum('monto'))['t'] or 0)
 
-    # Del total gastado, cuánto salió de verdad y cuánto sigue debiéndose.
-    # Los dos cuentan como gasto del mes: la diferencia es si la plata ya
-    # se fue o si todavía la tienes en el bolsillo.
     gastos_pagados = float(qs_gastos.filter(pagado=True)
                                     .aggregate(t=Sum('monto'))['t'] or 0)
     gastos_por_pagar = gastos - gastos_pagados
 
-    # El periodo es la clave con la que se guardan los pagos: año*100+mes.
     periodo = year * 100 + month
 
     deudas = Deuda.objects.filter(usuario=usuario).prefetch_related('pagos')
@@ -151,25 +130,15 @@ def resumen_mes(usuario, year, month):
     eventos = {}
 
     for d in deudas:
-        # ¿Esta compra cobra en este mes? Se pregunta al calendario de la
-        # deuda, no a una resta de fechas suelta.
         if periodo not in d.periodos_programados:
             continue
 
         fecha_cobro = d.fecha_cobro_de(periodo)
         dia_venc = fecha_cobro.day
 
-        # El estado sale de si EXISTE un pago para este mes.
-        #
-        # Antes se deducía: los meses pasados se daban por pagados sin mirar
-        # nada, y el mes en curso se comparaba contra un contador. Un mes
-        # impago se veía limpio al navegar atrás, y quien se adelantaba
-        # dejaba meses futuros marcados como pagados.
         pago = next((p for p in d.pagos.all() if p.periodo == periodo), None)
         estado = 'pagado' if pago else 'pendiente'
 
-        # El monto es el de la cuota de ESE mes: la última absorbe el residuo
-        # del redondeo, así la suma de las cuotas da el total exacto.
         monto_cuota = pago.monto if pago else d.monto_cuota_de(periodo)
         monto = float(monto_cuota)
 
@@ -186,12 +155,6 @@ def resumen_mes(usuario, year, month):
 
     total_cuotas = cuotas_pagadas + cuotas_pendientes
 
-    # Suscripciones del mes.
-    #
-    # El cobro ya está dentro de 'gastos' (generar_cobros_suscripciones crea
-    # la transacción en cuanto llega el mes), así que NO se suma otra vez.
-    # Lo que se calcula acá es solo el reparto: cuánto de ese gasto ya salió
-    # del bolsillo y cuánto sigue pendiente.
     servicios_pagados = 0.0
     servicios_pendientes = 0.0
     for s in Suscripcion.objects.filter(usuario=usuario).prefetch_related('pagos'):
@@ -203,22 +166,11 @@ def resumen_mes(usuario, year, month):
         else:
             servicios_pendientes += monto
 
-    # Cuotas de meses ANTERIORES que nadie pagó.
-    #
-    # Hasta acá el mes solo contaba su propia cuota, así que una cuota impaga
-    # simplemente desaparecía al pasar de mes y "puedes gastar" quedaba
-    # optimista: la plata seguía debiéndose y el número no la veía.
-    #
-    # Se arrastra SOLO al mes en curso. Al navegar a un mes pasado hay que
-    # verlo como fue, no reescrito con lo que se debe hoy; si se arrastrara
-    # a todos, la misma cuota aparecería sumada en cada mes posterior.
     atrasado_arrastrado = 0.0
     cuotas_arrastradas = []
     if (year, month) == (hoy.year, hoy.month):
         for d in deudas:
             for p in d.periodos_atrasados:
-                # periodos_atrasados incluye el mes en curso si su fecha de
-                # cobro ya pasó, y ese ya está en cuotas_pendientes.
                 if p >= periodo:
                     continue
                 monto_p = float(d.monto_cuota_de(p))
@@ -234,8 +186,6 @@ def resumen_mes(usuario, year, month):
     comprometido = gastos + total_cuotas + atrasado_arrastrado
     disponible = ingresos - comprometido
 
-    # Días que quedan del mes. Si se está mirando un mes pasado o futuro,
-    # se usa el mes completo para que "por día" siga teniendo sentido.
     if (year, month) == (hoy.year, hoy.month):
         dias_restantes = max(1, ultimo_dia - hoy.day + 1)
     else:
@@ -256,21 +206,17 @@ def resumen_mes(usuario, year, month):
         'servicios_pagados_mes': servicios_pagados,
         'servicios_pendientes_mes': servicios_pendientes,
         'total_servicios_mes': servicios_pagados + servicios_pendientes,
-        # Deuda de meses anteriores que pesa sobre este mes. Vacío cuando se
-        # mira un mes que no es el actual.
         'atrasado_arrastrado': atrasado_arrastrado,
         'cuotas_arrastradas': cuotas_arrastradas,
         'comprometido': comprometido,
         'disponible': disponible,
         'dias_restantes': dias_restantes,
         'por_dia': max(0.0, disponible) / dias_restantes,
-        # Porcentajes de la barra apilada del encabezado
         'pct_gastado': round(min(100, gastos / base * 100)),
         'pct_por_pagar': round(min(100, cuotas_pendientes / base * 100)),
         'pct_disponible': round(min(100, max(0.0, disponible) / base * 100)),
         'eventos': eventos,
     }
-
 
 def salud_financiera(usuario, resumen_actual=None):
     """Puntaje 0-100 del mes en curso, para el bloque del sidebar.
@@ -324,7 +270,6 @@ def salud_financiera(usuario, resumen_actual=None):
     else:
         label = 'apretada'
 
-    # La nota explica el punto más débil, no repite el número.
     if r['disponible'] < 0:
         nota = 'Este mes gastas más de lo que entra.'
     elif dti > 35:
@@ -338,7 +283,6 @@ def salud_financiera(usuario, resumen_actual=None):
 
     return {'salud_score': score, 'salud_label': label, 'salud_nota': nota}
 
-
 def serie_cuotas(usuario, atras=6, adelante=6):
     """Cuotas mes a mes, incluyendo los meses ya pagados.
 
@@ -350,8 +294,6 @@ def serie_cuotas(usuario, atras=6, adelante=6):
     hoy = date.today()
     deudas = list(Deuda.objects.filter(usuario=usuario).prefetch_related('pagos'))
 
-    # Los pagos se indexan una vez por deuda: recorrer pagos dentro del bucle
-    # de meses haría una consulta por mes.
     pagos_por_deuda = {d.pk: {p.periodo: p for p in d.pagos.all()} for d in deudas}
 
     filas = []
@@ -371,8 +313,6 @@ def serie_cuotas(usuario, atras=6, adelante=6):
             if pago:
                 pagado += cuota
 
-        # Lo que aún se deberá al terminar ese mes: solo cuenta los periodos
-        # sin pago, así el saldo baja al pagar y no por el paso del tiempo.
         restante = Decimal('0')
         for d in deudas:
             for p in d.periodos_pendientes:
@@ -391,7 +331,6 @@ def serie_cuotas(usuario, atras=6, adelante=6):
             'es_mes_actual': (f.year, f.month) == (hoy.year, hoy.month),
         })
     return filas
-
 
 def pendientes_del_mes(usuario, year, month):
     """Todo lo que falta pagar en un mes, en una sola lista.
@@ -435,10 +374,6 @@ def pendientes_del_mes(usuario, year, month):
             'pagado': bool(pago),
             'fecha_pago': pago.fecha_pago if pago else None,
             'icono': 'fa-rotate',
-            # El logo de la plataforma, que el modelo ya sabe deducir del
-            # nombre. Acá estaba fijo en fa-rotate, así que Netflix, Spotify
-            # y Amazon salían todos con la flecha genérica — el logo solo
-            # aparecía en la pantalla de Suscripciones, que sí usa s.marca.
             'marca': s.marca,
             'inicial': s.inicial,
             'url_pagar': f'/suscripciones/pagar/{s.pk}/',
@@ -446,14 +381,6 @@ def pendientes_del_mes(usuario, year, month):
             'periodo': periodo,
         })
 
-    # Gastos únicos anotados pero sin pagar. Son los del bloque "ya gastaste".
-    #
-    # Se excluyen los cobros que genera una suscripción: ya entran arriba
-    # desde el propio modelo Suscripcion, y contarlos también acá duplicaba
-    # cada servicio en la lista Y en el total del mes.
-    #
-    # Igual con los gastos pendientes: su transacción se crea al registrarlos
-    # y el bloque de abajo los añade desde GastoPendiente.
     for t in Transaccion.objects.filter(
             usuario=usuario, tipo='EGRESO', es_cuota=False, pagado=False,
             fecha__year=year, fecha__month=month,
@@ -495,10 +422,8 @@ def pendientes_del_mes(usuario, year, month):
     hoy = date.today()
     for it in items:
         it['atrasado'] = not it['pagado'] and it['fecha'] < hoy
-    # Lo atrasado primero, después por fecha; lo pagado al final.
     items.sort(key=lambda x: (x['pagado'], not x['atrasado'], x['fecha']))
     return items
-
 
 def contadores(usuario, resumen_actual=None):
     """Contexto compartido por todas las pantallas.
@@ -516,9 +441,6 @@ def contadores(usuario, resumen_actual=None):
         usuario=usuario, cuotas_pagadas__lt=F('cuotas_totales')).count()
     personas = Persona.objects.filter(usuario=usuario).prefetch_related('prestamos__abonos')
     prestamos_activos = sum(len(p.prestamos_activos) for p in personas)
-    # 'personas' ya trae los préstamos con sus abonos: la tarjeta "Te deben"
-    # del dashboard usaba esto mismo pero con una consulta propia y aparte.
-    # Se calcula una sola vez, acá, y el dashboard lo toma de este contexto.
     total_por_cobrar = round(sum(p.total_pendiente for p in personas))
     hoy = date.today()
     datos = {
@@ -526,42 +448,15 @@ def contadores(usuario, resumen_actual=None):
         'prestamos_activos': prestamos_activos,
         'total_por_cobrar': total_por_cobrar,
 
-        # El perfil del saludo. El encabezado con el avatar y el nombre vive
-        # en base.html, así que lo necesitan las nueve pantallas: sin esto el
-        # avatar mostraba "?" y el nombre caía al username en todas menos
-        # Inicio y Perfil, que eran las dos que lo pasaban a mano.
         'profile': get_or_create_profile(usuario),
 
-        # El panel de registro vive en base.html, así que estas listas hacen
-        # falta en TODAS las pantallas. Antes solo las ponía el dashboard y
-        # en el resto el panel se abría sin categorías.
-        # Panel de registro.
-        #
-        # Se llama 'form_registro', NO 'form': contadores() se aplica con
-        # context.update() al final de cada vista, así que un 'form' acá
-        # pisaba el formulario propio de la pantalla (en Cuotas borraba el
-        # DeudaForm y el modal salía sin campos).
         'form_registro': TransaccionForm(initial={'tipo': 'EGRESO', 'fecha': hoy}),
         'hoy_iso': hoy.isoformat(),
-        # Las de gasto se pintan en el HTML (el tipo por defecto), así que la
-        # lista tiene que existir también sin pasar por JSON. Antes solo
-        # estaban las versiones JSON y el panel arrancaba sin categorías
-        # hasta que corría el script.
-        #
-        # Incluyen las categorías propias del usuario: si alguien creó
-        # "Mascotas" y no aparece acá, la pantalla de Categorías queda de
-        # adorno.
         'cats_egreso': Categoria.opciones(usuario, 'EGRESO'),
         'cats_ingreso': Categoria.opciones(usuario, 'INGRESO'),
-        # Listas, no cadenas: json_script serializa por su cuenta y escapa
-        # los caracteres que podrían cerrar la etiqueta <script>. Antes se
-        # llamaba a Categoria.opciones() cuatro veces en total en esta
-        # función (dos de ellas pisadas por estas mismas líneas, sin usarse
-        # nunca): ahora se llama dos veces, una por lista.
         'cats_egreso_json': [list(c) for c in Categoria.opciones(usuario, 'EGRESO')],
         'cats_ingreso_json': [list(c) for c in Categoria.opciones(usuario, 'INGRESO')],
 
-        # Suscripciones sin pagar este mes: el badge del menú
         'subs_pendientes': sum(
             1 for s in Suscripcion.objects.filter(usuario=usuario, activa=True)
                                           .prefetch_related('pagos')
@@ -570,7 +465,6 @@ def contadores(usuario, resumen_actual=None):
     }
     datos.update(salud_financiera(usuario, resumen_actual=resumen_actual))
     return datos
-
 
 def generar_cobros_suscripciones(usuario):
     """Genera los cobros mensuales de suscripciones activas que falten.
@@ -591,10 +485,6 @@ def generar_cobros_suscripciones(usuario):
         while cursor.year * 100 + cursor.month <= mes_actual_clave:
             _, ult_dia = calendar.monthrange(cursor.year, cursor.month)
             dia = min(sub.dia_cobro, ult_dia)
-            # El cobro se genera porque llegó el mes, no porque se pagó.
-            # Nace sin pagar y se marca desde la pantalla de suscripciones.
-            # Los meses anteriores al actual se dan por pagados: si el
-            # servicio siguió activo, es porque se pagó.
             es_mes_en_curso = (cursor.year, cursor.month) == (hoy.year, hoy.month)
             Transaccion.objects.create(
                 usuario=usuario, tipo='EGRESO', monto=sub.monto,
@@ -608,20 +498,8 @@ def generar_cobros_suscripciones(usuario):
             cursor = cursor + relativedelta(months=1)
             genero_algo = True
 
-        # Antes se guardaba siempre, incluso sin cambios: un UPDATE por
-        # suscripción en cada carga del dashboard.
         if genero_algo:
             sub.save(update_fields=['ultimo_mes_generado'])
-
-
-# ============================================================
-#  DASHBOARD
-# ============================================================
-#
-# Cada función de abajo era un bloque suelto dentro de dashboard(): calendario,
-# serie de 6 meses, categorías, deuda por compra, proyecciones e insights.
-# Separadas, cada una se puede leer y testear sin montar un request completo,
-# y dashboard() queda como la lista de qué se calcula, no el cómo.
 
 def _calendario_del_mes(year, month, hoy, eventos_por_dia):
     """La grilla de semanas del mes con los eventos de pago ya resueltos."""
@@ -645,7 +523,6 @@ def _calendario_del_mes(year, month, hoy, eventos_por_dia):
     dias_con_pago = [d for semana in calendario_datos for d in semana if d and d['tiene_pagos']]
     return calendario_datos, dias_con_pago
 
-
 def _serie_seis_meses(usuario, hoy, year, month, resumen_actual):
     """Ingresos/gastos/cuotas de los últimos 6 meses, para el gráfico.
 
@@ -664,7 +541,6 @@ def _serie_seis_meses(usuario, hoy, year, month, resumen_actual):
         datos_gastos.append(rr['gastos'])
         datos_cuotas.append(rr['total_cuotas_mes'])
     return meses_labels, datos_ingresos, datos_gastos, datos_cuotas
-
 
 def _desglose_categorias(usuario, resumen):
     """Gasto por categoría del mes, con porcentaje y color para la dona."""
@@ -686,7 +562,6 @@ def _desglose_categorias(usuario, resumen):
             'color': Transaccion.COLORES_CATEGORIA.get(cat, Transaccion.COLORES_CATEGORIA['Otros']),
         })
     return categorias
-
 
 def _mis_cuotas_detalle(usuario, hoy):
     """Cada deuda activa con su avance, para la tarjeta 'Debo en total'.
@@ -722,12 +597,10 @@ def _mis_cuotas_detalle(usuario, hoy):
             'texto_urgencia': d.texto_urgencia,
             'fin': d.fecha_fin_estimada,
         })
-    # Lo atrasado primero; después lo que más falta por pagar.
     mis_cuotas.sort(key=lambda x: (-x['atrasadas'], -x['restante']))
     deuda_pagada_total = sum(c['pagado'] for c in mis_cuotas)
     deuda_bruta_total = sum(c['monto_total'] for c in mis_cuotas)
     return mis_cuotas, deuda_pagada_total, deuda_bruta_total
-
 
 def _proyecciones_deuda_activas(todas_las_deudas):
     """Cuándo termina de pagarse cada deuda activa, la más próxima primero."""
@@ -746,13 +619,6 @@ def _proyecciones_deuda_activas(todas_las_deudas):
     proyecciones.sort(key=lambda x: x['fecha_fin'])
     return proyecciones
 
-
-# Cómo se pinta cada tipo de aviso: color del icono, fondo de su ficha,
-# borde de la tarjeta y la palabra que la encabeza.
-#
-# Vive acá y no en la plantilla porque allá obligaba a repetir el mismo
-# bloque de marcado cuatro veces, una por tipo, con la única diferencia de
-# los colores.
 TONOS_INSIGHT = {
     'peligro': {'color': '#e25c5c', 'tenue': 'rgba(226,92,92,.14)',
                 'borde': 'rgba(226,92,92,.32)', 'etiqueta': 'Urgente'},
@@ -763,7 +629,6 @@ TONOS_INSIGHT = {
     'info':    {'color': '#4b8cff', 'tenue': 'rgba(75,140,255,.14)',
                 'borde': 'rgba(75,140,255,.28)', 'etiqueta': 'A este ritmo'},
 }
-
 
 def _insights_dashboard(resumen, datos_gastos, pendientes, proyecciones_deuda, presupuesto):
     """Las frases del bloque de avisos: presupuesto, variación mensual,
@@ -814,12 +679,10 @@ def _insights_dashboard(resumen, datos_gastos, pendientes, proyecciones_deuda, p
             'texto': f'A este ritmo, terminas de pagar {prox["acreedor"]} en {prox["mes_fin"]}.',
         })
 
-    # El color y la etiqueta de cada aviso, resueltos de una vez.
     for i in insights:
         i.update(TONOS_INSIGHT.get(i['tipo'], TONOS_INSIGHT['info']))
 
     return insights, presupuesto_pct
-
 
 def _primeros_pasos(usuario):
     """Lista de arranque de una cuenta nueva.
@@ -862,7 +725,6 @@ def _primeros_pasos(usuario):
     ]
     return pasos, sum(1 for p in pasos if p['hecho'])
 
-
 @login_required(login_url='/login/')
 def dashboard(request):
     generar_cobros_suscripciones(request.user)
@@ -887,7 +749,6 @@ def dashboard(request):
         request.user, hoy, year, month, r)
     categorias = _desglose_categorias(request.user, r)
 
-    # ---------- Próximo pago ----------
     pendientes = [d for d in todas_las_deudas
                   if not d.esta_saldada and d.dias_para_vencer is not None]
     pendientes.sort(key=lambda d: d.dias_para_vencer)
@@ -908,7 +769,6 @@ def dashboard(request):
     proyecciones_deuda = _proyecciones_deuda_activas(todas_las_deudas)
     insights, presupuesto_pct = _insights_dashboard(
         r, datos_gastos, pendientes, proyecciones_deuda, presupuesto)
-    # Lo que se libera cuando termine la deuda más próxima
     se_libera = proyecciones_deuda[0] if proyecciones_deuda else None
 
     context = {
@@ -918,12 +778,10 @@ def dashboard(request):
         'next_month': next_month, 'next_year': next_year,
         'year': year, 'month': month,
         'es_mes_actual': (year, month) == (hoy.year, hoy.month),
-        # Para que las flechas digan a qué mes llevan, no solo "anterior"
         'prev_month_nombre': nombre_mes_es(prev_year, prev_month),
         'next_month_nombre': nombre_mes_es(next_year, next_month),
         'dias_semana': ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'],
 
-        # Números del mes
         'total_ingresos': round(r['ingresos']),
         'total_gastos': round(r['gastos']),
         'total_cuotas_mes': round(r['total_cuotas_mes']),
@@ -937,14 +795,11 @@ def dashboard(request):
         'total_comprometido_mes': round(r['comprometido']),
         'disponible': round(r['disponible']),
 
-        # Cuotas de meses anteriores sin pagar. Ya están descontadas de
-        # 'disponible'; esto es para la franja de aviso del dashboard.
         'atrasado_arrastrado': round(r['atrasado_arrastrado']),
         'cuotas_arrastradas': r['cuotas_arrastradas'],
         'n_cuotas_arrastradas': len(r['cuotas_arrastradas']),
         'deuda_total': round(deuda_total),
 
-        # Deuda en cuotas, vista completa
         'mis_cuotas': mis_cuotas,
         'deuda_bruta_total': deuda_bruta_total,
         'deuda_pagada_total': deuda_pagada_total,
@@ -953,18 +808,12 @@ def dashboard(request):
         'cuota_mensual_total': round(sum(c['cuota'] for c in mis_cuotas)),
         'cuotas_atrasadas_total': sum(c['atrasadas'] for c in mis_cuotas),
 
-        # Gasto mensual comprometido: cuotas + suscripciones activas.
-        # Es lo que sale todos los meses pase lo que pase, y no estaba a la
-        # vista en ninguna parte.
         'fijo_mensual': round(
             sum(c['cuota'] for c in mis_cuotas)
             + sum(float(s.monto) for s in Suscripcion.objects.filter(
                 usuario=request.user, activa=True))
         ),
 
-        # Nuevos: los usa el encabezado "Puedes gastar X hasta fin de mes".
-        # por_pagar suma cuotas y servicios sin pagar. No se resta aparte del
-        # disponible: los servicios ya están contados dentro de los gastos.
         'por_pagar': round(r['cuotas_pendientes_mes'] + r['servicios_pendientes_mes']),
         'servicios_pendientes_mes': round(r['servicios_pendientes_mes']),
         'servicios_pagados_mes': round(r['servicios_pagados_mes']),
@@ -977,7 +826,6 @@ def dashboard(request):
         'se_libera': se_libera,
         'categorias': categorias,
         'dias_con_pago': dias_con_pago,
-
 
         'pendientes': pagos_mes,
         'pendientes_sin_pagar': sin_pagar,
@@ -996,9 +844,6 @@ def dashboard(request):
         'metas': metas,
         'calendario': calendario_datos,
 
-        # Formulario del panel de registro, para no salir del dashboard
-        # El form, hoy_iso y las categorías del panel los entrega contadores(),
-        # porque el panel ahora está en base.html y lo usan todas las pantallas.
         'abrir_panel': bool(request.GET.get('registrar')),
 
         'meses_json': meses_labels,
@@ -1009,18 +854,11 @@ def dashboard(request):
         'cat_data_json': [c['total'] for c in categorias],
         'cat_colores_json': [c['color'] for c in categorias],
     }
-    # La tarjeta "Te deben" del carrusel: total_por_cobrar lo entrega
-    # contadores() más abajo (context.update), que ya consulta Persona con
-    # sus préstamos para el badge del menú. Antes esta vista repetía esa
-    # misma consulta aparte, solo para sacar la suma.
 
-    # La fecha larga bajo "Puedes gastar", como en la plantilla.
     dias_semana = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo']
     context['hoy_texto'] = (f'{dias_semana[hoy.weekday()]}, {hoy.day} '
                             f'{MESES_LARGOS[hoy.month - 1]} {hoy.year}')
 
-    # La variación del saldo contra el mes anterior: es el dato que da
-    # sentido al gráfico ("vas mejor o peor que el mes pasado").
     f_ant = date(year, month, 1) - relativedelta(months=1)
     r_ant = resumen_mes(request.user, f_ant.year, f_ant.month)
     saldo_ant = r_ant['disponible']
@@ -1029,13 +867,10 @@ def dashboard(request):
         context['variacion_saldo'] = var_saldo
         context['variacion_saldo_abs'] = abs(var_saldo)
     else:
-        # Sin mes anterior con datos no hay con qué comparar; el template
-        # esconde la píldora en vez de mostrar un 0% que no significa nada.
         context['variacion_saldo'] = None
         context['variacion_saldo_abs'] = None
     context['mes_anterior_nombre'] = MESES_LARGOS[f_ant.month - 1]
 
-    # Primeros pasos: la tarjeta se va sola cuando están todos hechos.
     pasos, pasos_hechos = _primeros_pasos(request.user)
     context['primeros_pasos'] = pasos if pasos_hechos < len(pasos) else None
     context['pasos_hechos'] = pasos_hechos
@@ -1043,19 +878,11 @@ def dashboard(request):
     context['pasos_pct'] = int(pasos_hechos * 100 / len(pasos))
 
     context['mapa_categorias'] = Categoria.mapa(request.user)
-    # Si se está viendo el mes en curso, 'r' YA es el resumen que
-    # salud_financiera() necesita: contadores() lo reusa en vez de volver a
-    # consultar Transaccion/Deuda/Suscripcion para el mismo mes.
     context.update(contadores(
         request.user,
         resumen_actual=r if (year, month) == (hoy.year, hoy.month) else None,
     ))
     return render(request, 'finanzas/dashboard.html', context)
-
-
-# ============================================================
-#  COMPRAS EN CUOTAS
-# ============================================================
 
 @login_required(login_url='/login/')
 def deudas(request):
@@ -1067,7 +894,6 @@ def deudas(request):
     lista = list(Deuda.objects.filter(usuario=request.user).prefetch_related('pagos'))
     activas = [d for d in lista if not d.esta_saldada]
 
-    # Orden: primero lo atrasado, después lo que vence antes.
     activas.sort(key=lambda d: (
         -len(d.periodos_atrasados),
         d.dias_para_vencer if d.dias_para_vencer is not None else 9999,
@@ -1079,8 +905,6 @@ def deudas(request):
 
     context = {
         'deudas': activas,
-        # El histórico, aparte. Lo más reciente primero: al terminar de pagar
-        # algo se busca eso, no la compra de hace dos años.
         'saldadas': sorted(saldadas, key=lambda d: d.fecha_fin_estimada, reverse=True),
         'total_saldado': round(sum(float(d.monto_total) for d in saldadas)),
         'deudas_activas': len(activas),
@@ -1095,7 +919,6 @@ def deudas(request):
     }
     context.update(contadores(request.user))
     return render(request, 'finanzas/deudas.html', context)
-
 
 @login_required(login_url='/login/')
 def pagar_cuota(request, deuda_id):
@@ -1129,7 +952,6 @@ def pagar_cuota(request, deuda_id):
         getattr(messages, nivel)(request, msg)
         return _redirigir(request)
 
-    # Qué mes se paga: el pedido, o el pendiente más antiguo.
     try:
         periodo = int(request.POST.get('periodo') or 0) or deuda.periodo_a_pagar
     except (ValueError, TypeError):
@@ -1147,23 +969,17 @@ def pagar_cuota(request, deuda_id):
     hoy = timezone.localdate()
     numero = deuda.periodos_programados.index(periodo) + 1
 
-    # El gasto se fecha en el mes al que pertenece la cuota, no en el día en
-    # que se apretó el botón. Antes, pagar en marzo la cuota de enero dejaba
-    # el movimiento en marzo y la cuota de enero no se contaba en ningún mes.
     tx = Transaccion.objects.create(
         usuario=request.user, tipo='EGRESO', monto=monto,
         categoria=deuda.categoria,
         descripcion=f'Cuota {numero}/{deuda.cuotas_totales} — {deuda.acreedor}',
         fecha=fecha_cobro, es_cuota=True,
-        # Nace pagada: la transacción se crea justamente porque se pagó.
         pagado=True, fecha_pago=hoy,
     )
     PagoCuota.objects.create(
         deuda=deuda, periodo=periodo, monto=monto, fecha_pago=hoy, transaccion=tx,
     )
 
-    # cuotas_pagadas queda como espejo del recuento real, para que el resto
-    # del código y las plantillas antiguas sigan funcionando.
     deuda.cuotas_pagadas = deuda.pagos.count()
     deuda.save(update_fields=['cuotas_pagadas'])
 
@@ -1178,7 +994,6 @@ def pagar_cuota(request, deuda_id):
                f'Te queda{"n" if restantes != 1 else ""} {restantes} '
                f'cuota{"s" if restantes != 1 else ""}.')
     return responder(True, msg)
-
 
 @login_required(login_url='/login/')
 def anular_cuota(request, deuda_id):
@@ -1200,7 +1015,6 @@ def anular_cuota(request, deuda_id):
     except (ValueError, TypeError):
         periodo = 0
 
-    # Sin periodo se anula el pago más reciente.
     pago = (deuda.pagos.filter(periodo=periodo).first() if periodo
             else deuda.pagos.order_by('-periodo').first())
 
@@ -1212,7 +1026,7 @@ def anular_cuota(request, deuda_id):
 
     etiqueta = pago.etiqueta_mes
     if pago.transaccion:
-        pago.transaccion.delete()   # el pago cae con ella (SET_NULL + delete abajo)
+        pago.transaccion.delete()
     pago.delete()
 
     deuda.cuotas_pagadas = deuda.pagos.count()
@@ -1229,7 +1043,6 @@ def anular_cuota(request, deuda_id):
         })
     messages.success(request, f'Se anuló la cuota de {etiqueta} de {deuda.acreedor}.')
     return _redirigir(request)
-
 
 @login_required(login_url='/login/')
 def crear_deuda(request):
@@ -1251,7 +1064,6 @@ def crear_deuda(request):
     context.update(contadores(request.user))
     return render(request, 'finanzas/form_deuda.html', context)
 
-
 @login_required(login_url='/login/')
 def editar_deuda(request, deuda_id):
     deuda = get_object_or_404(Deuda, id=deuda_id, usuario=request.user)
@@ -1267,7 +1079,6 @@ def editar_deuda(request, deuda_id):
     context.update(contadores(request.user))
     return render(request, 'finanzas/form_deuda.html', context)
 
-
 @login_required(login_url='/login/')
 def eliminar_deuda(request, deuda_id):
     deuda = get_object_or_404(Deuda, id=deuda_id, usuario=request.user)
@@ -1277,11 +1088,6 @@ def eliminar_deuda(request, deuda_id):
         messages.success(request, f"'{nombre}' eliminada.")
     return _redirigir(request, 'deudas')
 
-
-# ============================================================
-#  TRANSACCIONES
-# ============================================================
-
 @login_required(login_url='/login/')
 def registrar_transaccion(request):
     tipo_inicial = request.GET.get('tipo', 'INGRESO')
@@ -1290,11 +1096,6 @@ def registrar_transaccion(request):
         if form.is_valid():
             t = form.save(commit=False)
             t.usuario = request.user
-            # El panel manda 'sin_pagar' cuando el gasto se anota pero no se
-            # ha pagado todavía.
-            # Dos plantillas mandan esto con nombres distintos: el panel del
-            # dashboard usa 'sin_pagar' y el formulario completo 'es_pendiente'.
-            # Antes solo se leía uno y el checkbox del formulario no hacía nada.
             marcado_pendiente = (request.POST.get('sin_pagar')
                                  or request.POST.get('es_pendiente'))
             if t.tipo == 'EGRESO' and marcado_pendiente:
@@ -1310,9 +1111,6 @@ def registrar_transaccion(request):
                 messages.success(request, f'{"Ingreso" if t.es_ingreso else "Gasto"} registrado.')
             return _redirigir(request)
 
-        # Antes esto caía en form_transaccion.html y el usuario no veía por qué
-        # había fallado. Ahora el error se muestra y, si vino del panel del
-        # dashboard, se vuelve ahí con el panel abierto.
         for campo, errores in form.errors.items():
             etiqueta = form.fields[campo].label or campo
             messages.warning(request, f'{etiqueta}: {errores[0]}')
@@ -1325,7 +1123,6 @@ def registrar_transaccion(request):
     context = {'form': form, 'tipo_inicial': tipo_inicial}
     context.update(contadores(request.user))
     return render(request, 'finanzas/form_transaccion.html', context)
-
 
 @login_required(login_url='/login/')
 def editar_transaccion(request, transaccion_id):
@@ -1342,7 +1139,6 @@ def editar_transaccion(request, transaccion_id):
     context.update(contadores(request.user))
     return render(request, 'finanzas/form_transaccion.html', context)
 
-
 @login_required(login_url='/login/')
 def eliminar_transaccion(request, transaccion_id):
     t = get_object_or_404(Transaccion, id=transaccion_id, usuario=request.user)
@@ -1350,7 +1146,6 @@ def eliminar_transaccion(request, transaccion_id):
         t.delete()
         messages.success(request, 'Movimiento eliminado.')
     return _redirigir(request)
-
 
 @login_required(login_url='/login/')
 def pagar_gasto(request, transaccion_id):
@@ -1383,7 +1178,6 @@ def pagar_gasto(request, transaccion_id):
     messages.success(request, f'{t.descripcion or t.get_categoria_display()}: marcado como pagado.')
     return _redirigir(request)
 
-
 @login_required(login_url='/login/')
 def anular_pago_gasto(request, transaccion_id):
     """Devuelve un gasto a 'sin pagar'."""
@@ -1403,22 +1197,13 @@ def anular_pago_gasto(request, transaccion_id):
     messages.success(request, 'Marcado como no pagado.')
     return _redirigir(request)
 
-
 @login_required(login_url='/login/')
 def registrar_ingreso(request):
     return redirect('/registrar/?tipo=INGRESO')
 
-
-# ============================================================
-#  ESTADÍSTICAS
-# ============================================================
-
 @login_required(login_url='/login/')
 def estadisticas(request):
     hoy = date.today()
-    # prefetch_related('pagos'): sin esto, monto_restante y monto_cuota más
-    # abajo abren una consulta de pagos POR CADA deuda activa (N+1) — con
-    # 5 deudas son 5 consultas extra en cada carga de Estadísticas.
     activas = [d for d in Deuda.objects.filter(usuario=request.user)
                                         .prefetch_related('pagos') if not d.esta_saldada]
 
@@ -1426,10 +1211,6 @@ def estadisticas(request):
     data_cuota = [float(d.monto_cuota) for d in activas]
     data_restante = [float(d.monto_restante) for d in activas]
 
-    # Serie de 12 meses para el gráfico de rango, y el ranking de categorías.
-    # El mes en curso (i=0, el último de la vuelta) se guarda: es el mismo
-    # que contadores() necesita para salud_financiera(), y sin esto se
-    # volvía a calcular una 13ª vez al final de la vista.
     meses, ingresos, gastos = [], [], []
     resumen_actual = None
     for i in range(11, -1, -1):
@@ -1449,7 +1230,6 @@ def estadisticas(request):
     total_ing = sum(ingresos) or 1
     tasa_ahorro = round(sum(ahorros) / total_ing * 100, 1)
 
-    # Ranking de categorías: este mes contra el anterior
     def por_categoria(year, month):
         _, ult = calendar.monthrange(year, month)
         qs = Transaccion.objects.filter(
@@ -1496,11 +1276,6 @@ def estadisticas(request):
     context.update(contadores(request.user, resumen_actual=resumen_actual))
     return render(request, 'finanzas/estadisticas.html', context)
 
-
-# ============================================================
-#  METAS
-# ============================================================
-
 @login_required(login_url='/login/')
 def aportar_meta(request, meta_id):
     """Registra un aporte a una meta y actualiza su monto acumulado."""
@@ -1531,7 +1306,6 @@ def aportar_meta(request, meta_id):
 
     return _redirigir(request)
 
-
 @login_required(login_url='/login/')
 def crear_meta(request):
     if request.method == 'POST':
@@ -1548,7 +1322,6 @@ def crear_meta(request):
     context.update(contadores(request.user))
     return render(request, 'finanzas/crear_meta.html', context)
 
-
 @login_required(login_url='/login/')
 def editar_meta(request, meta_id):
     meta = get_object_or_404(MetaAhorro, id=meta_id, usuario=request.user)
@@ -1564,7 +1337,6 @@ def editar_meta(request, meta_id):
     context.update(contadores(request.user))
     return render(request, 'finanzas/crear_meta.html', context)
 
-
 @login_required(login_url='/login/')
 def eliminar_meta(request, meta_id):
     meta = get_object_or_404(MetaAhorro, id=meta_id, usuario=request.user)
@@ -1573,18 +1345,12 @@ def eliminar_meta(request, meta_id):
         messages.success(request, 'Meta eliminada.')
     return _redirigir(request)
 
-
-# ============================================================
-#  PRÉSTAMOS (me deben)
-# ============================================================
-
 def _totales_prestamos(personas):
     return {
         'total_por_cobrar': round(sum(p.total_pendiente for p in personas)),
         'total_prestado': round(sum(p.total_prestado for p in personas)),
         'total_recuperado': round(sum(p.total_abonado for p in personas)),
     }
-
 
 @login_required(login_url='/login/')
 def prestamos(request):
@@ -1601,7 +1367,6 @@ def prestamos(request):
     if pedida:
         seleccionada = next((p for p in personas if str(p.id) == str(pedida)), None)
     if seleccionada is None and personas:
-        # La que más debe primero: es la que interesa ver.
         seleccionada = max(personas, key=lambda p: p.total_pendiente)
 
     context = {
@@ -1613,7 +1378,6 @@ def prestamos(request):
     context.update(contadores(request.user))
     return render(request, 'finanzas/prestamos.html', context)
 
-
 @login_required(login_url='/login/')
 def detalle_persona(request, persona_id):
     """Ver todos los préstamos de una persona y sus abonos.
@@ -1624,10 +1388,6 @@ def detalle_persona(request, persona_id):
     personas = list(Persona.objects.filter(usuario=request.user)
                     .prefetch_related('prestamos__abonos'))
 
-    # La persona se toma de la lista que ya se trajo con prefetch, no con un
-    # get_object_or_404 aparte. Con la consulta separada, persona.prestamos y
-    # los abonos de cada préstamo no tenían caché y se consultaban de nuevo,
-    # uno por préstamo, para pintar la misma pantalla.
     persona = next((p for p in personas if p.id == persona_id), None)
     if persona is None:
         raise Http404('Persona no encontrada')
@@ -1641,7 +1401,6 @@ def detalle_persona(request, persona_id):
     context.update(contadores(request.user))
     return render(request, 'finanzas/prestamos.html', context)
 
-
 @login_required(login_url='/login/')
 def crear_persona(request):
     if request.method == 'POST':
@@ -1654,7 +1413,6 @@ def crear_persona(request):
         persona = Persona.objects.create(usuario=request.user, nombre=nombre, contacto=contacto)
         messages.success(request, f'{nombre} agregado.')
 
-        # Si vino con datos de préstamo, crearlo de una vez
         monto = _monto_post(request)
         if monto > 0:
             tipo = request.POST.get('tipo', 'UNICO')
@@ -1672,7 +1430,6 @@ def crear_persona(request):
     context = {}
     context.update(contadores(request.user))
     return render(request, 'finanzas/form_persona.html', context)
-
 
 @login_required(login_url='/login/')
 def crear_prestamo(request, persona_id):
@@ -1708,7 +1465,6 @@ def crear_prestamo(request, persona_id):
     context.update(contadores(request.user))
     return render(request, 'finanzas/form_prestamo.html', context)
 
-
 @login_required(login_url='/login/')
 def abonar_prestamo(request, prestamo_id):
     """Registra un pago que me hacen. NO afecta el balance del dashboard."""
@@ -1723,8 +1479,6 @@ def abonar_prestamo(request, prestamo_id):
             messages.warning(request, 'Ingresa un monto válido.')
             return redirect('detalle_persona', persona_id=prestamo.persona.id)
 
-        # No permitir abonar más de lo que se debe: dejaba porcentajes sobre 100
-        # y un pendiente negativo.
         pendiente = Decimal(str(prestamo.monto_pendiente))
         if monto > pendiente:
             monto = pendiente
@@ -1748,7 +1502,6 @@ def abonar_prestamo(request, prestamo_id):
             messages.success(request, 'Abono registrado.')
     return redirect('detalle_persona', persona_id=prestamo.persona.id)
 
-
 @login_required(login_url='/login/')
 def eliminar_persona(request, persona_id):
     persona = get_object_or_404(Persona, id=persona_id, usuario=request.user)
@@ -1757,7 +1510,6 @@ def eliminar_persona(request, persona_id):
         persona.delete()
         messages.success(request, f'{nombre} y sus préstamos fueron eliminados.')
     return redirect('prestamos')
-
 
 @login_required(login_url='/login/')
 def eliminar_prestamo(request, prestamo_id):
@@ -1768,11 +1520,6 @@ def eliminar_prestamo(request, prestamo_id):
         messages.success(request, 'Préstamo eliminado.')
     return redirect('detalle_persona', persona_id=persona_id)
 
-
-# ============================================================
-#  ANÁLISIS
-# ============================================================
-
 def _simbolo_moneda(user):
     from .context_processors import CONFIG_MONEDA
     try:
@@ -1780,17 +1527,15 @@ def _simbolo_moneda(user):
     except (AttributeError, KeyError, UserProfile.DoesNotExist):
         return '$'
 
-
 @login_required(login_url='/login/')
 def analisis_predictivo(request):
     """Análisis financiero: motor determinístico + interpretación IA opcional."""
     from .analisis import analizar_finanzas
 
     analisis = analizar_finanzas(request.user)
-    circunferencia = 327  # 2*pi*52, el círculo de riesgo del SVG
+    circunferencia = 327
     riesgo_offset = circunferencia - (circunferencia * analisis['riesgo_score'] / 100)
 
-    # Seis meses atrás y seis adelante, con las cuotas ya pagadas incluidas.
     serie = serie_cuotas(request.user, atras=6, adelante=6)
     indice_actual = next((i for i, f in enumerate(serie) if f['es_mes_actual']), 0)
 
@@ -1799,8 +1544,6 @@ def analisis_predictivo(request):
         'simbolo': _simbolo_moneda(request.user),
         'riesgo_offset': round(riesgo_offset, 1),
         'serie': serie,
-        # Cuotas que ya vencieron y no se pagaron: plata que se debe hoy,
-        # no una proyección. Antes no aparecía en el análisis.
         'cuotas_atrasadas': analisis.get('cuotas_atrasadas', 0),
         'monto_atrasado': analisis.get('monto_atrasado', 0),
         'indice_actual': indice_actual,
@@ -1818,7 +1561,6 @@ def analisis_predictivo(request):
     context.update(contadores(request.user))
     return render(request, 'finanzas/analisis.html', context)
 
-
 @login_required(login_url='/login/')
 @limitar(6, 3600, 'Ya pediste varias interpretaciones esta hora. '
                   'Los números de la pantalla no dependen de la IA.')
@@ -1827,16 +1569,16 @@ def analisis_ia(request):
     from .analisis import analizar_finanzas
     from .ia import interpretar_con_ia
 
+    perfil_usuario = get_or_create_profile(request.user)
+    if not perfil_usuario.analisis_ia:
+        return JsonResponse({'ok': False, 'msg': 'Tienes el analisis con IA desactivado.',
+                             'desactivado': True})
+
     analisis = analizar_finanzas(request.user)
     interpretacion = interpretar_con_ia(analisis, _simbolo_moneda(request.user))
     if interpretacion:
         return JsonResponse({'ok': True, 'ia': interpretacion})
     return JsonResponse({'ok': False, 'msg': 'IA no disponible'})
-
-
-# ============================================================
-#  GASTOS PENDIENTES
-# ============================================================
 
 @login_required(login_url='/login/')
 def crear_gasto_pendiente(request):
@@ -1859,9 +1601,6 @@ def crear_gasto_pendiente(request):
             messages.warning(request, 'La fecha no es válida.')
             return _redirigir(request)
 
-        # Nace sin pagar: es justamente una cuenta que falta pagar. Antes
-        # entraba como pagada y "ya gastaste" contaba plata que no había
-        # salido del bolsillo.
         tx = Transaccion.objects.create(
             usuario=request.user, tipo='EGRESO', monto=monto,
             categoria=categoria, descripcion=f'Pendiente: {nombre}',
@@ -1878,7 +1617,6 @@ def crear_gasto_pendiente(request):
     context.update(contadores(request.user))
     return render(request, 'finanzas/form_gasto_pendiente.html', context)
 
-
 @login_required(login_url='/login/')
 def pagar_gasto_pendiente(request, gasto_id):
     """Marca un gasto pendiente como pagado. NO crea transacción:
@@ -1890,8 +1628,6 @@ def pagar_gasto_pendiente(request, gasto_id):
         gasto.pagado = True
         gasto.fecha_pago = date.today()
         gasto.save(update_fields=['pagado', 'fecha_pago'])
-        # La transacción asociada también queda pagada, si no el gasto
-        # seguiría apareciendo como pendiente en "ya gastaste".
         if gasto.transaccion:
             gasto.transaccion.pagado = True
             gasto.transaccion.fecha_pago = gasto.fecha_pago
@@ -1900,7 +1636,6 @@ def pagar_gasto_pendiente(request, gasto_id):
             return JsonResponse({'ok': True})
         messages.success(request, f'{gasto.nombre} marcado como pagado.')
     return _redirigir(request)
-
 
 @login_required(login_url='/login/')
 def anular_gasto_pendiente(request, gasto_id):
@@ -1922,7 +1657,6 @@ def anular_gasto_pendiente(request, gasto_id):
         messages.success(request, 'Marcado como no pagado.')
     return _redirigir(request)
 
-
 @login_required(login_url='/login/')
 def eliminar_gasto_pendiente(request, gasto_id):
     """Elimina el gasto pendiente Y su transacción asociada (deja de contar)."""
@@ -1934,11 +1668,6 @@ def eliminar_gasto_pendiente(request, gasto_id):
         messages.success(request, 'Gasto pendiente eliminado.')
     return _redirigir(request)
 
-
-# ============================================================
-#  SUSCRIPCIONES
-# ============================================================
-
 @login_required(login_url='/login/')
 def suscripciones(request):
     """Lista de suscripciones (activas e inactivas)."""
@@ -1946,15 +1675,12 @@ def suscripciones(request):
     activas = [s for s in subs if s.activa]
     total_mensual = sum(float(s.monto) for s in activas)
 
-    # Orden: lo que falta pagar primero, después lo del mes, al final las pausadas.
     orden = {'atrasada': 0, 'pendiente': 1, 'pagada': 2, 'pausada': 3}
     subs.sort(key=lambda s: (orden.get(s.estado_mes, 9), s.nombre))
 
     pendientes = [s for s in activas if not s.pagada_este_mes]
     atrasadas = [s for s in activas if s.periodos_atrasados]
 
-    # Aviso de servicios que se pisan (dos de música, dos de video...).
-    # Es el insight que más ahorra y no requiere IA.
     grupos = {}
     for s in activas:
         grupos.setdefault(s.categoria or 'Suscripciones', []).append(s)
@@ -1976,7 +1702,6 @@ def suscripciones(request):
     }
     context.update(contadores(request.user))
     return render(request, 'finanzas/suscripciones.html', context)
-
 
 @login_required(login_url='/login/')
 def crear_suscripcion(request):
@@ -2006,7 +1731,6 @@ def crear_suscripcion(request):
     context = {}
     context.update(contadores(request.user))
     return render(request, 'finanzas/form_suscripcion.html', context)
-
 
 @login_required(login_url='/login/')
 def pagar_servicio(request, sub_id):
@@ -2053,8 +1777,6 @@ def pagar_servicio(request, sub_id):
     PagoServicio.objects.create(
         suscripcion=sub, periodo=periodo, monto=sub.monto, fecha_pago=hoy,
     )
-    # La transacción de ese mes también queda pagada, para que el reparto de
-    # "ya gastaste" cuadre con lo que marcaste acá.
     Transaccion.objects.filter(
         usuario=request.user, tipo='EGRESO', es_cuota=False,
         descripcion=f'Suscripción: {sub.nombre}',
@@ -2068,7 +1790,6 @@ def pagar_servicio(request, sub_id):
     else:
         msg = f'{sub.nombre} quedó al día.'
     return responder(True, msg)
-
 
 @login_required(login_url='/login/')
 def anular_pago_servicio(request, sub_id):
@@ -2107,7 +1828,6 @@ def anular_pago_servicio(request, sub_id):
     messages.success(request, f'{sub.nombre}: se anuló el pago de {etiqueta}.')
     return _redirigir(request, 'suscripciones')
 
-
 @login_required(login_url='/login/')
 def cancelar_suscripcion(request, sub_id):
     """Cancela una suscripción (deja de generar cobros). No borra el historial."""
@@ -2124,15 +1844,12 @@ def cancelar_suscripcion(request, sub_id):
         else:
             sub.activa = True
             sub.fecha_cancelada = None
-            # Se retoma desde el mes actual, para no generar de golpe los
-            # cobros de todos los meses que estuvo cancelada.
             hoy = date.today()
             sub.ultimo_mes_generado = hoy.year * 100 + hoy.month - 1
             sub.save(update_fields=['activa', 'fecha_cancelada', 'ultimo_mes_generado'])
             generar_cobros_suscripciones(request.user)
             messages.success(request, f'{sub.nombre} reactivada.')
     return redirect('suscripciones')
-
 
 @login_required(login_url='/login/')
 def eliminar_suscripcion(request, sub_id):
@@ -2142,12 +1859,6 @@ def eliminar_suscripcion(request, sub_id):
         sub.delete()
         messages.success(request, 'Suscripción eliminada.')
     return redirect('suscripciones')
-
-
-
-# ============================================================
-#  CATEGORÍAS
-# ============================================================
 
 @login_required(login_url='/login/')
 def categorias(request):
@@ -2168,8 +1879,6 @@ def categorias(request):
             usuario=request.user, fecha__gte=inicio, fecha__lte=fin,
         ).values('categoria').annotate(total=Sum('monto'))
     }
-    # Cuántos movimientos tiene cada una: decide si se puede borrar sin
-    # dejar movimientos huérfanos.
     usos = {
         x['categoria']: x['n']
         for x in Transaccion.objects.filter(usuario=request.user)
@@ -2202,7 +1911,6 @@ def categorias(request):
         destino = de_ingreso if c.tipo == "INGRESO" else de_gasto
         destino.append(fila(c.slug, mapa[c.slug], obj=c))
 
-    # Lo más usado arriba: es lo que el usuario quiere revisar.
     de_gasto.sort(key=lambda x: -x["gastado"])
     de_ingreso.sort(key=lambda x: -x["gastado"])
 
@@ -2217,7 +1925,6 @@ def categorias(request):
     }
     context.update(contadores(request.user))
     return render(request, 'finanzas/categorias.html', context)
-
 
 @login_required(login_url='/login/')
 def crear_categoria(request):
@@ -2238,7 +1945,6 @@ def crear_categoria(request):
     messages.success(request, 'Categoría "' + nombre + '" creada.')
     return redirect('categorias')
 
-
 @login_required(login_url='/login/')
 def editar_categoria(request, cat_id):
     cat = get_object_or_404(Categoria, id=cat_id, usuario=request.user)
@@ -2251,7 +1957,6 @@ def editar_categoria(request, cat_id):
         cat.save(update_fields=['nombre', 'color', 'icono'])
         messages.success(request, 'Categoría actualizada.')
     return redirect('categorias')
-
 
 @login_required(login_url='/login/')
 def eliminar_categoria(request, cat_id):
@@ -2276,11 +1981,6 @@ def eliminar_categoria(request, cat_id):
             messages.success(request, '"' + nombre + '" eliminada.')
     return redirect('categorias')
 
-
-# ============================================================
-#  METAS DE AHORRO
-# ============================================================
-
 @login_required(login_url='/login/')
 def metas(request):
     """Pantalla propia para las metas, con el avance mes a mes.
@@ -2293,7 +1993,6 @@ def metas(request):
     lista = list(MetaAhorro.objects.filter(usuario=request.user)
                                    .prefetch_related('aportes'))
 
-    # Los seis meses del gráfico, con los aportes de cada meta por mes.
     meses = []
     for i in range(5, -1, -1):
         f = date(hoy.year, hoy.month, 1) - relativedelta(months=i)
@@ -2302,14 +2001,6 @@ def metas(request):
 
     datos = []
     for meta in lista:
-        # 'aportes' ya viene prefetcheado (una sola consulta para TODAS las
-        # metas, arriba en el queryset de 'lista') y ordenado por -fecha,
-        # -id, que es el ordering por defecto de AporteMeta. Antes se leía
-        # con meta.aportes.all() para la serie Y con meta.aportes.first()
-        # para el último aporte: ese .first() abre un queryset nuevo con
-        # LIMIT 1 que ignora el cache del prefetch, así que cada meta hacía
-        # una consulta extra a la base — cinco metas, cinco consultas de
-        # más solo para saber la fecha del último aporte.
         aportes = list(meta.aportes.all())
         por_mes = {}
         for ap in aportes:
@@ -2318,8 +2009,6 @@ def metas(request):
 
         serie = [por_mes.get(m['clave'], 0) for m in meses]
         techo = max(serie) or 1
-        # El último aporte dice si la meta sigue viva. Ya está ordenado
-        # primero-el-más-reciente, así que es el primer elemento de la lista.
         ultimo = aportes[0] if aportes else None
         datos.append({
             'meta': meta,
@@ -2335,7 +2024,6 @@ def metas(request):
                              if ultimo else None),
         })
 
-    # Las completas al final: ya no hay nada que hacer con ellas.
     datos.sort(key=lambda d: (d['meta'].esta_completa, -float(d['meta'].porcentaje)))
 
     context = {
@@ -2349,11 +2037,6 @@ def metas(request):
     }
     context.update(contadores(request.user))
     return render(request, 'finanzas/metas.html', context)
-
-
-# ============================================================
-#  REGISTRO Y ONBOARDING
-# ============================================================
 
 def entrar(request):
     """Acceso con tope de intentos.
@@ -2384,12 +2067,6 @@ def entrar(request):
             usuario = form.get_user()
             limpiar_intentos(usuario_txt, ip)
 
-            # Con 2FA activo la contraseña sola no entra: se guarda en la
-            # sesión QUIÉN está a medio autenticar y se pide el código.
-            #
-            # No se llama a login() todavía. Si se llamara, la sesión ya
-            # estaría abierta y bastaría con navegar a cualquier URL para
-            # saltarse el segundo paso.
             factor = SegundoFactor.objects.filter(usuario=usuario, activo=True).first()
             if factor:
                 request.session['2fa_pendiente'] = usuario.pk
@@ -2398,16 +2075,12 @@ def entrar(request):
 
             login(request, usuario)
             destino = request.POST.get('next') or request.GET.get('next')
-            # Solo rutas internas: un 'next' externo es una redirección
-            # abierta, útil para phishing con un enlace de tu propio dominio.
             if destino and destino.startswith('/') and not destino.startswith('//'):
                 return redirect(destino)
             return redirect('dashboard')
 
         intentos = registrar_fallo(usuario_txt, ip)
         quedan = MAX_INTENTOS_LOGIN - intentos
-        # El mensaje no dice si el usuario existe: eso permitiría averiguar
-        # qué cuentas hay probando nombres.
         if quedan > 0:
             messages.error(
                 request,
@@ -2420,7 +2093,6 @@ def entrar(request):
 
     return render(request, 'registration/login.html',
                   {'form': AuthenticationForm()})
-
 
 def verificar_codigo(request):
     """Segundo paso del acceso.
@@ -2444,8 +2116,6 @@ def verificar_codigo(request):
     clave_2fa = f'2fa:{uid}'
 
     if request.method == 'POST':
-        # El código también se limita: seis dígitos son un millón de
-        # combinaciones, y sin tope se prueban todas en minutos.
         restan = esta_bloqueado(clave_2fa, ip)
         if restan:
             messages.error(request, f'Demasiados intentos. Espera {max(1, restan // 60)} minutos.')
@@ -2482,7 +2152,6 @@ def verificar_codigo(request):
         'tiene_respaldo': CodigoRespaldo.objects.filter(usuario=usuario, usado=False).exists(),
     })
 
-
 def _qr_svg(uri, escala=6):
     """Código QR como SVG, listo para incrustar en el HTML.
 
@@ -2499,8 +2168,6 @@ def _qr_svg(uri, escala=6):
 
     qr = qrcode.QRCode(
         version=None,
-        # Corrección media: el QR sigue leyéndose con el reflejo de la
-        # pantalla o con la cámara algo movida.
         error_correction=qrcode.constants.ERROR_CORRECT_M,
         box_size=1, border=2,
     )
@@ -2514,9 +2181,6 @@ def _qr_svg(uri, escala=6):
         x = 0
         while x < len(fila):
             if fila[x]:
-                # Se agrupan los módulos negros seguidos en un solo
-                # rectángulo: un <rect> por módulo daría un SVG cinco veces
-                # más grande.
                 ancho = 1
                 while x + ancho < len(fila) and fila[x + ancho]:
                     ancho += 1
@@ -2534,7 +2198,6 @@ def _qr_svg(uri, escala=6):
         f'<path d="{"".join(piezas)}" fill="#191919"/>'
         f'</svg>'
     )
-
 
 @login_required(login_url='/login/')
 def configurar_2fa(request):
@@ -2564,8 +2227,6 @@ def configurar_2fa(request):
             messages.error(request, 'El código no coincide. Revisa la hora de tu teléfono.')
 
         elif accion == 'desactivar':
-            # Se pide la contraseña: si alguien deja la sesión abierta, no
-            # debería poder quitar la protección sin conocerla.
             if not request.user.check_password(request.POST.get('password', '')):
                 messages.error(request, 'Contraseña incorrecta.')
                 return redirect('configurar_2fa')
@@ -2582,8 +2243,6 @@ def configurar_2fa(request):
             return render(request, 'finanzas/codigos_respaldo.html',
                           {'codigos': codigos, 'recien_creados': False})
 
-    # Si aún no está activo se muestra el secreto para configurar la app.
-    # Una vez activo ya no: no hay razón para volver a exponerlo.
     contexto = {
         'factor': factor,
         'codigos_restantes': CodigoRespaldo.objects.filter(
@@ -2593,32 +2252,13 @@ def configurar_2fa(request):
         contexto['uri'] = factor.uri()
         contexto['secreto'] = factor.secreto
         contexto['qr_svg'] = _qr_svg(factor.uri())
-        # El secreto en grupos de cuatro: escribirlo a mano de un tirón de 32
-        # caracteres es donde la gente se equivoca.
         s = factor.secreto
         contexto['secreto_legible'] = ' '.join(s[i:i + 4] for i in range(0, len(s), 4))
     contexto.update(contadores(request.user))
     return render(request, 'finanzas/configurar_2fa.html', contexto)
 
-
-# ============================================================
-#  RECUPERAR CONTRASEÑA
-# ============================================================
-#
-# Flujo: pides el enlace con tu email → llega un enlace firmado que vale una
-# hora → abres el enlace y eliges contraseña nueva. Si tienes verificación
-# en dos pasos activa, además hay que escribir el código: si no, el correo
-# se convertiría en la única llave de la cuenta y bastaría con entrar a tu
-# bandeja para tomarla.
-#
-# El token lo firma Django (default_token_generator). Dos cosas que hace
-# solo y que conviene saber: caduca según PASSWORD_RESET_TIMEOUT, y deja de
-# valer en cuanto la contraseña cambia — así un enlace ya usado no sirve
-# dos veces.
-
 MAX_SOLICITUDES_RESET = 3
-VENTANA_RESET = 900  # 15 minutos
-
+VENTANA_RESET = 900
 
 def _usuario_por_correo(correo):
     """Busca por User.email y, si no aparece, por UserProfile.email.
@@ -2637,7 +2277,6 @@ def _usuario_por_correo(correo):
                                         usuario__is_active=True).first()
     return perfil.usuario if perfil else None
 
-
 def recuperar(request):
     """Pide el correo y manda el enlace."""
     from django.contrib.auth.tokens import default_token_generator
@@ -2654,9 +2293,6 @@ def recuperar(request):
     if request.method == 'POST':
         correo_txt = (request.POST.get('email') or '').strip()
 
-        # Tope por IP: sin él, alguien puede usar este formulario para
-        # bombardear de correos a una dirección ajena, o para gastar la
-        # cuota de envío de la cuenta.
         clave = f'reset:{_ip(request)}'
         usados = cache.get(clave, 0)
         if usados >= MAX_SOLICITUDES_RESET:
@@ -2682,8 +2318,6 @@ def recuperar(request):
             cuerpo_html = render_to_string('registration/correo_recuperar.html', contexto_correo)
             if not enviar(usuario.email or correo_txt,
                           'Recupera tu contraseña de Rekon', cuerpo, cuerpo_html):
-                # Falla de configuración o de red. Se avisa, porque decir
-                # "revisa tu correo" cuando no salió nada es peor.
                 logging.getLogger('finanzas').error(
                     'Reset solicitado para %s pero el correo no salió', usuario.pk)
                 if not correo_configurado():
@@ -2693,13 +2327,10 @@ def recuperar(request):
                         'Escríbeme y te ayudo a restablecerla a mano.')
                     return render(request, 'registration/recuperar.html',
                                   {'email': correo_txt})
-        # Mismo mensaje exista o no la cuenta: si cambiara, este formulario
-        # serviría para averiguar qué correos están registrados.
         enviado = True
 
     return render(request, 'registration/recuperar.html',
                   {'enviado': enviado, 'email': correo_txt})
-
 
 def restablecer(request, uidb64, token):
     """Valida el enlace y cambia la contraseña."""
@@ -2716,7 +2347,6 @@ def restablecer(request, uidb64, token):
 
     valido = usuario is not None and default_token_generator.check_token(usuario, token)
     if not valido:
-        # No se dice si el enlace es viejo o falso: es la misma respuesta.
         return render(request, 'registration/restablecer.html', {'valido': False})
 
     factor = SegundoFactor.objects.filter(usuario=usuario, activo=True).first()
@@ -2725,8 +2355,6 @@ def restablecer(request, uidb64, token):
     if request.method == 'POST':
         form = SetPasswordForm(usuario, request.POST)
 
-        # El segundo factor se comprueba ANTES de guardar: si el código no
-        # cuadra, la contraseña no se toca.
         codigo_ok = True
         if factor:
             codigo = (request.POST.get('codigo') or '').strip()
@@ -2740,8 +2368,6 @@ def restablecer(request, uidb64, token):
 
         if form.is_valid() and codigo_ok:
             form.save()
-            # Los intentos fallidos previos ya no cuentan: la contraseña que
-            # se estaba fallando dejó de existir.
             limpiar_intentos(usuario.username, _ip(request))
             messages.success(request, 'Tu contraseña quedó cambiada. Entra con ella.')
             return redirect('login')
@@ -2755,17 +2381,14 @@ def restablecer(request, uidb64, token):
             usuario=usuario, usado=False).exists(),
     })
 
-
 @limitar(5, 3600, 'Demasiados registros desde esta conexión. Prueba más tarde.')
 def registro(request):
     if request.method == 'POST':
         form = UserCreationForm(request.POST)
         correo = (request.POST.get('email_perfil') or '').strip()
         error_correo = ''
+        acepta = bool(request.POST.get('acepta_politica'))
 
-        # El email pasó a ser obligatorio: es la única vía de recuperación
-        # de contraseña. Sin él, quien la olvida pierde la cuenta y sus
-        # datos, y no hay forma de devolvérsela sin entrar a la base.
         if not correo:
             error_correo = 'Necesitamos tu email para poder recuperar tu contraseña.'
         else:
@@ -2774,24 +2397,26 @@ def registro(request):
             except forms.ValidationError:
                 error_correo = 'Ese email no parece válido. Revísalo.'
             else:
-                # Dos cuentas con el mismo correo hacen ambiguo el "olvidé mi
-                # contraseña": no se sabría a cuál mandar el enlace.
                 if User.objects.filter(email__iexact=correo).exists():
                     error_correo = 'Ya hay una cuenta con ese email.'
 
+        if not acepta:
+            error_correo = error_correo or (
+                'Tienes que aceptar la política de privacidad y los términos de uso.')
+
         if form.is_valid() and not error_correo:
             user = form.save(commit=False)
-            # El correo va también en el User, no solo en el perfil: es donde
-            # lo busca la recuperación de contraseña.
             user.email = correo
             user.save()
             login(request, user)
-            # get_or_create evita el IntegrityError si ya existe un perfil
-            # (por ejemplo si hay una señal post_save que lo crea).
             profile, _ = UserProfile.objects.get_or_create(usuario=user)
             profile.nombre_completo = request.POST.get('nombre_completo', '').strip()
             profile.email = correo
+            profile.politica_version = legal.VERSION
+            profile.politica_aceptada = timezone.now()
             profile.save()
+            logger.info('Alta de cuenta %s con politica version %s',
+                        user.pk, legal.VERSION)
             return redirect('onboarding')
 
         if error_correo:
@@ -2800,14 +2425,12 @@ def registro(request):
         form = UserCreationForm()
     return render(request, 'registration/registro.html', {'form': form})
 
-
 @login_required(login_url='/login/')
 def onboarding(request):
     profile = get_or_create_profile(request.user)
     if profile.onboarding_completado:
         return redirect('dashboard')
     return render(request, 'finanzas/onboarding.html', {'profile': profile})
-
 
 @login_required(login_url='/login/')
 def completar_onboarding(request):
@@ -2824,8 +2447,6 @@ def completar_onboarding(request):
         )
 
     acreedor = request.POST.get('deuda_acreedor', '').strip()
-    # El onboarding pide el valor de la cuota, igual que el formulario de
-    # compras: el total se calcula acá y es lo que se guarda.
     deuda_cuota = _monto_post(request, 'deuda_cuota')
     if acreedor and deuda_cuota > 0:
         try:
@@ -2849,14 +2470,7 @@ def completar_onboarding(request):
     profile.onboarding_completado = True
     profile.save(update_fields=['onboarding_completado'])
     messages.success(request, f'Listo, {profile.nombre_display}. Tu mes ya está armado.')
-    # ?tour=1 arranca el recorrido guiado en el dashboard. El paso vive en el
-    # navegador, así que un F5 no lo reinicia (el JS limpia el parámetro).
     return redirect(reverse('dashboard') + '?tour=1')
-
-
-# ============================================================
-#  PERFIL
-# ============================================================
 
 class PerfilForm(forms.ModelForm):
     """Antes se definía dentro de la vista, así que se reconstruía en cada
@@ -2873,8 +2487,6 @@ class PerfilForm(forms.ModelForm):
             'ciudad':          forms.TextInput(attrs={'placeholder': 'Ej: Santiago'}),
             'pais':            forms.TextInput(attrs={'placeholder': 'Ej: Chile'}),
             'moneda':          forms.Select(),
-            # accept en el propio widget: el selector de archivos del móvil
-            # abre directo en la galería en vez de listar todo.
             'foto':            forms.ClearableFileInput(attrs={'accept': 'image/*'}),
         }
 
@@ -2887,7 +2499,6 @@ class PerfilForm(forms.ModelForm):
                 f'La imagen pesa demasiado. El máximo son {self.MAX_FOTO_MB} MB.')
         return foto
 
-
 @login_required(login_url='/login/')
 def perfil(request):
     profile = get_or_create_profile(request.user)
@@ -2897,12 +2508,8 @@ def perfil(request):
     if request.method == 'POST':
         accion = request.POST.get('accion')
         if accion == 'perfil':
-            # request.FILES: sin él el archivo subido nunca llega al form y
-            # la foto se guardaba siempre vacía.
             perfil_form = PerfilForm(request.POST, request.FILES, instance=profile)
             if perfil_form.is_valid():
-                # Volver al avatar de inicial. El save() del modelo borra el
-                # archivo del almacenamiento al detectar el cambio.
                 if request.POST.get('quitar_foto'):
                     perfil_form.instance.foto = None
                 perfil_form.save()
@@ -2912,9 +2519,6 @@ def perfil(request):
                     request.user.first_name = partes[0]
                     request.user.last_name = partes[1] if len(partes) > 1 else ''
                     request.user.save(update_fields=['first_name', 'last_name'])
-                # El correo se copia al User: es donde lo busca la
-                # recuperación de contraseña. Si solo viviera en el perfil,
-                # quien lo agregue desde acá seguiría sin poder recuperarla.
                 correo = (perfil_form.cleaned_data.get('email') or '').strip()
                 if correo and correo.lower() != (request.user.email or '').lower():
                     if not User.objects.filter(email__iexact=correo).exclude(
@@ -2936,8 +2540,6 @@ def perfil(request):
                 messages.success(request, 'Contraseña actualizada.')
                 return redirect('perfil')
         elif accion == 'aviso_mensual':
-            # El interruptor manda su estado nuevo en el propio botón: así
-            # una sola acción sirve para encender y para apagar.
             profile.aviso_mensual = request.POST.get('activar') == '1'
             profile.save(update_fields=['aviso_mensual'])
             messages.success(
@@ -2945,13 +2547,26 @@ def perfil(request):
                 f'Te avisaremos cada día {profile.aviso_dia} lo que quede por pagar.'
                 if profile.aviso_mensual else 'Aviso mensual desactivado.')
             return redirect('perfil')
+        elif accion == 'analisis_ia':
+            profile.analisis_ia = request.POST.get('activar') == '1'
+            profile.save(update_fields=['analisis_ia'])
+            messages.success(
+                request,
+                'El análisis pedirá una interpretación a la IA con tus números agregados.'
+                if profile.analisis_ia
+                else 'Análisis con IA desactivado. Nada saldrá del servidor.')
+            return redirect('perfil')
+        elif accion == 'aceptar_politica':
+            profile.politica_version = legal.VERSION
+            profile.politica_aceptada = timezone.now()
+            profile.save(update_fields=['politica_version', 'politica_aceptada'])
+            messages.success(request, 'Gracias. Quedó registrada tu aceptación.')
+            return redirect('perfil')
         elif accion == 'aviso_dia':
             try:
                 dia = int(request.POST.get('aviso_dia') or 20)
             except (TypeError, ValueError):
                 dia = 20
-            # 1 a 31. Un día que el mes no alcanza no se pierde: el envío lo
-            # recorta al último día (UserProfile.dia_aviso_efectivo).
             profile.aviso_dia = min(31, max(1, dia))
             profile.save(update_fields=['aviso_dia'])
             messages.success(request, f'El aviso saldrá cada día {profile.aviso_dia}.')
@@ -2964,14 +2579,10 @@ def perfil(request):
         'total_deudas': Deuda.objects.filter(usuario=request.user).count(),
         'miembro_desde': nombre_mes_es(request.user.date_joined.year,
                                        request.user.date_joined.month),
+        'politica_al_dia': profile.politica_version == legal.VERSION,
     }
     context.update(contadores(request.user))
     return render(request, 'finanzas/perfil.html', context)
-
-
-# ============================================================
-#  EXPORTAR
-# ============================================================
 
 @login_required(login_url='/login/')
 def exportar_excel(request):
@@ -2997,7 +2608,6 @@ def exportar_excel(request):
     response['Content-Disposition'] = f'attachment; filename="{archivo}"'
     return response
 
-
 @login_required(login_url='/login/')
 def exportar_csv(request):
     """El mismo contenido en texto plano, para quien quiera el archivo crudo.
@@ -3012,11 +2622,6 @@ def exportar_csv(request):
     exportar.escribir_csv(csv.writer(response, delimiter=';'),
                           request.user, request.user.get_username(), hoy)
     return response
-
-
-# ============================================================
-#  SERVICE WORKER
-# ============================================================
 
 @cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
 def service_worker(request):
@@ -3040,3 +2645,199 @@ def service_worker(request):
     with open(ruta, 'rb') as f:
         contenido = f.read()
     return HttpResponse(contenido, content_type='application/javascript')
+
+@cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
+def salud(request):
+    """Comprobación de vida para el hosting y el monitor externo.
+
+    No basta con que el proceso responda: una app que arranca pero no
+    alcanza la base atiende peticiones y las falla todas, y para el hosting
+    eso se ve igual que estar sana. Acá se toca la base y la caché de
+    verdad, y se devuelve 503 si alguna no contesta, que es lo que hace que
+    el reinicio automático sirva de algo.
+
+    Sin autenticación a propósito: el verificador del hosting no tiene
+    sesión. No revela nada — solo qué piezas responden.
+    """
+    from django.db import connection
+
+    partes = {}
+    ok = True
+
+    try:
+        with connection.cursor() as cur:
+            cur.execute('SELECT 1')
+            cur.fetchone()
+        partes['base'] = 'ok'
+    except Exception as e:
+        partes['base'] = 'error'
+        ok = False
+        logger.error('Health check: la base no responde (%s)', type(e).__name__)
+
+    try:
+        from django.core.cache import cache
+        cache.set('salud', '1', 10)
+        partes['cache'] = 'ok' if cache.get('salud') == '1' else 'error'
+        if partes['cache'] == 'error':
+            ok = False
+    except Exception as e:
+        partes['cache'] = 'error'
+        ok = False
+        logger.error('Health check: la caché no responde (%s)', type(e).__name__)
+
+    return JsonResponse({'estado': 'ok' if ok else 'degradado', 'partes': partes},
+                        status=200 if ok else 503)
+
+def _valor_serializable(valor):
+    """Cualquier valor de un campo, convertido a algo que quepa en un JSON."""
+    if isinstance(valor, Decimal):
+        return str(valor)
+    if isinstance(valor, (datetime, date)):
+        return valor.isoformat()
+    if hasattr(valor, 'url'):
+        try:
+            return valor.url
+        except Exception:
+            return None
+    if valor is None or isinstance(valor, (str, int, float, bool)):
+        return valor
+    return str(valor)
+
+CAMPOS_OCULTOS = {'secreto', 'codigo_hash', 'password'}
+
+def _fila(obj):
+    """Un objeto como diccionario plano, sin claves ajenas ni secretos."""
+    fila = {}
+    for campo in obj._meta.fields:
+        if campo.name in CAMPOS_OCULTOS or campo.name == 'id' or campo.is_relation:
+            continue
+        fila[campo.name] = _valor_serializable(getattr(obj, campo.name, None))
+    return fila
+
+def _filas(consulta):
+    """Los objetos de una consulta como lista de diccionarios planos."""
+    return [_fila(obj) for obj in consulta]
+
+@login_required(login_url='/login/')
+def mis_datos(request):
+    """Todo lo que la app guarda de ti, en un solo archivo JSON.
+
+    La exportación a Excel y CSV entrega los movimientos, que es lo que se
+    usa a diario. Esto es distinto: es el expediente completo —perfil,
+    personas, préstamos, metas, suscripciones, presupuesto, estado del
+    segundo factor— para que puedas llevártelo o revisarlo. JSON y no Excel
+    porque tiene que ser fiel, no bonito.
+    """
+    u = request.user
+    hoy = timezone.localdate()
+
+    perfil_obj = UserProfile.objects.filter(usuario=u).first()
+    factor = SegundoFactor.objects.filter(usuario=u).first()
+
+    datos = {
+        'generado': timezone.now().isoformat(),
+        'aplicacion': 'Rekon',
+        'cuenta': {
+            'usuario': u.get_username(),
+            'correo': u.email,
+            'nombre': u.first_name,
+            'apellido': u.last_name,
+            'alta': u.date_joined.isoformat() if u.date_joined else None,
+            'ultimo_acceso': u.last_login.isoformat() if u.last_login else None,
+        },
+        'perfil': _fila(perfil_obj) if perfil_obj else None,
+        'presupuesto': _filas(Presupuesto.objects.filter(usuario=u)),
+        'movimientos': _filas(Transaccion.objects.filter(usuario=u).order_by('fecha')),
+        'categorias_propias': _filas(Categoria.objects.filter(usuario=u)),
+        'compras_en_cuotas': [
+            {**_fila(d), 'pagos': _filas(d.pagos.all())}
+            for d in Deuda.objects.filter(usuario=u).prefetch_related('pagos')
+        ],
+        'personas': [
+            {**_fila(persona), 'prestamos': [
+                {**_fila(p), 'abonos': _filas(p.abonos.all())}
+                for p in persona.prestamos.all()
+            ]}
+            for persona in Persona.objects.filter(usuario=u)
+                                          .prefetch_related('prestamos__abonos')
+        ],
+        'metas_de_ahorro': [
+            {**_fila(m), 'aportes': _filas(m.aportes.all())}
+            for m in MetaAhorro.objects.filter(usuario=u).prefetch_related('aportes')
+        ],
+        'suscripciones': [
+            {**_fila(s), 'pagos': _filas(s.pagos.all())}
+            for s in Suscripcion.objects.filter(usuario=u).prefetch_related('pagos')
+        ],
+        'gastos_pendientes': _filas(GastoPendiente.objects.filter(usuario=u)),
+        'verificacion_dos_pasos': {
+            'activa': bool(factor and factor.activo),
+            'codigos_de_respaldo_sin_usar': CodigoRespaldo.objects.filter(
+                usuario=u, usado=False).count(),
+        },
+    }
+
+    cuerpo = json.dumps(datos, ensure_ascii=False, indent=2)
+    respuesta = HttpResponse(cuerpo, content_type='application/json; charset=utf-8')
+    archivo = f'Rekon_mis_datos_{u.get_username()}_{hoy:%Y-%m-%d}.json'
+    respuesta['Content-Disposition'] = f'attachment; filename="{archivo}"'
+    logger.info('Descarga de datos personales solicitada por el usuario %s', u.pk)
+    return respuesta
+
+@login_required(login_url='/login/')
+def eliminar_cuenta(request):
+    """Borra la cuenta y todo lo que cuelga de ella. Sin vuelta atrás.
+
+    Se pide la contraseña otra vez, no basta con tener la sesión abierta:
+    un teléfono desbloqueado y desatendido no debería poder borrar el
+    historial financiero de su dueño. Quien entró con Google no tiene
+    contraseña utilizable, así que a esa cuenta se le pide escribir su
+    nombre de usuario.
+
+    Todas las claves ajenas a User son CASCADE, así que user.delete() se
+    lleva movimientos, cuotas, personas, préstamos, metas, suscripciones,
+    categorías, presupuesto y segundo factor. Lo único que no viaja en la
+    cascada es la foto: vive en R2 o en el disco, y hay que borrarla a mano
+    antes de perder la referencia.
+    """
+    u = request.user
+    tiene_password = u.has_usable_password()
+
+    if request.method != 'POST':
+        return render(request, 'finanzas/eliminar_cuenta.html', {
+            'tiene_password': tiene_password,
+            'resumen': {
+                'movimientos': Transaccion.objects.filter(usuario=u).count(),
+                'cuotas': Deuda.objects.filter(usuario=u).count(),
+                'personas': Persona.objects.filter(usuario=u).count(),
+                'metas': MetaAhorro.objects.filter(usuario=u).count(),
+                'suscripciones': Suscripcion.objects.filter(usuario=u).count(),
+            },
+        })
+
+    if request.POST.get('confirmacion', '').strip().upper() != 'ELIMINAR':
+        messages.warning(request, 'Escribe ELIMINAR para confirmar.')
+        return redirect('eliminar_cuenta')
+
+    if tiene_password:
+        if not u.check_password(request.POST.get('password', '')):
+            registrar_fallo(f'borrado:{u.pk}', _ip(request))
+            messages.error(request, 'La contraseña no es correcta.')
+            return redirect('eliminar_cuenta')
+    elif request.POST.get('password', '').strip() != u.get_username():
+        messages.error(request, 'Ese no es tu nombre de usuario.')
+        return redirect('eliminar_cuenta')
+
+    perfil_obj = UserProfile.objects.filter(usuario=u).first()
+    if perfil_obj and perfil_obj.foto:
+        try:
+            perfil_obj.foto.delete(save=False)
+        except Exception:
+            logger.exception('No se pudo borrar la foto de perfil del usuario %s', u.pk)
+
+    uid, nombre = u.pk, u.get_username()
+    logout(request)
+    User.objects.filter(pk=uid).delete()
+    logger.warning('Cuenta eliminada a pedido del titular: id=%s usuario=%s', uid, nombre)
+    messages.success(request, 'Tu cuenta y todos tus datos fueron eliminados.')
+    return redirect('login')

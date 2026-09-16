@@ -6,11 +6,6 @@
   <meta name="theme-color" content="#191919">
   <title>{% block title %}Rekon{% endblock %}</title>
 
-  {% comment %}
-    Instalable en la pantalla de inicio. El manifest cubre Android/Chrome;
-    los meta apple-* son los que iOS todavía necesita aparte para abrir
-    en pantalla completa, sin barra de Safari.
-  {% endcomment %}
   <link rel="manifest" href="{% static 'site.webmanifest' %}">
   <meta name="application-name" content="Rekon">
   <meta name="mobile-web-app-capable" content="yes">
@@ -19,11 +14,6 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="format-detection" content="telephone=no">
 
-  {% comment %}
-    Favicon en SVG: nítido en cualquier tamaño y más liviano que un PNG.
-    El ICO queda como respaldo para navegadores que no aceptan SVG, y el
-    apple-touch-icon para cuando se guarda en la pantalla de inicio.
-  {% endcomment %}
   <link rel="icon" type="image/svg+xml" href="{% static 'img/favicon.svg' %}">
   <link rel="alternate icon" href="{% static 'img/favicon.png' %}">
   <link rel="apple-touch-icon" href="{% static 'img/favicon-180.png' %}">
@@ -35,8 +25,7 @@
   <link rel="stylesheet" href="{% static 'css/finapp.css' %}">
   {% block extra_head %}{% endblock %}
   <script nonce="{{ csp_nonce }}">
-  /* Respaldo mínimo: abre y cierra modales aunque finapp.js no cargue.
-     finapp.js sobreescribe estas funciones cuando sí está disponible. */
+
   (function () {
     function open(id) {
       var m = document.querySelector(id);
@@ -59,8 +48,7 @@
     window.finappOpen = open;
     window.finappClose = closeAll;
   })();
-  /* Si el usuario escondió la lista de primeros pasos, no debe alcanzar a
-     verse. Se decide antes de pintar, acá en <head>. */
+
   try {
     if (localStorage.getItem('finapp.pasos.oculto') === '1') {
       document.documentElement.classList.add('pasos-ocultos');
@@ -69,20 +57,12 @@
   </script>
 
   <script nonce="{{ csp_nonce }}">
-  /* Registro del service worker. Es lo que hace que Chrome en Android ofrezca
-     "Instalar app": el manifest solo no alcanza, tiene que haber un worker
-     activo que responda al evento fetch.
 
-     Va despues de 'load' para no competir por ancho de banda con el CSS y las
-     tipografias en la primera carga, que es la que se siente lenta. */
   (function () {
     if (!('serviceWorker' in navigator)) return;
     window.addEventListener('load', function () {
       navigator.serviceWorker.register('/sw.js').then(function (reg) {
-        /* Cuando sale una version nueva, el worker viejo sigue mandando hasta
-           que se cierran todas las pestanas. Esto lo reemplaza en el momento y
-           recarga una sola vez: la bandera evita el bucle de recargas, que es
-           el error clasico de este patron. */
+
         reg.addEventListener('updatefound', function () {
           var nuevo = reg.installing;
           if (!nuevo) return;
@@ -93,8 +73,7 @@
           });
         });
       }).catch(function () {
-        /* Sin service worker la app funciona igual; solo se pierde la pantalla
-           de sin conexion y el boton de instalar. No molestamos al usuario. */
+
       });
 
       var recargado = false;
@@ -108,7 +87,6 @@
   </script>
 </head>
 <body>
-
 
 <div class="layout">
 
@@ -155,11 +133,6 @@
         <a href="{% url 'categorias' %}" data-label="Categorías" class="nav-item {% if request.resolver_match.url_name == 'categorias' %}active{% endif %}">
           <i class="fas fa-tags"></i><span>Categorías</span>
         </a>
-        {% comment %}
-          Las tres pantallas de la cartola comparten el mismo destacado: al
-          revisar o confirmar se sigue estando "en" Importar cartola, y sin
-          esto el menú se apagaba a mitad del recorrido.
-        {% endcomment %}
         <a href="{% url 'importar_cartola' %}" data-label="Importar cartola" class="nav-item {% if request.resolver_match.url_name == 'importar_cartola' or request.resolver_match.url_name == 'revisar_cartola' %}active{% endif %}">
           <i class="fas fa-file-import"></i><span>Importar cartola</span>
         </a>
@@ -181,12 +154,6 @@
       {% if salud_score != None %}
       <div class="sidebar-foot health" data-spot data-tour="salud" title="Salud del mes: {{ salud_score }}/100 · {{ salud_label }}">
         <div class="label" style="color:var(--amber);margin-bottom:7px">Salud del mes</div>
-        {% comment %}
-          Alineado a la izquierda, a plomo con el título y la barra. El
-          centrado venía de cuando el sidebar se colapsaba a 76px y solo
-          quedaba el número; con el sidebar ancho dejaba el 70 flotando al
-          medio, sin nada que lo alineara.
-        {% endcomment %}
         <div class="health-cifra">
           <span class="display" style="font-size:24px;line-height:1">{{ salud_score }}</span>
           <span class="health-detalle" style="font-size:11px;color:var(--text-muted)">/ 100 · {{ salud_label }}</span>
@@ -197,10 +164,6 @@
         {% if salud_nota %}<div class="health-nota" style="font-size:10.5px;color:var(--text-muted);margin-top:9px;line-height:1.45">{{ salud_nota }}</div>{% endif %}
       </div>
       {% else %}
-      {% comment %}
-        Antes el bloque simplemente no aparecía y quedaba un hueco sin
-        explicación. Ahora dice qué falta para que aparezca.
-      {% endcomment %}
       <div class="sidebar-foot health" data-spot title="Salud del mes">
         <div class="label" style="color:var(--amber);margin-bottom:6px">Salud del mes</div>
         <div class="health-nota" style="font-size:11px;color:var(--text-muted);line-height:1.5">
@@ -209,19 +172,18 @@
       </div>
       {% endif %}
     {% endblock %}
+
+    <div class="sidebar-legal" style="display:flex;gap:10px;justify-content:center;padding:14px 10px 4px;font-size:10.5px">
+      <a href="{% url 'privacidad' %}" style="color:var(--text-muted);text-decoration:none">Privacidad</a>
+      <span style="color:var(--text-muted);opacity:.5">·</span>
+      <a href="{% url 'terminos' %}" style="color:var(--text-muted);text-decoration:none">Términos</a>
+    </div>
   </aside>
 
   <div style="flex:1;min-width:0;display:flex;flex-direction:column">
 
     <header class="topbar">
       {% block topbar_left %}
-      {% comment %}
-        El saludo era el único elemento del topbar sin superficie: al lado
-        de la barra de búsqueda, el selector de mes y los dos botones —
-        todos píldoras — quedaba como texto suelto flotando. Ahora es una
-        píldora del mismo material, y toda ella lleva al perfil en vez de
-        solo el avatar de 38px.
-      {% endcomment %}
       <a href="{% url 'perfil' %}" class="saludo-pill" title="Mi perfil">
         <span class="avatar">{% if profile.foto_url %}<img src="{{ profile.foto_url }}" alt="" data-quitar-si-falla>{% endif %}<span class="avatar-letra">{{ profile.inicial|default:"?" }}</span></span>
         <span style="min-width:0">
@@ -230,18 +192,6 @@
         </span>
       </a>
 
-      {% comment %}
-        El selector de mes vivía acá, y el topbar entero se oculta bajo
-        720px: en el teléfono no había forma de ver otro mes. Pasó al
-        contenido del dashboard, que es la única pantalla que navega por
-        mes y donde además gobierna todo lo que se muestra debajo.
-      {% endcomment %}
-
-      {% comment %}
-        El placeholder decía "Buscar movimiento, persona o categoría" en todas
-        las pantallas, pero la búsqueda solo filtra lo que hay a la vista: en
-        Cuotas no puede encontrar una persona. Cada pantalla dice qué filtra.
-      {% endcomment %}
       <div class="search">
         <label for="buscador" class="visually-hidden">Buscar en esta pantalla</label>
         <i class="fas fa-magnifying-glass" style="font-size:11px;color:var(--text-muted)"></i>
@@ -251,10 +201,6 @@
       </div>
       {% endblock %}
 
-      {% comment %}
-        El selector de mes de la pantalla que lo tenga, junto al buscador.
-        Vacío en el resto.
-      {% endcomment %}
       {% block topbar_mes %}{% endblock %}
 
       <div class="spacer"></div>
@@ -269,9 +215,6 @@
         <i class="fas fa-plus" style="font-size:11px"></i><span>Anotar gasto</span>
       </button>
 
-      {% comment %}
-        Su reemplazo entre 720 y 1000px, donde los dos no caben con texto.
-      {% endcomment %}
       <button class="btn btn-purple solo-medio" data-open="#modalGasto" data-preset-tipo="EGRESO"
               title="Anotar un movimiento" aria-label="Anotar un movimiento">
         <i class="fas fa-plus" style="font-size:11px"></i><span>Anotar</span>
@@ -280,10 +223,6 @@
     </header>
 
     <main class="main">
-      {% comment %}
-        La plantilla abre con esta tarjeta en vez de una barra superior.
-        En escritorio se esconde: ahí el saludo vive en el topbar.
-      {% endcomment %}
       <div class="saludo-card">
         <a href="{% url 'perfil' %}" class="avatar">{% if profile.foto_url %}<img src="{{ profile.foto_url }}" alt="" data-quitar-si-falla>{% endif %}<span class="avatar-letra">{{ profile.inicial|default:"?" }}</span></a>
         <div class="saludo-txt">
@@ -296,11 +235,6 @@
         </button>
       </div>
 
-      {% comment %}
-        El saludo sigue la hora del teléfono, no la del servidor: es la que
-        tiene el usuario delante. Va acá, pegado a la tarjeta, para que se
-        corrija antes de que la pantalla se pinte y no haya parpadeo.
-      {% endcomment %}
       <script nonce="{{ csp_nonce }}">
       (function () {
         function texto(h) {
@@ -314,9 +248,7 @@
           for (var i = 0; i < nodos.length; i++) nodos[i].textContent = t;
         }
         pintar();
-        /* Si la pantalla queda abierta cruzando las 12 o las 20, el saludo se
-           actualiza solo; y al volver a la pestaña, por si el teléfono
-           suspendió los temporizadores. */
+
         window.setInterval(pintar, 60000);
         document.addEventListener('visibilitychange', function () {
           if (!document.hidden) pintar();
@@ -328,11 +260,6 @@
   </div>
 </div>
 
-{% comment %}
-  Cuatro destinos y un hueco al centro para el botón, calcado de la
-  plantilla. Los otros cinco viven en "Más": nueve iconos en una barra de
-  teléfono no se distinguen ni se aciertan con el pulgar.
-{% endcomment %}
 <nav class="bottomnav">
   <a href="{% url 'dashboard' %}" data-label="Inicio" class="nav-item {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
     <i class="fas fa-house"></i><span>Inicio</span>
@@ -353,10 +280,6 @@
   </button>
 </nav>
 
-{% comment %}
-  Dos botones, no uno. Los del topbar están ocultos en móvil, así que antes
-  no quedaba NINGUNA forma de registrar un ingreso desde el teléfono.
-{% endcomment %}
 <div class="fab-group">
   {% block fab %}
   <button class="fab fab-mini" data-open="#modalGasto" data-preset-tipo="INGRESO"
@@ -370,10 +293,6 @@
   {% endblock %}
 </div>
 
-{% comment %}
-  Las pantallas que no caben en la barra. Se abre como hoja desde abajo,
-  que es donde está el pulgar.
-{% endcomment %}
 <div class="modal-overlay hoja-overlay" id="modalMas">
   <div class="modal-box hoja-box">
     <div class="modal-head">
@@ -394,11 +313,6 @@
         <span class="icon-tile blue"><i class="fas fa-tags"></i></span><span>Categorías</span></a>
       <a href="{% url 'importar_cartola' %}" class="hoja-item">
         <span class="icon-tile green"><i class="fas fa-file-import"></i></span><span>Importar cartola</span></a>
-      {% comment %}
-        La ficha muestra la foto del perfil, como la píldora del saludo. El
-        icono queda debajo: si la imagen falla, data-quitar-si-falla la saca
-        del DOM y vuelve a verse sin dejar un cuadro vacío.
-      {% endcomment %}
       <a href="{% url 'perfil' %}" class="hoja-item">
         <span class="icon-tile tile-avatar">{% if profile.foto_url %}<img src="{{ profile.foto_url }}" alt="" data-quitar-si-falla>{% endif %}<i class="fas fa-user"></i></span><span>Mi perfil</span></a>
     </div>
@@ -471,12 +385,6 @@
 </div>
 {% endif %}
 
-{% comment %}
-  Panel de registro. Vive en base.html porque los botones que lo abren están
-  en el topbar de TODAS las pantallas. Antes estaba solo en dashboard.html,
-  así que en Cuotas, Me deben o Suscripciones esos botones no hacían nada:
-  apuntaban a un modal que no existía ahí.
-{% endcomment %}
 <div class="modal-overlay registro-overlay" id="modalGasto">
   <div class="registro-box">
     <div class="modal-head">
@@ -489,16 +397,8 @@
 
     <form method="post" action="{% url 'registrar_transaccion' %}" id="formRegistro">
       {% csrf_token %}
-      {% comment %}
-        Vuelve a la pantalla desde la que se registró. Antes el panel solo
-        existía en el dashboard, así que mandaba siempre ahí.
-      {% endcomment %}
       <input type="hidden" name="next" value="{{ request.get_full_path }}">
 
-      {% comment %}
-        El form de Django exige tipo, monto, categoria y fecha. Van ocultos:
-        el usuario los llena con el segmentado, el teclado y los chips.
-      {% endcomment %}
       <input type="hidden" name="tipo" id="campoTipo" value="EGRESO">
       <input type="hidden" name="monto" id="campoMonto" value="">
       <input type="hidden" name="categoria" id="campoCategoria" value="Comida">
@@ -508,12 +408,6 @@
         <button type="button" data-tipo="INGRESO">Ingreso</button>
       </div>
 
-      {% comment %}
-        Dos columnas: el monto a la izquierda, el resto a la derecha.
-        Antes el teclado ocupaba media pantalla ANTES de elegir la categoría,
-        así que en un teléfono había que desplazarse para completar el
-        registro más frecuente de la app.
-      {% endcomment %}
       <div class="registro-grid">
 
         <div class="registro-monto">
@@ -535,17 +429,6 @@
 
         <div class="registro-datos">
           <div class="label" style="margin-bottom:9px" id="labelCat">Categoría</div>
-          {% comment %}
-            Se pintan solo las de gasto: es el tipo por defecto. Antes el
-            template volcaba las de gasto Y las de ingreso mezcladas, y el
-            JS las reemplazaba después — así que el primer parpadeo mostraba
-            "Sueldo" como si fuera un gasto.
-          {% endcomment %}
-          {% comment %}
-            Las categorías viajan en atributos de este contenedor. Iban en
-            <script type="application/json">, pero la política de contenidos
-            bloquea todo <script> sin nonce y no llegaban.
-          {% endcomment %}
           <div class="chips" data-field="#campoCategoria" style="margin-bottom:18px" id="chipsGasto"
                data-egreso="{{ cats_egreso_json|a_json }}"
                data-ingreso="{{ cats_ingreso_json|a_json }}">
@@ -559,11 +442,6 @@
             <input type="text" name="descripcion" id="campoDesc" placeholder="Ej: Supermercado, sueldo de agosto">
           </div>
 
-          {% comment %}
-            La fecha era un campo oculto fijo en hoy, así que no había forma
-            de anotar un ingreso ya calculado del mes siguiente ni un gasto
-            de días atrás. Ahora se puede elegir; parte en hoy.
-          {% endcomment %}
           <div class="field">
             <label class="label" for="campoFecha" id="labelFecha">Fecha del gasto</label>
             <input type="date" name="fecha" id="campoFecha" value="{{ hoy_iso }}" required>
@@ -606,25 +484,16 @@
 
 <script src="{% static 'js/finapp.js' %}"></script>
 <script nonce="{{ csp_nonce }}">
-/* Panel de registro. Va en base.html, después de finapp.js, porque el panel
-   está disponible en todas las pantallas. */
+
 (function () {
   var form = document.getElementById('formRegistro');
   if (!form) return;
 
-  /* Las de gasto ya están en el HTML; este arreglo solo sirve para volver
-     a ellas si el usuario cambia de Ingreso a Gasto. */
   var catsGasto = leerDatos('egreso');
   var catsIngreso = leerDatos('ingreso');
 
   var chips = document.getElementById('chipsGasto');
-  /* Lee una lista embebida con json_script.
-     Devuelve [] si no está o viene vacía: solo el panel de Inicio recibe
-     las categorías, y en las demás pantallas un JSON.parse directo daba ""
-     y el forEach siguiente reventaba, dejando muerto el resto del script. */
-  /* Las categorías viajan en atributos del contenedor de fichas: la política
-     de contenidos bloquea los <script type="application/json">, y ahí los
-     datos nunca llegaban. */
+
   function leerDatos(cual) {
     var cont = document.getElementById('chipsGasto');
     if (!cont || !cont.dataset[cual]) return [];
@@ -661,7 +530,6 @@
     montoView.style.color = esGasto ? 'var(--coral)' : 'var(--green)';
     var prev = document.querySelector('[data-preview]');
     if (prev) prev.dataset.sign = esGasto ? '-1' : '1';
-    // Un ingreso no se "paga": el bloque solo aplica a gastos
     var bloque = document.getElementById('bloquePago');
     if (bloque) bloque.style.display = esGasto ? 'block' : 'none';
     var labFecha = document.getElementById('labelFecha');
@@ -684,20 +552,16 @@
   document.querySelectorAll('[data-preset-tipo]').forEach(function (btn) {
     btn.addEventListener('click', function () {
       setTipo(btn.dataset.presetTipo);
-      // Al reabrir el panel el aviso de la vez anterior no debe seguir ahí.
       var av = document.getElementById('avisoMonto');
       if (av) av.style.display = 'none';
     });
   });
 
-  /* El teclado propio del panel: no depende de finapp.js, para que el
-     monto quede escrito en el input del form pase lo que pase. */
   var teclado = form.querySelector('.keypad');
   var avisoMonto = document.getElementById('avisoMonto');
   var valor = '';
   function pintarMonto() {
     campoMonto.value = valor;
-    // Al escribir el primer dígito el aviso sobra: ya se corrigió.
     if (valor && avisoMonto) avisoMonto.style.display = 'none';
     montoView.textContent = valor ? '$' + Number(valor).toLocaleString('es-CL') : '$0';
     var prev = document.querySelector('[data-preview]');
@@ -724,8 +588,6 @@
   form.addEventListener('submit', function (e) {
     if (!Number(campoMonto.value || 0)) {
       e.preventDefault();
-      // El pulso solo se entiende si ya sabes cuál era el problema. El
-      // texto lo dice; el pulso lleva la vista hasta él.
       if (avisoMonto) avisoMonto.style.display = 'block';
       montoView.style.transition = 'transform .12s';
       montoView.style.transform = 'scale(1.08)';
@@ -734,7 +596,6 @@
     }
   });
 
-  /* Ya pagado / aún lo debo. Solo tiene sentido en un gasto. */
   var segPago = document.getElementById('segPago');
   var campoSinPagar = document.getElementById('campoSinPagar');
   var bloquePago = document.getElementById('bloquePago');
@@ -755,8 +616,6 @@
   setTipo('EGRESO');
   pintarMonto();
 
-  /* ?registrar=1 abre el panel al cargar. Lo usan el botón flotante de las
-     pantallas sin panel propio y el retorno de un POST con error. */
   {% if abrir_panel or request.GET.registrar %}
   var overlay = document.getElementById('modalGasto');
   if (overlay) { overlay.classList.add('open'); document.body.style.overflow = 'hidden'; }
@@ -765,6 +624,7 @@
 </script>
 <script src="{% static 'js/tour.js' %}"></script>
 <script nonce="{{ csp_nonce }}">
+
 (function () {
   if (!window.finappTour) return;
   window.finappTour.iniciar({
