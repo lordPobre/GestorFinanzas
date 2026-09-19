@@ -74,12 +74,12 @@
   <span style="flex:1;height:1px;background:var(--line)"></span>
 </div>
 
-<div style="display:flex;flex-direction:column;gap:12px">
-  <div style="font-size:11px;color:var(--text-muted);text-align:center;line-height:1.5;margin-top:-4px">
-    Al entrar con Google aceptas la
-    <a href="{% url 'privacidad' %}">política de privacidad</a> y los
-    <a href="{% url 'terminos' %}">términos de uso</a>.
-  </div>
+<a href="{% url 'registro' %}"
+     style="display:flex;align-items:center;justify-content:center;gap:9px;padding:15px;border:1.5px solid var(--line-fuerte);border-radius:100px;color:var(--text-primary);text-decoration:none;font-size:13.5px;font-weight:700">
+    <i class="fas fa-user-plus" style="font-size:12px;color:var(--amber)"></i>Crear una cuenta nueva
+</a>
+
+<div style="display:flex;flex-direction:column;gap:18px">
   {% if google_activo %}
   <a href="{% url 'google_entrar' %}{% if next %}?next={{ next|urlencode }}{% endif %}"
      style="display:flex;align-items:center;justify-content:center;gap:11px;padding:15px;border:1.5px solid var(--line-fuerte);border-radius:100px;color:var(--text-primary);text-decoration:none;font-size:13.5px;font-weight:700">
@@ -91,13 +91,15 @@
     </svg>
     Continuar con Google
   </a>
-  
+
+  <div style="font-size:11px;color:var(--text-muted);text-align:center;line-height:1.5;margin-top:-4px">
+    Al entrar con Google aceptas la
+    <a href="{% url 'privacidad' %}">política de privacidad</a> y los
+    <a href="{% url 'terminos' %}">términos de uso</a>.
+  </div>
+
   {% endif %}
 
-  <a href="{% url 'registro' %}"
-     style="display:flex;align-items:center;justify-content:center;gap:9px;padding:15px;border:1.5px solid var(--line-fuerte);border-radius:100px;color:var(--text-primary);text-decoration:none;font-size:13.5px;font-weight:700">
-    <i class="fas fa-user-plus" style="font-size:12px;color:var(--amber)"></i>Crear una cuenta nueva
-  </a>
 </div>
 {% endblock %}
 
