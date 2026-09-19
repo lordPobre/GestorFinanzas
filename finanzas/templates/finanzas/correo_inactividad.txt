@@ -1,0 +1,19 @@
+Hola {{ usuario.username }}:
+
+Llevas {{ meses }} meses sin entrar a Rekon. Como no tiene sentido guardar tus
+datos financieros si ya no usas la app, vamos a borrar tu cuenta en
+{{ dias }} días.
+
+Para conservarla, basta con entrar una vez:
+
+{{ enlace }}
+
+Si entras, el proceso se cancela solo y no tienes que hacer nada más.
+
+Si prefieres llevarte tus datos antes, entra y descarga el archivo completo
+desde Perfil → Descargar todos mis datos.
+
+Qué se borra: tus movimientos, cuotas, préstamos, metas, suscripciones y tu
+perfil. No queda copia y no se puede deshacer.
+
+— Rekon

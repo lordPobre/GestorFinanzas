@@ -48,6 +48,14 @@ GRIS_LINEA = 'D9D9D9'
 FORMATO_MONTO = '"$"#,##0'
 FORMATO_FECHA = 'DD/MM/YYYY'
 
+# Tope de filas del archivo. openpyxl arma el libro entero en memoria antes
+# de escribirlo, así que el límite real no es el de Excel (un millón de
+# filas) sino la RAM del proceso: en un hosting de 512 MB, unas decenas de
+# miles de filas con formato ya lo llenan y la app se cae para todos. Veinte
+# mil movimientos son años de uso intenso; si alguien llega ahí, el archivo
+# trae los más recientes y el JSON de «mis datos» sigue entregando todo.
+MAX_FILAS = 20_000
+
 
 def nombre_mes(anio, mes):
     return f'{MESES[mes - 1]} {anio}'.capitalize()
@@ -59,12 +67,24 @@ def filas_movimientos(usuario):
     `get_categoria_display()` no sirve solo: resuelve las categorías base pero
     devuelve el slug crudo para las que el usuario crea a mano. De ahí el
     diccionario de etiquetas.
+
+    Con más de MAX_FILAS movimientos se entregan los más recientes. El corte
+    se hace en la consulta —ordenando al revés y cortando ahí— y no en
+    Python: traer trescientos mil objetos para descartar la mayoría gasta la
+    memoria que el tope quiere proteger.
     """
     etiquetas = dict(Categoria.opciones(usuario))
     filas = []
 
-    for t in (Transaccion.objects.filter(usuario=usuario)
-              .order_by('fecha', 'id')):
+    consulta = Transaccion.objects.filter(usuario=usuario)
+    total = consulta.count()
+    if total > MAX_FILAS:
+        movimientos = list(consulta.order_by('-fecha', '-id')[:MAX_FILAS])
+        movimientos.reverse()
+    else:
+        movimientos = consulta.order_by('fecha', 'id').iterator(chunk_size=2000)
+
+    for t in movimientos:
         categoria = etiquetas.get(t.categoria, t.categoria)
         es_ingreso = t.es_ingreso
         filas.append({

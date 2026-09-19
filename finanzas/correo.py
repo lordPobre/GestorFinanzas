@@ -74,6 +74,16 @@ def _remitente():
     return f'Rekon <no-responder@{dominio}>'
 
 
+def _staging_sin_correo():
+    """True si este entorno es de pruebas y no se pidió enviar de verdad."""
+    try:
+        from django.conf import settings
+        return bool(getattr(settings, 'ES_STAGING', False)
+                    and not getattr(settings, 'CORREO_EN_STAGING', False))
+    except Exception:
+        return False
+
+
 def _pedir(peticion):
     """Lanza la petición y devuelve True si el proveedor la aceptó."""
     # User-Agent propio: urllib se identifica como "Python-urllib/3.x" y
@@ -147,7 +157,16 @@ def enviar(destino, asunto, texto, html=None):
     de correo elige cuál muestra — el HTML normalmente, el texto plano si
     bloquea imágenes y estilos o si es un lector de pantalla. Mandar solo
     HTML deja a esos casos con un correo vacío.
+
+    En staging no sale nada a la red: el correo entero se escribe en el log y
+    se devuelve True, para que el flujo que lo llamó siga su curso. Con la
+    base copiada de producción, un envío de prueba llegaría a personas
+    reales.
     """
+    if _staging_sin_correo():
+        log.warning('[staging] correo NO enviado a %s | %s\n%s', destino, asunto, texto)
+        return True
+
     p = proveedor()
     if not configurado():
         log.error('Correo sin configurar: no se envió nada a %s', destino)
@@ -167,3 +186,14 @@ def url_absoluta(request, ruta):
     if base:
         return f'{base}{ruta}'
     return request.build_absolute_uri(ruta)
+
+
+def url_absoluta_sin_request(ruta):
+    """La misma URL para las tareas programadas, que no tienen petición.
+
+    Sin SITE_URL solo queda la ruta relativa: un correo con un enlace a
+    '/login/' es inútil, y por eso el aviso de inactividad lo dice en su
+    texto en vez de fingir un dominio que no conoce.
+    """
+    base = os.environ.get('SITE_URL', '').rstrip('/')
+    return f'{base}{ruta}' if base else ruta

@@ -203,6 +203,7 @@
 
 <div class="glass card-lg" style="margin-bottom:18px" data-spot>
 
+  {# Entró y salió, la comparación de la que sale todo lo demás #}
   <div class="mes-totales">
     <div>
       <span class="icon-tile green"><i class="fas fa-arrow-down"></i></span>
@@ -221,6 +222,7 @@
     </div>
   </div>
 
+  {# La barra reparte lo que entró en sus tres destinos #}
   <div class="split-bar" style="height:12px;margin-bottom:14px">
     <span style="width:{{ pct_gastado }}%;background:var(--blue)" title="Ya gastado"></span>
     <span style="width:{{ pct_por_pagar }}%;background:var(--amber)" title="Por pagar"></span>
@@ -315,6 +317,7 @@
     </div>
   </div>
 
+  {# Avance total: la única forma de ver que la deuda se está achicando #}
   <div style="margin-top:20px">
     <div class="progress-bar" style="height:10px">
       <div class="progress-fill green shine" style="width:{{ deuda_pct_pagado }}%"></div>
@@ -325,6 +328,7 @@
     </div>
   </div>
 
+  {# Una fila por compra. Se abre para ver el detalle y pagar sin salir. #}
   <div class="deuda-lista">
     {% for c in mis_cuotas %}
     <details class="deuda-item" data-searchable>
@@ -459,7 +463,7 @@
           <input type="hidden" name="next" value="?year={{ year }}&amp;month={{ month }}">
             <input type="hidden" name="next_path" value="{% url 'dashboard' %}">
           <input type="hidden" name="periodo" value="{{ i.periodo }}">
-          <button type="submit" class="icon-btn" title="Deshacer"><i class="fas fa-rotate-left" style="font-size:10px"></i></button>
+          <button type="submit" class="icon-btn" title="Deshacer" aria-label="Deshacer"><i class="fas fa-rotate-left" style="font-size:10px"></i></button>
         </form>
       </div>
       {% endfor %}
@@ -515,6 +519,7 @@
       {% endif %}
     </div>
 
+    {# La barra va pegada a la cifra: es la misma información en otra forma #}
     <div class="split-bar" style="height:7px;margin-top:12px">
       {% if monto_ya_pagado %}<span style="width:{% widthratio monto_ya_pagado total_comprometido_mes 100 %}%;background:linear-gradient(90deg,#059669,var(--green))"></span>{% endif %}
       {% if monto_sin_pagar %}<span style="width:{% widthratio monto_sin_pagar total_comprometido_mes 100 %}%;background:linear-gradient(90deg,#ea580c,#fb923c)"></span>{% endif %}
@@ -572,7 +577,7 @@
         <input type="hidden" name="next" value="?year={{ year }}&amp;month={{ month }}">
             <input type="hidden" name="next_path" value="{% url 'dashboard' %}">
         <input type="hidden" name="periodo" value="{{ i.periodo }}">
-        <button type="submit" class="icon-btn" title="Deshacer"><i class="fas fa-rotate-left" style="font-size:10px"></i></button>
+        <button type="submit" class="icon-btn" title="Deshacer" aria-label="Deshacer"><i class="fas fa-rotate-left" style="font-size:10px"></i></button>
       </form>
       {% else %}
       <form method="post" action="{{ i.url_pagar }}" style="margin:0">
@@ -701,6 +706,7 @@
     </div>
   </div>
 
+  {# La leyenda va arriba y a mano: la de Chart.js no deja poner los montos #}
   <div class="flujo-leyenda">
     <span><i class="punto" style="background:var(--green)"></i>Entra</span>
     <span><i class="punto" style="background:var(--coral)"></i>Sale</span>
@@ -977,7 +983,7 @@
   if (typeof Chart === 'undefined') {
     el.parentElement.innerHTML =
       '<div style="display:flex;align-items:center;justify-content:center;height:100%;' +
-      'font-size:12px;color:rgba(245,245,245,.42);text-align:center;padding:20px">' +
+      'font-size:12px;color:rgba(245, 245, 245, .62);text-align:center;padding:20px">' +
       'No se pudo cargar el gráfico. Revisa tu conexión y recarga.</div>';
     return;
   }
@@ -1004,7 +1010,7 @@
   }
 
   var VERDE = '#53d258', CORAL = '#e25c5c';
-  var TICK  = 'rgba(245,245,245,.38)';
+  var TICK  = 'rgba(245, 245, 245, .62)';
   var TEXTO = 'rgba(245,245,245,.72)';
   var FONT  = "'Manrope', sans-serif";
   var quieto = window.matchMedia('(prefers-reduced-motion: reduce)').matches;

@@ -32,3 +32,17 @@ def moneda_usuario(request):
         'codigo_moneda': cfg['codigo'],
         'decimales_moneda': cfg['decimales'],
     }
+
+
+def entorno(request):
+    """Deja a la vista si esto es el entorno de pruebas.
+
+    Sin una marca visible, un staging con la base copiada se confunde con el
+    real: se anota un gasto de verdad en la copia, o peor, se prueba un
+    borrado creyendo que es de prueba.
+    """
+    from django.conf import settings
+    return {
+        'es_staging': bool(getattr(settings, 'ES_STAGING', False)),
+        'nombre_entorno': getattr(settings, 'ENTORNO', 'produccion'),
+    }

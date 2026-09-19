@@ -49,11 +49,12 @@ producción:
 | `DEBUG` | `False` en producción |
 | `ALLOWED_HOSTS` | Dominios propios, separados por coma |
 | `DATABASE_URL` | Postgres. Sin ella, SQLite |
-| `FIELD_ENCRYPTION_KEY` | Clave de los campos cifrados. Si se pierde, los datos no se recuperan |
 | `ADMIN_URL` | Ruta del panel de administración. Vacío lo desactiva |
 | `CSRF_TRUSTED_ORIGINS` | Orígenes desde los que se aceptan formularios |
 | `PROXIES_CONFIABLES` | Cuántos proxies hay delante. Railway: 1 |
 | `SENTRY_DSN` | Monitoreo de errores. Opcional |
+| `ENTORNO` | `staging` en el entorno de pruebas. Por defecto `produccion` |
+| `CORREO_EN_STAGING` | `1` para que staging envíe correos de verdad. Vacío los bloquea |
 
 ## Pruebas
 
@@ -98,7 +99,8 @@ Detalle completo en [docs/DESPLIEGUE-RAILWAY.md](docs/DESPLIEGUE-RAILWAY.md).
 core/            settings, urls, wsgi
 finanzas/
   models.py      los datos y toda la lógica de calendario de cuotas
-  views.py       las pantallas
+  views.py       las pantallas de plata: panel, cuotas, metas, préstamos
+  views_cuenta.py  entrar, registro, perfil, datos personales, sesiones
   views_cartola.py
   forms.py
   cartolas/      un lector por banco, más uno genérico
@@ -106,10 +108,13 @@ finanzas/
   ia.py          interpretación con Claude, opcional
   seguridad.py   bloqueo de intentos y límite de peticiones
   middleware.py  Content-Security-Policy con nonce
-  cifrado.py     campo de texto cifrado (hoy sin usar, ver docs)
   almacenamiento.py  disco local o Cloudflare R2
   correo.py      envío por API HTTP, no SMTP
   avisos.py      aviso mensual de cobros
+  inactividad.py aviso y borrado de cuentas abandonadas
+  verificacion.py confirmación del correo al registrarse
+  sesiones.py    sesiones abiertas y cierre a distancia
+  legal.py       versión de la política y páginas legales
 static/          css, js, service worker
 docs/            despliegue, respaldos, auditorías, cumplimiento
 ```
@@ -121,9 +126,14 @@ acordada es extraerla a su propio módulo en vez de seguir creciendo.
 
 ```bash
 python manage.py avisar_pagos              # aviso mensual por correo
+python manage.py limpiar_inactivas         # avisa y borra cuentas abandonadas
 python manage.py respaldar                 # copia de seguridad
 python manage.py limpiar_avatares_huerfanos
 ```
+
+`limpiar_inactivas` corre a diario y no hace nada la mayoría de los días:
+avisa a los 12 meses sin uso y borra 30 días después de ese aviso. Con
+`--seco` dice qué haría sin enviar ni borrar nada.
 
 ## Documentación
 
@@ -135,3 +145,5 @@ python manage.py limpiar_avatares_huerfanos
 - [docs/REGISTRO-TRATAMIENTOS.md](docs/REGISTRO-TRATAMIENTOS.md) — qué dato personal vive dónde
 - [docs/BRECHAS.md](docs/BRECHAS.md) — qué hacer ante un incidente de seguridad
 - [docs/ARQUITECTURA.md](docs/ARQUITECTURA.md) — decisiones de diseño y por qué
+- [docs/STAGING.md](docs/STAGING.md) — entorno de pruebas con base propia
+- [docs/DECISION-CIFRADO.md](docs/DECISION-CIFRADO.md) — por qué no se cifran las descripciones

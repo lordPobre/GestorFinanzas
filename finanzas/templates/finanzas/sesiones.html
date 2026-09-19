@@ -1,0 +1,78 @@
+{% extends 'finanzas/base.html' %}
+{% load humanize %}
+{% block title %}Sesiones abiertas · Rekon{% endblock %}
+{% block topbar_sub %}Sesiones abiertas{% endblock %}
+
+{% block content %}
+<div style="max-width:680px">
+
+  <div class="glass card" style="margin-bottom:16px;display:flex;gap:13px;align-items:flex-start">
+    <span style="display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;flex-shrink:0;border-radius:12px;background:var(--amber-tenue);color:var(--amber);font-size:13px">
+      <i class="fas fa-shield-halved"></i>
+    </span>
+    <div>
+      <div class="row-title" style="margin-bottom:3px">Cada aparato donde tu cuenta está abierta</div>
+      <div class="row-meta">
+        Cambiar la contraseña no cierra las sesiones que ya estaban abiertas.
+        Si te quedaste dentro en un computador prestado, ciérralo desde acá y
+        queda fuera en el acto.
+      </div>
+    </div>
+  </div>
+
+  <div class="glass" style="border-radius:24px;overflow:hidden;margin-bottom:16px">
+    {% for s in sesiones %}
+    <div style="display:flex;align-items:center;gap:14px;padding:17px 20px;{% if not forloop.last %}border-bottom:1px solid rgba(255,255,255,.05){% endif %}">
+      <span class="icon-tile {% if s.es_actual %}green{% endif %}"><i class="fas {{ s.icono }}"></i></span>
+
+      <div class="row-main">
+        <div class="row-title">
+          {{ s.aparato }}
+          {% if s.es_actual %}<span class="badge badge-green" style="margin-left:7px">Esta sesión</span>{% endif %}
+        </div>
+        <div class="row-meta">
+          {% if s.es_actual %}
+          Desde acá estás leyendo esto
+          {% else %}
+          Visto {{ s.ultima_vez|naturaltime }}
+          {% endif %}
+          {% if s.ip %} · {{ s.ip }}{% endif %}
+          · abierta {{ s.creada|naturaltime }}
+        </div>
+      </div>
+
+      {% if not s.es_actual %}
+      <form method="post" style="margin:0;flex-shrink:0">
+        {% csrf_token %}
+        <input type="hidden" name="clave" value="{{ s.clave }}">
+        <button type="submit" class="btn btn-glass btn-sm">Cerrar</button>
+      </form>
+      {% endif %}
+    </div>
+    {% empty %}
+    <div style="padding:26px 20px;text-align:center">
+      <div class="row-meta">No hay ninguna sesión registrada todavía.</div>
+    </div>
+    {% endfor %}
+  </div>
+
+  {% if sesiones|length > 1 %}
+  <form method="post" class="glass card" style="display:flex;gap:13px;align-items:center;flex-wrap:wrap">
+    {% csrf_token %}
+    <input type="hidden" name="accion" value="cerrar_todas">
+    <div class="row-main">
+      <div class="row-title" style="margin-bottom:3px">Cerrar todas las demás</div>
+      <div class="row-meta">Esta sesión sigue abierta. Las otras tendrán que entrar de nuevo.</div>
+    </div>
+    <button type="submit" class="btn btn-red btn-sm">Cerrar las demás</button>
+  </form>
+  {% endif %}
+
+  <div class="hint" style="font-size:11.5px;margin-top:16px;line-height:1.55;max-width:60ch">
+    La hora de «visto» se refresca cada {{ minutos_refresco }} minutos de uso,
+    no en cada pantalla: así la lista no cuesta una escritura por clic. Las
+    sesiones caducan solas a las 8 horas sin actividad.
+  </div>
+
+</div>
+{% endblock %}

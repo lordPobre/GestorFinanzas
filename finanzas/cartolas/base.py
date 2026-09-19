@@ -34,6 +34,16 @@ class ErrorCartola(Exception):
     """El archivo no se pudo leer. El mensaje va directo al usuario."""
 
 
+# Topes de lectura. Un PDF de 6 MB —lo que deja pasar la vista— puede traer
+# miles de páginas comprimidas: extraer su texto se come la memoria del
+# proceso y tumba la app para todos, no solo para quien lo subió. Los límites
+# están muy por encima de cualquier cartola real: un estado de cuenta de
+# tarjeta anda en 2 a 20 páginas y unos cientos de movimientos.
+MAX_PAGINAS = 80
+MAX_CARACTERES = 1_500_000
+MAX_MOVIMIENTOS = 2_000
+
+
 @dataclass
 class MovimientoLeido:
     fecha: date
@@ -115,7 +125,25 @@ def texto_de_pdf(binario):
         if lector.is_encrypted:
             # Las cartolas suelen venir con clave: el RUT sin dígito verificador.
             raise ErrorCartola('El PDF está protegido con clave. Guárdalo sin clave y vuelve a subirlo.')
-        return '\n'.join((p.extract_text() or '') for p in lector.pages)
+
+        paginas = len(lector.pages)
+        if paginas > MAX_PAGINAS:
+            raise ErrorCartola(
+                f'El PDF tiene {paginas} páginas y el tope son {MAX_PAGINAS}. '
+                'Si es una cartola de varios años, súbela por partes.')
+
+        # Se corta al ir acumulando, no después: si el texto ya se extrajo
+        # completo, la memoria ya se gastó y el límite llegó tarde.
+        piezas, largo = [], 0
+        for pagina in lector.pages:
+            trozo = pagina.extract_text() or ''
+            largo += len(trozo)
+            if largo > MAX_CARACTERES:
+                raise ErrorCartola(
+                    'El PDF trae demasiado texto para procesarlo de una. '
+                    'Súbelo por partes, o revisa que sea una cartola y no otro documento.')
+            piezas.append(trozo)
+        return '\n'.join(piezas)
     except ErrorCartola:
         raise
     except Exception:
@@ -181,6 +209,23 @@ def registrar(clave, nombre):
     return deco
 
 
+def _topar(cartola):
+    """Se niega a entregar una cartola con más movimientos de los razonables.
+
+    Cortar la lista a los primeros 2.000 sería peor que fallar: la pantalla de
+    revisión mostraría una cartola aparentemente completa y el resto
+    desaparecería sin que nadie lo note. Y los movimientos viajan en la
+    sesión hasta que se confirman, así que un archivo enorme también infla
+    cada peticion de esa persona.
+    """
+    cantidad = len(cartola.movimientos)
+    if cantidad > MAX_MOVIMIENTOS:
+        raise ErrorCartola(
+            f'La cartola trae {cantidad} movimientos y el tope son '
+            f'{MAX_MOVIMIENTOS}. Súbela por periodos más cortos.')
+    return cartola
+
+
 def leer_cartola(binario, banco=''):
     """Punto de entrada. Con banco='' prueba a reconocerlo solo."""
     texto = texto_de_pdf(binario)
@@ -189,11 +234,11 @@ def leer_cartola(binario, banco=''):
         parser = BANCOS.get(banco)
         if not parser:
             raise ErrorCartola('Ese banco todavía no está soportado.')
-        return parser().parsear(texto)
+        return _topar(parser().parsear(texto))
 
     for parser in BANCOS.values():
         if parser().reconoce(texto):
-            return parser().parsear(texto)
+            return _topar(parser().parsear(texto))
 
     # Ninguno lo reconoció. Quedan los dos motores genéricos, y se prueban en
     # ese orden porque comprueban cosas distintas:
@@ -212,9 +257,14 @@ def leer_cartola(binario, banco=''):
         if not lector:
             continue
         try:
-            return lector().parsear(texto)
+            leida = lector().parsear(texto)
         except ErrorCartola as e:
             primero = primero or e
+            continue
+        # El tope va fuera del try: si se aplicara dentro, su error se
+        # confundiría con «este lector no la reconoció» y el usuario vería
+        # un mensaje sobre el formato en vez del tamaño.
+        return _topar(leida)
 
     if primero:
         raise primero

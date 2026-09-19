@@ -1097,6 +1097,7 @@ input:focus, select:focus, textarea:focus {
   outline: none; border-color: var(--amber); background: var(--surface);
 }
 .search input:focus { outline: none; background: none; border: none; }
+.search input:focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
 
 input[type=number].mono, input.mono { font-family: 'Manrope', system-ui, sans-serif; }
 input[type=date] { color-scheme: dark; }
@@ -2084,9 +2085,10 @@ select:focus-visible, textarea:focus-visible, [tabindex]:focus-visible {
 .nav-item:focus-visible { outline-offset: -2px; }
 
 @media (pointer: coarse) {
-  .icon-btn { min-width: 40px; min-height: 40px; }
-  .btn-sm { min-height: 38px; }
-  .chip { min-height: 38px; }
+  .icon-btn { min-width: 44px; min-height: 44px; }
+  .btn-sm { min-height: 44px; }
+  .chip { min-height: 44px; }
+  .switch { min-height: 44px; }
 }
 
 .bottomnav {
@@ -2300,7 +2302,7 @@ select:focus-visible, textarea:focus-visible, [tabindex]:focus-visible {
   }
   .sub-acciones .switch .knob { width: 22px; height: 22px; }
   .sub-acciones .switch.on .knob { transform: translateX(18px); }
-  .sub-acciones .btn { min-height: 40px; padding: 0 16px; }
+  .sub-acciones .btn { min-height: 44px; padding: 0 16px; }
 
   .glass:has(> .sub-row):last-child { padding-bottom: 84px; }
 

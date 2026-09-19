@@ -12,8 +12,8 @@ de "la política cambió".
 """
 from django.shortcuts import render
 
-VERSION = '1.0'
-VIGENTE_DESDE = '16 de septiembre de 2026'
+VERSION = '1.1'
+VIGENTE_DESDE = '19 de septiembre de 2026'
 
 RESPONSABLE = 'Carlos López Figueroa, Valparaíso, Chile'
 CORREO_CONTACTO = 'soporte@perseustechnology.dev'
@@ -28,6 +28,7 @@ def _contexto():
         'responsable': RESPONSABLE,
         'correo_contacto': CORREO_CONTACTO,
         'meses_inactividad': MESES_INACTIVIDAD,
+        'dias_gracia_inactividad': DIAS_GRACIA_INACTIVIDAD,
     }
 
 def privacidad(request):

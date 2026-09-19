@@ -149,13 +149,14 @@
       <form method="post" action="{% url 'anular_pago_servicio' s.pk %}" style="margin:0"
             data-confirm="¿Marcar {{ s.nombre }} como no pagada este mes?">
         {% csrf_token %}
-        <button type="submit" class="icon-btn" title="Deshacer el pago del mes">
+        <button type="submit" class="icon-btn" title="Deshacer el pago del mes" aria-label="Deshacer el pago del mes">
           <i class="fas fa-rotate-left" style="font-size:10px"></i>
         </button>
       </form>
       {% endif %}
     {% endif %}
 
+    {# El interruptor ES el botón de cancelar/reactivar #}
     <form method="post" action="{% url 'cancelar_suscripcion' s.pk %}" style="margin:0;display:flex;align-items:center"
           {% if s.activa %}data-confirm="¿Dejar de pagar {{ s.nombre }}? Ahorras {{ s.monto_anual|money }} al año."{% endif %}>
       {% csrf_token %}
@@ -169,7 +170,7 @@
     <form method="post" action="{% url 'eliminar_suscripcion' s.pk %}" class="form-borrar" style="margin:0"
           data-confirm="¿Eliminar {{ s.nombre }} por completo? El historial de gastos se mantiene.">
       {% csrf_token %}
-      <button type="submit" class="icon-btn" title="Eliminar"><i class="fas fa-trash-can" style="font-size:11px"></i></button>
+      <button type="submit" class="icon-btn" title="Eliminar" aria-label="Eliminar"><i class="fas fa-trash-can" style="font-size:11px"></i></button>
     </form>
     </div>
   </div>

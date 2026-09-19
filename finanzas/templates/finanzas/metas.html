@@ -155,7 +155,7 @@
             data-confirm="¿Eliminar la meta {{ d.meta.nombre }}?">
         {% csrf_token %}
         <input type="hidden" name="next" value="{% url 'metas' %}">
-        <button type="submit" class="icon-btn" title="Eliminar">
+        <button type="submit" class="icon-btn" title="Eliminar" aria-label="Eliminar">
           <i class="fas fa-trash-can" style="font-size:10px"></i>
         </button>
       </form>

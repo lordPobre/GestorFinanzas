@@ -1,0 +1,16 @@
+Hola {{ usuario.username }}:
+
+Falta un paso para terminar tu cuenta en Rekon: confirmar que este correo es
+tuyo. Abre este enlace:
+
+{{ enlace }}
+
+El enlace vale {{ horas }} horas. Mientras no lo abras puedes usar la app
+igual, pero si alguna vez olvidas tu contraseña, el enlace para recuperarla
+llega justamente acá — y si la dirección tiene un error de tipeo, no llegaría
+a ninguna parte.
+
+Si no te registraste en Rekon, ignora este correo y no pasa nada: sin abrir
+el enlace, esta dirección no queda asociada a ninguna cuenta.
+
+— Rekon

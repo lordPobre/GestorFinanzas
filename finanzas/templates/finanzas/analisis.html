@@ -270,6 +270,7 @@
       <span class="mono" style="font-size:12px;min-width:74px;color:{% if f.es_mes_actual %}var(--amber-claro){% elif f.es_pasado %}var(--text-muted){% else %}var(--text-secondary){% endif %}">{{ f.mes }}</span>
 
       <div class="row-main">
+        {# Una sola barra partida: verde lo pagado, naranja lo que falta #}
         <div class="split-bar" style="height:8px">
           {% if f.pagado %}<span style="width:{% widthratio f.pagado f.total 100 %}%;background:linear-gradient(90deg,#059669,var(--green))"></span>{% endif %}
           {% if f.pendiente %}<span style="width:{% widthratio f.pendiente f.total 100 %}%;background:linear-gradient(90deg,#ea580c,#fb923c)"></span>{% endif %}
@@ -327,7 +328,7 @@
   var GRID = 'rgba(255,255,255,.055)';
   /* Literal a propósito: sobre canvas un var() no es un color válido y
      cae al negro por defecto. */
-  var TICK = 'rgba(245,245,245,.42)';
+  var TICK = 'rgba(245, 245, 245, .62)';
   var TEXTO = 'rgba(245,245,245,.72)';
   var FONT = "'Manrope', sans-serif";
 

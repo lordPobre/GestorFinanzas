@@ -260,6 +260,14 @@ def _usuario_para(datos):
     if not perfil.nombre_completo and datos.get('name'):
         perfil.nombre_completo = datos['name'][:100]
         campos.append('nombre_completo')
+    if not perfil.correo_verificado:
+        # Google solo llega hasta acá con email_verified (se comprueba más
+        # arriba), así que pedir otra confirmación por correo sería pedir dos
+        # veces lo mismo.
+        from django.utils import timezone
+        perfil.correo_verificado = True
+        perfil.correo_verificado_en = timezone.now()
+        campos += ['correo_verificado', 'correo_verificado_en']
     perfil.save(update_fields=campos)
 
     log.info('Acceso con Google: %s (%s)',

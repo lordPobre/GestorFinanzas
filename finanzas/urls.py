@@ -1,6 +1,6 @@
 from django.urls import path
 from django.contrib.auth import views as auth_views
-from . import google_login, views, views_cartola
+from . import google_login, views, views_cartola, views_cuenta
 from . import legal
 
 urlpatterns = [
@@ -54,8 +54,9 @@ urlpatterns = [
     path('exportar/', views.exportar_excel, name='exportar_excel'),
     path('exportar/csv/', views.exportar_csv, name='exportar_csv'),
 
-    path('perfil/mis-datos/', views.mis_datos, name='mis_datos'),
-    path('perfil/eliminar-cuenta/', views.eliminar_cuenta, name='eliminar_cuenta'),
+    path('perfil/mis-datos/', views_cuenta.mis_datos, name='mis_datos'),
+    path('perfil/eliminar-cuenta/', views_cuenta.eliminar_cuenta, name='eliminar_cuenta'),
+    path('perfil/sesiones/', views_cuenta.sesiones_activas, name='sesiones_activas'),
 
     path('suscripciones/', views.suscripciones, name='suscripciones'),
     path('suscripciones/nueva/', views.crear_suscripcion, name='crear_suscripcion'),
@@ -64,27 +65,32 @@ urlpatterns = [
     path('suscripciones/cancelar/<int:sub_id>/', views.cancelar_suscripcion, name='cancelar_suscripcion'),
     path('suscripciones/eliminar/<int:sub_id>/', views.eliminar_suscripcion, name='eliminar_suscripcion'),
 
-    path('login/', views.entrar, name='login'),
+    path('login/', views_cuenta.entrar, name='login'),
 
     path('entrar/google/', google_login.entrar_google, name='google_entrar'),
     path('entrar/google/listo/', google_login.google_listo, name='google_listo'),
     path('logout/', auth_views.LogoutView.as_view(next_page='/login/'), name='logout'),
-    path('verificar/', views.verificar_codigo, name='verificar_codigo'),
-    path('perfil/dos-pasos/', views.configurar_2fa, name='configurar_2fa'),
-    path('registro/', views.registro, name='registro'),
+    path('verificar/', views_cuenta.verificar_codigo, name='verificar_codigo'),
+    path('perfil/dos-pasos/', views_cuenta.configurar_2fa, name='configurar_2fa'),
+    path('registro/', views_cuenta.registro, name='registro'),
 
-    path('recuperar/', views.recuperar, name='recuperar'),
-    path('recuperar/<uidb64>/<token>/', views.restablecer, name='restablecer'),
+    path('registro/confirmar/<str:token>/', views_cuenta.verificar_correo,
+         name='verificar_correo'),
+    path('perfil/reenviar-confirmacion/', views_cuenta.reenviar_verificacion,
+         name='reenviar_verificacion'),
+
+    path('recuperar/', views_cuenta.recuperar, name='recuperar'),
+    path('recuperar/<uidb64>/<token>/', views_cuenta.restablecer, name='restablecer'),
 
     path('cartola/', views_cartola.importar_cartola, name='importar_cartola'),
     path('cartola/revisar/', views_cartola.revisar_cartola, name='revisar_cartola'),
     path('cartola/confirmar/', views_cartola.confirmar_cartola, name='confirmar_cartola'),
     path('cartola/descartar/', views_cartola.descartar_cartola, name='descartar_cartola'),
 
-    path('perfil/', views.perfil, name='perfil'),
+    path('perfil/', views_cuenta.perfil, name='perfil'),
 
-    path('bienvenido/', views.onboarding, name='onboarding'),
-    path('bienvenido/completar/', views.completar_onboarding, name='completar_onboarding'),
+    path('bienvenido/', views_cuenta.onboarding, name='onboarding'),
+    path('bienvenido/completar/', views_cuenta.completar_onboarding, name='completar_onboarding'),
 
     path('sw.js', views.service_worker, name='service_worker'),
 

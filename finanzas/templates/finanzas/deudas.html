@@ -205,7 +205,7 @@
               data-confirm="¿Borrar {{ d.acreedor }} del histórico? Se eliminan también sus pagos registrados.">
           {% csrf_token %}
           <input type="hidden" name="next" value="{% url 'deudas' %}">
-          <button type="submit" class="icon-btn" title="Borrar del histórico">
+          <button type="submit" class="icon-btn" title="Borrar del histórico" aria-label="Borrar del histórico">
             <i class="fas fa-trash-can" style="font-size:10px"></i>
           </button>
         </form>

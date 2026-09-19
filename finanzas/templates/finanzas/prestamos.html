@@ -119,7 +119,7 @@
         <form method="post" action="{% url 'eliminar_persona' persona.pk %}" style="margin:0"
               data-confirm="¿Eliminar a {{ persona.nombre }}? Se borran sus {{ persona.cantidad_prestamos }} préstamo{{ persona.cantidad_prestamos|pluralize:'s' }} y el historial de abonos.">
           {% csrf_token %}
-          <button type="submit" class="icon-btn" title="Eliminar a {{ persona.nombre }}">
+          <button type="submit" class="icon-btn" title="Eliminar a {{ persona.nombre }}" aria-label="Eliminar a {{ persona.nombre }}">
             <i class="fas fa-trash-can" style="font-size:11px"></i>
           </button>
         </form>

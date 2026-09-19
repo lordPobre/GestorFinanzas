@@ -36,6 +36,15 @@ class PoliticaContenidoMiddleware:
 
         respuesta = self.get_response(request)
 
+        # El entorno de pruebas no se indexa. Sin esto, un staging con
+        # dominio público termina en Google compitiendo con el real.
+        try:
+            from django.conf import settings
+            if getattr(settings, 'ES_STAGING', False):
+                respuesta["X-Robots-Tag"] = "noindex, nofollow"
+        except Exception:
+            pass
+
         if request.path.startswith("/admin"):
             return respuesta
 
@@ -95,11 +104,25 @@ class ActividadMiddleware:
         if not (usuario and usuario.is_authenticated):
             return respuesta
 
+        self._marcar_dia(request, usuario)
+
+        # El «visto por última vez» de la pantalla de sesiones. Tiene su
+        # propio intervalo porque un dato de granularidad diaria no sirve
+        # para reconocer una sesión ajena recién abierta.
+        try:
+            from . import sesiones
+            sesiones.tocar(request)
+        except Exception:
+            pass
+
+        return respuesta
+
+    def _marcar_dia(self, request, usuario):
         from django.utils import timezone
 
         hoy = timezone.localdate().isoformat()
         if request.session.get(self.CLAVE) == hoy:
-            return respuesta
+            return
 
         try:
             from .models import UserProfile
@@ -108,5 +131,3 @@ class ActividadMiddleware:
             request.session[self.CLAVE] = hoy
         except Exception:
             pass
-
-        return respuesta

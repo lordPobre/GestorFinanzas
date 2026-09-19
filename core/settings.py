@@ -61,6 +61,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'finanzas.middleware.ActividadMiddleware',
 ]
 
 ROOT_URLCONF = 'core.urls'
@@ -77,7 +78,9 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'finanzas.context_processors.moneda_usuario',
+                'finanzas.context_processors.entorno',
                 'finanzas.middleware.nonce_contexto',
+                'finanzas.legal.datos_legales',
                 'finanzas.google_login.google_disponible',
             ],
         },
@@ -176,6 +179,18 @@ if not DEBUG:
             CSRF_TRUSTED_ORIGINS.append(origen)
 
 PROXIES_CONFIABLES = int(os.environ.get('PROXIES_CONFIABLES', '0' if DEBUG else '1'))
+
+# Qué entorno es este. 'produccion' salvo que se diga lo contrario: un
+# entorno de pruebas mal etiquetado se comportaría como el real —mandando
+# correos a direcciones de verdad— y eso es peor que lo inverso.
+ENTORNO = os.environ.get('ENTORNO', 'produccion').strip().lower()
+ES_STAGING = ENTORNO in ('staging', 'pruebas', 'preproduccion')
+
+# En staging no salen correos salvo que se pida explícitamente. Probar el
+# aviso de inactividad con la base copiada de producción mandaría «vamos a
+# borrar tu cuenta» a usuarios reales; el cuerpo queda en el log para poder
+# copiar los enlaces.
+CORREO_EN_STAGING = os.environ.get('CORREO_EN_STAGING', '').lower() in ('1', 'true', 'si')
 
 GOOGLE_CLIENT_ID = os.environ.get('GOOGLE_CLIENT_ID', '')
 GOOGLE_CLIENT_SECRET = os.environ.get('GOOGLE_CLIENT_SECRET', '')

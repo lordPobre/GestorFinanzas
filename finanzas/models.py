@@ -940,6 +940,9 @@ class UserProfile(models.Model):
 
     analisis_ia = models.BooleanField(default=True)
 
+    correo_verificado = models.BooleanField(default=False)
+    correo_verificado_en = models.DateTimeField(null=True, blank=True)
+
     politica_version  = models.CharField(max_length=20, blank=True)
     politica_aceptada = models.DateTimeField(null=True, blank=True)
 
@@ -1526,3 +1529,76 @@ class Suscripcion(models.Model):
         """Cuántos meses lleva activa (aproximado)."""
         fin = self.fecha_cancelada or date.today()
         return (fin.year - self.fecha_inicio.year) * 12 + (fin.month - self.fecha_inicio.month) + 1
+
+class SesionActiva(models.Model):
+    """El índice legible de las sesiones abiertas de una cuenta.
+
+    Django ya guarda las sesiones en django_session, pero ahí solo hay la
+    clave y un blob firmado: para saber cuáles son de una persona habría que
+    decodificar todas las filas del sitio, y el aparato desde el que se abrió
+    no está en ninguna parte. Esta tabla es ese índice, y es lo que permite
+    que el perfil muestre «Chrome en Android, visto hace 2 horas» y ofrezca
+    cerrarla.
+
+    Es un espejo, no la verdad: la sesión real sigue siendo la de Django.
+    Cerrar borra las dos filas; si una sesión caduca sola, su fila acá queda
+    huérfana y se limpia al abrir la pantalla.
+    """
+
+    # El orden importa: el agente de Edge dice también Chrome y Safari, y el
+    # de Chrome dice Safari. Gana el primero que calce.
+    NAVEGADORES = [('Edg', 'Edge'), ('OPR', 'Opera'), ('Chrome', 'Chrome'),
+                   ('Firefox', 'Firefox'), ('Safari', 'Safari')]
+    SISTEMAS = [('iPhone', 'iPhone'), ('iPad', 'iPad'), ('Android', 'Android'),
+                ('Windows', 'Windows'), ('Mac OS', 'Mac'), ('Linux', 'Linux')]
+    MOVILES = {'iPhone', 'iPad', 'Android'}
+
+    usuario = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sesiones')
+    clave = models.CharField(max_length=40, unique=True, db_index=True)
+    ip = models.GenericIPAddressField(null=True, blank=True)
+    agente = models.CharField(max_length=300, blank=True)
+    creada = models.DateTimeField(default=timezone.now)
+    ultima_vez = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        ordering = ['-ultima_vez']
+        verbose_name = 'Sesión activa'
+        verbose_name_plural = 'Sesiones activas'
+
+    def __str__(self):
+        return f'{self.usuario.username} — {self.aparato}'
+
+    def _buscar(self, pares):
+        for clave, nombre in pares:
+            if clave.lower() in (self.agente or '').lower():
+                return nombre
+        return ''
+
+    @property
+    def navegador(self):
+        return self._buscar(self.NAVEGADORES)
+
+    @property
+    def sistema(self):
+        return self._buscar(self.SISTEMAS)
+
+    @property
+    def es_movil(self):
+        return self.sistema in self.MOVILES
+
+    @property
+    def icono(self):
+        if self.sistema in ('iPhone', 'Android'):
+            return 'fa-mobile-screen'
+        if self.sistema == 'iPad':
+            return 'fa-tablet-screen-button'
+        return 'fa-desktop'
+
+    @property
+    def aparato(self):
+        """«Chrome en Android». Sin adivinar: si el agente no dice nada
+        reconocible, se admite que no se sabe en vez de inventar un nombre."""
+        nav, sis = self.navegador, self.sistema
+        if nav and sis:
+            return f'{nav} en {sis}'
+        return nav or sis or 'Aparato desconocido'

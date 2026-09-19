@@ -15,8 +15,6 @@ qrcode>=7.4,<9.0
 
 argon2-cffi>=23.1
 
-cryptography>=42.0
-
 django-storages>=1.14
 boto3>=1.34
 
