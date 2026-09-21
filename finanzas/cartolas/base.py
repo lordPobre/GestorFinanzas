@@ -43,6 +43,48 @@ MAX_PAGINAS = 80
 MAX_CARACTERES = 1_500_000
 MAX_MOVIMIENTOS = 2_000
 
+MUESTRA_LINEAS = 45
+
+ESTRUCTURA = frozenset('''
+fecha fechas hora saldo saldos anterior final inicial contable disponible
+total totales cargo cargos abono abonos giro giros deposito depositos
+depósito depósitos movimiento movimientos detalle descripcion descripción
+operacion operación cartola cuentarut cuenta cuentas corriente vista ahorro
+rut cliente nombre titular banco bancoestado santander bci scotiabank itau
+itaú falabella chile security bice consorcio internacional coopeuch btg
+tenpo mach mercado pago global chek heroes héroes ripley cencosud paris
+jumbo easy polar hites abcdin tricot corona dijon johnson lider líder
+unimarc entel cmr tarjeta estado tarjetas monto montos valor valores
+cuota cuotas compra compras tef pac pat transferencia transf efectivo caja
+vecina webpay sucursal internet oficina casa matriz periodo período desde
+hasta emision emisión pagina página interes intereses comision comisión
+iva seleccionada resumen utilizado facturado avance credito crédito debito
+débito linea línea numero número nro num doc documento referencia glosa
+concepto comercio pesos moneda nacional
+ene feb mar abr may jun jul ago sep oct nov dic
+enero febrero marzo abril mayo junio julio agosto septiembre octubre
+noviembre diciembre
+'''.split())
+
+
+def muestra_anonima(texto, lineas=MUESTRA_LINEAS):
+    """El texto extraído con la forma intacta y los datos borrados.
+
+    Sirve para agregar un formato nuevo sin que nadie mande su cartola: los
+    dígitos pasan a 9 y las palabras que no son de la estructura del
+    documento a X, así que quedan las etiquetas, el orden de las columnas y
+    la forma de las fechas y los montos, y no queda ningún dato personal.
+    """
+    utiles = [l.rstrip() for l in (texto or '').splitlines() if l.strip()]
+    return '\n'.join(_enmascarar(l) for l in utiles[:lineas])
+
+
+def _enmascarar(linea):
+    def palabra(m):
+        w = m.group(0)
+        return w if w.lower() in ESTRUCTURA else 'X' * len(w)
+    return re.sub(r'[^\W\d_]{3,}', palabra, re.sub(r'\d', '9', linea))
+
 
 @dataclass
 class MovimientoLeido:
@@ -226,10 +268,23 @@ def _topar(cartola):
     return cartola
 
 
-def leer_cartola(binario, banco=''):
+def leer_cartola(binario, banco='', nombre=''):
     """Punto de entrada. Con banco='' prueba a reconocerlo solo."""
-    texto = texto_de_pdf(binario)
+    from .tabla import es_tabla, leer_tabla
 
+    if es_tabla(nombre):
+        return _topar(leer_tabla(binario, nombre))
+
+    texto = texto_de_pdf(binario)
+    try:
+        return _leer(texto, banco)
+    except ErrorCartola as e:
+        if not getattr(e, 'muestra', ''):
+            e.muestra = muestra_anonima(texto)
+        raise
+
+
+def _leer(texto, banco=''):
     if banco:
         parser = BANCOS.get(banco)
         if not parser:

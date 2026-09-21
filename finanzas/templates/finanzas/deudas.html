@@ -96,8 +96,7 @@
       </form>
     </div>
 
-  <div class="glass glass-lift card swipe-card" data-spot
-       {% if d.urgencia == 'critica' or d.urgencia == 'vencida' %}style="border-color:rgba(251,113,133,.28)"{% endif %}>
+  <div class="glass glass-lift card swipe-card deuda-card urg-{{ d.urgencia }}" data-spot>
 
     <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:16px">
       <div style="min-width:0">

@@ -36,6 +36,7 @@ from .seguridad import limitar
 log = logging.getLogger('finanzas')
 
 SESION = 'cartola_pendiente'
+DIAGNOSTICO = 'cartola_diagnostico'
 MAX_MB = 6
 
 
@@ -103,18 +104,28 @@ def importar_cartola(request):
     if request.method == 'POST':
         archivo = request.FILES.get('cartola')
         if not archivo:
-            messages.error(request, 'Elige el PDF de la cartola.')
+            messages.error(request, 'Elige el archivo de la cartola.')
             return redirect('importar_cartola')
 
         if archivo.size > MAX_MB * 1024 * 1024:
             messages.error(request, f'El archivo pasa de {MAX_MB} MB.')
             return redirect('importar_cartola')
 
+        request.session.pop(DIAGNOSTICO, None)
+
         try:
-            cartola = leer_cartola(archivo, request.POST.get('banco', ''))
+            cartola = leer_cartola(archivo, request.POST.get('banco', ''),
+                                   archivo.name)
             enriquecer(cartola, request.user)
         except ErrorCartola as e:
             messages.error(request, str(e))
+            muestra = getattr(e, 'muestra', '')
+            if muestra:
+                request.session[DIAGNOSTICO] = {
+                    'archivo': archivo.name[:80],
+                    'motivo': str(e),
+                    'texto': muestra,
+                }
             return redirect('importar_cartola')
         except Exception:
             log.exception('Cartola ilegible')
@@ -138,7 +149,8 @@ def importar_cartola(request):
         destino.append((clave, lector.nombre))
 
     ctx = {'grupos': [('Cartola de cuenta corriente, vista o ahorro', cuentas),
-                      ('Estado de cuenta de tarjeta', tarjetas)]}
+                      ('Estado de cuenta de tarjeta', tarjetas)],
+           'diagnostico': request.session.pop(DIAGNOSTICO, None)}
     ctx.update(contadores(request.user))
     return render(request, 'finanzas/importar_cartola.html', ctx)
 

@@ -7,7 +7,7 @@
   <div>
     <h1 class="section-title" style="font-size:22px">Importar cartola</h1>
     <div class="hint" style="margin-top:4px">
-      Sube el PDF que descargas del banco y revisa los movimientos antes de guardarlos.
+      Sube el archivo que descargas del banco — PDF, CSV o Excel — y revisa los movimientos antes de guardarlos.
     </div>
   </div>
 </div>
@@ -28,10 +28,10 @@
       elemento más grande de la pantalla.
     {% endcomment %}
     <label class="cartola-zona" id="zona" data-tour="cartola">
-      <input type="file" name="cartola" accept="application/pdf,.pdf" id="inputCartola" class="visually-hidden">
-      <span class="cartola-icono"><i class="fas fa-file-pdf"></i></span>
-      <span class="cartola-titulo" id="zonaTitulo">Arrastra aquí el PDF de tu cartola</span>
-      <span class="cartola-nota" id="zonaNota">o toca para buscarlo · cartola de banco o estado de cuenta de tarjeta · máximo 6 MB</span>
+      <input type="file" name="cartola" accept=".pdf,.csv,.tsv,.txt,.xlsx,.xlsm,application/pdf,text/csv" id="inputCartola" class="visually-hidden">
+      <span class="cartola-icono"><i class="fas fa-file-invoice-dollar"></i></span>
+      <span class="cartola-titulo" id="zonaTitulo">Arrastra aquí tu cartola</span>
+      <span class="cartola-nota" id="zonaNota">o toca para buscarla · PDF, CSV o Excel · banco o tarjeta de casa comercial · máximo 6 MB</span>
     </label>
 
     <div class="field" style="margin-top:18px" data-tour="cartola-cuotas">
@@ -58,12 +58,41 @@
   </form>
 
   <div style="display:flex;flex-direction:column;gap:14px">
+    {% if diagnostico %}
+    <div class="glass card-lg" style="border-color:rgba(226,92,92,.32)">
+      <div style="display:flex;gap:14px;align-items:flex-start;margin-bottom:14px">
+        <span class="icon-tile coral" style="width:38px;height:38px;border-radius:13px;font-size:14px;flex-shrink:0">
+          <i class="fas fa-vial"></i>
+        </span>
+        <div style="flex:1;min-width:0">
+          <div class="row-title">No pude leer «{{ diagnostico.archivo }}»</div>
+          <div class="hint" style="margin-top:5px;font-size:11.5px;line-height:1.6">
+            Abajo está la forma del archivo con los datos borrados: cada número
+            quedó en 9 y cada palabra que no es parte de la estructura, en X.
+            Cópiala y mándala para que este formato quede soportado. No lleva
+            nombres, montos ni número de cuenta.
+          </div>
+        </div>
+      </div>
+
+      <textarea id="diagTexto" readonly rows="10" spellcheck="false"
+                style="width:100%;box-sizing:border-box;padding:12px 13px;border-radius:14px;border:1px solid var(--line);background:#222;color:var(--text-secondary);font-family:'JetBrains Mono',monospace;font-size:10.5px;line-height:1.55;resize:vertical;white-space:pre;overflow:auto">{{ diagnostico.texto }}</textarea>
+
+      <div style="display:flex;gap:8px;align-items:center;margin-top:12px;flex-wrap:wrap">
+        <button type="button" class="btn btn-glass btn-sm" id="btnCopiarDiag">
+          <i class="fas fa-copy" style="font-size:11px"></i>Copiar la muestra
+        </button>
+        <span class="hint" style="font-size:11px" id="diagAviso"></span>
+      </div>
+    </div>
+    {% endif %}
+
     <div class="glass card-lg">
       <div class="label" style="margin-bottom:12px">Cómo funciona</div>
       <ol class="cartola-pasos">
-        <li><b>Se lee el PDF.</b> Sirve la cartola de cualquier banco y el estado de cuenta de cualquier tarjeta de casa comercial. Tiene que ser el archivo que descarga el banco, no una foto ni una captura: una imagen no trae el texto adentro.</li>
+        <li><b>Se lee el archivo.</b> Sirve la cartola de cualquier banco y el estado de cuenta de cualquier tarjeta de casa comercial, en PDF o exportada a CSV o Excel. Tiene que ser el archivo que descarga el banco, no una foto ni una captura: una imagen no trae el texto adentro.</li>
         <li><b>Se comprueba antes de mostrarte nada.</b> Una cartola de cuenta se verifica por la cadena de saldos; un estado de cuenta de tarjeta, sumando las cuotas contra el total facturado. Si las cuentas no dan, te avisa y no guarda nada.</li>
-        <li><b>Si tu emisor no está en la lista</b>, se intenta igual con el mismo motor. Se niega a entregar movimientos que no pueda verificar.</li>
+        <li><b>Si tu emisor no está en la lista</b>, se intenta igual con el mismo motor. Se niega a entregar movimientos que no pueda verificar, y si no puede leerlo te muestra la forma del archivo para que ese formato se pueda agregar.</li>
         <li><b>Se revisa.</b> Verás cada movimiento con su categoría propuesta. Puedes cambiarla, corregir la descripción o dejar fuera lo que no quieras.</li>
         <li><b>Se guarda</b> solo lo que dejaste marcado.</li>
       </ol>
@@ -72,8 +101,8 @@
     <div class="glass card-lg">
       <div class="label" style="margin-bottom:10px">Sobre tus datos</div>
       <div class="hint" style="font-size:11.5px;line-height:1.6">
-        El PDF no se guarda. Se lee en memoria, se saca el texto y el archivo
-        se descarta ahí mismo. Tampoco sale de tu servidor: la cartola se
+        El archivo no se guarda. Se lee en memoria, se saca el texto y se
+        descarta ahí mismo. Tampoco sale de tu servidor: la cartola se
         interpreta acá, sin mandarla a ningún servicio externo.
       </div>
     </div>
@@ -130,6 +159,23 @@
     btn.disabled = true;
     btn.textContent = 'Leyendo…';
   });
+
+  var copiar = document.getElementById('btnCopiarDiag');
+  if (copiar) {
+    copiar.addEventListener('click', function () {
+      var caja = document.getElementById('diagTexto');
+      var aviso = document.getElementById('diagAviso');
+      caja.select();
+      var listo = false;
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(caja.value);
+        listo = true;
+      } else {
+        try { listo = document.execCommand('copy'); } catch (e) { listo = false; }
+      }
+      aviso.textContent = listo ? 'Copiado.' : 'Selecciónalo y cópialo a mano.';
+    });
+  }
 })();
 </script>
 {% endblock %}

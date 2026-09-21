@@ -358,6 +358,8 @@ a.balance-card:focus-visible {
   box-shadow: 6px 0 16px rgba(0, 0, 0, .4), -6px 0 16px rgba(0, 0, 0, .4);
 }
 
+.swipe .glass-lift:hover { transform: none; }
+
 .swipe-fila { border-radius: var(--r-md); background: var(--surface); }
 .swipe-fila .swipe-btn { width: 78px; }
 
@@ -2544,6 +2546,40 @@ select:focus-visible, textarea:focus-visible, [tabindex]:focus-visible {
 @media (max-width: 720px) {
   .prestamo-card { padding: 15px 15px 15px 18px; }
 }
+
+.deuda-card {
+  --acento-deuda: #818cf8;
+  --acento-rgb: 129, 140, 248;
+  position: relative;
+  border: none;
+  background:
+    radial-gradient(130% 150% at 0% 0%, rgba(var(--acento-rgb), .22), transparent 58%),
+    var(--surface);
+  box-shadow: 0 20px 42px -26px rgba(var(--acento-rgb), .75);
+}
+.deuda-card::after {
+  content: ''; position: absolute; inset: 0; pointer-events: none;
+  border-radius: inherit; padding: 1.5px;
+  background: linear-gradient(135deg,
+    rgba(var(--acento-rgb), .95),
+    rgba(var(--acento-rgb), .28) 38%,
+    rgba(255, 255, 255, .10) 62%,
+    rgba(var(--acento-rgb), .8));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask-composite: exclude;
+}
+.deuda-card:hover {
+  background:
+    radial-gradient(130% 150% at 0% 0%, rgba(var(--acento-rgb), .26), transparent 58%),
+    var(--surface-2);
+}
+
+.deuda-card.urg-vencida,
+.deuda-card.urg-critica { --acento-deuda: var(--coral); --acento-rgb: 226, 92, 92; }
+.deuda-card.urg-proxima { --acento-deuda: var(--amber); --acento-rgb: 255, 170, 44; }
+.deuda-card.urg-saldada { --acento-deuda: var(--green); --acento-rgb: 83, 210, 88; }
 
 .pago-fila {
   position: relative; display: flex; align-items: center; gap: 13px;

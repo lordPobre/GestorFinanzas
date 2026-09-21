@@ -42,6 +42,7 @@ from .analisis import enriquecer
 #   4. El genérico, que queda fuera del recorrido: leer_cartola lo llama
 #      solo al final, si ninguno reconoció.
 from . import banco_chile   # noqa: F401
+from . import banco_estado  # noqa: F401
 from . import cmr           # noqa: F401
 from . import retail        # noqa: F401
 from . import universal     # noqa: F401
