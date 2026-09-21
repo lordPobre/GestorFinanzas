@@ -32,7 +32,7 @@
       <div style="position:relative;display:flex;align-items:center">
         <i class="fas fa-user auth-icono"></i>
         <input type="text" name="username" id="{{ form.username.id_for_label }}"
-               class="auth-campo" placeholder="Usuario"
+               class="auth-campo" placeholder="tu usuario"
                autocomplete="username" required autofocus
                {% if bloqueado %}disabled{% endif %}>
       </div>
@@ -74,15 +74,25 @@
   <span style="flex:1;height:1px;background:var(--line)"></span>
 </div>
 
-<a href="{% url 'registro' %}"
-     style="display:flex;align-items:center;justify-content:center;gap:9px;padding:15px;border:1.5px solid var(--line-fuerte);border-radius:100px;color:var(--text-primary);text-decoration:none;font-size:13.5px;font-weight:700">
-    <i class="fas fa-user-plus" style="font-size:12px;color:var(--amber)"></i>Crear una cuenta nueva
-</a>
+<div style="display:flex;flex-direction:column;gap:26px">
 
-<div style="display:flex;flex-direction:column;gap:18px">
   {% if google_activo %}
+  <div style="display:flex;flex-direction:column;gap:16px">
+
+  <label for="aceptaGoogle" style="display:flex;gap:11px;align-items:flex-start;cursor:pointer">
+    <input type="checkbox" id="aceptaGoogle" data-acepta-google
+           style="width:18px;height:18px;margin:1px 0 0;flex-shrink:0;accent-color:var(--amber)">
+    <span style="font-size:12.5px;line-height:1.55;color:var(--text-secondary)">
+      He leído y acepto la
+      <a href="{% url 'privacidad' %}" target="_blank" rel="noopener">política de privacidad</a>
+      y los
+      <a href="{% url 'terminos' %}" target="_blank" rel="noopener">términos de uso</a>.
+    </span>
+  </label>
+
   <a href="{% url 'google_entrar' %}{% if next %}?next={{ next|urlencode }}{% endif %}"
-     style="display:flex;align-items:center;justify-content:center;gap:11px;padding:15px;border:1.5px solid var(--line-fuerte);border-radius:100px;color:var(--text-primary);text-decoration:none;font-size:13.5px;font-weight:700">
+     id="btnGoogle" aria-disabled="true"
+     style="display:flex;align-items:center;justify-content:center;gap:11px;padding:15px;border:1.5px solid var(--line-fuerte);border-radius:100px;color:var(--text-primary);text-decoration:none;font-size:13.5px;font-weight:700;opacity:.45;cursor:not-allowed">
     <svg width="17" height="17" viewBox="0 0 48 48" aria-hidden="true" focusable="false" style="flex-shrink:0">
       <path fill="#4285F4" d="M45.12 24.5c0-1.56-.14-3.06-.4-4.5H24v8.51h11.84c-.51 2.75-2.06 5.08-4.39 6.64v5.52h7.11c4.16-3.83 6.56-9.47 6.56-16.17z"/>
       <path fill="#34A853" d="M24 46c5.94 0 10.92-1.97 14.56-5.33l-7.11-5.52c-1.97 1.32-4.49 2.1-7.45 2.1-5.73 0-10.58-3.87-12.31-9.07H4.34v5.7C7.96 41.07 15.4 46 24 46z"/>
@@ -92,16 +102,44 @@
     Continuar con Google
   </a>
 
-  <div style="font-size:11px;color:var(--text-muted);text-align:center;line-height:1.5;margin-top:-4px">
-    Al entrar con Google aceptas la
-    <a href="{% url 'privacidad' %}">política de privacidad</a> y los
-    <a href="{% url 'terminos' %}">términos de uso</a>.
+  <div id="avisoGoogle" role="status" hidden
+       style="font-size:11.5px;color:var(--coral);text-align:center;line-height:1.5">
+    Marca la casilla para continuar con Google.
   </div>
-
+  </div>
   {% endif %}
 
+  <a href="{% url 'registro' %}"
+     style="display:flex;align-items:center;justify-content:center;gap:9px;padding:15px;border:1.5px solid var(--line-fuerte);border-radius:100px;color:var(--text-primary);text-decoration:none;font-size:13.5px;font-weight:700">
+    <i class="fas fa-user-plus" style="font-size:12px;color:var(--amber)"></i>Crear una cuenta nueva
+  </a>
 </div>
 {% endblock %}
 
 {% block extra_js %}
+<script nonce="{{ csp_nonce }}">
+(function () {
+  var check = document.querySelector('[data-acepta-google]');
+  var boton = document.getElementById('btnGoogle');
+  var aviso = document.getElementById('avisoGoogle');
+  if (!check || !boton) return;
+
+  function pintar() {
+    var ok = check.checked;
+    boton.setAttribute('aria-disabled', ok ? 'false' : 'true');
+    boton.style.opacity = ok ? '1' : '.45';
+    boton.style.cursor = ok ? 'pointer' : 'not-allowed';
+    if (ok && aviso) aviso.hidden = true;
+  }
+
+  check.addEventListener('change', pintar);
+  boton.addEventListener('click', function (e) {
+    if (check.checked) return;
+    e.preventDefault();
+    if (aviso) aviso.hidden = false;
+    check.focus();
+  });
+  pintar();
+})();
+</script>
 {% endblock %}
