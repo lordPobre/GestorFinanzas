@@ -891,12 +891,12 @@ a.balance-card:focus-visible {
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 
-.tarjeta-color.agua .tc-nota { -webkit-line-clamp: 4; }
+.tarjeta-color.agua .tc-nota { -webkit-line-clamp: 4; line-clamp: 4; }
 
 .tc-nota {
   font-size: 11px; font-weight: 600; line-height: 1.45; margin-top: 9px;
 
-  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+  display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical;
   overflow: hidden;
 }
 
@@ -950,7 +950,8 @@ a.balance-card:focus-visible {
 .tc-resumen .tc-icono { width: 26px; height: 26px; border-radius: 9px; }
 .tc-resumen .tc-label { font-size: 11px; }
 .tc-resumen .tc-monto { font-size: 21px; }
-.tc-resumen .tc-nota { font-size: 10.5px; margin-top: 6px; -webkit-line-clamp: 2; }
+.tc-resumen .tc-nota { font-size: 10.5px; margin-top: 6px; -webkit-line-clamp: 2; line-clamp: 2; }
+
 
 .tc-resumen + .btn, .tc-resumen ~ .btn { align-self: center; flex-shrink: 0; }
 
@@ -993,7 +994,7 @@ a.balance-card:focus-visible {
   .tarjeta-color { padding: 15px 17px 14px; border-radius: var(--r-lg); }
   .tc-cabecera { margin-bottom: 10px; }
   .tc-monto { font-size: 23px; }
-  .tc-nota { margin-top: 6px; -webkit-line-clamp: 1; }
+  .tc-nota { margin-top: 6px; -webkit-line-clamp: 1; line-clamp: 1; }
 }
 
 .badge {
