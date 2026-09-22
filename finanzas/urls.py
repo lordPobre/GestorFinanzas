@@ -1,6 +1,6 @@
 from django.urls import path
 from django.contrib.auth import views as auth_views
-from . import google_login, views, views_cartola, views_cuenta
+from . import google_login, views, views_cartola, views_cuenta, views_encuesta
 from . import legal
 
 urlpatterns = [
@@ -95,6 +95,10 @@ urlpatterns = [
     path('sw.js', views.service_worker, name='service_worker'),
 
     path('salud/', views.salud, name='salud'),
+
+    path('encuesta/', views_encuesta.encuesta, name='encuesta'),
+    path('encuesta/despues/', views_encuesta.encuesta_posponer, name='encuesta_posponer'),
+    path('encuesta/resultados/', views_encuesta.encuesta_resultados, name='encuesta_resultados'),
 
     path('privacidad/', legal.privacidad, name='privacidad'),
     path('terminos/', legal.terminos, name='terminos'),

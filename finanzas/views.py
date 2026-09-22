@@ -24,6 +24,7 @@ from django.utils import timezone
 from django.views.decorators.cache import cache_control
 
 from .forms import DeudaForm, MetaAhorroForm, TransaccionForm
+from . import encuesta as encuesta_mod
 from . import exportar
 from .seguridad import limitar
 from .models import (AbonoPrestamo, AporteMeta, Categoria, Deuda, GastoPendiente,
@@ -882,6 +883,7 @@ def dashboard(request):
         request.user,
         resumen_actual=r if (year, month) == (hoy.year, hoy.month) else None,
     ))
+    context['mostrar_encuesta'] = encuesta_mod.debe_mostrar(request)
     return render(request, 'finanzas/dashboard.html', context)
 
 @login_required(login_url='/login/')

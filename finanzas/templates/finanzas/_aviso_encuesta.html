@@ -1,0 +1,14 @@
+<div class="glass aviso-encuesta">
+  <span class="icon-tile orange"><i class="fas fa-comment-dots"></i></span>
+  <div class="aviso-encuesta-texto">
+    <div style="font-weight:800;font-size:14px">¿Nos ayudas con 2 minutos?</div>
+    <div class="hint" style="font-size:12px;margin-top:2px">Cuéntanos qué te gusta de la app y qué mejorarías.</div>
+  </div>
+  <div class="aviso-encuesta-acciones">
+    <form method="post" action="{% url 'encuesta_posponer' %}" style="margin:0">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-glass btn-sm">Ahora no</button>
+    </form>
+    <a href="{% url 'encuesta' %}" class="btn btn-orange btn-sm">Responder</a>
+  </div>
+</div>

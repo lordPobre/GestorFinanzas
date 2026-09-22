@@ -5,68 +5,50 @@
 
 {% block content %}
 
-{% comment %}
-  El título cede ancho (flex:1) y el bloque de la derecha no se parte
-  (flex:0 0 auto): antes el grupo era flexible y, cuando el título se
-  quedaba con su ancho natural, al botón no le alcanzaba el sitio y bajaba
-  solo a una segunda línea debajo de las tarjetas.
-{% endcomment %}
-<div style="display:flex;justify-content:space-between;align-items:flex-end;gap:16px 20px;flex-wrap:wrap;margin-bottom:18px">
-  <div style="flex:1 1 300px;min-width:0">
+<div class="subs-cabecera">
+  <div class="subs-titulo">
     <div class="page-title">Suscripciones</div>
     <div class="hint" style="margin-top:5px;max-width:600px">
       Lo que se cobra solo cada mes. Apaga el interruptor para dejar de pagarla; el historial se mantiene.
     </div>
   </div>
+  <button class="btn btn-purple" data-open="#modalSub" data-tour="suscripciones" aria-label="Nueva suscripción"><i class="fas fa-plus" style="font-size:11px"></i><span class="hide-mobile">Nueva suscripción</span><span class="solo-movil">Nueva</span></button>
+</div>
 
-  {% comment %}
-    Las dos cifras de resumen, con el mismo color pleno que las de Me deben.
-    Cada color dice qué tipo de dato es, no solo decora:
-
-      coral — plata que debes y todavía no pagaste
-      verde — al día, nada pendiente
-      lila  — el compromiso recurrente; es el color que ya marca las cuotas
-              del dashboard y la categoría Servicios, y una suscripción es
-              exactamente eso: un servicio que se cobra todos los meses
-
-    Antes las tres usaban el mismo ámbar sobre --surface, así que "falta
-    pagar" y "total al mes" se veían idénticas pese a ser cosas opuestas.
-  {% endcomment %}
-  <div class="cabecera-cifras">
-    {% if monto_pendiente_mes %}
-    <div class="tarjeta-color coral tc-resumen">
-      <div class="tc-cabecera">
-        <span class="tc-icono"><i class="fas fa-hourglass-half" style="font-size:12px"></i></span>
-        <span class="tc-label">Falta pagar este mes</span>
-      </div>
-      <div class="tc-monto">{{ monto_pendiente_mes|money }}</div>
-      <div class="tc-nota">
-        {{ pendientes_mes }} de {{ cantidad_activas }} suscripción{{ pendientes_mes|pluralize:"es" }}
-      </div>
+{% if suscripciones %}
+<div class="subs-cifras">
+  {% if monto_pendiente_mes %}
+  <div class="tarjeta-color coral tc-resumen">
+    <div class="tc-cabecera">
+      <span class="tc-icono"><i class="fas fa-hourglass-half" style="font-size:12px"></i></span>
+      <span class="tc-label">Falta pagar este mes</span>
     </div>
-    {% else %}
-    <div class="tarjeta-color verde tc-resumen">
-      <div class="tc-cabecera">
-        <span class="tc-icono"><i class="fas fa-circle-check" style="font-size:12px"></i></span>
-        <span class="tc-label">Este mes</span>
-      </div>
-      <div class="tc-monto">Al día</div>
-      <div class="tc-nota">{{ monto_pagado_mes|money }} pagados</div>
+    <div class="tc-monto">{{ monto_pendiente_mes|money }}</div>
+    <div class="tc-nota">
+      {{ pendientes_mes }} de {{ cantidad_activas }} suscripción{{ pendientes_mes|pluralize:"es" }}
     </div>
-    {% endif %}
-
-    <div class="tarjeta-color lila tc-resumen">
-      <div class="tc-cabecera">
-        <span class="tc-icono"><i class="fas fa-rotate" style="font-size:12px"></i></span>
-        <span class="tc-label">Total activo al mes</span>
-      </div>
-      <div class="tc-monto">{{ total_mensual|money }}</div>
-      <div class="tc-nota">{{ total_anual|money }} al año</div>
+  </div>
+  {% else %}
+  <div class="tarjeta-color verde tc-resumen">
+    <div class="tc-cabecera">
+      <span class="tc-icono"><i class="fas fa-circle-check" style="font-size:12px"></i></span>
+      <span class="tc-label">Este mes</span>
     </div>
+    <div class="tc-monto">Al día</div>
+    <div class="tc-nota">{{ monto_pagado_mes|money }} pagados</div>
+  </div>
+  {% endif %}
 
-    <button class="btn btn-purple" data-open="#modalSub" data-tour="suscripciones"><i class="fas fa-plus" style="font-size:11px"></i>Nueva suscripción</button>
+  <div class="tarjeta-color lila tc-resumen">
+    <div class="tc-cabecera">
+      <span class="tc-icono"><i class="fas fa-rotate" style="font-size:12px"></i></span>
+      <span class="tc-label">Total activo al mes</span>
+    </div>
+    <div class="tc-monto">{{ total_mensual|money }}</div>
+    <div class="tc-nota">{{ total_anual|money }} al año</div>
   </div>
 </div>
+{% endif %}
 
 {% if atrasadas %}
 <div class="glass-coral" style="margin-bottom:14px;padding:16px 20px;border-radius:18px;display:flex;align-items:center;gap:13px;flex-wrap:wrap">
@@ -86,11 +68,6 @@
   <div class="sub-row {% if not s.activa %}pausada{% endif %}" data-searchable
        {% if not s.activa %}style="opacity:.55"{% endif %}>
 
-    {% comment %}
-      El logo de la plataforma cuando Font Awesome lo tiene; si no, la
-      inicial sobre el color de la marca. Netflix, Disney+ y HBO no existen
-      como icono, y ese color ya los identifica.
-    {% endcomment %}
     <span class="marca-tile" style="background:{{ s.marca.color }}1f;color:{{ s.marca.color }};
                  {% if not s.marca.reconocida %}border:1px solid rgba(255,170,44,.26){% endif %}">
       {% if s.marca.usa_inicial %}{{ s.inicial }}{% else %}<i class="{{ s.marca.icono }}"></i>{% endif %}
@@ -99,18 +76,8 @@
     <div class="row-main">
       <div class="row-title" style="font-size:13px;{% if not s.activa %}text-decoration:line-through;color:var(--text-muted){% endif %}">
         {{ s.nombre }}
-        {% if s.estado_mes == 'pagada' %}<span class="badge badge-green" style="margin-left:7px">Pagada</span>
-        {% elif s.estado_mes == 'atrasada' %}<span class="badge badge-coral" style="margin-left:7px">Atrasada</span>{% endif %}
+        {% if s.estado_mes == 'atrasada' %}<span class="badge badge-coral" style="margin-left:7px">Atrasada</span>{% endif %}
       </div>
-      {% comment %}
-        En móvil solo el día de cobro: el estado ya lo dice el badge de arriba,
-        y repetirlo hacía que la línea cayera en dos.
-      {% endcomment %}
-      {% comment %}
-        En móvil el monto vive acá, bajo el nombre: así la columna de la
-        derecha queda libre para los tres controles. El texto del cobro se
-        acorta al día, o la línea cae en dos.
-      {% endcomment %}
       <div class="row-meta">
         <span class="sub-monto-movil mono">{{ s.monto|money }}</span>
         <span class="hide-mobile">{{ s.texto_cobro }} · {{ s.texto_estado }}</span>
@@ -123,76 +90,57 @@
       <div style="font-size:10px;color:var(--text-muted);margin-top:2px">al mes</div>
     </div>
 
-    <div style="text-align:right;min-width:96px" class="hide-mobile">
+    <div style="text-align:right" class="sub-anual hide-mobile">
       <div class="mono" style="font-size:12px;color:var(--text-secondary)">{{ s.monto_anual|money }}</div>
       <div style="font-size:10px;color:var(--text-muted);margin-top:2px">al año</div>
     </div>
 
     <div class="sub-acciones">
-    {% if s.activa %}
-      {% if s.periodo_a_pagar %}
-      <form method="post" action="{% url 'pagar_servicio' s.pk %}" class="form-pagar" style="margin:0">
+      <form method="post" action="{% url 'eliminar_suscripcion' s.pk %}" class="form-borrar" style="margin:0"
+            data-confirm="¿Eliminar {{ s.nombre }} por completo? El historial de gastos se mantiene.">
         {% csrf_token %}
-        <input type="hidden" name="periodo" value="{{ s.periodo_a_pagar }}">
-        {% comment %}
-          Un solo estilo, esté atrasada o al día. Antes las atrasadas lo
-          llevaban sólido y el resto tenue, y el tenue sobre la ficha sale
-          café apagado: se leía como deshabilitado. Lo atrasado ya lo dice
-          el badge del nombre.
-        {% endcomment %}
-        <button type="submit" class="btn btn-orange btn-sm"
-                title="{{ s.texto_a_pagar }}">
-          <i class="fas fa-check" style="font-size:9px"></i>Pagar
-        </button>
+        <button type="submit" class="icon-btn" title="Eliminar" aria-label="Eliminar {{ s.nombre }}"><i class="fas fa-trash-can" style="font-size:11px"></i></button>
       </form>
+
+      <form method="post" action="{% url 'cancelar_suscripcion' s.pk %}" class="sub-estado"
+            {% if s.activa %}data-confirm="¿Dejar de pagar {{ s.nombre }}? Ahorras {{ s.monto_anual|money }} al año."{% endif %}>
+        {% csrf_token %}
+        <button type="submit" class="switch {% if s.activa %}on{% endif %}"
+                title="{% if s.activa %}Cancelar{% else %}Reactivar{% endif %} {{ s.nombre }}"
+                aria-label="{% if s.activa %}Cancelar{% else %}Reactivar{% endif %} {{ s.nombre }}">
+          <span class="knob"></span>
+        </button>
+        <span class="sub-estado-texto" aria-hidden="true">{% if s.activa %}Activa{% else %}Pausada{% endif %}</span>
+      </form>
+
+      {% if s.activa %}
+        {% if s.periodo_a_pagar %}
+        <form method="post" action="{% url 'pagar_servicio' s.pk %}" class="form-pagar sub-pago" style="margin:0">
+          {% csrf_token %}
+          <input type="hidden" name="periodo" value="{{ s.periodo_a_pagar }}">
+          <button type="submit" class="btn btn-orange btn-sm" title="{{ s.texto_a_pagar }}">
+            <i class="fas fa-check" style="font-size:9px"></i>Pagar
+          </button>
+        </form>
+        {% else %}
+        <form method="post" action="{% url 'anular_pago_servicio' s.pk %}" class="sub-pago" style="margin:0"
+              data-confirm="¿Marcar {{ s.nombre }} como no pagada este mes?">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-sm sub-pagada" title="Deshacer el pago del mes" aria-label="Pagada. Deshacer el pago del mes">
+            <i class="fas fa-circle-check" style="font-size:10px"></i>Pagada
+          </button>
+        </form>
+        {% endif %}
       {% else %}
-      <form method="post" action="{% url 'anular_pago_servicio' s.pk %}" style="margin:0"
-            data-confirm="¿Marcar {{ s.nombre }} como no pagada este mes?">
-        {% csrf_token %}
-        <button type="submit" class="icon-btn" title="Deshacer el pago del mes" aria-label="Deshacer el pago del mes">
-          <i class="fas fa-rotate-left" style="font-size:10px"></i>
-        </button>
-      </form>
+        <span class="sub-pago" aria-hidden="true"></span>
       {% endif %}
-    {% endif %}
-
-    {# El interruptor ES el botón de cancelar/reactivar #}
-    <form method="post" action="{% url 'cancelar_suscripcion' s.pk %}" style="margin:0;display:flex;align-items:center"
-          {% if s.activa %}data-confirm="¿Dejar de pagar {{ s.nombre }}? Ahorras {{ s.monto_anual|money }} al año."{% endif %}>
-      {% csrf_token %}
-      <button type="submit" class="switch {% if s.activa %}on{% endif %}"
-              title="{% if s.activa %}Cancelar{% else %}Reactivar{% endif %} {{ s.nombre }}"
-              aria-label="{% if s.activa %}Cancelar{% else %}Reactivar{% endif %} {{ s.nombre }}">
-        <span class="knob"></span>
-      </button>
-    </form>
-
-    <form method="post" action="{% url 'eliminar_suscripcion' s.pk %}" class="form-borrar" style="margin:0"
-          data-confirm="¿Eliminar {{ s.nombre }} por completo? El historial de gastos se mantiene.">
-      {% csrf_token %}
-      <button type="submit" class="icon-btn" title="Eliminar" aria-label="Eliminar"><i class="fas fa-trash-can" style="font-size:11px"></i></button>
-    </form>
     </div>
   </div>
   {% endfor %}
 </div>
 
-{% comment %}
-  El consejo usa las mismas clases que las tarjetas de "Me deben"
-  (.tarjeta-color + .tc-*): color pleno con tinta oscura encima, en vez de un
-  tinte translúcido sobre la superficie de siempre, que se leía igual que
-  cualquier otra tarjeta.
-
-  Y se reordena: lo que importa de un consejo es cuánto ahorras, y ese número
-  estaba enterrado al final de la segunda línea. Ahora es la cifra grande y
-  el motivo pasa a la nota.
-
-  Verde agua y no ámbar porque en esta app cada color ya dice algo: verde es
-  "al día", coral "atrasado", azul "prestado", lila "cuota". El agua era el
-  único hueco libre de la paleta.
-{% endcomment %}
 {% if duplicadas %}
-<div class="tarjetas-color" style="margin-top:16px">
+<div class="tarjetas-color" style="margin-top:18px">
   {% for grupo in duplicadas %}
   <div class="tarjeta-color agua">
     <div class="tc-cabecera">
@@ -223,7 +171,6 @@
 {% endif %}
 
 {% endblock %}
-
 
 {% block modals %}
 <div class="modal-overlay" id="modalSub">
@@ -281,10 +228,8 @@
 </div>
 {% endblock %}
 
-
 {% block extra_js %}
 <script nonce="{{ csp_nonce }}">
-/* El costo anual es el número que hace pensar dos veces. Se calcula en vivo. */
 (function () {
   var monto = document.getElementById('id_sub_monto');
   var anual = document.getElementById('subAnual');

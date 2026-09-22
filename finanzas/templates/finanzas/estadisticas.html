@@ -269,7 +269,10 @@
     var min = Math.min.apply(null, vals);
     var max = Math.max.apply(null, vals);
     var margen = Math.max((max - min) * 0.35, max * 0.08);
-    return { piso: Math.max(0, min - margen), techo: max + margen };
+    var piso = Math.max(0, min - margen), techo = max + margen;
+    var bruto = (techo - piso) / 4, pot = Math.pow(10, Math.floor(Math.log10(bruto)));
+    var paso = [1, 2, 2.5, 5, 10].map(function (f) { return f * pot; }).filter(function (p) { return p >= bruto; })[0];
+    return { piso: Math.floor(piso / paso) * paso, techo: Math.ceil(techo / paso) * paso, paso: paso };
   }
   var r0 = rango([ingresos, salidas]);
   var piso = r0.piso, techo = r0.techo;
@@ -356,9 +359,7 @@
                    } },
         },
         y: {
-          /* Sin rejilla horizontal: en un gráfico de área las líneas cruzadas
-             ensucian el degradado. Solo tres referencias al margen. */
-          grid: { display: false },
+          grid: { color: 'rgba(255,255,255,.06)', drawTicks: false },
           border: { display: false },
           /* El eje se ajusta a los datos en vez de arrancar en cero: con
              cero, dos series que se mueven entre 500k y 850k quedaban
@@ -366,7 +367,7 @@
              El 20% de holgura evita que las líneas toquen los bordes. */
           min: piso, max: techo,
           ticks: { color: TICK, font: { family: FONT, size: 10.5 },
-                   maxTicksLimit: 3, padding: 10, callback: corto },
+                   stepSize: r0.paso, maxTicksLimit: 7, padding: 10, callback: corto },
         },
       },
     },
@@ -408,6 +409,7 @@
       var r = rango([ingresos.slice(-n), salidas.slice(-n)]);
       chart.options.scales.y.min = r.piso;
       chart.options.scales.y.max = r.techo;
+      chart.options.scales.y.ticks.stepSize = r.paso;
       chart.update();
     });
   }

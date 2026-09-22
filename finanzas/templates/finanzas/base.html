@@ -151,6 +151,14 @@
         <a href="{% url 'perfil' %}" data-label="Mi perfil" class="nav-item {% if request.resolver_match.url_name == 'perfil' %}active{% endif %}">
           <i class="fas fa-user"></i><span>Mi perfil</span>
         </a>
+        <a href="{% url 'encuesta' %}" data-label="Danos tu opinión" class="nav-item {% if request.resolver_match.url_name == 'encuesta' %}active{% endif %}">
+          <i class="fas fa-comment-dots"></i><span>Danos tu opinión</span>
+        </a>
+        {% if user.is_staff %}
+        <a href="{% url 'encuesta_resultados' %}" data-label="Resultados encuesta" class="nav-item {% if request.resolver_match.url_name == 'encuesta_resultados' %}active{% endif %}">
+          <i class="fas fa-square-poll-vertical"></i><span>Resultados encuesta</span>
+        </a>
+        {% endif %}
         <form method="post" action="{% url 'logout' %}" style="margin:0">
           {% csrf_token %}
           <button type="submit" class="nav-item" data-label="Salir" style="width:100%"><i class="fas fa-right-from-bracket"></i><span>Salir</span></button>
@@ -317,6 +325,12 @@
         <span class="icon-tile green"><i class="fas fa-file-import"></i></span><span>Importar cartola</span></a>
       <a href="{% url 'perfil' %}" class="hoja-item">
         <span class="icon-tile tile-avatar">{% if profile.foto_url %}<img src="{{ profile.foto_url }}" alt="" data-quitar-si-falla>{% endif %}<i class="fas fa-user"></i></span><span>Mi perfil</span></a>
+      <a href="{% url 'encuesta' %}" class="hoja-item">
+        <span class="icon-tile orange"><i class="fas fa-comment-dots"></i></span><span>Danos tu opinión</span></a>
+      {% if user.is_staff %}
+      <a href="{% url 'encuesta_resultados' %}" class="hoja-item">
+        <span class="icon-tile blue"><i class="fas fa-square-poll-vertical"></i></span><span>Resultados encuesta</span></a>
+      {% endif %}
     </div>
     <form method="post" action="{% url 'logout' %}" style="margin-top:16px">
       {% csrf_token %}

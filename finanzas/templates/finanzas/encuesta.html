@@ -1,0 +1,202 @@
+{% extends 'finanzas/base.html' %}
+{% block title %}Encuesta · Rekon{% endblock %}
+
+{% block content %}
+<div class="encuesta">
+  <div class="glass card-lg">
+    <form method="post" action="{% url 'encuesta' %}" id="formEncuesta" novalidate>
+      {% csrf_token %}
+
+      <div class="encuesta-cab">
+        <span class="label" data-contador>Encuesta</span>
+        <button type="button" class="encuesta-omitir" data-omitir hidden>Omitir</button>
+      </div>
+      <div class="progress-bar encuesta-progreso"><div class="progress-fill" data-progreso style="width:100%"></div></div>
+
+      {% if error %}
+      <div class="badge badge-coral" style="margin-bottom:18px">Faltan respuestas obligatorias: facilidad, secciones y recomendación.</div>
+      {% endif %}
+
+      <section class="encuesta-paso" data-paso>
+        <h2 class="encuesta-titulo">Cuéntanos un poco de ti</h2>
+        <p class="hint">Nos sirve para comparar respuestas entre usuarios nuevos y antiguos.</p>
+        <div class="encuesta-cuerpo">
+          <div class="encuesta-grupo">
+            <div class="label">¿Hace cuánto usas la app?</div>
+            <div class="chips">
+              {% for o in antiguedades %}<label class="chip"><input type="radio" name="antiguedad" value="{{ o }}">{{ o }}</label>{% endfor %}
+            </div>
+          </div>
+          <div class="encuesta-grupo">
+            <div class="label">¿Cada cuánto la abres?</div>
+            <div class="chips">
+              {% for o in frecuencias %}<label class="chip"><input type="radio" name="frecuencia" value="{{ o }}">{{ o }}</label>{% endfor %}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="encuesta-paso" data-paso data-obligatoria="facilidad">
+        <h2 class="encuesta-titulo">¿Qué tan fácil te resulta usar la app?</h2>
+        <p class="hint">Piensa en tareas del día a día: registrar un gasto, pagar una cuota, revisar el mes.</p>
+        <div class="encuesta-cuerpo">
+          <div class="encuesta-escala" style="--cols:5">
+            {% for v in escala5 %}<label class="chip"><input type="radio" name="facilidad" value="{{ v }}">{{ v }}</label>{% endfor %}
+          </div>
+          <div class="encuesta-extremos"><span>Muy difícil</span><span>Muy fácil</span></div>
+        </div>
+      </section>
+
+      <section class="encuesta-paso" data-paso data-obligatoria="secciones">
+        <h2 class="encuesta-titulo">¿Qué secciones usas más?</h2>
+        <p class="hint">Elige todas las que quieras.</p>
+        <div class="encuesta-cuerpo">
+          <div class="chips">
+            {% for i, s in secciones %}<label class="chip"><input type="checkbox" name="secciones" value="{{ s }}">{{ s }}</label>{% endfor %}
+          </div>
+        </div>
+      </section>
+
+      <section class="encuesta-paso" data-paso data-notas>
+        <h2 class="encuesta-titulo">¿Qué tan conforme estás con cada una?</h2>
+        <p class="hint">Solo las que marcaste. 1 es nada conforme y 5 muy conforme.</p>
+        <div class="encuesta-cuerpo encuesta-filas">
+          {% for i, s in secciones %}
+          <div class="encuesta-fila" data-seccion="{{ s }}">
+            <div class="encuesta-fila-nombre">{{ s }}</div>
+            <div class="encuesta-escala" style="--cols:5">
+              {% for v in escala5 %}<label class="chip" aria-label="{{ s }}: {{ v }} de 5"><input type="radio" name="nota_{{ i }}" value="{{ v }}">{{ v }}</label>{% endfor %}
+            </div>
+          </div>
+          {% endfor %}
+          <div class="encuesta-fila">
+            <span></span>
+            <div class="encuesta-extremos" style="margin-top:0"><span>Nada conforme</span><span>Muy conforme</span></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="encuesta-paso" data-paso>
+        <h2 class="encuesta-titulo">¿Qué es lo que más te gusta de la app?</h2>
+        <p class="hint">Una función, una pantalla o algo que te ahorra tiempo.</p>
+        <div class="encuesta-cuerpo"><textarea name="gusta" rows="5" maxlength="2000" placeholder="Ej. ver de un vistazo cuánto me queda del mes"></textarea></div>
+      </section>
+
+      <section class="encuesta-paso" data-paso>
+        <h2 class="encuesta-titulo">¿Qué no te acomoda o te ha costado?</h2>
+        <p class="hint">Algo confuso, lento o que no funcionó como esperabas.</p>
+        <div class="encuesta-cuerpo"><textarea name="molesta" rows="5" maxlength="2000" placeholder="Ej. no encontré dónde editar una suscripción"></textarea></div>
+      </section>
+
+      <section class="encuesta-paso" data-paso>
+        <h2 class="encuesta-titulo">¿Qué le agregarías?</h2>
+        <p class="hint">Algo que hoy haces fuera de la app o que te gustaría poder ver.</p>
+        <div class="encuesta-cuerpo"><textarea name="agregar" rows="5" maxlength="2000" placeholder="Ej. recordatorios antes de que venza una cuota"></textarea></div>
+      </section>
+
+      <section class="encuesta-paso" data-paso>
+        <h2 class="encuesta-titulo">¿Qué le sacarías o simplificarías?</h2>
+        <p class="hint">Algo que sobra, que no usas o que estorba.</p>
+        <div class="encuesta-cuerpo"><textarea name="sacar" rows="5" maxlength="2000" placeholder="Ej. hay demasiadas cifras en el inicio"></textarea></div>
+      </section>
+
+      <section class="encuesta-paso" data-paso data-obligatoria="recomienda">
+        <h2 class="encuesta-titulo">¿Qué tan probable es que recomiendes la app?</h2>
+        <p class="hint">A un amigo o familiar que quiera ordenar sus finanzas.</p>
+        <div class="encuesta-cuerpo">
+          <div class="encuesta-escala" style="--cols:11">
+            {% for v in escala10 %}<label class="chip"><input type="radio" name="recomienda" value="{{ v }}">{{ v }}</label>{% endfor %}
+          </div>
+          <div class="encuesta-extremos"><span>Nada probable</span><span>Muy probable</span></div>
+        </div>
+      </section>
+
+      <section class="encuesta-paso" data-paso>
+        <h2 class="encuesta-titulo" data-razon-titulo>¿Qué te faltó para darnos un 10?</h2>
+        <p class="hint">Con una frase basta.</p>
+        <div class="encuesta-cuerpo"><textarea name="razon" rows="5" maxlength="2000" placeholder="Ej. me gustaría poder exportar mis movimientos"></textarea></div>
+      </section>
+
+      <div class="encuesta-nav">
+        <button type="button" class="btn btn-glass" data-atras hidden>Atrás</button>
+        <button type="button" class="btn btn-orange encuesta-principal" data-siguiente hidden>Siguiente</button>
+        <button type="submit" class="btn btn-orange encuesta-principal" data-enviar>Enviar respuestas</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script nonce="{{ csp_nonce }}">
+(function () {
+  var form = document.getElementById('formEncuesta');
+  if (!form) return;
+  var pasos = Array.prototype.slice.call(form.querySelectorAll('[data-paso]'));
+  var contador = form.querySelector('[data-contador]');
+  var progreso = form.querySelector('[data-progreso]');
+  var atras = form.querySelector('[data-atras]');
+  var siguiente = form.querySelector('[data-siguiente]');
+  var enviar = form.querySelector('[data-enviar]');
+  var omitir = form.querySelector('[data-omitir]');
+  var razon = form.querySelector('[data-razon-titulo]');
+  var i = 0;
+
+  function marcado(nombre) { return !!form.querySelector('[name="' + nombre + '"]:checked'); }
+  function valido(paso) { return !paso.dataset.obligatoria || marcado(paso.dataset.obligatoria); }
+
+  function pintarChips() {
+    form.querySelectorAll('.chip').forEach(function (c) {
+      var input = c.querySelector('input');
+      c.classList.toggle('on', !!(input && input.checked));
+    });
+  }
+
+  function filasNotas() {
+    var elegidas = Array.prototype.map.call(form.querySelectorAll('[name="secciones"]:checked'), function (x) { return x.value; });
+    form.querySelectorAll('[data-seccion]').forEach(function (f) {
+      f.hidden = elegidas.indexOf(f.dataset.seccion) === -1;
+    });
+  }
+
+  function tituloRazon() {
+    var r = form.querySelector('[name="recomienda"]:checked');
+    razon.textContent = r && Number(r.value) >= 9 ? '¿Qué es lo que más valoras de la app?' : '¿Qué te faltó para darnos un 10?';
+  }
+
+  function mostrar() {
+    var paso = pasos[i], ultimo = i === pasos.length - 1;
+    pasos.forEach(function (p, k) { p.hidden = k !== i; });
+    contador.textContent = 'Encuesta · ' + (i + 1) + ' de ' + pasos.length;
+    progreso.style.width = ((i + 1) / pasos.length * 100) + '%';
+    atras.hidden = i === 0;
+    siguiente.hidden = ultimo;
+    enviar.hidden = !ultimo;
+    omitir.hidden = ultimo || !!paso.dataset.obligatoria;
+    siguiente.disabled = !valido(paso);
+    if (paso.hasAttribute('data-notas')) filasNotas();
+    if (ultimo) tituloRazon();
+  }
+
+  function ir(k) {
+    i = Math.max(0, Math.min(pasos.length - 1, k));
+    mostrar();
+    window.scrollTo(0, 0);
+  }
+
+  form.addEventListener('change', function () {
+    pintarChips();
+    siguiente.disabled = !valido(pasos[i]);
+  });
+  siguiente.addEventListener('click', function () { if (valido(pasos[i])) ir(i + 1); });
+  omitir.addEventListener('click', function () { ir(i + 1); });
+  atras.addEventListener('click', function () { ir(i - 1); });
+  form.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA' && i < pasos.length - 1) e.preventDefault();
+  });
+
+  pintarChips();
+  mostrar();
+})();
+</script>
+{% endblock %}
