@@ -27,9 +27,9 @@ class PoliticaContenidoMiddleware:
     política tan abierta que no proteja nada.
     """
 
-    CDN_SCRIPTS = "https://cdn.jsdelivr.net"
-    CDN_ESTILOS = "https://cdnjs.cloudflare.com https://fonts.googleapis.com"
-    CDN_FUENTES = "https://fonts.gstatic.com https://cdnjs.cloudflare.com"
+    CDN_SCRIPTS = ""
+    CDN_ESTILOS = ""
+    CDN_FUENTES = ""
 
     def __init__(self, get_response):
         self.get_response = get_response
@@ -61,9 +61,9 @@ class PoliticaContenidoMiddleware:
 
         politica = "; ".join([
             "default-src 'self'",
-            f"script-src 'self' 'nonce-{request.csp_nonce}' {self.CDN_SCRIPTS}",
-            f"style-src 'self' 'unsafe-inline' {self.CDN_ESTILOS}",
-            f"font-src 'self' {self.CDN_FUENTES}",
+            f"script-src 'self' 'nonce-{request.csp_nonce}' {self.CDN_SCRIPTS}".strip(),
+            f"style-src 'self' 'unsafe-inline' {self.CDN_ESTILOS}".strip(),
+            f"font-src 'self' {self.CDN_FUENTES}".strip(),
             f"img-src {img}",
             "connect-src 'self'",
             "frame-src 'none'",

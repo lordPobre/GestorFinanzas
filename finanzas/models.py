@@ -902,6 +902,10 @@ def _ruta_avatar(instance, filename):
     ext = (filename.rsplit('.', 1)[-1] or 'jpg').lower()[:5]
     return f'avatares/{instance.usuario_id}/{uuid.uuid4().hex[:8]}.{ext}'
 
+SEGUNDOS_URL_FIRMADA = 6 * 60 * 60
+SEGUNDOS_URL_FOTO_EN_CACHE = 5 * 60 * 60
+
+
 class UserProfile(models.Model):
     """Datos de perfil que no viven en el User de Django: moneda, avatar,
     progreso del onboarding. 'saldo_disponible' NO vive aquí — se calcula
@@ -998,10 +1002,17 @@ class UserProfile(models.Model):
         """
         if not self.foto:
             return None
+        from django.core.cache import cache
+        clave = f'foto-url:{self.foto.name}'
+        url = cache.get(clave)
+        if url:
+            return url
         try:
-            return self.foto.url
+            url = self.foto.url
         except ValueError:
             return None
+        cache.set(clave, url, SEGUNDOS_URL_FOTO_EN_CACHE)
+        return url
 
     @property
     def ubicacion(self):

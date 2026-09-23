@@ -12,8 +12,8 @@ de "la política cambió".
 """
 from django.shortcuts import render
 
-VERSION = '1.1'
-VIGENTE_DESDE = '19 de septiembre de 2026'
+VERSION = '1.2'
+VIGENTE_DESDE = '1 de octubre de 2026'
 
 RESPONSABLE = 'Carlos López Figueroa, Valparaíso, Chile'
 CORREO_CONTACTO = 'soporte@perseustechnology.dev'

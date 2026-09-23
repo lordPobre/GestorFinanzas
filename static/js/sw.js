@@ -1,13 +1,9 @@
 
 
-const VERSION = 'v3';
+const VERSION = 'v4';
 const CACHE_ESTATICOS = `finapp-estaticos-${VERSION}`;
 
-const ORIGENES_CACHEABLES = [
-  'https://fonts.googleapis.com',
-  'https://fonts.gstatic.com',
-  'https://cdnjs.cloudflare.com',
-];
+const ORIGENES_CACHEABLES = [];
 
 const HTML_SIN_CONEXION = `<!DOCTYPE html>
 <html lang="es"><head>

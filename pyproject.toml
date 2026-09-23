@@ -5,6 +5,7 @@ exclude = [
     "finanzas/migrations",
     "staticfiles",
     ".venv",
+    "entrega-*",
 ]
 
 [tool.ruff.lint]
@@ -19,4 +20,18 @@ select = [
 
 [tool.ruff.lint.per-file-ignores]
 "core/settings.py" = ["F401"]
-"finanzas/tests*.py" = ["F841"]
+"finanzas/tests*.py" = ["F841", "S101", "S105", "S106"]
+
+[tool.coverage.run]
+source = ["finanzas", "core"]
+omit = [
+    "*/migrations/*",
+    "*/tests*.py",
+    "core/wsgi.py",
+    "core/asgi.py",
+]
+
+[tool.coverage.report]
+fail_under = 55
+show_missing = true
+skip_covered = true

@@ -6,10 +6,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Bienvenido · Rekon</title>
 
+  {# Favicon: SVG con respaldo PNG, igual que en base.html. #}
   <link rel="icon" type="image/svg+xml" href="{% static 'img/favicon.svg' %}">
   <link rel="alternate icon" href="{% static 'img/favicon.png' %}">
   <link rel="apple-touch-icon" href="{% static 'img/favicon-180.png' %}">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link rel="stylesheet" href="{% static 'vendor/fonts/fuentes.css' %}">
+<link rel="stylesheet" href="{% static 'vendor/fontawesome/css/all.min.css' %}">
 <link rel="stylesheet" href="{% static 'css/finapp.css' %}">
 <style>
   /* Solo lo que esta pantalla necesita y no está en finapp.css: es una
@@ -45,10 +47,17 @@
 
 <div class="ob">
 
+  {# La marca actual: la misma teja ámbar con fa-chart-line del sidebar y del
+     acceso, no el SVG de logo.html, que es el logotipo anterior. Se escribe
+     acá en vez de incluir un parcial porque el onboarding la muestra centrada
+     y algo más grande que en el menú. #}
   <div style="display:flex;justify-content:center;align-items:center;gap:11px;margin-bottom:26px">
     <span class="brand-mark" style="width:44px;height:44px;border-radius:15px;font-size:17px">
       <i class="fas fa-chart-line"></i>
     </span>
+    {# El nombre va con estilos propios y no con .brand-name: esa clase se
+       oculta bajo 1000px junto con el resto del sidebar colapsado, y acá
+       tiene que verse siempre. #}
     <span style="font-family:'Manrope',sans-serif;font-size:20px;font-weight:800;letter-spacing:-.02em;color:var(--text-primary)">Rekon</span>  </div>
 
   <div class="pasos" id="pasos">

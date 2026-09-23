@@ -1,9 +1,10 @@
 {% extends 'finanzas/base.html' %}
+{% load static %}
 {% load humanize moneda %}
 {% block title %}Análisis · Rekon{% endblock %}
 
 {% block extra_head %}
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="{% static 'vendor/chart/chart.umd.min.js' %}"></script>
 {% endblock %}
 
 {% comment %}

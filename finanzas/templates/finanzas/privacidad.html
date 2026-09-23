@@ -43,15 +43,23 @@
   <li>Personas que te deben dinero: el nombre y el dato de contacto que
     escribas, con los montos y abonos.</li>
   <li>Los movimientos que confirmes al importar una cartola bancaria.</li>
+  <li>Tus respuestas a la encuesta de satisfacción, si decides responderla.</li>
 </ul>
 
 <h3>Los que se generan solos</h3>
 <ul>
   <li>Fecha de creación de la cuenta y de tu última actividad.</li>
-  <li>Dirección IP y usuario intentado cuando un acceso falla, para frenar
-    ataques de fuerza bruta.</li>
+  <li>Un registro de seguridad de tu cuenta: cada acceso, cada intento
+    fallido, los bloqueos y los cambios de seguridad (contraseña, verificación
+    en dos pasos, Face ID o huella, descarga de datos, borrado de la cuenta),
+    con fecha, dirección IP y navegador.</li>
   <li>Si activas la verificación en dos pasos, su clave y los códigos de
     respaldo, guardados de forma que no se pueden leer.</li>
+  <li>Si activas la entrada con Face ID o huella, un identificador y una clave
+    pública por cada dispositivo que vincules, con el nombre que le pongas.
+    <strong>Tu cara y tu huella nunca salen del dispositivo</strong>: el
+    teléfono o el computador las revisa y solo le entrega a Rekon una firma
+    que confirma que eres tú.</li>
 </ul>
 
 <h2>Qué NO se guarda</h2>
@@ -73,7 +81,10 @@
   <tr><td>Identificarte al entrar</td><td>Ejecución del servicio</td></tr>
   <tr><td>Enviarte el aviso mensual de cobros</td><td>Tu consentimiento, revocable desde el perfil</td></tr>
   <tr><td>Interpretar tu diagnóstico con IA</td><td>Tu consentimiento, revocable desde el perfil</td></tr>
-  <tr><td>Frenar intentos de acceso no autorizados</td><td>Interés legítimo en la seguridad del servicio</td></tr>
+  <tr><td>Entrar con Face ID o huella</td><td>Tu consentimiento, por dispositivo y revocable desde el perfil</td></tr>
+  <tr><td>Mejorar la app con la encuesta</td><td>Tu consentimiento: es voluntaria</td></tr>
+  <tr><td>Frenar accesos no autorizados y poder reconstruir un incidente</td><td>Interés legítimo en la seguridad del servicio</td></tr>
+  <tr><td>Recuperar el servicio si la base de datos falla</td><td>Seguridad del tratamiento</td></tr>
 </table>
 
 <p>
@@ -115,11 +126,10 @@ ningún dato que permita identificarte. Salen números, no historias.</p>
 <table>
   <tr><th>Proveedor</th><th>Qué recibe</th><th>Dónde</th></tr>
   <tr><td>Railway</td><td>Alojamiento de la aplicación y la base de datos completa</td><td>Estados Unidos</td></tr>
-  <tr><td>Cloudflare R2</td><td>Solo la foto de perfil, si subiste una</td><td>Red global</td></tr>
+  <tr><td>Cloudflare R2</td><td>La foto de perfil, si subiste una, y las copias de respaldo de la base, en un almacenamiento privado</td><td>Red global</td></tr>
   <tr><td>Resend</td><td>Tu correo y el contenido del aviso mensual</td><td>Estados Unidos</td></tr>
   <tr><td>Anthropic</td><td>Los agregados numéricos del análisis, si lo tienes activado</td><td>Estados Unidos</td></tr>
   <tr><td>Google</td><td>Tu identidad, solo si entras con cuenta de Google</td><td>Estados Unidos</td></tr>
-  <tr><td>Google Fonts, cdnjs, jsDelivr</td><td>La IP de tu navegador al cargar tipografías e iconos</td><td>Red global</td></tr>
 </table>
 
 <h2>Cuánto tiempo se guardan</h2>
@@ -128,17 +138,29 @@ ningún dato que permita identificarte. Salen números, no historias.</p>
   <tr><th>Dato</th><th>Plazo</th></tr>
   <tr><td>Todo lo de tu cuenta</td><td>Mientras la cuenta exista</td></tr>
   <tr><td>Cuenta sin ningún acceso</td><td>Se avisa por correo a los 12 meses y se elimina 30 días después si no entras</td></tr>
-  <tr><td>Registros de accesos fallidos</td><td>12 meses</td></tr>
-  <tr><td>Contadores de bloqueo temporal</td><td>15 minutos</td></tr>
+  <tr><td>Registro de seguridad</td><td>12 meses, también después de eliminar la cuenta</td></tr>
+  <tr><td>Copias de respaldo de la base</td><td>30 días</td></tr>
+  <tr><td>Contadores de bloqueo temporal</td><td>Entre 15 minutos y 1 hora</td></tr>
   <tr><td>Archivo de cartola subido</td><td>No se guarda</td></tr>
 </table>
 
 <p>
-  Cuando eliminas tu cuenta, el borrado es inmediato y completo: movimientos,
-  cuotas, personas, préstamos, metas, suscripciones, categorías propias,
-  presupuesto, foto y verificación en dos pasos. No queda una copia en espera
-  ni un período de gracia. No hay forma de recuperarlo después.
+  Cuando eliminas tu cuenta, el borrado es inmediato: movimientos, cuotas,
+  personas, préstamos, metas, suscripciones, categorías propias, presupuesto,
+  foto, verificación en dos pasos, Face ID o huella y respuestas a la encuesta.
+  No hay período de gracia ni forma de recuperarla desde la app.
 </p>
+
+<p>Quedan dos cosas, por un tiempo limitado y por seguridad:</p>
+<ul>
+  <li><strong>El registro de seguridad</strong> se conserva hasta cumplir 12
+    meses, con tu nombre de usuario pero sin vínculo con la cuenta. Es la
+    evidencia si el borrado lo hizo otra persona.</li>
+  <li><strong>Las copias de respaldo</strong> pueden seguir conteniendo tus
+    datos hasta 30 días, hasta que la copia más antigua se reemplaza. Solo se
+    usan para recuperar el servicio ante una falla grave; si alguna vez hubiera
+    que restaurar una, las cuentas eliminadas se vuelven a borrar.</li>
+</ul>
 
 <h2>Tus derechos</h2>
 
@@ -161,7 +183,7 @@ ningún dato que permita identificarte. Salen números, no historias.</p>
   respuesta es de 30 días corridos.
 </p>
 
-<h2>Cuánto tiempo se guardan</h2>
+<h2>Cuentas sin uso</h2>
 
 <p>
   Mientras uses la cuenta. Si pasan {{ meses_inactividad }} meses sin que
@@ -172,9 +194,8 @@ ningún dato que permita identificarte. Salen números, no historias.</p>
 </p>
 
 <p>
-  Si eliminas la cuenta tú mismo, el borrado es inmediato y no queda copia. Los
-  registros técnicos de seguridad —intentos de acceso fallidos, errores— se
-  guardan por separado y no contienen tus movimientos.
+  El registro de seguridad y las copias de respaldo siguen los plazos de la
+  tabla de arriba. Ninguno de los dos contiene nada que se muestre en la app.
 </p>
 
 <h2>Cómo se protegen</h2>
@@ -183,9 +204,18 @@ ningún dato que permita identificarte. Salen números, no historias.</p>
   <li>Todo el tráfico va por HTTPS, obligatorio y con HSTS: el navegador se
     niega a conectarse sin cifrar.</li>
   <li>Las contraseñas se guardan con Argon2, el estándar recomendado hoy.</li>
-  <li>Cinco intentos fallidos bloquean el acceso durante 15 minutos, por
-    usuario y por dirección a la vez.</li>
+  <li>Cinco intentos fallidos bloquean el acceso durante 15 minutos. Además
+    hay un tope por cuenta, aunque los intentos vengan de direcciones
+    distintas, y otro por dirección, aunque prueben cuentas distintas.</li>
   <li>Verificación en dos pasos disponible, con códigos de respaldo.</li>
+  <li>Entrada con Face ID o huella, que no depende de una contraseña que se
+    pueda adivinar o filtrar.</li>
+  <li>La foto de perfil está en un almacenamiento privado y se muestra con
+    enlaces que caducan a las pocas horas.</li>
+  <li>Una copia diaria de la base, verificada, en un almacenamiento privado
+    separado del resto.</li>
+  <li>Las tipografías, los iconos y los gráficos se cargan desde el propio
+    servidor: tu navegador no le pide nada a terceros.</li>
   <li>Puedes ver desde qué aparatos está abierta tu cuenta y cerrar cualquiera
     a distancia, desde Perfil.</li>
   <li>Política de contenido con valor único por respuesta, que impide que un

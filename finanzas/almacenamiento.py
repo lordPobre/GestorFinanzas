@@ -43,16 +43,7 @@ class AlmacenMedia(LazyObject):
         # R2 está configurado, así que en desarrollo no es una dependencia.
         from storages.backends.s3 import S3Storage
 
-        # custom_domain espera SOLO el host. Si la variable trae el esquema,
-        # django-storages le antepone el suyo y sale "https://https//host/…",
-        # que no resuelve. Se limpia acá en vez de confiar en cómo se escribió
-        # la variable de entorno.
-        dominio = os.environ.get('R2_PUBLIC_DOMAIN', '').strip()
-        for prefijo in ('https://', 'http://', '//'):
-            if dominio.startswith(prefijo):
-                dominio = dominio[len(prefijo):]
-                break
-        dominio = dominio.rstrip('/')
+        from .models import SEGUNDOS_URL_FIRMADA
 
         self._wrapped = S3Storage(
             access_key=os.environ['R2_ACCESS_KEY_ID'],
@@ -60,22 +51,13 @@ class AlmacenMedia(LazyObject):
             bucket_name=os.environ['R2_BUCKET'],
             endpoint_url=os.environ['R2_ENDPOINT_URL'],
             region_name='auto',
-
-            # Sin firmar la URL: con querystring_auth las direcciones caducan
-            # y el avatar deja de cargar a los pocos minutos.
-            querystring_auth=False,
-
-            # El dominio público del bucket. Sin él las URL apuntan al
-            # endpoint de la API, que no sirve imágenes al navegador.
-            custom_domain=dominio or None,
-
-            # No sobreescribir: dos usuarios que suban "foto.jpg" tendrían
-            # el mismo nombre y uno pisaría al otro.
+            signature_version='s3v4',
+            querystring_auth=True,
+            querystring_expire=SEGUNDOS_URL_FIRMADA,
+            custom_domain=None,
             file_overwrite=False,
-
-            # Un año de caché. El nombre del archivo cambia al subir otra
-            # foto, así que no hay riesgo de servir una vieja.
-            object_parameters={'CacheControl': 'public, max-age=31536000'},
+            default_acl=None,
+            object_parameters={'CacheControl': f'private, max-age={SEGUNDOS_URL_FIRMADA}'},
         )
 
 
@@ -87,8 +69,9 @@ def obtener_almacen():
 
     Esto importa: cuando un ImageField recibe storage=<instancia>, Django
     serializa esa instancia dentro de la migración — con sus credenciales.
-    En este proyecto eso ya pasó: la migración 0107 tiene la access_key y la
-    secret_key de R2 escritas en texto plano dentro del repositorio.
+    En este proyecto ya pasó una vez: la migración 0107 llegó a tener la
+    access_key y la secret_key de R2 en texto plano. Se corrigió el archivo y
+    se rotó el token, pero el histórico de git conserva el original.
 
     Con un callable, la migración guarda solo la referencia a esta función
     ('finanzas.almacenamiento.obtener_almacen') y nunca sus valores. Además
