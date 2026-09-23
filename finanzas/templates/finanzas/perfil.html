@@ -318,6 +318,33 @@
 
 <div id="panelSeguridad" style="display:none">
 
+  {% with n_passkeys=user.passkeys.count %}
+  <a href="{% url 'passkeys' %}" class="fila-ajuste"
+     style="display:flex;align-items:center;gap:14px;padding:18px 20px;margin-bottom:16px;
+            border-radius:22px;background:#383838;text-decoration:none;color:#f5f5f5">
+    <span class="icon-tile {% if n_passkeys %}green{% else %}blue{% endif %}"
+          style="width:42px;height:42px;border-radius:15px;font-size:16px;flex-shrink:0">
+      <i class="fas fa-fingerprint"></i>
+    </span>
+    <div style="flex:1;min-width:0">
+      <div style="font-size:14px;font-weight:600;color:#f5f5f5;margin-bottom:3px">
+        Face ID o huella
+      </div>
+      <div style="font-size:11.5px;color:rgba(245, 245, 245, .62);line-height:1.45">
+        {% if n_passkeys %}
+          {{ n_passkeys }} dispositivo{{ n_passkeys|pluralize:"s" }} puede{{ n_passkeys|pluralize:"n" }} entrar sin contraseña
+        {% else %}
+          Entra sin escribir la contraseña
+        {% endif %}
+      </div>
+    </div>
+    {% if n_passkeys %}
+      <span class="badge badge-green" style="flex-shrink:0">Activo</span>
+    {% endif %}
+    <i class="fas fa-chevron-right" style="font-size:10px;color:rgba(245, 245, 245, .62);flex-shrink:0"></i>
+  </a>
+  {% endwith %}
+
   <a href="{% url 'configurar_2fa' %}" class="fila-ajuste"
      style="display:flex;align-items:center;gap:14px;padding:18px 20px;margin-bottom:16px;
             border-radius:22px;background:#383838;text-decoration:none;color:#f5f5f5">

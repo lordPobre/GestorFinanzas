@@ -1,4 +1,5 @@
 {% extends 'registration/auth_base.html' %}
+{% load static %}
 {% block title %}Entrar · Rekon{% endblock %}
 
 {% block card %}
@@ -23,6 +24,27 @@
 </div>
 {% endif %}
 
+<div id="bloquePasskey" hidden>
+  <button type="button" id="btnPasskey" class="btn btn-amber btn-block"
+          style="padding:16px;font-size:14.5px;font-weight:800;display:flex;align-items:center;justify-content:center;gap:10px"
+          {% if bloqueado %}disabled{% endif %}>
+    <i class="fas fa-fingerprint" style="font-size:16px"></i>Entrar con Face ID o huella
+  </button>
+
+  <div id="avisoPasskey" role="status" hidden style="margin-top:14px">
+    <div style="display:flex;gap:10px;align-items:flex-start;padding:13px 15px;border-radius:14px;background:var(--coral-tenue);border:1px solid rgba(226,92,92,.3)">
+      <i class="fas fa-circle-exclamation" style="font-size:12px;color:var(--coral);margin-top:2px"></i>
+      <div id="avisoPasskeyTexto" style="font-size:12px;color:var(--text-secondary);line-height:1.5"></div>
+    </div>
+  </div>
+
+  <div style="display:flex;align-items:center;gap:14px;margin:26px 0 22px">
+    <span style="flex:1;height:1px;background:var(--line)"></span>
+    <span style="font-size:11px;font-weight:700;color:var(--text-muted)">O CON TU CONTRASEÑA</span>
+    <span style="flex:1;height:1px;background:var(--line)"></span>
+  </div>
+</div>
+
 <form method="post">
   {% csrf_token %}
 
@@ -32,7 +54,7 @@
       <div style="position:relative;display:flex;align-items:center">
         <i class="fas fa-user auth-icono"></i>
         <input type="text" name="username" id="{{ form.username.id_for_label }}"
-               class="auth-campo" placeholder="tu usuario"
+               class="auth-campo" placeholder="Usuario"
                autocomplete="username" required autofocus
                {% if bloqueado %}disabled{% endif %}>
       </div>
@@ -61,7 +83,7 @@
 
   {% if next %}<input type="hidden" name="next" value="{{ next }}">{% endif %}
 
-  <button type="submit" class="btn btn-amber btn-block"
+  <button type="submit" id="btnEntrar" class="btn btn-amber btn-block"
           style="margin-top:26px;padding:16px;font-size:14.5px;font-weight:800"
           {% if bloqueado %}disabled{% endif %}>
     Entrar
@@ -117,6 +139,40 @@
 {% endblock %}
 
 {% block extra_js %}
+<script src="{% static 'js/passkeys.js' %}" nonce="{{ csp_nonce }}"></script>
+<script nonce="{{ csp_nonce }}">
+(function () {
+  if (!window.RekonPasskeys || !RekonPasskeys.soportado()) return;
+  var bloque = document.getElementById('bloquePasskey');
+  var boton = document.getElementById('btnPasskey');
+  var aviso = document.getElementById('avisoPasskey');
+  var texto = document.getElementById('avisoPasskeyTexto');
+  var entrar = document.getElementById('btnEntrar');
+  bloque.hidden = false;
+  if (entrar) {
+    entrar.classList.remove('btn-amber');
+    entrar.classList.add('btn-glass');
+  }
+
+  boton.addEventListener('click', function () {
+    aviso.hidden = true;
+    boton.disabled = true;
+    var siguiente = new URLSearchParams(window.location.search).get('next') || '';
+    RekonPasskeys.entrar(
+      { opciones: '{% url "passkey_entrar_opciones" %}', verificar: '{% url "passkey_entrar_verificar" %}' },
+      siguiente
+    ).then(function (r) {
+      window.location.href = r.destino;
+    }).catch(function (err) {
+      texto.textContent = RekonPasskeys.mensaje(err, true);
+      aviso.hidden = false;
+      boton.disabled = false;
+      var usuario = document.querySelector('input[name=username]');
+      if (usuario) usuario.focus();
+    });
+  });
+})();
+</script>
 <script nonce="{{ csp_nonce }}">
 (function () {
   var check = document.querySelector('[data-acepta-google]');

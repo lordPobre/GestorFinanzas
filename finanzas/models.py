@@ -1624,3 +1624,21 @@ class RespuestaEncuesta(models.Model):
 
     def __str__(self):
         return f'Encuesta de {self.usuario.username} · {self.creada:%Y-%m-%d}'
+
+
+class Passkey(models.Model):
+    usuario = models.ForeignKey(User, on_delete=models.CASCADE, related_name='passkeys')
+    credencial_id = models.CharField(max_length=512, unique=True)
+    clave_publica = models.TextField()
+    contador = models.PositiveBigIntegerField(default=0)
+    nombre = models.CharField(max_length=60)
+    creada = models.DateTimeField(auto_now_add=True)
+    ultimo_uso = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ['-creada']
+        verbose_name = 'Acceso con Face ID o huella'
+        verbose_name_plural = 'Accesos con Face ID o huella'
+
+    def __str__(self):
+        return f'{self.nombre} de {self.usuario.username}'

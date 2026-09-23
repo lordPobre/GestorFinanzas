@@ -1,0 +1,133 @@
+{% extends 'finanzas/base.html' %}
+{% load humanize static %}
+{% block title %}Face ID o huella · Rekon{% endblock %}
+{% block topbar_sub %}Face ID o huella{% endblock %}
+
+{% block topbar_actions %}
+<a href="{% url 'perfil' %}" class="btn btn-glass"><i class="fas fa-arrow-left" style="font-size:11px"></i>Volver al perfil</a>
+{% endblock %}
+
+{% block content %}
+<div style="max-width:680px">
+
+  <div class="glass card" style="margin-bottom:16px;display:flex;gap:13px;align-items:flex-start">
+    <span style="display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;flex-shrink:0;border-radius:12px;background:var(--amber-tenue);color:var(--amber);font-size:14px">
+      <i class="fas fa-fingerprint"></i>
+    </span>
+    <div>
+      <div class="row-title" style="margin-bottom:3px">Entra sin escribir la contraseña</div>
+      <div class="row-meta">
+        Tu teléfono o computador revisa tu cara o tu huella y le confirma a Rekon que eres tú.
+        Tu cara y tu huella nunca salen del dispositivo. Si no te reconoce, entras con
+        contraseña{% if tiene_2fa %} y el código de verificación{% endif %}.
+      </div>
+    </div>
+  </div>
+
+  {% if not tiene_2fa %}
+  <a href="{% url 'configurar_2fa' %}" class="glass card" style="margin-bottom:16px;display:flex;gap:13px;align-items:center;text-decoration:none;color:inherit">
+    <span style="display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;flex-shrink:0;border-radius:12px;background:var(--coral-tenue);color:var(--coral);font-size:13px">
+      <i class="fas fa-shield-halved"></i>
+    </span>
+    <div class="row-main">
+      <div class="row-title" style="margin-bottom:3px">Activa también la verificación en dos pasos</div>
+      <div class="row-meta">Si Face ID o la huella fallan, hoy basta la contraseña para entrar. Con el código, la contraseña sola no alcanza.</div>
+    </div>
+    <i class="fas fa-chevron-right" style="font-size:10px;color:var(--text-muted);flex-shrink:0"></i>
+  </a>
+  {% endif %}
+
+  {% if passkeys %}
+  <div class="glass" style="border-radius:24px;overflow:hidden;margin-bottom:16px">
+    {% for p in passkeys %}
+    <div style="display:flex;align-items:center;gap:14px;padding:17px 20px;{% if not forloop.last %}border-bottom:1px solid rgba(255,255,255,.05){% endif %}">
+      <span class="icon-tile green"><i class="fas fa-fingerprint"></i></span>
+      <div class="row-main">
+        <div class="row-title">{{ p.nombre }}</div>
+        <div class="row-meta">
+          Vinculado {{ p.creada|naturaltime }}
+          · {% if p.ultimo_uso %}último uso {{ p.ultimo_uso|naturaltime }}{% else %}sin usar todavía{% endif %}
+        </div>
+      </div>
+      <form method="post" style="margin:0;flex-shrink:0">
+        {% csrf_token %}
+        <input type="hidden" name="accion" value="eliminar">
+        <input type="hidden" name="id" value="{{ p.pk }}">
+        <button type="submit" class="btn btn-glass btn-sm">Quitar</button>
+      </form>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <form id="formPasskey" class="glass card" style="margin-bottom:16px" data-spot>
+    {% csrf_token %}
+    <div class="modal-title" style="font-size:15px;font-weight:500">
+      {% if passkeys %}Vincular otro dispositivo{% else %}Vincular este dispositivo{% endif %}
+    </div>
+    <div class="hint" style="font-size:11.5px;margin:3px 0 20px">
+      Hazlo desde el teléfono o computador con el que quieres entrar. Te pedirá tu cara o tu huella para confirmar.
+    </div>
+
+    <div id="sinSoporte" class="row-meta" style="margin-bottom:16px" hidden>
+      Este navegador no permite entrar con Face ID o huella. Prueba desde Safari en iPhone, Chrome en Android o un computador actualizado.
+    </div>
+
+    <div class="form-row" style="flex-wrap:wrap">
+      <div style="flex:1;min-width:200px;margin-bottom:16px">
+        <label class="label" for="nombrePasskey">Nombre del dispositivo</label>
+        <input type="text" id="nombrePasskey" maxlength="60" value="{{ nombre_sugerido }}" autocomplete="off">
+      </div>
+      {% if pide_password %}
+      <div style="flex:1;min-width:200px;margin-bottom:16px">
+        <label class="label" for="passPasskey">Tu contraseña actual</label>
+        <input type="password" id="passPasskey" autocomplete="current-password" placeholder="••••••••" required>
+      </div>
+      {% endif %}
+    </div>
+
+    <div id="avisoPasskey" role="status" hidden
+         style="margin-top:4px;padding:12px 14px;border-radius:14px;background:var(--coral-tenue);border:1px solid rgba(226,92,92,.3);font-size:12px;color:var(--text-secondary);line-height:1.5"></div>
+
+    <button type="submit" id="btnPasskey" class="btn btn-amber" style="margin-top:20px">
+      <i class="fas fa-fingerprint"></i>Vincular con Face ID o huella
+    </button>
+  </form>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/passkeys.js' %}" nonce="{{ csp_nonce }}"></script>
+<script nonce="{{ csp_nonce }}">
+(function () {
+  var form = document.getElementById('formPasskey');
+  var boton = document.getElementById('btnPasskey');
+  var aviso = document.getElementById('avisoPasskey');
+  var pass = document.getElementById('passPasskey');
+  var nombre = document.getElementById('nombrePasskey');
+
+  if (!window.RekonPasskeys || !RekonPasskeys.soportado()) {
+    document.getElementById('sinSoporte').hidden = false;
+    boton.disabled = true;
+    return;
+  }
+
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    aviso.hidden = true;
+    boton.disabled = true;
+    RekonPasskeys.registrar(
+      { opciones: '{% url "passkey_registro_opciones" %}', verificar: '{% url "passkey_registro_verificar" %}' },
+      { password: pass ? pass.value : '', nombre: nombre.value }
+    ).then(function () {
+      window.location.reload();
+    }).catch(function (err) {
+      aviso.textContent = RekonPasskeys.mensaje(err, false);
+      aviso.hidden = false;
+      boton.disabled = false;
+    });
+  });
+})();
+</script>
+{% endblock %}

@@ -1,6 +1,6 @@
 from django.urls import path
 from django.contrib.auth import views as auth_views
-from . import google_login, views, views_cartola, views_cuenta, views_encuesta
+from . import google_login, views, views_cartola, views_cuenta, views_encuesta, views_passkeys
 from . import legal
 
 urlpatterns = [
@@ -72,6 +72,11 @@ urlpatterns = [
     path('logout/', auth_views.LogoutView.as_view(next_page='/login/'), name='logout'),
     path('verificar/', views_cuenta.verificar_codigo, name='verificar_codigo'),
     path('perfil/dos-pasos/', views_cuenta.configurar_2fa, name='configurar_2fa'),
+    path('perfil/face-id/', views_passkeys.passkeys, name='passkeys'),
+    path('perfil/face-id/opciones/', views_passkeys.registro_opciones, name='passkey_registro_opciones'),
+    path('perfil/face-id/verificar/', views_passkeys.registro_verificar, name='passkey_registro_verificar'),
+    path('entrar/face-id/opciones/', views_passkeys.entrar_opciones, name='passkey_entrar_opciones'),
+    path('entrar/face-id/verificar/', views_passkeys.entrar_verificar, name='passkey_entrar_verificar'),
     path('registro/', views_cuenta.registro, name='registro'),
 
     path('registro/confirmar/<str:token>/', views_cuenta.verificar_correo,

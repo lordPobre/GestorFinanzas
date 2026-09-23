@@ -28,7 +28,7 @@ from django.utils import timezone
 
 from . import legal, sesiones, verificacion
 from .models import (Categoria, CodigoRespaldo, Deuda, GastoPendiente, MetaAhorro,
-                     Persona, Presupuesto, SegundoFactor, Suscripcion,
+                     Passkey, Persona, Presupuesto, SegundoFactor, Suscripcion,
                      Transaccion, UserProfile)
 from .seguridad import (MAX_INTENTOS as MAX_INTENTOS_LOGIN, _ip, esta_bloqueado,
                         limitar, limpiar_intentos, registrar_fallo)
@@ -614,7 +614,7 @@ def _valor_serializable(valor):
         return valor
     return str(valor)
 
-CAMPOS_OCULTOS = {'secreto', 'codigo_hash', 'password'}
+CAMPOS_OCULTOS = {'secreto', 'codigo_hash', 'password', 'clave_publica', 'credencial_id', 'contador'}
 
 def _fila(obj):
     """Un objeto como diccionario plano, sin claves ajenas ni secretos."""
@@ -681,6 +681,7 @@ def mis_datos(request):
             for s in Suscripcion.objects.filter(usuario=u).prefetch_related('pagos')
         ],
         'gastos_pendientes': _filas(GastoPendiente.objects.filter(usuario=u)),
+        'accesos_face_id_o_huella': _filas(Passkey.objects.filter(usuario=u)),
         'verificacion_dos_pasos': {
             'activa': bool(factor and factor.activo),
             'codigos_de_respaldo_sin_usar': CodigoRespaldo.objects.filter(
