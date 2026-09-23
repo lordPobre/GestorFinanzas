@@ -3,7 +3,10 @@
 Sin django-csp: la política de esta app es corta y fija, y una dependencia
 más es una superficie más que mantener y actualizar.
 """
+import logging
 import secrets
+
+log = logging.getLogger("finanzas")
 
 class PoliticaContenidoMiddleware:
     """Content-Security-Policy: la última barrera contra el XSS.
@@ -45,7 +48,9 @@ class PoliticaContenidoMiddleware:
         except Exception:
             pass
 
-        if request.path.startswith("/admin"):
+        from django.conf import settings as _ajustes
+        ruta_admin = getattr(_ajustes, 'ADMIN_URL', '')
+        if ruta_admin and request.path.startswith(f"/{ruta_admin}/"):
             return respuesta
 
         tipo = respuesta.get("Content-Type", "")
@@ -90,6 +95,12 @@ class ActividadMiddleware:
     Una escritura por petición sería un UPDATE por cada carga de pantalla.
     La marca del día vive en la sesión, que ya está cargada, así que el
     coste real es una escritura al día por usuario.
+
+    Va en la fase de PETICIÓN, antes de la vista. En la de respuesta la
+    escritura comparte transacción con todo lo que la vista haya hecho: si
+    algo de ahí la dejó en mal estado, esta anotación falla en silencio y el
+    plazo de conservación declarado deja de cumplirse sin que nadie lo note.
+    Por lo mismo el fallo se registra en vez de pasarse por alto.
     """
 
     CLAVE = "actividad_dia"
@@ -98,24 +109,12 @@ class ActividadMiddleware:
         self.get_response = get_response
 
     def __call__(self, request):
-        respuesta = self.get_response(request)
-
         usuario = getattr(request, "user", None)
-        if not (usuario and usuario.is_authenticated):
-            return respuesta
+        if usuario is not None and usuario.is_authenticated:
+            self._marcar_dia(request, usuario)
+            self._marcar_sesion(request)
 
-        self._marcar_dia(request, usuario)
-
-        # El «visto por última vez» de la pantalla de sesiones. Tiene su
-        # propio intervalo porque un dato de granularidad diaria no sirve
-        # para reconocer una sesión ajena recién abierta.
-        try:
-            from . import sesiones
-            sesiones.tocar(request)
-        except Exception:
-            pass
-
-        return respuesta
+        return self.get_response(request)
 
     def _marcar_dia(self, request, usuario):
         from django.utils import timezone
@@ -126,8 +125,28 @@ class ActividadMiddleware:
 
         try:
             from .models import UserProfile
-            UserProfile.objects.filter(usuario=usuario).update(
+            filas = UserProfile.objects.filter(usuario=usuario).update(
                 ultima_actividad=timezone.now())
+            if not filas:
+                # Cuenta sin perfil: pasa con las creadas antes de que
+                # existiera el modelo, y sin fila no hay dónde anotar nada.
+                UserProfile.objects.get_or_create(
+                    usuario=usuario, defaults={'ultima_actividad': timezone.now()})
             request.session[self.CLAVE] = hoy
         except Exception:
-            pass
+            log.warning('No se pudo anotar la actividad del usuario %s',
+                        getattr(usuario, 'pk', '?'), exc_info=True)
+
+    def _marcar_sesion(self, request):
+        """El «visto por última vez» de la pantalla de sesiones.
+
+        Tiene su propio intervalo porque un dato de granularidad diaria no
+        sirve para reconocer una sesión ajena recién abierta. Y va aparte
+        para que un error acá —dos peticiones simultáneas creando la misma
+        fila, por ejemplo— no arrastre a la anotación de actividad.
+        """
+        try:
+            from . import sesiones
+            sesiones.tocar(request)
+        except Exception:
+            log.warning('No se pudo refrescar la sesión abierta', exc_info=True)

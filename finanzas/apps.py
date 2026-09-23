@@ -13,4 +13,4 @@ class FinanzasConfig(AppConfig):
     name = 'finanzas'
 
     def ready(self):
-        from . import sesiones  # noqa: F401
+        from . import auditoria, sesiones  # noqa: F401

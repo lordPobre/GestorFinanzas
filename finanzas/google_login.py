@@ -149,6 +149,7 @@ def google_listo(request):
     # backend explícito: login() lo necesita porque no pasamos por
     # authenticate(), y sin él Django levanta ValueError en cuanto haya más
     # de un backend configurado.
+    request.metodo_acceso = 'google'
     login(request, usuario, backend=BACKEND)
 
     if recien_creado:

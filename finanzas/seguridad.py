@@ -66,20 +66,33 @@ def _ip(request):
 MAX_INTENTOS = 5
 BLOQUEO_SEGUNDOS = 15 * 60
 
+MAX_POR_CUENTA = 20
+VENTANA_CUENTA = 60 * 60
+
+MAX_POR_IP = 50
+VENTANA_IP = 60 * 60
+
 
 def _clave_intentos(usuario, ip):
     return f"login:{usuario or '-'}:{ip}"
 
 
+def _contadores(usuario, ip):
+    salida = [(_clave_intentos(usuario, ip), MAX_INTENTOS, BLOQUEO_SEGUNDOS)]
+    if usuario:
+        salida.append((f"login-cuenta:{usuario}", MAX_POR_CUENTA, VENTANA_CUENTA))
+    salida.append((f"login-ip:{ip}", MAX_POR_IP, VENTANA_IP))
+    return salida
+
+
 def esta_bloqueado(usuario, ip):
     """Cuántos segundos quedan de bloqueo, o 0 si no lo está."""
-    datos = cache.get(_clave_intentos(usuario, ip))
-    if not datos:
-        return 0
-    intentos, hasta = datos
-    if intentos < MAX_INTENTOS:
-        return 0
-    restan = int(hasta - time.time())
+    restan = 0
+    ahora = time.time()
+    for clave, maximo, _ in _contadores(usuario, ip):
+        datos = cache.get(clave)
+        if datos and datos[0] >= maximo:
+            restan = max(restan, int(datos[1] - ahora))
     return max(0, restan)
 
 
@@ -90,17 +103,22 @@ def registrar_fallo(usuario, ip):
     podría dejar fuera a otra persona fallando a propósito con su nombre;
     por IP sola, una red compartida se bloquearía entera.
     """
-    clave = _clave_intentos(usuario, ip)
-    datos = cache.get(clave)
-    intentos = (datos[0] if datos else 0) + 1
-    hasta = time.time() + BLOQUEO_SEGUNDOS
-    cache.set(clave, (intentos, hasta), BLOQUEO_SEGUNDOS)
-    return intentos
+    ahora = time.time()
+    intentos_par = 0
+    for clave, _, segundos in _contadores(usuario, ip):
+        datos = cache.get(clave)
+        intentos = (datos[0] if datos else 0) + 1
+        cache.set(clave, (intentos, ahora + segundos), segundos)
+        if not intentos_par:
+            intentos_par = intentos
+    return intentos_par
 
 
 def limpiar_intentos(usuario, ip):
     """Al entrar bien se borra el contador: los fallos previos ya no cuentan."""
     cache.delete(_clave_intentos(usuario, ip))
+    if usuario:
+        cache.delete(f"login-cuenta:{usuario}")
 
 
 # ============================================================

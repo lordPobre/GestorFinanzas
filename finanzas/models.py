@@ -1642,3 +1642,44 @@ class Passkey(models.Model):
 
     def __str__(self):
         return f'{self.nombre} de {self.usuario.username}'
+
+
+class EventoSeguridad(models.Model):
+    TIPOS = [
+        ('acceso', 'Acceso'),
+        ('acceso_fallido', 'Acceso fallido'),
+        ('salida', 'Salida'),
+        ('bloqueo', 'Bloqueo por intentos'),
+        ('codigo_fallido', 'Código de verificación incorrecto'),
+        ('2fa_activada', 'Verificación en dos pasos activada'),
+        ('2fa_desactivada', 'Verificación en dos pasos desactivada'),
+        ('codigos_regenerados', 'Códigos de respaldo regenerados'),
+        ('codigo_respaldo_usado', 'Código de respaldo usado'),
+        ('passkey_agregada', 'Face ID o huella vinculado'),
+        ('passkey_quitada', 'Face ID o huella quitado'),
+        ('passkey_fallida', 'Face ID o huella rechazado'),
+        ('contrasena_cambiada', 'Contraseña cambiada'),
+        ('recuperacion_pedida', 'Recuperación de contraseña pedida'),
+        ('contrasena_restablecida', 'Contraseña restablecida'),
+        ('sesiones_cerradas', 'Sesiones cerradas a distancia'),
+        ('datos_descargados', 'Descarga de datos personales'),
+        ('cuenta_eliminada', 'Cuenta eliminada'),
+        ('admin_denegado', 'Acceso al panel denegado'),
+    ]
+
+    creado = models.DateTimeField(auto_now_add=True, db_index=True)
+    tipo = models.CharField(max_length=30, choices=TIPOS, db_index=True)
+    usuario = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL,
+                                related_name='eventos_seguridad')
+    referencia = models.CharField(max_length=150, blank=True, db_index=True)
+    ip = models.GenericIPAddressField(null=True, blank=True)
+    agente = models.CharField(max_length=300, blank=True)
+    detalle = models.CharField(max_length=300, blank=True)
+
+    class Meta:
+        ordering = ['-creado']
+        verbose_name = 'Evento de seguridad'
+        verbose_name_plural = 'Eventos de seguridad'
+
+    def __str__(self):
+        return f'{self.get_tipo_display()} · {self.referencia or "-"} · {self.creado:%Y-%m-%d %H:%M}'

@@ -96,6 +96,11 @@ def _monto_post(request, campo='monto'):
     except (InvalidOperation, ValueError, AttributeError):
         return Decimal('0')
 
+def _decimal(valor):
+    if isinstance(valor, Decimal):
+        return valor
+    return Decimal(str(valor or 0))
+
 def resumen_mes(usuario, year, month):
     """Los números del mes en un solo lugar.
 
@@ -108,26 +113,26 @@ def resumen_mes(usuario, year, month):
     fecha_fin = date(year, month, ultimo_dia)
     hoy = date.today()
 
-    ingresos = float(Transaccion.objects.filter(
+    cero = Decimal('0')
+    ingresos = Transaccion.objects.filter(
         usuario=usuario, tipo='INGRESO',
         fecha__gte=fecha_inicio, fecha__lte=fecha_fin,
-    ).aggregate(t=Sum('monto'))['t'] or 0)
+    ).aggregate(t=Sum('monto'))['t'] or cero
 
     qs_gastos = Transaccion.objects.filter(
         usuario=usuario, tipo='EGRESO',
         fecha__gte=fecha_inicio, fecha__lte=fecha_fin, es_cuota=False,
     )
-    gastos = float(qs_gastos.aggregate(t=Sum('monto'))['t'] or 0)
+    gastos = qs_gastos.aggregate(t=Sum('monto'))['t'] or cero
 
-    gastos_pagados = float(qs_gastos.filter(pagado=True)
-                                    .aggregate(t=Sum('monto'))['t'] or 0)
+    gastos_pagados = qs_gastos.filter(pagado=True).aggregate(t=Sum('monto'))['t'] or cero
     gastos_por_pagar = gastos - gastos_pagados
 
     periodo = year * 100 + month
 
     deudas = Deuda.objects.filter(usuario=usuario).prefetch_related('pagos')
-    cuotas_pagadas = 0.0
-    cuotas_pendientes = 0.0
+    cuotas_pagadas = cero
+    cuotas_pendientes = cero
     eventos = {}
 
     for d in deudas:
@@ -141,7 +146,7 @@ def resumen_mes(usuario, year, month):
         estado = 'pagado' if pago else 'pendiente'
 
         monto_cuota = pago.monto if pago else d.monto_cuota_de(periodo)
-        monto = float(monto_cuota)
+        monto = _decimal(monto_cuota)
 
         if estado == 'pagado':
             cuotas_pagadas += monto
@@ -156,30 +161,30 @@ def resumen_mes(usuario, year, month):
 
     total_cuotas = cuotas_pagadas + cuotas_pendientes
 
-    servicios_pagados = 0.0
-    servicios_pendientes = 0.0
+    servicios_pagados = cero
+    servicios_pendientes = cero
     for s in Suscripcion.objects.filter(usuario=usuario).prefetch_related('pagos'):
         if periodo not in s.periodos_programados:
             continue
-        monto = float(s.monto)
+        monto = _decimal(s.monto)
         if s.esta_pagada_en(periodo):
             servicios_pagados += monto
         else:
             servicios_pendientes += monto
 
-    atrasado_arrastrado = 0.0
+    atrasado_arrastrado = cero
     cuotas_arrastradas = []
     if (year, month) == (hoy.year, hoy.month):
         for d in deudas:
             for p in d.periodos_atrasados:
                 if p >= periodo:
                     continue
-                monto_p = float(d.monto_cuota_de(p))
+                monto_p = _decimal(d.monto_cuota_de(p))
                 atrasado_arrastrado += monto_p
                 cuotas_arrastradas.append({
                     'deuda': d,
                     'periodo': p,
-                    'monto': monto_p,
+                    'monto': float(monto_p),
                     'etiqueta': nombre_mes_es(p // 100, p % 100),
                 })
     cuotas_arrastradas.sort(key=lambda c: c['periodo'])
@@ -192,30 +197,38 @@ def resumen_mes(usuario, year, month):
     else:
         dias_restantes = ultimo_dia
 
-    base = max(ingresos, 1.0)
+    base = max(ingresos, Decimal('1'))
+    libre = max(cero, disponible)
     return {
         'fecha_inicio': fecha_inicio,
         'fecha_fin': fecha_fin,
         'ultimo_dia': ultimo_dia,
-        'ingresos': ingresos,
-        'gastos': gastos,
-        'gastos_pagados': gastos_pagados,
-        'gastos_por_pagar': gastos_por_pagar,
-        'cuotas_pagadas_mes': cuotas_pagadas,
-        'cuotas_pendientes_mes': cuotas_pendientes,
-        'total_cuotas_mes': total_cuotas,
-        'servicios_pagados_mes': servicios_pagados,
-        'servicios_pendientes_mes': servicios_pendientes,
-        'total_servicios_mes': servicios_pagados + servicios_pendientes,
-        'atrasado_arrastrado': atrasado_arrastrado,
+        'ingresos': float(ingresos),
+        'gastos': float(gastos),
+        'gastos_pagados': float(gastos_pagados),
+        'gastos_por_pagar': float(gastos_por_pagar),
+        'cuotas_pagadas_mes': float(cuotas_pagadas),
+        'cuotas_pendientes_mes': float(cuotas_pendientes),
+        'total_cuotas_mes': float(total_cuotas),
+        'servicios_pagados_mes': float(servicios_pagados),
+        'servicios_pendientes_mes': float(servicios_pendientes),
+        'total_servicios_mes': float(servicios_pagados + servicios_pendientes),
+        'atrasado_arrastrado': float(atrasado_arrastrado),
         'cuotas_arrastradas': cuotas_arrastradas,
-        'comprometido': comprometido,
-        'disponible': disponible,
+        'comprometido': float(comprometido),
+        'disponible': float(disponible),
+        'exacto': {
+            'ingresos': ingresos,
+            'gastos': gastos,
+            'total_cuotas_mes': total_cuotas,
+            'comprometido': comprometido,
+            'disponible': disponible,
+        },
         'dias_restantes': dias_restantes,
-        'por_dia': max(0.0, disponible) / dias_restantes,
+        'por_dia': float(libre / dias_restantes),
         'pct_gastado': round(min(100, gastos / base * 100)),
         'pct_por_pagar': round(min(100, cuotas_pendientes / base * 100)),
-        'pct_disponible': round(min(100, max(0.0, disponible) / base * 100)),
+        'pct_disponible': round(min(100, libre / base * 100)),
         'eventos': eventos,
     }
 

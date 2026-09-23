@@ -5,7 +5,7 @@
     "buildCommand": "python manage.py collectstatic --noinput"
   },
   "deploy": {
-    "preDeployCommand": "python manage.py migrate --noinput",
+    "preDeployCommand": "python manage.py createcachetable && python manage.py migrate --noinput",
     "startCommand": "gunicorn core.wsgi --bind 0.0.0.0:$PORT --workers 2 --threads 4 --timeout 60",
     "healthcheckPath": "/salud/",
     "healthcheckTimeout": 30,

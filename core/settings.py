@@ -147,6 +147,9 @@ LOGIN_REDIRECT_URL = 'dashboard'
 LOGOUT_REDIRECT_URL = 'login'
 LOGIN_URL = 'login'
 
+ADMIN_URL = os.environ.get('ADMIN_URL', '').strip().strip('/')
+WEBAUTHN_RP_ID = os.environ.get('WEBAUTHN_RP_ID', '').strip()
+
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 if not DEBUG:

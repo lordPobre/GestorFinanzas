@@ -26,9 +26,9 @@ from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.utils import timezone
 
-from . import legal, sesiones, verificacion
-from .models import (Categoria, CodigoRespaldo, Deuda, GastoPendiente, MetaAhorro,
-                     Passkey, Persona, Presupuesto, SegundoFactor, Suscripcion,
+from . import auditoria, legal, sesiones, verificacion
+from .models import (Categoria, CodigoRespaldo, Deuda, EventoSeguridad, GastoPendiente, MetaAhorro,
+                     Passkey, Persona, Presupuesto, RespuestaEncuesta, SegundoFactor, Suscripcion,
                      Transaccion, UserProfile)
 from .seguridad import (MAX_INTENTOS as MAX_INTENTOS_LOGIN, _ip, esta_bloqueado,
                         limitar, limpiar_intentos, registrar_fallo)
@@ -68,7 +68,7 @@ def entrar(request):
             factor = SegundoFactor.objects.filter(usuario=usuario, activo=True).first()
             if factor:
                 request.session['2fa_pendiente'] = usuario.pk
-                request.session['2fa_next'] = request.POST.get('next', '')
+                request.session['2fa_next'] = request.POST.get('next') or request.GET.get('next', '')
                 return redirect('verificar_codigo')
 
             login(request, usuario)
@@ -86,6 +86,7 @@ def entrar(request):
                 f'Te queda{"n" if quedan != 1 else ""} {quedan} intento'
                 + ('s' if quedan != 1 else '') + '.')
         else:
+            auditoria.registrar('bloqueo', request, referencia=usuario_txt, detalle='contraseña')
             messages.error(request, 'Demasiados intentos. Espera 15 minutos.')
         return render(request, 'registration/login.html', {'form': form})
 
@@ -129,9 +130,11 @@ def verificar_codigo(request):
             limpiar_intentos(clave_2fa, ip)
             request.session.pop('2fa_pendiente', None)
             destino = request.session.pop('2fa_next', '')
+            request.metodo_acceso = 'código de respaldo' if usa_respaldo else 'código de verificación'
             login(request, usuario)
 
             if usa_respaldo:
+                auditoria.registrar('codigo_respaldo_usado', request, usuario)
                 quedan = CodigoRespaldo.objects.filter(usuario=usuario, usado=False).count()
                 messages.warning(
                     request,
@@ -143,6 +146,7 @@ def verificar_codigo(request):
             return redirect('dashboard')
 
         registrar_fallo(clave_2fa, ip)
+        auditoria.registrar('codigo_fallido', request, usuario, detalle='acceso')
         messages.error(request, 'Código incorrecto o ya usado.')
 
     return render(request, 'registration/verificar.html', {
@@ -219,6 +223,7 @@ def configurar_2fa(request):
                 factor.activo = True
                 factor.save(update_fields=['activo'])
                 codigos = CodigoRespaldo.generar(request.user)
+                auditoria.registrar('2fa_activada', request)
                 messages.success(request, 'Verificación en dos pasos activada.')
                 return render(request, 'finanzas/codigos_respaldo.html',
                               {'codigos': codigos, 'recien_creados': True})
@@ -230,6 +235,7 @@ def configurar_2fa(request):
                 return redirect('configurar_2fa')
             factor.delete()
             CodigoRespaldo.objects.filter(usuario=request.user).delete()
+            auditoria.registrar('2fa_desactivada', request)
             messages.success(request, 'Verificación en dos pasos desactivada.')
             return redirect('perfil')
 
@@ -238,6 +244,7 @@ def configurar_2fa(request):
                 messages.error(request, 'Contraseña incorrecta.')
                 return redirect('configurar_2fa')
             codigos = CodigoRespaldo.generar(request.user)
+            auditoria.registrar('codigos_regenerados', request)
             return render(request, 'finanzas/codigos_respaldo.html',
                           {'codigos': codigos, 'recien_creados': False})
 
@@ -303,6 +310,7 @@ def recuperar(request):
 
         usuario = _usuario_por_correo(correo_txt)
         if usuario:
+            auditoria.registrar('recuperacion_pedida', request, usuario)
             enlace = url_absoluta(request, reverse('restablecer', kwargs={
                 'uidb64': urlsafe_base64_encode(force_bytes(usuario.pk)),
                 'token': default_token_generator.make_token(usuario),
@@ -362,11 +370,13 @@ def restablecer(request, uidb64, token):
             else:
                 codigo_ok = factor.verificar(codigo)
             if not codigo_ok:
+                auditoria.registrar('codigo_fallido', request, usuario, detalle='restablecer')
                 form.add_error(None, 'El código de verificación no es correcto.')
 
         if form.is_valid() and codigo_ok:
             form.save()
             limpiar_intentos(usuario.username, _ip(request))
+            auditoria.registrar('contrasena_restablecida', request, usuario)
             messages.success(request, 'Tu contraseña quedó cambiada. Entra con ella.')
             return redirect('login')
 
@@ -550,6 +560,7 @@ def perfil(request):
             if pw_form.is_valid():
                 user = pw_form.save()
                 update_session_auth_hash(request, user)
+                auditoria.registrar('contrasena_cambiada', request, user)
                 messages.success(request, 'Contraseña actualizada.')
                 return redirect('perfil')
         elif accion == 'aviso_mensual':
@@ -682,6 +693,8 @@ def mis_datos(request):
         ],
         'gastos_pendientes': _filas(GastoPendiente.objects.filter(usuario=u)),
         'accesos_face_id_o_huella': _filas(Passkey.objects.filter(usuario=u)),
+        'respuestas_a_la_encuesta': _filas(RespuestaEncuesta.objects.filter(usuario=u)),
+        'eventos_de_seguridad': _filas(EventoSeguridad.objects.filter(usuario=u)),
         'verificacion_dos_pasos': {
             'activa': bool(factor and factor.activo),
             'codigos_de_respaldo_sin_usar': CodigoRespaldo.objects.filter(
@@ -694,6 +707,7 @@ def mis_datos(request):
     archivo = f'Rekon_mis_datos_{u.get_username()}_{hoy:%Y-%m-%d}.json'
     respuesta['Content-Disposition'] = f'attachment; filename="{archivo}"'
     logger.info('Descarga de datos personales solicitada por el usuario %s', u.pk)
+    auditoria.registrar('datos_descargados', request, u)
     return respuesta
 
 @login_required(login_url='/login/')
@@ -748,6 +762,7 @@ def eliminar_cuenta(request):
             logger.exception('No se pudo borrar la foto de perfil del usuario %s', u.pk)
 
     uid, nombre = u.pk, u.get_username()
+    auditoria.registrar('cuenta_eliminada', request, u, referencia=nombre)
     logout(request)
     User.objects.filter(pk=uid).delete()
     logger.warning('Cuenta eliminada a pedido del titular: id=%s usuario=%s', uid, nombre)
@@ -813,6 +828,7 @@ def sesiones_activas(request):
         if request.POST.get('accion') == 'cerrar_todas':
             cerradas = sesiones.cerrar_otras(request.user, clave)
             if cerradas:
+                auditoria.registrar('sesiones_cerradas', request, detalle=f'{cerradas} sesiones')
                 messages.success(
                     request,
                     f'Cerramos {cerradas} sesión{"es" if cerradas != 1 else ""}. '
@@ -825,6 +841,7 @@ def sesiones_activas(request):
                 messages.warning(request,
                                  'Esa es la sesión que estás usando. Para cerrarla, sal de la cuenta.')
             elif sesiones.cerrar(request.user, objetivo):
+                auditoria.registrar('sesiones_cerradas', request, detalle='1 sesión')
                 messages.success(request, 'Sesión cerrada.')
             else:
                 messages.info(request, 'Esa sesión ya no estaba abierta.')

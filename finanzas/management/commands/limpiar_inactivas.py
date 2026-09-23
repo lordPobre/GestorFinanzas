@@ -20,7 +20,7 @@ esté anotado, así que no puede adelantarse.
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 
-from finanzas import inactividad
+from finanzas import auditoria, inactividad
 
 
 class Command(BaseCommand):
@@ -78,4 +78,7 @@ class Command(BaseCommand):
             resumen += f', {fallidos} aviso(s) con error'
         if seco:
             resumen = 'Simulación: no se envió ni se borró nada.'
+        else:
+            eventos = auditoria.purgar(ahora)
+            resumen += f', {eventos} evento(s) de seguridad de más de {auditoria.DIAS_CONSERVACION} días borrado(s)'
         self.stdout.write(self.style.WARNING(resumen))

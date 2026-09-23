@@ -21,6 +21,7 @@ from webauthn.helpers.structs import (AuthenticatorSelectionCriteria,
                                       ResidentKeyRequirement,
                                       UserVerificationRequirement)
 
+from . import auditoria
 from .models import Passkey, SegundoFactor
 from .seguridad import _ip, esta_bloqueado, limitar, limpiar_intentos, registrar_fallo
 from .views import contadores
@@ -28,7 +29,7 @@ from .views import contadores
 logger = logging.getLogger('finanzas')
 
 RP_NOMBRE = 'Rekon'
-CLAVE_BLOQUEO = 'passkey'
+CLAVE_BLOQUEO = ''
 BACKEND = 'django.contrib.auth.backends.ModelBackend'
 
 
@@ -70,6 +71,7 @@ def passkeys(request):
         borradas, _ = Passkey.objects.filter(usuario=request.user,
                                              pk=request.POST.get('id')).delete()
         if borradas:
+            auditoria.registrar('passkey_quitada', request)
             messages.success(request, 'Ese dispositivo ya no puede entrar con Face ID o huella.')
         return redirect('passkeys')
 
@@ -141,6 +143,7 @@ def registro_verificar(request):
         contador=verificado.sign_count,
         nombre=nombre,
     )
+    auditoria.registrar('passkey_agregada', request, detalle=nombre)
     messages.success(request, 'Listo. La próxima vez puedes entrar con Face ID o huella.')
     return JsonResponse({'ok': True})
 
@@ -175,6 +178,7 @@ def entrar_verificar(request):
             credencial_id=datos.get('rawId') or datos.get('id'))
     except (ValueError, AttributeError, Passkey.DoesNotExist):
         registrar_fallo(CLAVE_BLOQUEO, ip)
+        auditoria.registrar('passkey_fallida', request, detalle='credencial desconocida')
         return _error('Este dispositivo no está vinculado a ninguna cuenta. '
                       'Entra con tu contraseña.')
 
@@ -195,6 +199,7 @@ def entrar_verificar(request):
     except Exception as exc:
         logger.info('Acceso con passkey rechazado: %s', exc)
         registrar_fallo(CLAVE_BLOQUEO, ip)
+        auditoria.registrar('passkey_fallida', request, usuario, detalle='firma rechazada')
         return _error('No pudimos reconocerte. Entra con tu contraseña.')
 
     if not usuario.is_active:
@@ -205,5 +210,6 @@ def entrar_verificar(request):
     passkey.save(update_fields=['contador', 'ultimo_uso'])
     limpiar_intentos(CLAVE_BLOQUEO, ip)
 
+    request.metodo_acceso = 'face_id_o_huella'
     login(request, usuario, backend=BACKEND)
     return JsonResponse({'ok': True, 'destino': _destino(request.POST.get('next', ''))})
