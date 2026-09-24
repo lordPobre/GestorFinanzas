@@ -1,4 +1,4 @@
-"""Cartola de cuenta corriente del Banco de Chile.
+r"""Cartola de cuenta corriente del Banco de Chile.
 
 Formato de una fila, ya extraída del PDF:
 

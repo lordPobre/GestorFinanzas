@@ -1051,3 +1051,349 @@ django.db.utils.OperationalError: no such column: finanzas_userprofile.analisis_
 2026-09-19 13:42:04,345 INFO finanzas Descarga de datos personales solicitada por el usuario 1
 2026-09-19 13:42:05,140 INFO finanzas Alta de cuenta 1 con politica version 1.1
 2026-09-19 13:42:05,772 INFO finanzas Correo aceptado: 01a0ba8b-e5f4-76ca-a6f3-c06fbe657221
+2026-09-23 14:13:17,140 INFO finanzas seguridad tipo=acceso_fallido usuario=- ref=Celf ip=127.0.0.1
+2026-09-23 14:13:21,865 INFO finanzas seguridad tipo=acceso usuario=1 ref=clopez ip=127.0.0.1
+2026-09-23 14:13:22,389 ERROR django.request Internal Server Error: /
+Traceback (most recent call last):
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\template\base.py", line 510, in parse
+    compile_func = self.tags[command]
+                   ~~~~~~~~~^^^^^^^^^
+KeyError: 'static'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\contrib\auth\decorators.py", line 60, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\finanzas\views.py", line 689, in dashboard
+    return render(request, 'finanzas/dashboard.html', context)
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\shortcuts.py", line 25, in render
+    content = loader.render_to_string(template_name, context, request, using=using)
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\template\loader.py", line 61, in render_to_string
+    template = get_template(template_name, using=using)
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\template\loader.py", line 15, in get_template
+    return engine.get_template(template_name)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\template\backends\django.py", line 79, in get_template
+    return Template(self.engine.get_template(template_name), self)
+                    ~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\template\engine.py", line 177, in get_template
+    template, origin = self.find_template(template_name)
+                       ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\template\engine.py", line 159, in find_template
+    template = loader.get_template(name, skip=skip)
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\template\loaders\cached.py", line 57, in get_template
+    template = super().get_template(template_name, skip)
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\template\loaders\base.py", line 28, in get_template
+    return Template(
+        contents,
+    ...<2 lines>...
+        self.engine,
+    )
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\template\base.py", line 154, in __init__
+    self.nodelist = self.compile_nodelist()
+                    ~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\template\base.py", line 196, in compile_nodelist
+    nodelist = parser.parse()
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\template\base.py", line 518, in parse
+    raise self.error(token, e)
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\template\base.py", line 516, in parse
+    compiled_result = compile_func(self, token)
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\template\loader_tags.py", line 295, in do_extends
+    nodelist = parser.parse()
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\template\base.py", line 518, in parse
+    raise self.error(token, e)
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\template\base.py", line 516, in parse
+    compiled_result = compile_func(self, token)
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\template\loader_tags.py", line 234, in do_block
+    nodelist = parser.parse(("endblock",))
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\template\base.py", line 512, in parse
+    self.invalid_block_tag(token, command, parse_until)
+    ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\template\base.py", line 563, in invalid_block_tag
+    raise self.error(
+    ...<8 lines>...
+    )
+django.template.exceptions.TemplateSyntaxError: Invalid block tag on line 15: 'static', expected 'endblock'. Did you forget to register or load this tag?
+2026-09-23 23:40:22,297 INFO finanzas Aviso de inactividad enviado al usuario 1
+2026-09-23 23:40:22,397 WARNING finanzas Cuenta inactiva 1 sin correo: no se puede avisar
+2026-09-23 23:40:22,515 WARNING finanzas Cuenta borrada por inactividad: id=1 usuario=vieja dias=400
+2026-09-23 23:40:23,207 INFO finanzas Aviso de inactividad enviado al usuario 1
+2026-09-23 23:40:24,394 INFO finanzas seguridad tipo=acceso usuario=1 ref=nueva ip=127.0.0.1
+2026-09-23 23:40:24,399 INFO finanzas Alta de cuenta 1 con politica version 1.2
+2026-09-23 23:40:24,543 INFO finanzas seguridad tipo=acceso usuario=1 ref=nueva ip=127.0.0.1
+2026-09-23 23:40:24,547 INFO finanzas Alta de cuenta 1 con politica version 1.2
+2026-09-23 23:40:24,818 INFO finanzas Correo confirmado por el usuario 1
+2026-09-23 23:40:24,948 INFO finanzas seguridad tipo=acceso usuario=1 ref=ana ip=-
+2026-09-23 23:40:25,284 INFO finanzas Correo confirmado por el usuario 1
+2026-09-23 23:40:25,413 INFO finanzas seguridad tipo=acceso usuario=1 ref=ana ip=-
+2026-09-23 23:40:25,821 INFO finanzas seguridad tipo=acceso usuario=1 ref=ana ip=127.0.0.1
+2026-09-23 23:40:25,947 INFO finanzas seguridad tipo=acceso usuario=1 ref=ana ip=127.0.0.1
+2026-09-23 23:40:25,957 WARNING finanzas Cerradas 1 sesiones a distancia: usuario=1
+2026-09-23 23:40:25,957 INFO finanzas seguridad tipo=sesiones_cerradas usuario=1 ref=ana ip=127.0.0.1
+2026-09-23 23:40:26,250 INFO finanzas seguridad tipo=acceso usuario=1 ref=ana ip=127.0.0.1
+2026-09-23 23:40:26,486 INFO finanzas seguridad tipo=acceso usuario=1 ref=ana ip=127.0.0.1
+2026-09-23 23:40:26,907 INFO finanzas seguridad tipo=acceso usuario=2 ref=beto ip=127.0.0.1
+2026-09-23 23:40:27,048 INFO finanzas seguridad tipo=acceso usuario=1 ref=ana ip=127.0.0.1
+2026-09-23 23:40:27,340 INFO finanzas seguridad tipo=acceso usuario=1 ref=ana ip=127.0.0.1
+2026-09-23 23:40:27,347 INFO finanzas seguridad tipo=salida usuario=1 ref=ana ip=127.0.0.1
+2026-09-23 23:40:27,480 INFO finanzas seguridad tipo=codigo_fallido usuario=1 ref=ana ip=127.0.0.1
+2026-09-23 23:40:27,502 INFO finanzas seguridad tipo=codigo_fallido usuario=1 ref=ana ip=127.0.0.1
+2026-09-23 23:40:27,510 INFO finanzas seguridad tipo=codigo_fallido usuario=1 ref=ana ip=127.0.0.1
+2026-09-23 23:40:27,518 INFO finanzas seguridad tipo=codigo_fallido usuario=1 ref=ana ip=127.0.0.1
+2026-09-23 23:40:27,526 INFO finanzas seguridad tipo=codigo_fallido usuario=1 ref=ana ip=127.0.0.1
+2026-09-23 23:40:27,775 INFO finanzas seguridad tipo=acceso usuario=1 ref=ana ip=-
+2026-09-23 23:40:27,905 INFO finanzas seguridad tipo=cuenta_eliminada usuario=1 ref=ana ip=127.0.0.1
+2026-09-23 23:40:27,907 INFO finanzas seguridad tipo=salida usuario=1 ref=ana ip=127.0.0.1
+2026-09-23 23:40:27,939 WARNING finanzas Cuenta eliminada a pedido del titular: id=1 usuario=ana
+2026-09-23 23:40:28,188 INFO finanzas seguridad tipo=acceso usuario=1 ref=ana ip=-
+2026-09-23 23:40:28,318 INFO finanzas seguridad tipo=cuenta_eliminada usuario=1 ref=ana ip=127.0.0.1
+2026-09-23 23:40:28,320 INFO finanzas seguridad tipo=salida usuario=1 ref=ana ip=127.0.0.1
+2026-09-23 23:40:28,342 WARNING finanzas Cuenta eliminada a pedido del titular: id=1 usuario=ana
+2026-09-23 23:40:28,572 INFO finanzas seguridad tipo=acceso usuario=1 ref=ana ip=-
+2026-09-23 23:40:28,577 INFO finanzas seguridad tipo=salida usuario=1 ref=ana ip=-
+2026-09-23 23:40:28,837 INFO finanzas seguridad tipo=acceso usuario=1 ref=ana ip=-
+2026-09-23 23:40:29,087 INFO finanzas seguridad tipo=acceso usuario=1 ref=ana ip=-
+2026-09-23 23:40:29,384 INFO finanzas seguridad tipo=acceso usuario=1 ref=ana ip=-
+2026-09-23 23:40:29,415 ERROR django.request Internal Server Error: /perfil/mis-datos/
+Traceback (most recent call last):
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\contrib\auth\decorators.py", line 59, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\finanzas\views_cuenta.py", line 670, in mis_datos
+    'perfil': _fila(perfil_obj) if perfil_obj else None,
+              ~~~~~^^^^^^^^^^^^
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\finanzas\views_cuenta.py", line 636, in _fila
+    fila[campo.name] = _valor_serializable(getattr(obj, campo.name, None))
+                       ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\finanzas\views_cuenta.py", line 619, in _valor_serializable
+    if hasattr(valor, 'url'):
+       ~~~~~~~^^^^^^^^^^^^^^
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\db\models\fields\files.py", line 69, in url
+    self._require_file()
+    ~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\db\models\fields\files.py", line 44, in _require_file
+    raise ValueError(
+        "The '%s' attribute has no file associated with it." % self.field.name
+    )
+ValueError: The 'foto' attribute has no file associated with it.
+2026-09-23 23:40:29,611 INFO finanzas seguridad tipo=acceso usuario=1 ref=ana ip=-
+2026-09-23 23:40:29,638 ERROR django.request Internal Server Error: /perfil/mis-datos/
+Traceback (most recent call last):
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\contrib\auth\decorators.py", line 59, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\finanzas\views_cuenta.py", line 670, in mis_datos
+    'perfil': _fila(perfil_obj) if perfil_obj else None,
+              ~~~~~^^^^^^^^^^^^
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\finanzas\views_cuenta.py", line 636, in _fila
+    fila[campo.name] = _valor_serializable(getattr(obj, campo.name, None))
+                       ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\finanzas\views_cuenta.py", line 619, in _valor_serializable
+    if hasattr(valor, 'url'):
+       ~~~~~~~^^^^^^^^^^^^^^
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\db\models\fields\files.py", line 69, in url
+    self._require_file()
+    ~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\db\models\fields\files.py", line 44, in _require_file
+    raise ValueError(
+        "The '%s' attribute has no file associated with it." % self.field.name
+    )
+ValueError: The 'foto' attribute has no file associated with it.
+2026-09-23 23:40:29,833 INFO finanzas seguridad tipo=acceso usuario=1 ref=ana ip=-
+2026-09-23 23:40:29,838 INFO finanzas seguridad tipo=salida usuario=1 ref=ana ip=-
+2026-09-23 23:40:30,053 INFO finanzas seguridad tipo=acceso usuario=1 ref=ana ip=-
+2026-09-23 23:40:30,093 ERROR django.request Internal Server Error: /perfil/mis-datos/
+Traceback (most recent call last):
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\contrib\auth\decorators.py", line 59, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\finanzas\views_cuenta.py", line 670, in mis_datos
+    'perfil': _fila(perfil_obj) if perfil_obj else None,
+              ~~~~~^^^^^^^^^^^^
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\finanzas\views_cuenta.py", line 636, in _fila
+    fila[campo.name] = _valor_serializable(getattr(obj, campo.name, None))
+                       ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\finanzas\views_cuenta.py", line 619, in _valor_serializable
+    if hasattr(valor, 'url'):
+       ~~~~~~~^^^^^^^^^^^^^^
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\db\models\fields\files.py", line 69, in url
+    self._require_file()
+    ~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\db\models\fields\files.py", line 44, in _require_file
+    raise ValueError(
+        "The '%s' attribute has no file associated with it." % self.field.name
+    )
+ValueError: The 'foto' attribute has no file associated with it.
+2026-09-23 23:40:30,710 INFO finanzas seguridad tipo=acceso usuario=1 ref=ana ip=-
+2026-09-23 23:40:30,824 INFO finanzas seguridad tipo=cuenta_eliminada usuario=1 ref=ana ip=127.0.0.1
+2026-09-23 23:40:30,827 INFO finanzas seguridad tipo=salida usuario=1 ref=ana ip=127.0.0.1
+2026-09-23 23:40:30,840 WARNING finanzas Cuenta eliminada a pedido del titular: id=1 usuario=ana
+2026-09-23 23:40:31,252 INFO finanzas seguridad tipo=acceso usuario=1 ref=ana ip=127.0.0.1
+2026-09-23 23:40:31,445 INFO finanzas seguridad tipo=acceso_fallido usuario=- ref=ana ip=127.0.0.1
+2026-09-23 23:40:31,565 INFO finanzas seguridad tipo=acceso usuario=1 ref=ana ip=-
+2026-09-23 23:40:31,566 INFO finanzas seguridad tipo=contrasena_cambiada usuario=1 ref=ana ip=-
+2026-09-23 23:40:31,593 ERROR django.request Internal Server Error: /perfil/mis-datos/
+Traceback (most recent call last):
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\contrib\auth\decorators.py", line 59, in _view_wrapper
+    return view_func(request, *args, **kwargs)
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\finanzas\views_cuenta.py", line 670, in mis_datos
+    'perfil': _fila(perfil_obj) if perfil_obj else None,
+              ~~~~~^^^^^^^^^^^^
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\finanzas\views_cuenta.py", line 636, in _fila
+    fila[campo.name] = _valor_serializable(getattr(obj, campo.name, None))
+                       ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\finanzas\views_cuenta.py", line 619, in _valor_serializable
+    if hasattr(valor, 'url'):
+       ~~~~~~~^^^^^^^^^^^^^^
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\db\models\fields\files.py", line 69, in url
+    self._require_file()
+    ~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\celf_\Downloads\Desarrollo\GestorFinanzas\venv\Lib\site-packages\django\db\models\fields\files.py", line 44, in _require_file
+    raise ValueError(
+        "The '%s' attribute has no file associated with it." % self.field.name
+    )
+ValueError: The 'foto' attribute has no file associated with it.
+2026-09-23 23:40:31,703 INFO finanzas seguridad tipo=acceso usuario=1 ref=ana ip=-
+2026-09-23 23:40:31,704 INFO finanzas seguridad tipo=salida usuario=1 ref=ana ip=-
+2026-09-23 23:40:32,498 INFO finanzas seguridad tipo=acceso usuario=1 ref=jefa ip=-
+2026-09-23 23:40:32,996 INFO finanzas seguridad tipo=acceso usuario=2 ref=ana ip=-
+2026-09-23 23:40:33,028 INFO finanzas seguridad tipo=admin_denegado usuario=2 ref=ana ip=127.0.0.1
+2026-09-23 23:40:33,398 INFO finanzas seguridad tipo=acceso usuario=1 ref=ana ip=127.0.0.1
+2026-09-23 23:40:33,594 INFO finanzas seguridad tipo=codigo_fallido usuario=1 ref=ana ip=127.0.0.1
+2026-09-23 23:40:33,812 INFO finanzas seguridad tipo=acceso usuario=1 ref=ana ip=127.0.0.1
+2026-09-23 23:40:33,817 INFO finanzas seguridad tipo=salida usuario=1 ref=ana ip=-
+2026-09-23 23:40:33,915 INFO finanzas seguridad tipo=codigo_fallido usuario=1 ref=ana ip=127.0.0.1
+2026-09-23 23:40:34,330 INFO finanzas seguridad tipo=acceso usuario=2 ref=jefa ip=-
+2026-09-23 23:40:34,464 INFO finanzas seguridad tipo=acceso usuario=1 ref=ana ip=-
+2026-09-23 23:40:34,590 INFO finanzas seguridad tipo=acceso usuario=1 ref=ana ip=-
+2026-09-23 23:40:34,748 INFO finanzas seguridad tipo=acceso usuario=1 ref=ana ip=-
+2026-09-23 23:40:34,895 INFO finanzas seguridad tipo=acceso usuario=1 ref=ana ip=-
+2026-09-23 23:40:35,257 INFO finanzas seguridad tipo=acceso usuario=1 ref=ana ip=-
+2026-09-23 23:40:35,531 INFO finanzas seguridad tipo=passkey_fallida usuario=- ref=- ip=127.0.0.1
+2026-09-23 23:40:35,760 INFO finanzas Acceso con passkey rechazado: userHandle no coincide
+2026-09-23 23:40:35,761 INFO finanzas seguridad tipo=passkey_fallida usuario=1 ref=ana ip=127.0.0.1
+2026-09-23 23:40:35,898 INFO finanzas seguridad tipo=acceso usuario=1 ref=ana ip=127.0.0.1
+2026-09-23 23:40:36,025 INFO finanzas seguridad tipo=acceso usuario=1 ref=ana ip=-
+2026-09-23 23:40:36,277 INFO finanzas seguridad tipo=acceso usuario=1 ref=ana ip=-
+2026-09-23 23:40:36,535 INFO finanzas seguridad tipo=acceso usuario=1 ref=ana ip=-
+2026-09-23 23:40:38,453 INFO finanzas seguridad tipo=acceso usuario=1 ref=ana ip=-
+2026-09-23 23:40:38,865 INFO finanzas seguridad tipo=acceso usuario=1 ref=nueva ip=127.0.0.1
+2026-09-23 23:40:38,871 INFO finanzas Alta de cuenta 1 con politica version 1.2
+2026-09-23 23:40:39,489 INFO finanzas Correo aceptado: 01a0d149-55ff-756a-888d-f42b0930a8e4
+2026-09-23 23:40:39,629 INFO finanzas seguridad tipo=acceso usuario=1 ref=ana ip=-
+2026-09-23 23:40:39,792 INFO finanzas seguridad tipo=acceso usuario=1 ref=ana ip=-
+2026-09-23 23:40:39,999 INFO finanzas seguridad tipo=acceso usuario=1 ref=ana ip=-
+2026-09-23 23:40:40,464 INFO finanzas seguridad tipo=acceso usuario=2 ref=beto ip=-
+2026-09-23 23:40:41,086 INFO finanzas seguridad tipo=acceso usuario=2 ref=beto ip=-
+2026-09-23 23:40:41,527 INFO finanzas seguridad tipo=acceso usuario=2 ref=beto ip=-
+2026-09-23 23:43:26,395 INFO finanzas Aviso de inactividad enviado al usuario 1
+2026-09-23 23:43:26,502 WARNING finanzas Cuenta inactiva 1 sin correo: no se puede avisar
+2026-09-23 23:43:26,611 WARNING finanzas Cuenta borrada por inactividad: id=1 usuario=vieja dias=400
+2026-09-23 23:43:27,215 INFO finanzas Aviso de inactividad enviado al usuario 1
+2026-09-23 23:43:28,173 INFO finanzas seguridad tipo=acceso usuario=1 ref=nueva ip=127.0.0.1
+2026-09-23 23:43:28,178 INFO finanzas Alta de cuenta 1 con politica version 1.2
+2026-09-23 23:43:28,326 INFO finanzas seguridad tipo=acceso usuario=1 ref=nueva ip=127.0.0.1
+2026-09-23 23:43:28,331 INFO finanzas Alta de cuenta 1 con politica version 1.2
+2026-09-23 23:43:28,570 INFO finanzas Correo confirmado por el usuario 1
+2026-09-23 23:43:28,694 INFO finanzas seguridad tipo=acceso usuario=1 ref=ana ip=-
+2026-09-23 23:43:29,010 INFO finanzas Correo confirmado por el usuario 1
+2026-09-23 23:43:29,133 INFO finanzas seguridad tipo=acceso usuario=1 ref=ana ip=-
+2026-09-23 23:43:29,615 INFO finanzas seguridad tipo=acceso usuario=1 ref=ana ip=127.0.0.1
+2026-09-23 23:43:29,741 INFO finanzas seguridad tipo=acceso usuario=1 ref=ana ip=127.0.0.1
+2026-09-23 23:43:29,750 WARNING finanzas Cerradas 1 sesiones a distancia: usuario=1
+2026-09-23 23:43:29,751 INFO finanzas seguridad tipo=sesiones_cerradas usuario=1 ref=ana ip=127.0.0.1
+2026-09-23 23:43:30,011 INFO finanzas seguridad tipo=acceso usuario=1 ref=ana ip=127.0.0.1
+2026-09-23 23:43:30,232 INFO finanzas seguridad tipo=acceso usuario=1 ref=ana ip=127.0.0.1
+2026-09-23 23:43:30,621 INFO finanzas seguridad tipo=acceso usuario=2 ref=beto ip=127.0.0.1
+2026-09-23 23:43:30,742 INFO finanzas seguridad tipo=acceso usuario=1 ref=ana ip=127.0.0.1
+2026-09-23 23:43:31,054 INFO finanzas seguridad tipo=acceso usuario=1 ref=ana ip=127.0.0.1
+2026-09-23 23:43:31,061 INFO finanzas seguridad tipo=salida usuario=1 ref=ana ip=127.0.0.1
+2026-09-23 23:43:31,187 INFO finanzas seguridad tipo=codigo_fallido usuario=1 ref=ana ip=127.0.0.1
+2026-09-23 23:43:31,199 INFO finanzas seguridad tipo=codigo_fallido usuario=1 ref=ana ip=127.0.0.1
+2026-09-23 23:43:31,208 INFO finanzas seguridad tipo=codigo_fallido usuario=1 ref=ana ip=127.0.0.1
+2026-09-23 23:43:31,217 INFO finanzas seguridad tipo=codigo_fallido usuario=1 ref=ana ip=127.0.0.1
+2026-09-23 23:43:31,226 INFO finanzas seguridad tipo=codigo_fallido usuario=1 ref=ana ip=127.0.0.1
+2026-09-23 23:43:31,426 INFO finanzas seguridad tipo=acceso usuario=1 ref=ana ip=-
+2026-09-23 23:43:31,550 INFO finanzas seguridad tipo=cuenta_eliminada usuario=1 ref=ana ip=127.0.0.1
+2026-09-23 23:43:31,551 INFO finanzas seguridad tipo=salida usuario=1 ref=ana ip=127.0.0.1
+2026-09-23 23:43:31,570 WARNING finanzas Cuenta eliminada a pedido del titular: id=1 usuario=ana
+2026-09-23 23:43:31,771 INFO finanzas seguridad tipo=acceso usuario=1 ref=ana ip=-
+2026-09-23 23:43:31,883 INFO finanzas seguridad tipo=cuenta_eliminada usuario=1 ref=ana ip=127.0.0.1
+2026-09-23 23:43:31,884 INFO finanzas seguridad tipo=salida usuario=1 ref=ana ip=127.0.0.1
+2026-09-23 23:43:31,900 WARNING finanzas Cuenta eliminada a pedido del titular: id=1 usuario=ana
+2026-09-23 23:43:32,117 INFO finanzas seguridad tipo=acceso usuario=1 ref=ana ip=-
+2026-09-23 23:43:32,121 INFO finanzas seguridad tipo=salida usuario=1 ref=ana ip=-
+2026-09-23 23:43:32,330 INFO finanzas seguridad tipo=acceso usuario=1 ref=ana ip=-
+2026-09-23 23:43:32,557 INFO finanzas seguridad tipo=acceso usuario=1 ref=ana ip=-
+2026-09-23 23:43:32,863 INFO finanzas seguridad tipo=acceso usuario=1 ref=ana ip=-
+2026-09-23 23:43:32,909 INFO finanzas Descarga de datos personales solicitada por el usuario 1
+2026-09-23 23:43:32,909 INFO finanzas seguridad tipo=datos_descargados usuario=1 ref=ana ip=127.0.0.1
+2026-09-23 23:43:33,116 INFO finanzas seguridad tipo=acceso usuario=1 ref=ana ip=-
+2026-09-23 23:43:33,161 INFO finanzas Descarga de datos personales solicitada por el usuario 1
+2026-09-23 23:43:33,161 INFO finanzas seguridad tipo=datos_descargados usuario=1 ref=ana ip=127.0.0.1
+2026-09-23 23:43:33,337 INFO finanzas seguridad tipo=acceso usuario=1 ref=ana ip=-
+2026-09-23 23:43:33,342 INFO finanzas seguridad tipo=salida usuario=1 ref=ana ip=-
+2026-09-23 23:43:33,565 INFO finanzas seguridad tipo=acceso usuario=1 ref=ana ip=-
+2026-09-23 23:43:33,598 INFO finanzas Descarga de datos personales solicitada por el usuario 1
+2026-09-23 23:43:33,599 INFO finanzas seguridad tipo=datos_descargados usuario=1 ref=ana ip=127.0.0.1
+2026-09-23 23:43:34,208 INFO finanzas seguridad tipo=acceso usuario=1 ref=ana ip=-
+2026-09-23 23:43:34,332 INFO finanzas seguridad tipo=cuenta_eliminada usuario=1 ref=ana ip=127.0.0.1
+2026-09-23 23:43:34,334 INFO finanzas seguridad tipo=salida usuario=1 ref=ana ip=127.0.0.1
+2026-09-23 23:43:34,347 WARNING finanzas Cuenta eliminada a pedido del titular: id=1 usuario=ana
+2026-09-23 23:43:34,848 INFO finanzas seguridad tipo=acceso usuario=1 ref=ana ip=127.0.0.1
+2026-09-23 23:43:35,066 INFO finanzas seguridad tipo=acceso_fallido usuario=- ref=ana ip=127.0.0.1
+2026-09-23 23:43:35,182 INFO finanzas seguridad tipo=acceso usuario=1 ref=ana ip=-
+2026-09-23 23:43:35,184 INFO finanzas seguridad tipo=contrasena_cambiada usuario=1 ref=ana ip=-
+2026-09-23 23:43:35,223 INFO finanzas Descarga de datos personales solicitada por el usuario 1
+2026-09-23 23:43:35,224 INFO finanzas seguridad tipo=datos_descargados usuario=1 ref=ana ip=127.0.0.1
+2026-09-23 23:43:35,325 INFO finanzas seguridad tipo=acceso usuario=1 ref=ana ip=-
+2026-09-23 23:43:35,326 INFO finanzas seguridad tipo=salida usuario=1 ref=ana ip=-
+2026-09-23 23:43:36,045 INFO finanzas seguridad tipo=acceso usuario=1 ref=jefa ip=-
+2026-09-23 23:43:36,524 INFO finanzas seguridad tipo=acceso usuario=2 ref=ana ip=-
+2026-09-23 23:43:36,557 INFO finanzas seguridad tipo=admin_denegado usuario=2 ref=ana ip=127.0.0.1
+2026-09-23 23:43:36,960 INFO finanzas seguridad tipo=acceso usuario=1 ref=ana ip=127.0.0.1
+2026-09-23 23:43:37,198 INFO finanzas seguridad tipo=codigo_fallido usuario=1 ref=ana ip=127.0.0.1
+2026-09-23 23:43:37,438 INFO finanzas seguridad tipo=acceso usuario=1 ref=ana ip=127.0.0.1
+2026-09-23 23:43:37,443 INFO finanzas seguridad tipo=salida usuario=1 ref=ana ip=-
+2026-09-23 23:43:37,549 INFO finanzas seguridad tipo=codigo_fallido usuario=1 ref=ana ip=127.0.0.1
+2026-09-23 23:43:37,986 INFO finanzas seguridad tipo=acceso usuario=2 ref=jefa ip=-
+2026-09-23 23:43:38,125 INFO finanzas seguridad tipo=acceso usuario=1 ref=ana ip=-
+2026-09-23 23:43:38,251 INFO finanzas seguridad tipo=acceso usuario=1 ref=ana ip=-
+2026-09-23 23:43:38,398 INFO finanzas seguridad tipo=acceso usuario=1 ref=ana ip=-
+2026-09-23 23:43:38,542 INFO finanzas seguridad tipo=acceso usuario=1 ref=ana ip=-
+2026-09-23 23:43:38,875 INFO finanzas seguridad tipo=acceso usuario=1 ref=ana ip=-
+2026-09-23 23:43:39,148 INFO finanzas seguridad tipo=passkey_fallida usuario=- ref=- ip=127.0.0.1
+2026-09-23 23:43:39,362 INFO finanzas Acceso con passkey rechazado: userHandle no coincide
+2026-09-23 23:43:39,363 INFO finanzas seguridad tipo=passkey_fallida usuario=1 ref=ana ip=127.0.0.1
+2026-09-23 23:43:39,563 INFO finanzas seguridad tipo=acceso usuario=1 ref=ana ip=127.0.0.1
+2026-09-23 23:43:39,673 INFO finanzas seguridad tipo=acceso usuario=1 ref=ana ip=-
+2026-09-23 23:43:39,890 INFO finanzas seguridad tipo=acceso usuario=1 ref=ana ip=-
+2026-09-23 23:43:40,116 INFO finanzas seguridad tipo=acceso usuario=1 ref=ana ip=-
+2026-09-23 23:43:41,745 INFO finanzas seguridad tipo=acceso usuario=1 ref=ana ip=-
+2026-09-23 23:43:42,131 INFO finanzas seguridad tipo=acceso usuario=1 ref=nueva ip=127.0.0.1
+2026-09-23 23:43:42,134 INFO finanzas Alta de cuenta 1 con politica version 1.2
+2026-09-23 23:43:42,763 INFO finanzas Correo aceptado: 01a0d14c-21f2-701f-8a00-61be46549ff0
+2026-09-23 23:43:42,904 INFO finanzas seguridad tipo=acceso usuario=1 ref=ana ip=-
+2026-09-23 23:43:43,040 INFO finanzas seguridad tipo=acceso usuario=1 ref=ana ip=-
+2026-09-23 23:43:43,276 INFO finanzas seguridad tipo=acceso usuario=1 ref=ana ip=-
+2026-09-23 23:43:43,772 INFO finanzas seguridad tipo=acceso usuario=2 ref=beto ip=-
+2026-09-23 23:43:44,310 INFO finanzas seguridad tipo=acceso usuario=2 ref=beto ip=-
+2026-09-23 23:43:44,614 INFO finanzas seguridad tipo=acceso usuario=2 ref=beto ip=-

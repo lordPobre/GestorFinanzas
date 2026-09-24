@@ -21,6 +21,7 @@ from django.contrib.auth import login, logout, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import PasswordChangeForm, UserCreationForm
 from django.contrib.auth.models import User
+from django.db.models.fields.files import FieldFile
 from django.http import HttpResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse
@@ -611,12 +612,13 @@ def perfil(request):
     return render(request, 'finanzas/perfil.html', context)
 
 def _valor_serializable(valor):
-    """Cualquier valor de un campo, convertido a algo que quepa en un JSON."""
     if isinstance(valor, Decimal):
         return str(valor)
     if isinstance(valor, (datetime, date)):
         return valor.isoformat()
-    if hasattr(valor, 'url'):
+    if isinstance(valor, FieldFile):
+        if not valor:
+            return None
         try:
             return valor.url
         except Exception:
