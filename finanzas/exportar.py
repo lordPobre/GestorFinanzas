@@ -153,6 +153,7 @@ def escribir_csv(writer, usuario, cuenta, hoy):
 
     total_in = total_eg = Decimal('0')
     mes = None
+    mes_nombre_actual = ''
     mes_in = mes_eg = Decimal('0')
 
     for f in filas:

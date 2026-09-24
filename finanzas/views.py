@@ -14,7 +14,6 @@ from dateutil.relativedelta import relativedelta
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.models import User
 from django.db.models import Count, F, Sum
 from django.contrib.staticfiles import finders
 from django.http import Http404, HttpResponse, JsonResponse
@@ -100,7 +99,6 @@ def serie_cuotas(usuario, atras=6, adelante=6):
     pagos_por_deuda = {d.pk: {p.periodo: p for p in d.pagos.all()} for d in deudas}
 
     filas = []
-    saldo_futuro = None
     for i in range(-atras, adelante + 1):
         f = date(hoy.year, hoy.month, 1) + relativedelta(months=i)
         periodo = f.year * 100 + f.month

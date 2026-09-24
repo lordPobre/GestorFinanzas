@@ -14,7 +14,7 @@ igual, mientras no tengas el bucket listo.
 """
 import os
 
-from django.core.files.storage import FileSystemStorage, default_storage
+from django.core.files.storage import default_storage
 from django.utils.functional import LazyObject
 
 

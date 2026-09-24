@@ -13,7 +13,6 @@ nombre queda como prefijo de la descripción, no que la fila se pierda.
 """
 import re
 from datetime import datetime
-from decimal import Decimal
 
 from .base import Cartola, ErrorCartola, plata, registrar, resolver_signos
 

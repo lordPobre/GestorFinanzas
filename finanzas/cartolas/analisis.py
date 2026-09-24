@@ -17,7 +17,6 @@ Todo esto se propone, no se aplica: la pantalla de revisión deja cambiarlo
 antes de guardar.
 """
 import re
-from datetime import date
 from decimal import Decimal
 
 # Orden importante: gana la primera que calce, así que lo específico va

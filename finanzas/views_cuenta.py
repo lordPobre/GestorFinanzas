@@ -44,7 +44,6 @@ def entrar(request):
     fin. En una app con datos financieros eso es la puerta más fácil, así
     que cinco fallos bloquean quince minutos.
     """
-    from django.contrib.auth import authenticate
     from django.contrib.auth.forms import AuthenticationForm
 
     ip = _ip(request)
