@@ -15,6 +15,10 @@ DEBUG = os.environ.get('DEBUG', 'False').lower() == 'true'
 
 _SOLO_ESTATICOS = 'collectstatic' in sys.argv
 
+if sys.argv[1:2] == ['test']:
+    for _clave in ('RESEND_API_KEY', 'MAILGUN_API_KEY', 'MAILGUN_DOMAIN', 'PROVEEDOR_CORREO'):
+        os.environ.pop(_clave, None)
+
 SECRET_KEY = os.environ.get('SECRET_KEY')
 if not SECRET_KEY:
     if DEBUG or _SOLO_ESTATICOS:
