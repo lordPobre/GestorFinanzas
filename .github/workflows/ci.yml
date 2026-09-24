@@ -1,0 +1,123 @@
+name: Control de calidad
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  pruebas:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: rekon
+          POSTGRES_PASSWORD: rekon
+          POSTGRES_DB: rekon
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U rekon"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      SECRET_KEY: clave-solo-para-pruebas-de-integracion-continua-no-sirve-en-produccion
+      DEBUG: "True"
+      ALLOWED_HOSTS: localhost,127.0.0.1,testserver
+      DATABASE_URL: postgres://rekon:rekon@localhost:5432/rekon
+      DB_SSL: "0"
+      PROXIES_CONFIABLES: "0"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version-file: .python-version
+          cache: pip
+
+      - name: Instalar dependencias
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install ruff coverage
+
+      - name: Estilo y errores evidentes
+        run: ruff check .
+
+      - name: Migraciones sin declarar
+        run: python manage.py makemigrations --check --dry-run
+
+      - name: Pruebas contra Postgres
+        run: coverage run manage.py test --verbosity 2
+
+      - name: Cobertura
+        run: coverage report
+
+  despliegue:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    env:
+      SECRET_KEY: clave-solo-para-pruebas-de-integracion-continua-no-sirve-en-produccion
+      DEBUG: "False"
+      ALLOWED_HOSTS: rekon.example
+      CSRF_TRUSTED_ORIGINS: https://rekon.example
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version-file: .python-version
+          cache: pip
+
+      - name: Instalar dependencias
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Revision de despliegue
+        run: python manage.py check --deploy --fail-level WARNING
+
+  dependencias:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version-file: .python-version
+          cache: pip
+
+      - name: Vulnerabilidades conocidas
+        run: |
+          python -m pip install --upgrade pip pip-audit
+          pip-audit --requirement requirements.txt --strict
+
+  estilo-ampliado:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version-file: .python-version
+
+      - name: Reglas de seguridad y buenas practicas (informativo)
+        run: |
+          pip install ruff
+          ruff check . --select S,B,DJ,UP --statistics --exit-zero
