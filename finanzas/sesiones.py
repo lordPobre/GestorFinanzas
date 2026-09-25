@@ -1,20 +1,3 @@
-"""Sesiones abiertas: registro, listado y cierre remoto.
-
-Por qué hace falta. Hasta ahora, quien entraba en un computador prestado y
-se olvidaba de salir no tenía ninguna forma de cerrar esa sesión: cambiar la
-contraseña tampoco la cierra (Django mantiene la sesión activa con
-update_session_auth_hash, y el atacante ya está dentro). La única salida era
-esperar ocho horas a que caducara.
-
-Cómo funciona. Al entrar se anota una fila en SesionActiva con la clave de
-sesión, la IP y el agente del navegador. Cerrar una sesión borra su fila de
-django_session, y la próxima petición de ese navegador llega sin sesión
-válida: queda fuera en el acto, sin esperar nada.
-
-Depende del backend de sesiones en base (el de Django por defecto). Con un
-backend solo en caché, Session.objects no ve nada y el cierre remoto no
-tendría efecto — de ahí que settings no cambie SESSION_ENGINE.
-"""
 import logging
 
 from django.contrib.auth.signals import user_logged_in, user_logged_out
@@ -36,12 +19,6 @@ def _agente(request):
 
 
 def _ip_valida(request):
-    """La IP del cliente, o None si no es una dirección válida.
-
-    La cabecera X-Forwarded-For la escribe el proxy y puede venir con
-    cualquier cosa. Un valor así revienta al guardarlo en el campo de IP, y
-    anotar la sesión no debe poder fallar por un dato decorativo.
-    """
     from django.core.exceptions import ValidationError
     from django.core.validators import validate_ipv46_address
 
@@ -54,11 +31,6 @@ def _ip_valida(request):
 
 
 def registrar(request, usuario):
-    """Anota la sesión recién abierta, o actualiza la que se reusa.
-
-    La clave puede no existir todavía si la sesión está vacía; save() la
-    crea. Sin eso no habría nada que anotar ni que cerrar después.
-    """
     if not request.session.session_key:
         request.session.save()
 
@@ -80,12 +52,6 @@ def registrar(request, usuario):
 
 
 def tocar(request):
-    """Refresca «visto por última vez», como mucho cada cuarto de hora.
-
-    Una escritura por petición sería un UPDATE por pantalla cargada. La marca
-    del último refresco vive en la sesión, que ya está en memoria, así que el
-    coste real son cuatro escrituras por hora de uso.
-    """
     clave = request.session.session_key
     if not clave:
         return
@@ -103,8 +69,6 @@ def tocar(request):
 
     actualizadas = SesionActiva.objects.filter(clave=clave).update(ultima_vez=ahora)
     if not actualizadas:
-        # Sesión abierta antes de que existiera esta tabla, o fila borrada a
-        # mano. Se crea ahora para que no quede invisible en la pantalla.
         usuario = getattr(request, 'user', None)
         if usuario and usuario.is_authenticated:
             SesionActiva.objects.create(
@@ -114,7 +78,6 @@ def tocar(request):
 
 
 def limpiar(usuario):
-    """Borra las filas cuya sesión ya no existe (caducó o se cerró sola)."""
     claves = set(SesionActiva.objects.filter(usuario=usuario)
                  .values_list('clave', flat=True))
     if not claves:
@@ -127,7 +90,6 @@ def limpiar(usuario):
 
 
 def listar(usuario, clave_actual=''):
-    """Las sesiones abiertas, la de ahora primero y marcada."""
     limpiar(usuario)
     filas = list(SesionActiva.objects.filter(usuario=usuario))
     for f in filas:
@@ -137,11 +99,6 @@ def listar(usuario, clave_actual=''):
 
 
 def cerrar(usuario, clave):
-    """Cierra UNA sesión. Devuelve True si existía y era de esta cuenta.
-
-    El filtro por usuario no es decorativo: sin él, una clave ajena enviada
-    en el formulario cerraría la sesión de otra persona.
-    """
     fila = SesionActiva.objects.filter(usuario=usuario, clave=clave).first()
     if not fila:
         return False
@@ -152,7 +109,6 @@ def cerrar(usuario, clave):
 
 
 def cerrar_otras(usuario, clave_actual):
-    """Cierra todo menos la sesión desde la que se pide. Devuelve cuántas."""
     otras = list(SesionActiva.objects.filter(usuario=usuario)
                  .exclude(clave=clave_actual).values_list('clave', flat=True))
     if not otras:
@@ -168,7 +124,6 @@ def _al_entrar(sender, request, user, **kwargs):
     try:
         registrar(request, user)
     except Exception:
-        # Anotar la sesión no puede impedir entrar.
         log.exception('No se pudo registrar la sesión de %s', getattr(user, 'pk', '?'))
 
 

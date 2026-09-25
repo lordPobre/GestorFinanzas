@@ -1,48 +1,3 @@
-"""Estados de cuenta de tarjetas de casas comerciales y bancos retail.
-
-OTRO MUNDO QUE EL DE LA CARTOLA
--------------------------------
-Una cartola de cuenta corriente lleva saldo corrido y de ahí sale el signo
-de cada movimiento. Un estado de cuenta de tarjeta no tiene saldo: tiene
-cuotas, y todo es cargo. No hay signo que deducir.
-
-Lo que sí hay que decidir es CUÁNTO importar de cada fila, y ahí está el
-error fácil de cometer. Una compra en 12 cuotas aparece en el estado de los
-doce meses. Importar el monto completo sería contar hoy una compra del año
-pasado, y volver a contarla el mes que viene. Lo que sale de tu bolsillo
-este mes es la cuota. Eso es lo que se importa, de cada fila, siempre —
-para una compra en una sola cuota la cuota es el monto completo, así que la
-regla vale para todas.
-
-CÓMO SE LEE UNA FILA SIN CONOCER EL FORMATO
--------------------------------------------
-Los estados de Paris, Ripley, La Polar, Hites, ABCDIN o Tricot imprimen las
-mismas columnas en distinto orden y con distintos títulos, pero todos
-terminan la fila con el valor que se cobra este mes:
-
-    30/09/2025  FARMACIA X      45.900   3/6   15.300
-    12-ago-25   SUPERMERCADO    19.990   1/1   19.990
-    05/09/2025  SEGURO CESANTIA                 2.490
-
-La última cifra de la línea es el cargo del período. Es la única regla que
-se necesita, y es la que todos cumplen porque la columna final del detalle
-es siempre «valor cuota» o «monto a pagar».
-
-LA VERIFICACIÓN
----------------
-Que la regla valga no se da por hecho: la suma de todo lo leído tiene que
-dar el total que el propio estado declara al final («Monto total facturado»,
-«Total a pagar», «Total del período»). Si se aleja más de un 15% el archivo
-se rechaza entero; entre 1% y 15% se entrega marcado en rojo para revisar
-fila por fila. Sin total declarado se entrega, pero avisando que no hubo
-contra qué comprobarlo.
-
-LA FECHA
---------
-Una cuota se fecha en el día de facturación, no en el de la compra: la
-cuota de agosto es un gasto de agosto aunque la compra sea de septiembre
-del año pasado. Las compras de una sola cuota conservan su fecha real.
-"""
 import re
 from datetime import datetime
 from decimal import Decimal
@@ -53,8 +8,6 @@ from .universal import CIFRA, MES_LETRAS, MESES
 FECHA_NUM = re.compile(r'\b(\d{1,2})[/.-](\d{1,2})[/.-](\d{2,4})\b')
 FECHA_LETRA = re.compile(r'\b(\d{1,2})[\s/.-]*([a-zA-Z]{3,10})\.?[\s/.-]*(\d{2,4})\b')
 
-# «3/6», «03 de 06», «cuota 3 de 6». El total no pasa de 60 cuotas en ningún
-# retail chileno, así que un «2025/2026» no se cuela.
 CUOTA = re.compile(r'\b(\d{1,2})\s*(?:/|de)\s*(\d{1,2})\b')
 
 TOTAL = re.compile(
@@ -77,23 +30,16 @@ CONTRATO = re.compile(
     r'\s*:?\s*([\d*Xx\-]{4,20})', re.I,
 )
 
-# Filas que aparecen en el detalle pero no son un gasto del mes.
 NO_ES_GASTO = ('pago tarjeta', 'pago recibido', 'abono pago', 'su pago',
                'pago estado anterior', 'pago realizado', 'abono en cuenta',
                'pago normal', 'nota de credito', 'nota de crédito')
 
-# Líneas con fecha y cifras que no son movimientos.
 NO_ES_FILA = ('total', 'subtotal', 'saldo', 'cupo', 'página', 'pagina',
               'resumen', 'estado de cuenta', 'fecha de', 'periodo', 'período',
               'vencimiento', 'tasa', 'cae ', 'interés', 'interes total')
 
 
 class Retail:
-    """Motor de estados de cuenta. Los emisores son subclases de una línea."""
-
-    # Lo que separa las dos listas del selector en la pantalla de importar:
-    # una cartola de cuenta y un estado de cuenta de tarjeta son documentos
-    # distintos y se verifican distinto.
     es_tarjeta = True
     pistas = ()
     etiqueta = 'Estado de cuenta'
@@ -102,8 +48,6 @@ class Retail:
         if not self.pistas:
             return False
         t = texto.lower()
-        # El nombre de la casa comercial más la palabra que delata un estado
-        # de cuenta: el nombre solo aparece también en una boleta.
         return any(p in t for p in self.pistas) and (
             'estado de cuenta' in t or 'facturado' in t or 'total a pagar' in t
         )
@@ -138,7 +82,6 @@ class Retail:
         self._verificar(cartola, suma, total)
         return cartola
 
-    # -- la comprobación propia de este formato ----------------------
 
     def _verificar(self, cartola, suma, total):
         n = len(cartola.movimientos)
@@ -154,9 +97,6 @@ class Retail:
         diferencia = abs(suma - total)
         cartola.descuadre = diferencia
 
-        # Hasta un 1% se tolera: los estados arrastran ajustes de pesos del
-        # período anterior que no salen como fila. Fallar por nueve pesos
-        # sería un falso positivo todos los meses.
         margen = max(total / 100, Decimal(50))
         if diferencia <= margen:
             cartola.cuadra = True
@@ -166,8 +106,6 @@ class Retail:
             )
             return
 
-        # Más de un 15% no es un ajuste: es que el formato no era el
-        # supuesto. Antes que entregar una lista inventada, no se entrega.
         if diferencia > total * Decimal('0.15'):
             raise ErrorCartola(
                 'Encontré compras en este estado de cuenta, pero no suman el '
@@ -181,7 +119,6 @@ class Retail:
             f'Falta o sobra alguna compra: revísalas una por una.'
         ).replace(',', '.')
 
-    # -- extracción --------------------------------------------------
 
     def _fila(self, linea, fecha_fact):
         bajo = linea.lower()
@@ -197,7 +134,6 @@ class Retail:
         if not cifras:
             return None
 
-        # La última cifra de la línea es lo que se cobra este mes.
         monto = abs(plata(cifras[-1].group(2)))
         if monto <= 0:
             return None
@@ -216,9 +152,6 @@ class Retail:
             )
 
         if ct > 1:
-            # La cuota es del mes que se factura, no del día de la compra.
-            # La marca de cuál cuota es, además, hace que el mes siguiente
-            # no se lea como la misma fila.
             return MovimientoLeido(
                 fecha=fecha_fact or fecha,
                 descripcion=f'{desc} · cuota {ca} de {ct}'[:200],
@@ -233,7 +166,6 @@ class Retail:
         )
 
     def _cuotas(self, resto):
-        """La marca de cuotas, si la fila la trae y es creíble."""
         for m in CUOTA.finditer(resto):
             a, t = int(m.group(1)), int(m.group(2))
             if 1 <= a <= t <= 60 and t > 1:
@@ -267,7 +199,6 @@ class Retail:
             except ValueError:
                 return None
 
-    # -- cabecera ----------------------------------------------------
 
     def _total(self, texto):
         m = TOTAL.search(texto)
@@ -298,51 +229,13 @@ class Retail:
         return f'{MESES[f.month - 1]} {f.year}' if f else ''
 
 
-# ---------------------------------------------------------------------
-#  Ripley: la descripción va antes de la fecha
-# ---------------------------------------------------------------------
-#  El motor genérico se apoya en que la última cifra de la fila es el cargo
-#  del mes. Ripley imprime una columna más a la derecha — el lugar de la
-#  operación — y pone la descripción ANTES de la fecha, no después:
-#
-#     37/48  804.508  1.467.480  MUNICIPALIDAD PUCHUN  08/JUL/23  67.043  PUCHUNCAVI
-#     41.560  CASA IDEAS MARINA AR COMPRA SIMPLE  01/AGO/26  41.560  VINA DEL MAR
-#
-#  Con la regla genérica la descripción queda vacía y la fila se descarta
-#  entera: el estado de cuenta entraba sin ningún movimiento.
-#
-#  Y hay un segundo problema, peor: pypdf no deja separador entre columnas.
-#  La fila de arriba llega así, todo pegado:
-#
-#     37/48804.5081.467.480MUNICIPALIDAD PUCHUN COMPRA EN CUOTA08/JUL/23 67.043PUCHUNCAVI
-#
-#  Así que no se puede partir la fila por espacios ni contar cifras. Quedan
-#  dos anclas que el pegado no borra:
-#
-#    · LA FECHA DE OPERACIóN, «DD/MMM/AA» con el mes en letras y siempre
-#      seguida de un espacio. Lo que viene inmediatamente después es el
-#      cargo del mes; lo que sigue a eso es el lugar de la operación.
-#    · LA PRIMERA LETRA DE LA FILA. Todo lo que hay antes son columnas
-#      numéricas — cuota, monto de la operación, total, boleta — y desde
-#      ahí empieza el nombre del comercio.
-#
-#  Comprobado contra los subtotales que el propio estado declara, las filas
-#  suman exactamente los 410.724 de «2.1. TOTAL OPERACIONES».
-
-# El mes en letras es lo único que distingue la fecha de operación de los
-# números que la rodean cuando todo viene pegado. El espacio final también
-# hace falta: sin él, «05/SEP/202683.580» de la cabecera se leería como fila.
 FECHA_OP = re.compile(r'(\d{1,2})[/.-]([a-zA-Z]{3})[/.-](\d{2,4})(?=\s)')
 FECHA_OP_NUM = re.compile(r'(\d{1,2})[/.-](\d{1,2})[/.-](\d{2,4})(?=\s)')
 
-# El cargo del mes: la cifra pegada justo después de la fecha.
 CARGO = re.compile(r'^\s*(-?\d[\d.]*)')
 
-# Una comisión no trae fecha de operación porque no es una compra:
-# «5.028COMISION MANT. 5.028». Cifra, texto que empieza en letra, cifra.
 SIN_FECHA = re.compile(r'^(-?\d[\d.]*)([^\W\d_][^\d]*?)(-?\d[\d.]*)$')
 
-# La marca de cuotas, al principio de la fila y pegada al monto: «37/48804.508».
 CUOTA_INICIO = re.compile(r'^(\d{1,2})/(\d{1,2})')
 
 FECHA_ESTADO = re.compile(
@@ -350,19 +243,13 @@ FECHA_ESTADO = re.compile(
     r'(\d{1,2})[\s/.-]*([a-zA-Z]{3,10})\.?[\s/.-]*(\d{2,4})', re.I,
 )
 
-# «410.724(B)2.1. TOTAL OPERACIONES»: el estado declara un subtotal por
-# sección, y la suma de los tres es contra lo que se comprueba.
 SUBTOTAL = re.compile(r'(-?\d[\d.]*)\s*\(\s*([BCD])\s*\)')
 
-# Al extraer el texto la cifra sale antes de su rótulo, así que se aceptan
-# los dos órdenes.
 FACTURADO = re.compile(
     r'(?:(-?\d[\d.]*)\s*monto\s+total\s+facturado'
     r'|monto\s+total\s+facturado[^\n\d]*\s*(-?\d[\d.]*))', re.I,
 )
 
-# Lo que viene después no se factura este mes: son compras del período
-# siguiente, y contarlas las duplicaría al importar la cartola de agosto.
 NO_FACTURADO = re.compile(r'2\.4\.|transacciones\s+no\s+facturadas', re.I)
 
 
@@ -402,7 +289,6 @@ class LectorRipley(Retail):
         self._verificar_ripley(cartola, firmado, self._subtotales(texto))
         return cartola
 
-    # -- la fila de Ripley -------------------------------------------
 
     def _fila(self, linea, fecha_fact):
         bajo = linea.lower()
@@ -425,9 +311,6 @@ class LectorRipley(Retail):
             monto = plata(post.group(1))
             desc = self._descripcion(antes)
         else:
-            # «5.028COMISION MANT. 5.028»: las comisiones del mes no traen
-            # fecha de operación porque no son una compra. Se fechan en el
-            # día del estado de cuenta.
             sf = SIN_FECHA.match(linea)
             if not (sf and fecha_fact):
                 return None
@@ -436,14 +319,9 @@ class LectorRipley(Retail):
             desc = sf.group(2)
 
         desc = ' '.join(desc.split())[:200]
-        # Tres letras, no tres caracteres: los rótulos de sección del estado
-        # — «9.571 (C) 2.2. PRODUCTOS…» — tienen la misma forma que una fila
-        # y dejan un «(C)» donde debería ir el nombre del comercio.
         if monto == 0 or len(re.findall(r'[^\W\d_]', desc)) < 3:
             return None
 
-        # El pago del mes anterior viene con signo negativo. No es un gasto:
-        # es plata que salió de la cuenta corriente, donde ya está anotada.
         if monto < 0 or any(p in desc.lower() for p in NO_ES_GASTO):
             return MovimientoLeido(
                 fecha=fecha, descripcion=desc, monto=abs(monto),
@@ -467,18 +345,10 @@ class LectorRipley(Retail):
         )
 
     def _descripcion(self, antes):
-        """El nombre del comercio: desde la primera letra de la fila.
-
-        Todo lo que hay a la izquierda son columnas numéricas. Cortar por la
-        última cifra no sirve — hay comercios con número en el nombre, y
-        productos también: «SB 708 COMPRA SIMPLE» quedaba en «COMPRA SIMPLE»
-        y «…POLERA I YF OLD OG F45067» se comía el nombre entero.
-        """
         m = re.search(r'[^\W\d_]', antes)
         return antes[m.start():] if m else ''
 
     def _partir(self, linea):
-        """Corta la fila en la fecha de operación: (fecha, antes, después)."""
         m = FECHA_OP.search(linea)
         if m:
             d, mes, a = m.groups()
@@ -491,7 +361,6 @@ class LectorRipley(Retail):
             return None, '', ''
         return fecha, linea[:m.start()], linea[m.end():]
 
-    # -- cabecera y comprobación -------------------------------------
 
     def _fecha_estado(self, texto):
         m = FECHA_ESTADO.search(texto)
@@ -539,20 +408,7 @@ class LectorRipley(Retail):
         ).replace(',', '.')
 
 
-# ---------------------------------------------------------------------
-#  Los emisores de tarjeta de casa comercial en Chile
-# ---------------------------------------------------------------------
-#  Igual que con los bancos: el motor es uno solo y cada emisor aporta las
-#  palabras que delatan su PDF. Agregar una casa comercial nueva es agregar
-#  una línea.
-#
-#  CMR no está acá: tiene parser propio (cmr.py), con la columna de cuotas
-#  y el titular/adicional en posiciones fijas.
-
 EMISORES = (
-    # Sin «jumbo» ni «paris» a secas: son nombres de comercio que aparecen en
-    # el detalle de cualquier tarjeta, y hacían que un estado de Ripley con
-    # una compra en Jumbo se leyera como si fuera de Cencosud.
     ('cencosud',  'Tarjeta Cencosud (Paris · Jumbo · Easy)',
      ('cencosud', 'tarjeta cencosud', 'paris.cl')),
     ('la_polar',  'Tarjeta La Polar',      ('la polar', 'lapolar')),

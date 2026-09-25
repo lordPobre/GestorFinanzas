@@ -1,22 +1,3 @@
-"""Aviso y borrado de cuentas inactivas.
-
-Pensado para una tarea diaria del hosting:
-
-    python manage.py limpiar_inactivas
-
-Cada corrida hace dos cosas:
-
-  1. Avisa a quien cruzó los 12 meses sin usar la app y anota la fecha.
-  2. Borra a quien recibió ese aviso hace más de 30 días y no volvió.
-
-Corre todos los días y no hace nada la mayoría de ellos. Es idempotente: la
-marca del aviso evita el correo repetido, y el borrado exige que el aviso
-esté anotado, así que no puede adelantarse.
-
-    --seco              no envía ni borra: solo dice qué haría
-    --usuario <nombre>  solo esa cuenta
-    --solo-avisos       no borra nada en esta corrida
-"""
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 
@@ -54,8 +35,6 @@ class Command(BaseCommand):
                 self.stdout.write(self.style.SUCCESS(
                     f'  aviso a {cuenta.username} → {destino} ({dias} días)'))
             else:
-                # Sin marcar: la próxima corrida reintenta. Una cuenta que no
-                # se pudo avisar nunca entra en la cola de borrado.
                 fallidos += 1
                 self.stdout.write(self.style.ERROR(
                     f'  {cuenta.username}: el aviso no salió (ver el log de finanzas)'))

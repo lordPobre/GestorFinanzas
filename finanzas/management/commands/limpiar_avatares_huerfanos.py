@@ -1,15 +1,3 @@
-"""Limpia del bucket los avatares que ya no tiene ningún UserProfile.
-
-Por qué hace falta un comando aparte, y no basta con el save()/signal del
-modelo: esos dos cubren los cambios A PARTIR de ahora, pero no arreglan lo
-que ya quedó huérfano antes de que existieran (o por un fallo de red a
-mitad de un borrado). Este comando compara lo que hay en el bucket contra
-lo que la base dice que debería existir, y borra la diferencia.
-
-Uso:
-    python manage.py limpiar_avatares_huerfanos            # solo muestra
-    python manage.py limpiar_avatares_huerfanos --borrar    # borra de verdad
-"""
 from django.core.management.base import BaseCommand
 
 from finanzas.almacenamiento import almacen_media
@@ -31,9 +19,6 @@ class Command(BaseCommand):
         )
 
         huerfanos = []
-        # listdir es recursivo aquí porque _ruta_avatar guarda cada foto
-        # bajo avatares/<id_usuario>/<hash>.<ext>: hay que bajar una
-        # carpeta más para llegar a los archivos.
         try:
             carpetas, _ = almacen_media.listdir('avatares')
         except FileNotFoundError:
@@ -55,11 +40,6 @@ class Command(BaseCommand):
             self.stdout.write(self.style.SUCCESS('No hay avatares huérfanos.'))
             return
 
-        # Salvavidas: si TODO lo que hay en el bucket parece huérfano, casi
-        # nunca es verdad — lo normal es que las rutas del bucket y las del
-        # campo 'foto' no coincidan por un prefijo (media/avatares/... vs
-        # avatares/...), y entonces este comando borraría todas las fotos
-        # reales. Antes de borrar nada, se para y avisa.
         if referenciados and len(huerfanos) >= (len(huerfanos) + len(referenciados)):
             self.stdout.write(self.style.ERROR(
                 f'ABORTADO: los {len(huerfanos)} archivos del bucket aparecen como '

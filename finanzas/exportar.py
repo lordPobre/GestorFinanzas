@@ -1,13 +1,3 @@
-"""Exportación de movimientos a Excel y CSV.
-
-Vive aparte de views.py a propósito: el armado del libro es cien líneas de
-formato que no tienen nada que ver con las vistas, y views.py ya pasa de las
-2.900 líneas.
-
-Los dos formatos leen las MISMAS filas (`filas_movimientos`), así que el CSV
-y el Excel nunca pueden decir cosas distintas sobre el mismo movimiento.
-"""
-
 from decimal import Decimal
 from io import BytesIO
 
@@ -16,9 +6,6 @@ from .models import Categoria, Transaccion
 MESES = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio',
          'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre']
 
-# Qué es cada movimiento. Sale de Transaccion.clase_tono, la misma propiedad
-# que colorea la fila en el dashboard: si mañana se agrega un tipo, la
-# pantalla y la planilla quedan de acuerdo sin tocar dos lados.
 ORIGENES = {
     'ingreso': 'Ingreso',
     'cuota': 'Cuota de compra',
@@ -26,9 +13,6 @@ ORIGENES = {
     'gasto': 'Gasto',
 }
 
-# Un color por origen, para la columna "Corresponde a". Son los tonos de la
-# app bajados a algo legible sobre papel blanco: el ámbar #ffaa2c de pantalla
-# no se lee en una celda.
 COLOR_ORIGEN = {
     'Ingreso': '1E7B32',
     'Cuota de compra': '4B4FC4',
@@ -48,12 +32,6 @@ GRIS_LINEA = 'D9D9D9'
 FORMATO_MONTO = '"$"#,##0'
 FORMATO_FECHA = 'DD/MM/YYYY'
 
-# Tope de filas del archivo. openpyxl arma el libro entero en memoria antes
-# de escribirlo, así que el límite real no es el de Excel (un millón de
-# filas) sino la RAM del proceso: en un hosting de 512 MB, unas decenas de
-# miles de filas con formato ya lo llenan y la app se cae para todos. Veinte
-# mil movimientos son años de uso intenso; si alguien llega ahí, el archivo
-# trae los más recientes y el JSON de «mis datos» sigue entregando todo.
 MAX_FILAS = 20_000
 
 
@@ -62,17 +40,6 @@ def nombre_mes(anio, mes):
 
 
 def filas_movimientos(usuario):
-    """Un dict por movimiento, ya resuelto a lo que se muestra.
-
-    `get_categoria_display()` no sirve solo: resuelve las categorías base pero
-    devuelve el slug crudo para las que el usuario crea a mano. De ahí el
-    diccionario de etiquetas.
-
-    Con más de MAX_FILAS movimientos se entregan los más recientes. El corte
-    se hace en la consulta —ordenando al revés y cortando ahí— y no en
-    Python: traer trescientos mil objetos para descartar la mayoría gasta la
-    memoria que el tope quiere proteger.
-    """
     etiquetas = dict(Categoria.opciones(usuario))
     filas = []
 
@@ -106,7 +73,6 @@ def filas_movimientos(usuario):
 
 
 def resumen_por_mes(filas):
-    """Un total por mes, en orden. Alimenta la hoja de resumen."""
     meses = {}
     for f in filas:
         m = meses.setdefault(f['periodo'], {
@@ -119,21 +85,12 @@ def resumen_por_mes(filas):
     return [meses[k] for k in sorted(meses)]
 
 
-# ============================================================
-#  CSV
-# ============================================================
-
 COLUMNAS_CSV = ['Periodo', 'Fecha', 'Corresponde a', 'Tipo', 'Categoria',
                 'Descripcion', 'Estado', 'Fecha de pago',
                 'Ingreso', 'Egreso', 'Balance']
 
 
 def escribir_csv(writer, usuario, cuenta, hoy):
-    """El mismo contenido que el Excel, en texto plano y sin formato.
-
-    Un CSV no admite color ni ancho de columna: las bandas de mes son filas
-    de texto y los subtotales, filas normales.
-    """
     filas = filas_movimientos(usuario)
     escribir = writer.writerow
 
@@ -191,10 +148,6 @@ def escribir_csv(writer, usuario, cuenta, hoy):
         total('TOTAL GENERAL', total_in, total_eg)
 
 
-# ============================================================
-#  Excel
-# ============================================================
-
 COLUMNAS_HOJA = [
     ('Fecha', 12), ('Corresponde a', 17), ('Categoria', 26),
     ('Descripcion', 40), ('Estado', 13), ('Fecha de pago', 14),
@@ -209,14 +162,6 @@ COLUMNAS_DATOS = [
 
 
 def libro_excel(usuario, cuenta, hoy):
-    """El libro completo, en bytes. Tres hojas:
-
-    - Movimientos: la que se lee. Banda por mes, subtotales, colores.
-    - Resumen por mes: una fila por mes, para el gráfico rápido.
-    - Datos: la misma información plana, con filtro. Las bandas y los
-      subtotales de la primera hoja le estorban a una tabla dinámica, que
-      espera una sola fila de encabezados; esta hoja es para eso.
-    """
     from openpyxl import Workbook
     from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
 
@@ -233,7 +178,6 @@ def libro_excel(usuario, cuenta, hoy):
 
     wb = Workbook()
 
-    # ---------- Hoja 1: Movimientos ----------
     ws = wb.active
     ws.title = 'Movimientos'
     ws.sheet_view.showGridLines = False
@@ -257,8 +201,6 @@ def libro_excel(usuario, cuenta, hoy):
                                 vertical='center')
         ws.column_dimensions[c.column_letter].width = ancho
     ws.row_dimensions[encabezado].height = 22
-    # La cabecera queda fija: con doce meses de movimientos se pierde de vista
-    # a la tercera pantalla de scroll.
     ws.freeze_panes = f'A{encabezado + 1}'
 
     fila = encabezado + 1
@@ -287,7 +229,7 @@ def libro_excel(usuario, cuenta, hoy):
         if f['periodo'] != mes:
             if mes is not None:
                 escribir_total(fila, f'Subtotal · {mes_nombre_actual}', mes_in, mes_eg)
-                fila += 2          # una fila en blanco entre meses
+                fila += 2
             mes = f['periodo']
             mes_nombre_actual = f['mes_nombre']
             mes_in = mes_eg = Decimal('0')
@@ -344,7 +286,6 @@ def libro_excel(usuario, cuenta, hoy):
         escribir_total(fila, f'Subtotal · {mes_nombre_actual}', mes_in, mes_eg)
         escribir_total(fila + 2, 'TOTAL GENERAL', total_in, total_eg, destacado=True)
 
-    # ---------- Hoja 2: Resumen por mes ----------
     hoja = wb.create_sheet('Resumen por mes')
     hoja.sheet_view.showGridLines = False
     for i, (titulo, ancho) in enumerate(
@@ -372,7 +313,6 @@ def libro_excel(usuario, cuenta, hoy):
         hoja.cell(row=n, column=6, value=m['cuenta']).alignment = Alignment(
             horizontal='right')
 
-    # ---------- Hoja 3: Datos ----------
     plana = wb.create_sheet('Datos')
     for i, (titulo, ancho) in enumerate(COLUMNAS_DATOS, start=1):
         c = plana.cell(row=1, column=i, value=titulo)

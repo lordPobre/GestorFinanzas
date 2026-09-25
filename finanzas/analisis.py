@@ -1,10 +1,3 @@
-"""
-Motor de análisis financiero determinístico.
-Calcula proyecciones de deuda, riesgo y salud SIN IA.
-La IA (opcional) interpreta estos números después, en otra capa.
-
-Todo aquí es matemática financiera estándar, explicable y gratis.
-"""
 import calendar
 from datetime import date
 
@@ -91,7 +84,7 @@ def analizar_finanzas(usuario):
     proyeccion = []
     hoy = date.today()
 
-    for i in range(7):  # mes actual + 6
+    for i in range(7):
         f = date(hoy.year, hoy.month, 1) + relativedelta(months=i)
         periodo_f = f.year * 100 + f.month
 
@@ -118,7 +111,6 @@ def analizar_finanzas(usuario):
         len(deudas_activas), deuda_total_restante,
     )
 
-    # --- Tendencia ---
     if len(proyeccion) >= 2:
         if proyeccion[-1]['deuda'] < proyeccion[0]['deuda']:
             tendencia = 'bajando'
@@ -154,7 +146,6 @@ def analizar_finanzas(usuario):
 
 
 def _calcular_riesgo(dti, flujo_libre, ingreso, cuota_total, num_deudas, deuda_total):
-    """Score de riesgo de endeudamiento (0-100), sobre umbrales reconocidos."""
     score = 0
     factores = []
     if dti > 45:

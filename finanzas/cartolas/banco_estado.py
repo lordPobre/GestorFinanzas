@@ -1,4 +1,3 @@
-"""Cartola CuentaRUT de BancoEstado."""
 import re
 from datetime import date
 from decimal import Decimal

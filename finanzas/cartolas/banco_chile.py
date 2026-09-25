@@ -1,29 +1,13 @@
-r"""Cartola de cuenta corriente del Banco de Chile.
-
-Formato de una fila, ya extraída del PDF:
-
-    31/08/2026 CENTRO DE Transf. de LOPEZ VARGAS ANA MARIA $ 49.200 $ 713.551
-    \_______/ \________/ \_____________________________/ \______/ \_______/
-      fecha     oficina              descripción            monto    saldo
-
-La oficina se pega a la descripción porque la columna 'Nro Doc' viene vacía
-y al extraer el texto las columnas vacías no dejan rastro. Se le quita por
-nombre conocido; si aparece una oficina nueva, lo peor que pasa es que su
-nombre queda como prefijo de la descripción, no que la fila se pierda.
-"""
 import re
 from datetime import datetime
 
 from .base import Cartola, ErrorCartola, plata, registrar, resolver_signos
 
-# Una fila entera. Se busca sobre todo el texto y no línea por línea: cómo
-# corta las líneas depende de la versión de pypdf, pero la forma de la fila
-# (fecha ... $ monto $ saldo) es del documento y no cambia.
 FILA = re.compile(
-    r'(\d{2}/\d{2}/\d{4})\s+'          # fecha
-    r'(.+?)\s+'                          # oficina + descripción
-    r'\$\s*([\d.]+)\s+'                 # monto (cargo o abono, aún sin saber)
-    r'\$\s*(-?[\d.]+)'                   # saldo corrido
+    r'(\d{2}/\d{2}/\d{4})\s+'
+    r'(.+?)\s+'
+    r'\$\s*([\d.]+)\s+'
+    r'\$\s*(-?[\d.]+)'
 )
 
 OFICINAS = ('CASA MATRIZ', 'CENTRO DE', 'INTERNET', 'SUCURSAL')
@@ -75,10 +59,6 @@ class BancoChile:
             descuadre=descuadre,
         )
 
-        # El cierre completo: el saldo del movimiento más nuevo tiene que ser
-        # el Saldo Contable que la cartola declara arriba. Si las dos cifras
-        # no coinciden es que se perdieron filas al extraer el texto, y
-        # importar una cartola incompleta es peor que no importar nada.
         if saldo_contable is not None and filas[0]['saldo'] != saldo_contable:
             cartola.cuadra = False
             cartola.descuadre = abs(filas[0]['saldo'] - saldo_contable)
@@ -94,7 +74,6 @@ class BancoChile:
         )
         return cartola
 
-    # -- piezas ------------------------------------------------------
 
     def _limpiar(self, desc):
         d = ' '.join(desc.split())
@@ -102,17 +81,10 @@ class BancoChile:
             if d.upper().startswith(of):
                 d = d[len(of):].strip()
                 break
-        # Un número de documento suelto al principio no aporta nada.
         d = re.sub(r'^\d{4,}\s+', '', d)
         return d[:200]
 
     def _saldos(self, texto):
-        """Saldo Inicial y Saldo Contable, del recuadro de arriba.
-
-        Vienen en una fila de cuatro cifras bajo sus títulos:
-            Saldo Inicial  Saldo Contable  Retenciones  Saldo Disponible
-            $ 584.700      $ 703.551       $ 0          $ 703.551
-        """
         m = re.search(
             r'Saldo\s+Inicial.*?\$\s*(-?[\d.]+)\s+\$\s*(-?[\d.]+)',
             texto, re.S | re.I,
@@ -133,6 +105,4 @@ class BancoChile:
         m = re.search(r'\b(\d{2}-\d{3}-\d{6}-\d)\b', texto)
         if not m:
             return ''
-        # Solo los últimos cuatro dígitos: no hay razón para volver a
-        # escribir el número de cuenta completo en pantalla.
         return '…' + m.group(1)[-4:]

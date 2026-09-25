@@ -1,21 +1,3 @@
-"""Verificación del correo al registrarse (doble opt-in).
-
-El correo es lo único que permite recuperar una cuenta. Si está mal escrito
-—una letra de menos en el dominio— nadie se enteraba hasta el día en que la
-persona olvidaba su contraseña y descubría que el enlace de recuperación se
-fue a una dirección que no existe. Peor: alguien podía registrarse con el
-correo de otro y dejarle avisos de pago en la bandeja.
-
-El enlace se firma, no se guarda. Un token de django.core.signing lleva
-dentro el id y el correo, y viaja firmado con SECRET_KEY: no hace falta una
-tabla de tokens pendientes ni limpiarla después. Si la persona cambia su
-correo antes de confirmar, el token viejo deja de calzar y no sirve.
-
-No bloquea el acceso. Se puede usar la app sin confirmar — exigirlo dejaría
-fuera a quien se registra en un computador donde no tiene su correo abierto.
-Lo que hace es avisar en el perfil, y antes que eso, que el correo exista de
-verdad se compruebe cuando importa.
-"""
 import logging
 
 from django.core import signing
@@ -40,11 +22,6 @@ def token(usuario):
 
 
 def usuario_de(cadena):
-    """El usuario de un token válido, o None.
-
-    Se comprueba que el correo del token siga siendo el de la cuenta: así un
-    enlace enviado a la dirección anterior no confirma la nueva.
-    """
     try:
         datos = signing.loads(cadena, salt=SAL, max_age=MAX_EDAD)
     except signing.BadSignature:
@@ -64,7 +41,6 @@ def enlace(request, usuario):
 
 
 def enviar(request, usuario):
-    """Manda el correo de confirmación. True si el proveedor lo aceptó."""
     destino = (usuario.email or '').strip()
     if not destino:
         return False
@@ -86,7 +62,6 @@ def enviar(request, usuario):
 
 
 def marcar(perfil):
-    """Deja registrado que el correo quedó confirmado."""
     perfil.correo_verificado = True
     perfil.correo_verificado_en = timezone.now()
     perfil.save(update_fields=['correo_verificado', 'correo_verificado_en'])

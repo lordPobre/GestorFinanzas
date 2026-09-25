@@ -1,10 +1,3 @@
-"""Cartolas exportadas como CSV o Excel.
-
-Un PDF esconde las columnas: al extraer el texto, la que viene vacía
-desaparece. Una exportación tabular no tiene ese problema — cada celda sabe
-a qué columna pertenece — así que acá el trabajo no es deducir el signo sino
-reconocer cómo llamó cada banco a sus columnas.
-"""
 import csv
 import io
 import re
@@ -212,7 +205,6 @@ def _movimientos(filas, col):
 
 
 def _signos_por_saldo(movimientos):
-    """Una sola columna de monto, sin signo: lo decide la cadena de saldos."""
     for i, m in enumerate(movimientos):
         if i + 1 >= len(movimientos):
             continue

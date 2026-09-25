@@ -1,30 +1,3 @@
-"""Acceso con cuenta de Google (OAuth 2.0, flujo de servidor).
-
-Por qué a mano y no con django-allauth: allauth trae sus propias URLs,
-plantillas, modelos y flujo de sesión, y esta app ya tiene un acceso
-propio con tope de intentos y verificación en dos pasos. Convivir con él
-cuesta más que estas cien líneas.
-
-Por qué el flujo de redirección y no el botón JavaScript de Google:
-el botón de Google Identity Services necesita cargar un script y un
-iframe de accounts.google.com, y la política de contenido de esta app
-(finanzas/middleware.py) no los permite. Abrirla sería debilitar la
-defensa contra XSS a cambio de nada: el flujo de redirección hace lo
-mismo con un enlace normal, sin JavaScript, sin CDN y sin dependencias
-nuevas — solo urllib, que viene con Python.
-
-Qué pasa cuando alguien entra con Google:
-  1. Se le manda a Google con un 'state' aleatorio guardado en su sesión.
-  2. Google lo devuelve con un 'code'. Si el 'state' no coincide, se
-     rechaza: es lo que impide que un tercero fabrique el retorno.
-  3. El 'code' se canjea por un id_token en un POST directo a Google.
-  4. Del id_token salen el correo y el 'sub' (identificador estable de la
-     cuenta de Google, que no cambia aunque el usuario cambie de correo).
-  5. Si ese 'sub' ya está vinculado, entra. Si no, se busca por correo y
-     se vincula a la cuenta existente. Si tampoco, se crea una cuenta.
-  6. Si la cuenta tiene verificación en dos pasos activa, igual se pide
-     el código: Google confirma quién es, no reemplaza el segundo factor.
-"""
 import base64
 import json
 import logging
@@ -53,22 +26,10 @@ BACKEND = 'django.contrib.auth.backends.ModelBackend'
 
 
 def google_disponible(request):
-    """Context processor: la plantilla solo dibuja el botón si hay credenciales.
-
-    Sin esto, en un equipo sin GOOGLE_CLIENT_ID el botón aparecería y
-    llevaría a un error. Mejor que no exista.
-    """
     return {'google_activo': bool(getattr(settings, 'GOOGLE_CLIENT_ID', ''))}
 
 
 def _uri_retorno(request):
-    """La dirección de vuelta.
-
-    Tiene que ser idéntica byte a byte en la ida y en el canje, y estar
-    registrada en Google Cloud Console. En producción se fuerza https:
-    detrás del proxy de PythonAnywhere la petición llega como http y
-    Google rechaza el retorno si no calzan.
-    """
     uri = request.build_absolute_uri(reverse('google_listo'))
     if not settings.DEBUG and uri.startswith('http://'):
         uri = 'https://' + uri[len('http://'):]
@@ -76,14 +37,12 @@ def _uri_retorno(request):
 
 
 def _destino_seguro(valor):
-    """Solo rutas internas. Un 'next' externo es una redirección abierta."""
     if valor and valor.startswith('/') and not valor.startswith('//'):
         return valor
     return ''
 
 
 def entrar_google(request):
-    """Paso 1: mandar al usuario a Google."""
     if request.user.is_authenticated:
         return redirect('dashboard')
 
@@ -101,8 +60,6 @@ def entrar_google(request):
         'response_type': 'code',
         'scope': 'openid email profile',
         'state': estado,
-        # Que muestre el selector: en un equipo compartido, sin esto entra
-        # con la última cuenta usada sin preguntar.
         'prompt': 'select_account',
     })
     return redirect(f'{URL_AUTORIZAR}?{parametros}')
@@ -110,17 +67,14 @@ def entrar_google(request):
 
 @limitar(15, 3600, 'Demasiados intentos de acceso con Google. Prueba más tarde.')
 def google_listo(request):
-    """Paso 2: Google devuelve al usuario acá con un código."""
     estado_guardado = request.session.pop('google_estado', None)
     destino = _destino_seguro(request.session.pop('google_next', ''))
 
     if not estado_guardado or request.GET.get('state') != estado_guardado:
-        # Sin 'state' válido no se sabe si el retorno lo pidió este usuario.
         messages.error(request, 'La sesión con Google no coincide. Vuelve a intentarlo.')
         return redirect('login')
 
     if request.GET.get('error') or not request.GET.get('code'):
-        # Caso normal: el usuario apretó "Cancelar" en la pantalla de Google.
         messages.error(request, 'No se completó el acceso con Google.')
         return redirect('login')
 
@@ -139,16 +93,11 @@ def google_listo(request):
         messages.error(request, 'Esta cuenta está desactivada.')
         return redirect('login')
 
-    # El segundo factor se pide igual. Google acredita el correo; el código
-    # acredita que quien entra tiene además el teléfono del dueño.
     if SegundoFactor.objects.filter(usuario=usuario, activo=True).exists():
         request.session['2fa_pendiente'] = usuario.pk
         request.session['2fa_next'] = destino
         return redirect('verificar_codigo')
 
-    # backend explícito: login() lo necesita porque no pasamos por
-    # authenticate(), y sin él Django levanta ValueError en cuanto haya más
-    # de un backend configurado.
     request.metodo_acceso = 'google'
     login(request, usuario, backend=BACKEND)
 
@@ -158,12 +107,7 @@ def google_listo(request):
     return redirect(destino or 'dashboard')
 
 
-# ------------------------------------------------------------------
-#  Piezas internas
-# ------------------------------------------------------------------
-
 def _canjear_codigo(codigo, uri_retorno):
-    """Cambia el código de un solo uso por el id_token, hablando con Google."""
     cuerpo = urllib.parse.urlencode({
         'code': codigo,
         'client_id': settings.GOOGLE_CLIENT_ID,
@@ -181,15 +125,6 @@ def _canjear_codigo(codigo, uri_retorno):
 
 
 def _leer_id_token(id_token):
-    """Saca los datos del id_token.
-
-    No se verifica la firma a propósito, y es seguro acá: el token no viene
-    del navegador sino de un POST nuestro a oauth2.googleapis.com por TLS.
-    La propia documentación de Google permite omitir la validación de firma
-    en este caso. Lo que sí se comprueba, abajo, es que el contenido sea el
-    esperado. Si algún día el token llegara por el navegador (flujo con
-    JavaScript), esto ya no bastaría y habría que verificar la firma.
-    """
     partes = id_token.split('.')
     if len(partes) != 3:
         raise ValueError('id_token mal formado')
@@ -201,16 +136,12 @@ def _validar(datos):
     if datos.get('iss') not in ('accounts.google.com', 'https://accounts.google.com'):
         raise ValueError('emisor inesperado')
     if datos.get('aud') != settings.GOOGLE_CLIENT_ID:
-        # El token es de otra aplicación: aceptarlo dejaría entrar con un
-        # token conseguido en cualquier otro sitio.
         raise ValueError('el token no es de esta aplicación')
     if int(datos.get('exp', 0)) < time.time():
         raise ValueError('token vencido')
     if not datos.get('sub'):
         raise ValueError('falta el identificador de la cuenta')
     if not datos.get('email') or not datos.get('email_verified'):
-        # Sin correo verificado no se puede vincular por correo sin abrir la
-        # puerta a que alguien reclame la cuenta de otro.
         raise ValueError('correo no verificado por Google')
 
 
@@ -224,23 +155,16 @@ def _nombre_libre(correo):
 
 
 def _usuario_para(datos):
-    """Devuelve (usuario, recien_creado) para esta cuenta de Google."""
     sub = datos['sub']
     correo = datos['email'].strip().lower()
 
-    # 1. Ya entró con Google antes.
     perfil = UserProfile.objects.filter(google_sub=sub).select_related('usuario').first()
     if perfil:
         return perfil.usuario, False
 
-    # 2. Ya tenía cuenta con ese correo: se vincula y entra a la de siempre,
-    #    con sus gastos y su historial. Solo vale porque Google verificó el
-    #    correo (lo comprueba _validar).
     usuario = (User.objects.filter(email__iexact=correo).first()
                or User.objects.filter(profile__email__iexact=correo).first())
 
-    # 3. Nadie: cuenta nueva, sin contraseña utilizable. Entra por Google o
-    #    por "¿La olvidaste?", que le deja poner una.
     recien_creado = usuario is None
     if recien_creado:
         usuario = User.objects.create(
@@ -262,9 +186,6 @@ def _usuario_para(datos):
         perfil.nombre_completo = datos['name'][:100]
         campos.append('nombre_completo')
     if not perfil.correo_verificado:
-        # Google solo llega hasta acá con email_verified (se comprueba más
-        # arriba), así que pedir otra confirmación por correo sería pedir dos
-        # veces lo mismo.
         from django.utils import timezone
         perfil.correo_verificado = True
         perfil.correo_verificado_en = timezone.now()

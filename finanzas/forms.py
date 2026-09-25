@@ -1,11 +1,3 @@
-"""Formularios de la app.
-
-Los widgets NO llevan clases: el CSS estiliza por elemento
-(`input`, `select`, `textarea`). Antes traían clases de Tailwind
-(`w-full px-4 py-2 border rounded-lg focus:border-indigo-500`) que no existen
-en este proyecto, así que los campos se veían sin estilo — el navegador les
-daba su apariencia por defecto sobre un fondo oscuro.
-"""
 from datetime import date, timedelta
 from decimal import Decimal
 
@@ -14,15 +6,6 @@ from django import forms
 from .models import Categoria, Deuda, MetaAhorro, Transaccion
 
 class DeudaForm(forms.ModelForm):
-    """Una compra en cuotas.
-
-    Se pide el VALOR DE LA CUOTA, no el total. Es el dato que la persona tiene
-    a mano: la boleta y la app del banco dicen "12 cuotas de $12.500", no el
-    precio con intereses. El total se calcula (cuota x cuotas) y se sigue
-    guardando en Deuda.monto_total, que es lo que lee el resto de la app
-    (dashboard, análisis, exportaciones), así que no hay migración.
-    """
-
     valor_cuota = forms.DecimalField(
         label='Valor de cada cuota',
         max_digits=10, decimal_places=2, min_value=Decimal('1'),
@@ -66,9 +49,6 @@ class DeudaForm(forms.ModelForm):
         return cuota
 
     def clean_cuotas_totales(self):
-        """cuotas_totales es un IntegerField sin validadores en el modelo, así
-        que aceptaba 0 y negativos. Con 0 cuotas la deuda quedaba invisible:
-        no generaba ningún mes de cobro."""
         n = self.cleaned_data.get('cuotas_totales')
         if n is None or n < 1:
             raise forms.ValidationError('Tiene que ser al menos 1 cuota.')
@@ -90,8 +70,6 @@ class DeudaForm(forms.ModelForm):
         return datos
 
     def save(self, commit=True):
-        """El total no se escribe: se calcula acá, que es el único lugar donde
-        se conocen la cuota y la cantidad ya validadas."""
         deuda = super().save(commit=False)
         deuda.monto_total = (
             self.cleaned_data['valor_cuota'] * self.cleaned_data['cuotas_totales']
@@ -101,8 +79,6 @@ class DeudaForm(forms.ModelForm):
         return deuda
 
 class TransaccionForm(forms.ModelForm):
-    """Un ingreso o un gasto del día a día."""
-
     fecha = forms.DateField(
         label='Fecha',
         input_formats=['%Y-%m-%d', '%d/%m/%Y', '%d-%m-%Y'],
@@ -138,12 +114,6 @@ class TransaccionForm(forms.ModelForm):
         return monto
 
     def clean(self):
-        """Impide cruzar tipo y categoría.
-
-        Antes se podía guardar un EGRESO con categoría 'Sueldo': la dona de
-        gastos mostraba "Sueldo" como si fuera un gasto, y las estadísticas
-        por categoría quedaban sin sentido.
-        """
         datos = super().clean()
         tipo = datos.get('tipo')
         categoria = datos.get('categoria')
@@ -173,17 +143,6 @@ class TransaccionForm(forms.ModelForm):
         return datos
 
     def _validar_fecha(self, fecha, tipo):
-        """Un gasto futuro descuadra el mes; un ingreso futuro no.
-
-        Un gasto con fecha por venir aparece contado en un mes que todavía no
-        llega: para eso está el gasto pendiente. Un ingreso ya conocido del
-        mes siguiente —un sueldo, un pago acordado— es un caso real, y cae en
-        el mes que le corresponde porque todos los totales se calculan por
-        rango de mes.
-
-        El tope de un año evita que un error de tipeo en el año mande el
-        movimiento a 2099, donde nadie lo vería nunca.
-        """
         if not fecha or fecha <= date.today():
             return
 
@@ -197,8 +156,6 @@ class TransaccionForm(forms.ModelForm):
             self.add_error('fecha', 'Como máximo un año hacia adelante.')
 
 class MetaAhorroForm(forms.ModelForm):
-    """Una meta de ahorro."""
-
     fecha_limite = forms.DateField(
         required=False,
         label='¿Para cuándo?',
@@ -234,8 +191,6 @@ class MetaAhorroForm(forms.ModelForm):
         return fecha
 
     def clean(self):
-        """Antes se podía tener $600.000 ahorrados sobre una meta de $500.000:
-        la barra pasaba del 100% y el "te faltan" daba negativo."""
         datos = super().clean()
         meta = datos.get('monto_meta')
         actual = datos.get('monto_actual') or 0

@@ -3,32 +3,24 @@ from datetime import datetime
 
 from .base import Cartola, ErrorCartola, MovimientoLeido, plata, registrar
 
-# La fila estándar de compra. El lugar es opcional (las filas de cargos no
-# lo traen) y la parte de cuotas también: la fila del pago del estado
-# anterior corta después del 01/01.
 FILA = re.compile(
-    r'^(.*?)\s*'                                  # lugar
-    r'(\d{2}/\d{2}/\d{4})\s+'                     # fecha de la operación
-    r'(.+?)\s+'                                   # comercio
-    r'(T|A\d)\s+'                                 # titular o adicional
-    r'(-?[\d.]+)\s+'                              # monto de la operación
-    r'(-?[\d.]+)\s+'                              # monto total con interés
-    r'(\d{1,2})/(\d{1,2})'                         # cuota actual / total
-    r'(?:\s+([a-zA-Z]{3}-\d{4})\s+(-?[\d.]+))?'    # mes 1ª cuota + valor cuota
+    r'^(.*?)\s*'
+    r'(\d{2}/\d{2}/\d{4})\s+'
+    r'(.+?)\s+'
+    r'(T|A\d)\s+'
+    r'(-?[\d.]+)\s+'
+    r'(-?[\d.]+)\s+'
+    r'(\d{1,2})/(\d{1,2})'
+    r'(?:\s+([a-zA-Z]{3}-\d{4})\s+(-?[\d.]+))?'
     r'\s*$'
 )
 
-# Impuestos y comisiones: sin lugar, sin tarjeta, sin cuotas. Tres cifras
-# iguales al final (monto, total, valor).
 CARGO = re.compile(r'^(\d{2}/\d{2}/\d{4})\s+(.+?)\s+(-?[\d.]+)\s+(-?[\d.]+)\s+(-?[\d.]+)\s*$')
 
 FACTURADO = re.compile(r'Monto\s+Total\s+Facturado\s+a\s+Pagar\s+(-?[\d.]+)', re.I)
 FECHA_FACT = re.compile(r'Fecha\s+Facturaci[oó]n[^:]*:\s*(\d{2}/\d{2}/\d{4})', re.I)
 CONTRATO = re.compile(r'N[°º]\s*de\s*Contrato:\s*([\d*]+)', re.I)
 
-# Filas que no son un gasto: el pago del estado de cuenta anterior. Salen en
-# la lista igual, pero desmarcadas y explicadas — esconderlas haría que la
-# suma no cuadre a la vista.
 NO_ES_GASTO = ('pago tarjeta', 'pago recibido', 'abono pago')
 
 MESES = ('Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio',
@@ -38,7 +30,6 @@ MESES = ('Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio',
 @registrar('cmr', 'CMR / Banco Falabella (tarjeta)')
 class CMR:
 
-    # Va en la lista de tarjetas del selector, no en la de cartolas.
     es_tarjeta = True
 
     def reconoce(self, texto):
@@ -74,14 +65,9 @@ class CMR:
             saldo_final=facturado,
         )
 
-        # La comprobación propia de este formato: la suma de las cuotas del
-        # período contra el total que el estado declara.
         if facturado:
             diferencia = abs(suma - facturado)
             cartola.descuadre = diferencia
-            # Se tolera hasta un 1%: el estado arrastra ajustes de pesos del
-            # período anterior que no salen como fila (en el que probé, nueve
-            # pesos). Fallar por eso sería un falso positivo cada mes.
             cartola.cuadra = diferencia <= max(facturado / 100, 50)
             if cartola.cuadra:
                 cartola.nota_cuadre = (
@@ -102,7 +88,6 @@ class CMR:
 
         return cartola
 
-    # -- piezas ------------------------------------------------------
 
     def _fila(self, linea, fecha_fact):
         m = FILA.match(linea)
@@ -122,8 +107,6 @@ class CMR:
         desc = ' '.join(desc.split())
         ca, ct = int(ca), int(ct)
 
-        # Sin valor de cuota la fila no es una compra del período: es el pago
-        # del estado anterior, que corta antes de esa columna.
         if valor is None:
             monto = abs(plata(monto_op))
             if not monto:
@@ -147,9 +130,6 @@ class CMR:
             )
 
         if ct > 1:
-            # La cuota es del mes que se factura, no del día de la compra.
-            # El comercio se queda con la marca de cuál cuota es, que además
-            # hace que el mes siguiente no se lea como la misma fila.
             return MovimientoLeido(
                 fecha=fecha_fact or fecha_op,
                 descripcion=f'{desc} · cuota {ca} de {ct}'[:200],

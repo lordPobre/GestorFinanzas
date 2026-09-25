@@ -1,10 +1,3 @@
-"""
-Capa de IA: interpreta el análisis financiero (números) y genera
-un diagnóstico en lenguaje natural con recomendaciones personalizadas.
-
-Usa la API de Anthropic (Claude). Si no hay API key o falla,
-la app sigue funcionando con solo los números del motor determinístico.
-"""
 import os
 import json
 import logging
@@ -44,10 +37,6 @@ Responde ÚNICAMENTE con un JSON válido (sin markdown, sin ```), con esta estru
 Sé concreto, usa los números reales, y evita jerga financiera complicada. Habla directo a la persona (tú/tu)."""
 
 def interpretar_con_ia(analisis, moneda='$'):
-    """
-    Llama a la API de Anthropic para interpretar el análisis.
-    Devuelve dict con el diagnóstico, o None si falla / no hay API key.
-    """
     api_key = os.environ.get('ANTHROPIC_API_KEY', '').strip()
     if not api_key:
         log.info('Analisis con IA no disponible: falta ANTHROPIC_API_KEY.')
