@@ -197,8 +197,8 @@ y el CI termina en verde.
 - [x] 2. Correo a los usuarios por la política 1.2 (enviado el 2026-09-24)
 - [x] 3. DPA de Railway, Cloudflare, Resend y Anthropic
 - [x] 4. Teléfono en `BRECHAS.md`
-- [ ] 5. SPF, DKIM y DMARC
-- [ ] 6. Monitor externo
+- [x] 5. SPF, DKIM y DMARC (2026-09-25: `perseustechnology.dev`, SPF/DKIM/DMARC en PASS con Gmail; `p=none`, informes a `soporte@`. Entre el 2026-10-09 y el 2026-10-23 revisar informes, confirmar DKIM de Zoho y pasar a `p=quarantine`)
+- [x] 6. Monitor externo (2026-09-25: UptimeRobot, alerta DOWN y UP recibidas por correo)
 - [x] 7. Alertas de Sentry
 - [x] 8. Simulacro de restauración (2026-09-24: 9 usuarios, 64 movimientos, coincide con producción)
 - [x] 9. `requirements.txt` con hashes
