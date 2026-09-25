@@ -39,7 +39,7 @@
   </div>
   <div class="glass res-kpi">
     <div class="label">Sección peor evaluada</div>
-    <div class="res-kpi-valor" style="color:#e25c5c">{% if peor %}{{ peor.nombre }}<small>{{ peor.prom }}</small>{% else %}–{% endif %}</div>
+    <div class="res-kpi-valor" style="color:var(--coral)">{% if peor %}{{ peor.nombre }}<small>{{ peor.prom }}</small>{% else %}–{% endif %}</div>
     <div class="res-kpi-nota">prioridad para mejorar</div>
   </div>
 </div>
@@ -48,14 +48,14 @@
   <div class="glass card-lg">
     <div class="res-titulo"><span>Recomendación (0–10)</span><span class="res-dato">Puntaje {{ nps.valor }}</span></div>
     <div class="res-apilada">
-      <div style="background:#e25c5c;width:{{ nps.ancho_criticos }}"></div>
+      <div style="background:var(--coral);width:{{ nps.ancho_criticos }}"></div>
       <div style="background:#6a6a6a;width:{{ nps.ancho_neutros }}"></div>
-      <div style="background:#53d258;width:{{ nps.ancho_promotores }}"></div>
+      <div style="background:var(--green);width:{{ nps.ancho_promotores }}"></div>
     </div>
     <div class="res-apilada-leyenda">
-      <span style="color:#e25c5c">Críticos (0–6) · {{ nps.criticos }}</span>
+      <span style="color:var(--coral)">Críticos (0–6) · {{ nps.criticos }}</span>
       <span style="color:var(--text-secondary)">Neutros (7–8) · {{ nps.neutros }}</span>
-      <span style="color:#53d258">Promotores (9–10) · {{ nps.promotores }}</span>
+      <span style="color:var(--green)">Promotores (9–10) · {{ nps.promotores }}</span>
     </div>
     <div class="res-histograma">
       {% for b in nps.barras %}

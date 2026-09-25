@@ -11,7 +11,7 @@
 <div style="max-width:680px">
 
   <div class="glass card" style="margin-bottom:16px;display:flex;gap:13px;align-items:flex-start">
-    <span style="display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;flex-shrink:0;border-radius:12px;background:var(--amber-tenue);color:var(--amber);font-size:13px">
+    <span class="icono-aviso ambar">
       <i class="fas fa-shield-halved"></i>
     </span>
     <div>
@@ -26,7 +26,7 @@
 
   <div class="glass" style="border-radius:24px;overflow:hidden;margin-bottom:16px">
     {% for s in sesiones %}
-    <div style="display:flex;align-items:center;gap:14px;padding:17px 20px;{% if not forloop.last %}border-bottom:1px solid rgba(255,255,255,.05){% endif %}">
+    <div class="fila-lista">
       <span class="icon-tile {% if s.es_actual %}green{% endif %}"><i class="fas {{ s.icono }}"></i></span>
 
       <div class="row-main">

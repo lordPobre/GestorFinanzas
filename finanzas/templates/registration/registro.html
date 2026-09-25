@@ -5,22 +5,22 @@
 {% block pitch %}
 <div style="max-width:440px">
   <h1 class="auth-titular">Dos minutos ahora, y dejas de adivinar a fin de mes.</h1>
-  <p style="margin:18px 0 0;font-size:14.5px;font-weight:500;line-height:1.6;color:rgba(26,18,0,.72);max-width:390px">
+  <p class="auth-bajada">
     Al terminar te pedimos tu sueldo y tus cuotas. Con eso ya sabes cuánto puedes
     gastar por día sin quedarte corto.
   </p>
 
   <div class="auth-ventajas" style="display:flex;flex-direction:column;gap:14px;margin-top:34px">
     <div style="display:flex;align-items:center;gap:13px">
-      <span style="display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;flex-shrink:0;border-radius:12px;background:rgba(26,18,0,.14);font-size:12px"><i class="fas fa-check"></i></span>
+      <span class="auth-ventaja-icono"><i class="fas fa-check"></i></span>
       <span style="font-size:13.5px;font-weight:600">Sin conectar tu banco</span>
     </div>
     <div style="display:flex;align-items:center;gap:13px">
-      <span style="display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;flex-shrink:0;border-radius:12px;background:rgba(26,18,0,.14);font-size:12px"><i class="fas fa-check"></i></span>
+      <span class="auth-ventaja-icono"><i class="fas fa-check"></i></span>
       <span style="font-size:13.5px;font-weight:600">Tus datos quedan en tu cuenta</span>
     </div>
     <div style="display:flex;align-items:center;gap:13px">
-      <span style="display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;flex-shrink:0;border-radius:12px;background:rgba(26,18,0,.14);font-size:12px"><i class="fas fa-check"></i></span>
+      <span class="auth-ventaja-icono"><i class="fas fa-check"></i></span>
       <span style="font-size:13.5px;font-weight:600">Exportas todo a CSV cuando quieras</span>
     </div>
   </div>
@@ -32,9 +32,9 @@
 <p style="margin:8px 0 28px;font-size:13.5px;color:var(--text-secondary)">Solo necesitas un usuario y una contraseña.</p>
 
 {% if form.errors %}
-<div style="display:flex;gap:10px;align-items:flex-start;padding:13px 15px;margin-bottom:20px;border-radius:14px;background:var(--coral-tenue);border:1px solid rgba(226,92,92,.3)">
-  <i class="fas fa-circle-exclamation" style="font-size:12px;color:var(--coral);margin-top:2px"></i>
-  <div style="font-size:12px;color:var(--text-secondary);line-height:1.55">
+<div class="aviso-error" style="margin-bottom:20px">
+  <i class="fas fa-circle-exclamation"></i>
+  <div class="aviso-error-texto">
     {% for campo, errores in form.errors.items %}
       {% for e in errores %}<div>{{ e }}</div>{% endfor %}
     {% endfor %}

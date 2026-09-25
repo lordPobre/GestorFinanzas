@@ -30,7 +30,7 @@
 
 {% if es_staging %}
 <div role="status" style="position:fixed;top:0;left:50%;transform:translateX(-50%);z-index:9999;pointer-events:none;
-     padding:4px 14px;border-radius:0 0 12px 12px;background:#e25c5c;color:#fff;
+     padding:4px 14px;border-radius:0 0 12px 12px;background:var(--coral);color:#fff;
      font-family:'Manrope',system-ui,sans-serif;font-size:11px;font-weight:700;letter-spacing:.03em">
   ENTORNO DE PRUEBAS · no se envían correos
 </div>
@@ -49,22 +49,22 @@
     {% block pitch %}
     <div style="max-width:440px">
       <h1 class="auth-titular">Saber cuánto puedes gastar hoy no debería tomar una planilla.</h1>
-      <p style="margin:18px 0 0;font-size:14.5px;font-weight:500;line-height:1.6;color:rgba(26,18,0,.72);max-width:390px">
+      <p class="auth-bajada">
         Registra en dos toques, mira una sola cifra clara y deja que la app te avise
         antes de que se te pase una cuota.
       </p>
 
       <div class="auth-ventajas" style="display:flex;flex-direction:column;gap:14px;margin-top:34px">
         <div style="display:flex;align-items:center;gap:13px">
-          <span style="display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;flex-shrink:0;border-radius:12px;background:rgba(26,18,0,.14);font-size:12px"><i class="fas fa-wallet"></i></span>
+          <span class="auth-ventaja-icono"><i class="fas fa-wallet"></i></span>
           <span style="font-size:13.5px;font-weight:600">Una cifra: lo que te queda libre de verdad</span>
         </div>
         <div style="display:flex;align-items:center;gap:13px">
-          <span style="display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;flex-shrink:0;border-radius:12px;background:rgba(26,18,0,.14);font-size:12px"><i class="fas fa-credit-card"></i></span>
+          <span class="auth-ventaja-icono"><i class="fas fa-credit-card"></i></span>
           <span style="font-size:13.5px;font-weight:600">Tus compras en cuotas, con lo que falta a la vista</span>
         </div>
         <div style="display:flex;align-items:center;gap:13px">
-          <span style="display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;flex-shrink:0;border-radius:12px;background:rgba(26,18,0,.14);font-size:12px"><i class="fas fa-hand-holding-dollar"></i></span>
+          <span class="auth-ventaja-icono"><i class="fas fa-hand-holding-dollar"></i></span>
           <span style="font-size:13.5px;font-weight:600">Quién te debe y cuánto ha devuelto</span>
         </div>
       </div>

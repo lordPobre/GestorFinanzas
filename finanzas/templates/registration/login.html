@@ -7,18 +7,18 @@
 <p style="margin:8px 0 30px;font-size:13.5px;color:var(--text-secondary)">Sigue donde lo dejaste.</p>
 
 {% if form.errors and not bloqueado %}
-<div style="display:flex;gap:10px;align-items:flex-start;padding:13px 15px;margin-bottom:20px;border-radius:14px;background:var(--coral-tenue);border:1px solid rgba(226,92,92,.3)">
-  <i class="fas fa-circle-exclamation" style="font-size:12px;color:var(--coral);margin-top:2px"></i>
-  <div style="font-size:12px;color:var(--text-secondary);line-height:1.5">
+<div class="aviso-error" style="margin-bottom:20px">
+  <i class="fas fa-circle-exclamation"></i>
+  <div class="aviso-error-texto">
     Usuario o contraseña incorrectos. Revisa las mayúsculas.
   </div>
 </div>
 {% endif %}
 
 {% if bloqueado %}
-<div style="display:flex;gap:10px;align-items:flex-start;padding:13px 15px;margin-bottom:20px;border-radius:14px;background:var(--coral-tenue);border:1px solid rgba(226,92,92,.3)">
-  <i class="fas fa-clock" style="font-size:12px;color:var(--coral);margin-top:2px"></i>
-  <div style="font-size:12px;color:var(--text-secondary);line-height:1.5">
+<div class="aviso-error" style="margin-bottom:20px">
+  <i class="fas fa-clock"></i>
+  <div class="aviso-error-texto">
     Demasiados intentos fallidos. Espera unos minutos antes de volver a probar.
   </div>
 </div>
@@ -32,9 +32,9 @@
   </button>
 
   <div id="avisoPasskey" role="status" hidden style="margin-top:14px">
-    <div style="display:flex;gap:10px;align-items:flex-start;padding:13px 15px;border-radius:14px;background:var(--coral-tenue);border:1px solid rgba(226,92,92,.3)">
-      <i class="fas fa-circle-exclamation" style="font-size:12px;color:var(--coral);margin-top:2px"></i>
-      <div id="avisoPasskeyTexto" style="font-size:12px;color:var(--text-secondary);line-height:1.5"></div>
+    <div class="aviso-error">
+      <i class="fas fa-circle-exclamation"></i>
+      <div id="avisoPasskeyTexto" class="aviso-error-texto"></div>
     </div>
   </div>
 

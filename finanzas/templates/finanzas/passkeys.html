@@ -11,7 +11,7 @@
 <div style="max-width:680px">
 
   <div class="glass card" style="margin-bottom:16px;display:flex;gap:13px;align-items:flex-start">
-    <span style="display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;flex-shrink:0;border-radius:12px;background:var(--amber-tenue);color:var(--amber);font-size:14px">
+    <span class="icono-aviso ambar" style="font-size:14px">
       <i class="fas fa-fingerprint"></i>
     </span>
     <div>
@@ -26,7 +26,7 @@
 
   {% if not tiene_2fa %}
   <a href="{% url 'configurar_2fa' %}" class="glass card" style="margin-bottom:16px;display:flex;gap:13px;align-items:center;text-decoration:none;color:inherit">
-    <span style="display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;flex-shrink:0;border-radius:12px;background:var(--coral-tenue);color:var(--coral);font-size:13px">
+    <span class="icono-aviso coral">
       <i class="fas fa-shield-halved"></i>
     </span>
     <div class="row-main">
@@ -40,7 +40,7 @@
   {% if passkeys %}
   <div class="glass" style="border-radius:24px;overflow:hidden;margin-bottom:16px">
     {% for p in passkeys %}
-    <div style="display:flex;align-items:center;gap:14px;padding:17px 20px;{% if not forloop.last %}border-bottom:1px solid rgba(255,255,255,.05){% endif %}">
+    <div class="fila-lista">
       <span class="icon-tile green"><i class="fas fa-fingerprint"></i></span>
       <div class="row-main">
         <div class="row-title">{{ p.nombre }}</div>

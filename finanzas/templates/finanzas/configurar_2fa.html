@@ -21,15 +21,15 @@
   </div>
 
   <div style="display:flex;align-items:flex-start;gap:15px;padding:22px;margin-bottom:14px;
-              border-radius:26px;background:#383838;border:1px solid rgba(83,210,88,.24)">
+              border-radius:26px;background:var(--surface);border:1px solid rgba(83,210,88,.24)">
     <span style="width:44px;height:44px;border-radius:16px;flex-shrink:0;display:flex;
                  align-items:center;justify-content:center;font-size:17px;
-                 background:rgba(83,210,88,.14);color:#53d258">
+                 background:rgba(83,210,88,.14);color:var(--green)">
       <i class="fas fa-shield-halved"></i>
     </span>
     <div>
       <div style="font-size:15px;font-weight:700;margin-bottom:6px">Tu cuenta está protegida</div>
-      <div style="font-size:12.5px;color:rgba(245,245,245,.72);line-height:1.55">
+      <div style="font-size:12.5px;color:var(--text-secondary);line-height:1.55">
         Al entrar te pedimos un código de tu app además de la contraseña.
         Aunque alguien sepa tu clave, no puede entrar sin tu teléfono.
       </div>
@@ -42,18 +42,18 @@
   </div>
 
   <div style="display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;
-              padding:18px 20px;margin-bottom:14px;border-radius:22px;background:#383838">
+              padding:18px 20px;margin-bottom:14px;border-radius:22px;background:var(--surface)">
     <div>
       <div style="font-size:14px;font-weight:600;margin-bottom:3px">Códigos de respaldo</div>
       <div style="font-size:11.5px;color:rgba(245,245,245,.42)">
         Te quedan {{ codigos_restantes }} sin usar.
-        {% if codigos_restantes < 3 %}<span style="color:#e25c5c">Conviene generar otros.</span>{% endif %}
+        {% if codigos_restantes < 3 %}<span style="color:var(--coral)">Conviene generar otros.</span>{% endif %}
       </div>
     </div>
     <button class="btn btn-soft btn-sm" data-open="#modalRegenerar">Generar nuevos</button>
   </div>
 
-  <button class="btn btn-glass btn-block" style="color:#e25c5c" data-open="#modalDesactivar">
+  <button class="btn btn-glass btn-block" style="color:var(--coral)" data-open="#modalDesactivar">
     <i class="fas fa-shield-xmark" style="font-size:11px"></i>Desactivar verificación en dos pasos
   </button>
 
@@ -61,14 +61,14 @@
   <h1 style="font-family:'Manrope',sans-serif;font-size:21px;font-weight:800;letter-spacing:-.025em;margin:0 0 6px">
     Verificación en dos pasos
   </h1>
-  <div style="font-size:12.5px;color:rgba(245,245,245,.72);line-height:1.55;margin-bottom:20px;max-width:460px">
+  <div style="font-size:12.5px;color:var(--text-secondary);line-height:1.55;margin-bottom:20px;max-width:460px">
     Una contraseña robada deja de bastar: al entrar pediremos también un código
     que solo existe en tu teléfono y cambia cada 30 segundos.
   </div>
 
-  <div style="display:flex;gap:15px;padding:20px;margin-bottom:12px;border-radius:22px;background:#383838">
+  <div style="display:flex;gap:15px;padding:20px;margin-bottom:12px;border-radius:22px;background:var(--surface)">
     <span style="width:28px;height:28px;border-radius:50%;flex-shrink:0;display:flex;
-                 align-items:center;justify-content:center;background:#ffaa2c;color:#1a1200;
+                 align-items:center;justify-content:center;background:var(--amber);color:#1a1200;
                  font-family:'Manrope',sans-serif;font-size:12.5px;font-weight:800">1</span>
     <div>
       <div style="font-size:14px;font-weight:600;margin-bottom:5px">Instala una app de autenticación</div>
@@ -79,9 +79,9 @@
     </div>
   </div>
 
-  <div style="display:flex;gap:15px;padding:20px;margin-bottom:12px;border-radius:22px;background:#383838">
+  <div style="display:flex;gap:15px;padding:20px;margin-bottom:12px;border-radius:22px;background:var(--surface)">
     <span style="width:28px;height:28px;border-radius:50%;flex-shrink:0;display:flex;
-                 align-items:center;justify-content:center;background:#ffaa2c;color:#1a1200;
+                 align-items:center;justify-content:center;background:var(--amber);color:#1a1200;
                  font-family:'Manrope',sans-serif;font-size:12.5px;font-weight:800">2</span>
     <div style="flex:1;min-width:0">
       <div style="font-size:14px;font-weight:600;margin-bottom:4px">Escanea este código</div>
@@ -95,7 +95,7 @@
       </div>
       {% else %}
       <div style="padding:14px 16px;border-radius:14px;background:rgba(255,170,44,.1);
-                  border:1px solid rgba(255,170,44,.26);font-size:12px;color:#ffaa2c;line-height:1.5">
+                  border:1px solid rgba(255,170,44,.26);font-size:12px;color:var(--amber);line-height:1.5">
         No se pudo generar el código QR. Usa la clave de abajo, que funciona igual.
         <div style="font-size:11px;opacity:.75;margin-top:5px">
           (Falta la librería: <code>pip install qrcode</code>)
@@ -110,11 +110,11 @@
         <div id="claveManual"
              style="font-family:'JetBrains Mono',monospace;font-size:13px;letter-spacing:.06em;
                     line-height:1.7;word-break:break-word;padding:12px 14px;border-radius:12px;
-                    background:#454545;color:#ffaa2c;user-select:all;cursor:pointer"
+                    background:#454545;color:var(--amber);user-select:all;cursor:pointer"
              data-clave="{{ secreto }}" title="Toca para copiar">{{ secreto_legible }}</div>
         <button type="button" id="btnCopiarClave"
                 style="margin-top:9px;padding:7px 13px;border-radius:100px;border:1px solid rgba(255,255,255,.13);
-                       background:none;color:rgba(245,245,245,.72);cursor:pointer;
+                       background:none;color:var(--text-secondary);cursor:pointer;
                        font-family:'Manrope',sans-serif;font-size:11.5px;font-weight:600">
           <i class="fas fa-copy" style="font-size:10px;margin-right:5px"></i>Copiar clave
         </button>
@@ -122,9 +122,9 @@
     </div>
   </div>
 
-  <div style="display:flex;gap:15px;padding:20px;border-radius:22px;background:#383838">
+  <div style="display:flex;gap:15px;padding:20px;border-radius:22px;background:var(--surface)">
     <span style="width:28px;height:28px;border-radius:50%;flex-shrink:0;display:flex;
-                 align-items:center;justify-content:center;background:#ffaa2c;color:#1a1200;
+                 align-items:center;justify-content:center;background:var(--amber);color:#1a1200;
                  font-family:'Manrope',sans-serif;font-size:12.5px;font-weight:800">3</span>
     <div style="flex:1;min-width:0">
       <div style="font-size:14px;font-weight:600;margin-bottom:4px">Escribe el código que aparece</div>
@@ -140,7 +140,7 @@
                maxlength="6" pattern="[0-9]{6}" placeholder="000000" required
                style="width:100%;box-sizing:border-box;padding:16px 12px 16px 26px;
                       border-radius:16px;border:1px solid transparent;background:#454545;
-                      color:#f5f5f5;font-family:'JetBrains Mono',monospace;font-size:26px;
+                      color:var(--text-primary);font-family:'JetBrains Mono',monospace;font-size:26px;
                       font-weight:600;letter-spacing:.34em;text-align:center;margin-bottom:14px">
         <button type="submit" class="btn btn-purple btn-block">Activar protección</button>
       </form>
@@ -167,7 +167,7 @@
         <label class="label" for="pwDesactivar">Confirma con tu contraseña</label>
         <input type="password" name="password" id="pwDesactivar" required autocomplete="current-password">
       </div>
-      <button type="submit" class="btn btn-block" style="background:#e25c5c;color:#2b0606">
+      <button type="submit" class="btn btn-block" style="background:var(--coral);color:#2b0606">
         Desactivar
       </button>
     </form>

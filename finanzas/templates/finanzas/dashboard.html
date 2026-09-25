@@ -413,8 +413,8 @@
     </div>
 
     <div class="split-bar" style="height:7px;margin-top:12px">
-      {% if monto_ya_pagado %}<span style="width:{% widthratio monto_ya_pagado total_comprometido_mes 100 %}%;background:linear-gradient(90deg,#059669,var(--green))"></span>{% endif %}
-      {% if monto_sin_pagar %}<span style="width:{% widthratio monto_sin_pagar total_comprometido_mes 100 %}%;background:linear-gradient(90deg,#ea580c,#fb923c)"></span>{% endif %}
+      {% if monto_ya_pagado %}<span class="tramo-pagado" style="width:{% widthratio monto_ya_pagado total_comprometido_mes 100 %}%"></span>{% endif %}
+      {% if monto_sin_pagar %}<span class="tramo-pendiente" style="width:{% widthratio monto_sin_pagar total_comprometido_mes 100 %}%"></span>{% endif %}
     </div>
     {% endif %}
   </div>
@@ -771,7 +771,7 @@
         <label class="label" for="id_nota_meta_{{ m.pk }}">Nota (opcional)</label>
         <input type="text" name="nota" id="id_nota_meta_{{ m.pk }}" placeholder="Ej: sobró del mes">
       </div>
-      <button type="submit" class="btn btn-block" style="background:var(--green);color:#04291d;font-weight:700;box-shadow:0 10px 30px rgba(83,210,88,.35)">Guardar aporte</button>
+      <button type="submit" class="btn btn-block btn-abono">Guardar aporte</button>
     </form>
   </div>
 </div>

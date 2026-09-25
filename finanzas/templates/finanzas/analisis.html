@@ -44,7 +44,7 @@
 {% else %}
 
 <div class="glass card-lg" data-spot
-     style="margin-bottom:18px;background:linear-gradient(135deg,rgba(255,170,44,.14),rgba(255,255,255,.03));border-color:rgba(255,170,44,.26)">
+     style="margin-bottom:18px;background:linear-gradient(135deg,var(--amber-tenue),rgba(255,255,255,.03));border-color:rgba(255,170,44,.26)">
   <div style="display:flex;flex-wrap:wrap;align-items:flex-start;justify-content:space-between;gap:24px">
 
     <div style="flex:1;min-width:300px">
@@ -146,7 +146,7 @@
 
     <div style="display:flex;flex-direction:column;gap:9px">
       {% for f in analisis.riesgo_factores %}
-      <div style="--tono:{% if f.peso == 'alto' %}#e25c5c{% elif f.peso == 'medio' %}#ffaa2c{% else %}#53d258{% endif %};
+      <div style="--tono:{% if f.peso == 'alto' %}var(--coral){% elif f.peso == 'medio' %}var(--amber){% else %}var(--green){% endif %};
                   padding:15px 16px;border-radius:var(--r-md);background:var(--surface-2);
                   border:1px solid rgba(255,255,255,.07);
                   border-color:color-mix(in srgb, var(--tono) 30%, transparent)">
@@ -237,13 +237,13 @@
   <div class="row-list">
     {% for f in serie %}
     {% if f.total %}
-    <div class="row" {% if f.es_mes_actual %}style="background:rgba(255,170,44,.14);border-color:rgba(255,170,44,.28)"{% endif %}>
+    <div class="row" {% if f.es_mes_actual %}style="background:var(--amber-tenue);border-color:rgba(255,170,44,.28)"{% endif %}>
       <span class="mono" style="font-size:12px;min-width:74px;color:{% if f.es_mes_actual %}var(--amber-claro){% elif f.es_pasado %}var(--text-muted){% else %}var(--text-secondary){% endif %}">{{ f.mes }}</span>
 
       <div class="row-main">
         <div class="split-bar" style="height:8px">
-          {% if f.pagado %}<span style="width:{% widthratio f.pagado f.total 100 %}%;background:linear-gradient(90deg,#059669,var(--green))"></span>{% endif %}
-          {% if f.pendiente %}<span style="width:{% widthratio f.pendiente f.total 100 %}%;background:linear-gradient(90deg,#ea580c,#fb923c)"></span>{% endif %}
+          {% if f.pagado %}<span class="tramo-pagado" style="width:{% widthratio f.pagado f.total 100 %}%"></span>{% endif %}
+          {% if f.pendiente %}<span class="tramo-pendiente" style="width:{% widthratio f.pendiente f.total 100 %}%"></span>{% endif %}
         </div>
       </div>
 

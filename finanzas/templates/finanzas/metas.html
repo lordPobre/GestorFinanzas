@@ -43,8 +43,7 @@
 
 <div class="grid-cards">
   {% for d in metas_datos %}
-    <div class="glass card-lg glass-lift meta-card" id="meta{{ d.meta.pk }}" data-spot data-searchable
-       {% if d.meta.esta_completa %}style="border-color:rgba(83,210,88,.28)"{% endif %}>
+    <div class="glass card-lg glass-lift meta-card{% if d.meta.esta_completa %} borde-verde{% endif %}" id="meta{{ d.meta.pk }}" data-spot data-searchable>
 
     <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:16px">
       <div style="min-width:0">

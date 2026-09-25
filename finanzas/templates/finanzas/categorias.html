@@ -21,7 +21,7 @@
 </div>
 
 {% if sin_usar|length > 6 %}
-<div class="glass card" style="margin-bottom:16px;display:flex;align-items:flex-start;gap:12px;border-color:rgba(255,170,44,.22)">
+<div class="glass card borde-ambar" style="margin-bottom:16px;display:flex;align-items:flex-start;gap:12px">
   <span class="icon-tile orange" style="width:32px;height:32px"><i class="fas fa-broom" style="font-size:12px"></i></span>
   <div>
     <div style="font-size:12.5px;font-weight:600;margin-bottom:3px">
@@ -153,7 +153,7 @@
         <button type="button" title="{{ nombre }}" data-value="{{ hex }}"
                 class="swatch {% if forloop.first %}on{% endif %}"
                 style="width:32px;height:32px;border-radius:50%;cursor:pointer;background:{{ hex }};
-                       border:2px solid {% if forloop.first %}#f5f5f5{% else %}transparent{% endif %}"></button>
+                       border:2px solid {% if forloop.first %}var(--text-primary){% else %}transparent{% endif %}"></button>
         {% endfor %}
       </div>
 
@@ -202,7 +202,7 @@
         {% for hex, nombre in paleta %}
         <button type="button" title="{{ nombre }}" data-value="{{ hex }}" class="swatch {% if hex == c.color %}on{% endif %}"
                 style="width:32px;height:32px;border-radius:50%;cursor:pointer;background:{{ hex }};
-                       border:2px solid {% if hex == c.color %}#f5f5f5{% else %}transparent{% endif %}"></button>
+                       border:2px solid {% if hex == c.color %}var(--text-primary){% else %}transparent{% endif %}"></button>
         {% endfor %}
       </div>
 
@@ -243,7 +243,7 @@
         {% for hex, nombre in paleta %}
         <button type="button" title="{{ nombre }}" data-value="{{ hex }}" class="swatch {% if hex == c.color %}on{% endif %}"
                 style="width:32px;height:32px;border-radius:50%;cursor:pointer;background:{{ hex }};
-                       border:2px solid {% if hex == c.color %}#f5f5f5{% else %}transparent{% endif %}"></button>
+                       border:2px solid {% if hex == c.color %}var(--text-primary){% else %}transparent{% endif %}"></button>
         {% endfor %}
       </div>
       <input type="hidden" name="icono" value="{{ c.icono }}">
