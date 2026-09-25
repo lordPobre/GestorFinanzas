@@ -4,6 +4,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.utils import timezone
 
 from ..forms import TransaccionForm
@@ -115,7 +116,7 @@ def anular_pago_gasto(request, transaccion_id):
 
 @login_required(login_url='/login/')
 def registrar_ingreso(request):
-    return redirect('/registrar/?tipo=INGRESO')
+    return redirect(f"{reverse('registrar_transaccion')}?tipo=INGRESO")
 
 @login_required(login_url='/login/')
 def crear_gasto_pendiente(request):

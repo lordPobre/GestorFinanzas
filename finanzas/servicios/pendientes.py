@@ -1,6 +1,8 @@
 import calendar
 from datetime import date
 
+from django.urls import reverse
+
 from ..models import Deuda, GastoPendiente, Suscripcion, Transaccion
 
 
@@ -22,8 +24,8 @@ def pendientes_del_mes(usuario, year, month):
             'pagado': bool(pago),
             'fecha_pago': pago.fecha_pago if pago else None,
             'icono': 'fa-credit-card',
-            'url_pagar': f'/pagar-cuota/{d.pk}/',
-            'url_anular': f'/anular-cuota/{d.pk}/',
+            'url_pagar': reverse('pagar_cuota', args=[d.pk]),
+            'url_anular': reverse('anular_cuota', args=[d.pk]),
             'periodo': periodo,
         })
 
@@ -42,8 +44,8 @@ def pendientes_del_mes(usuario, year, month):
             'icono': 'fa-rotate',
             'marca': s.marca,
             'inicial': s.inicial,
-            'url_pagar': f'/suscripciones/pagar/{s.pk}/',
-            'url_anular': f'/suscripciones/anular-pago/{s.pk}/',
+            'url_pagar': reverse('pagar_servicio', args=[s.pk]),
+            'url_anular': reverse('anular_pago_servicio', args=[s.pk]),
             'periodo': periodo,
         })
 
@@ -61,8 +63,8 @@ def pendientes_del_mes(usuario, year, month):
             'pagado': False,
             'fecha_pago': None,
             'icono': t.icono,
-            'url_pagar': f'/gasto/pagar/{t.pk}/',
-            'url_anular': f'/gasto/anular-pago/{t.pk}/',
+            'url_pagar': reverse('pagar_gasto', args=[t.pk]),
+            'url_anular': reverse('anular_pago_gasto', args=[t.pk]),
             'periodo': periodo,
         })
 
@@ -80,8 +82,8 @@ def pendientes_del_mes(usuario, year, month):
             'pagado': g.pagado,
             'fecha_pago': g.fecha_pago,
             'icono': 'fa-file-invoice',
-            'url_pagar': f'/gasto-pendiente/pagar/{g.pk}/',
-            'url_anular': f'/gasto-pendiente/anular/{g.pk}/',
+            'url_pagar': reverse('pagar_gasto_pendiente', args=[g.pk]),
+            'url_anular': reverse('anular_gasto_pendiente', args=[g.pk]),
             'periodo': periodo,
         })
 
