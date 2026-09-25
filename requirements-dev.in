@@ -1,0 +1,5 @@
+-c requirements.txt
+ruff
+coverage
+pip-tools
+pip-audit

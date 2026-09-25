@@ -25,7 +25,7 @@ Requiere Python 3.12.
 ```bash
 python -m venv .venv
 source .venv/bin/activate        # Windows: .venv\Scripts\activate
-pip install -r requirements.txt
+pip install -r requirements.txt -r requirements-dev.txt
 cp .env.example .env             # y rellena lo que necesites
 python manage.py migrate
 python manage.py createsuperuser
@@ -68,13 +68,20 @@ Las tres cosas corren automáticamente en cada push a `main` y en cada pull
 request (`.github/workflows/ci.yml`). Un push que rompa las pruebas queda
 marcado en rojo.
 
-Para fijar las versiones exactas con las que se probó:
+## Dependencias
+
+Los rangos se declaran en `requirements.in` (producción) y
+`requirements-dev.in` (ruff, coverage, pip-tools, pip-audit). Los `.txt` se
+generan con versiones exactas y hashes, y el CI instala con
+`--require-hashes`. Para agregar o actualizar una dependencia, edita el `.in`
+y vuelve a compilar con Python 3.12:
 
 ```bash
-pip freeze > requirements.lock
+pip-compile --generate-hashes --allow-unsafe --output-file requirements.txt requirements.in
+pip-compile --generate-hashes --allow-unsafe --output-file requirements-dev.txt requirements-dev.in
 ```
 
-`requirements.txt` declara rangos; el lock declara lo que realmente funcionó.
+Sube los `.in` y los `.txt` en el mismo commit.
 
 ## Desplegar
 
@@ -109,7 +116,7 @@ finanzas/
   seguridad.py   bloqueo de intentos y límite de peticiones
   middleware.py  Content-Security-Policy con nonce
   almacenamiento.py  disco local o Cloudflare R2
-  correo.py      envío por API HTTP, no SMTP
+  correo.py      envío por la API de Resend
   avisos.py      aviso mensual de cobros
   inactividad.py aviso y borrado de cuentas abandonadas
   verificacion.py confirmación del correo al registrarse

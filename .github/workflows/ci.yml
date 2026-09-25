@@ -48,8 +48,7 @@ jobs:
       - name: Instalar dependencias
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt
-          pip install ruff coverage
+          pip install --require-hashes -r requirements.txt -r requirements-dev.txt
 
       - name: Estilo y errores evidentes
         run: ruff check .
@@ -84,7 +83,7 @@ jobs:
       - name: Instalar dependencias
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt
+          pip install --require-hashes -r requirements.txt
 
       - name: Revision de despliegue
         run: python manage.py check --deploy --fail-level WARNING
@@ -103,8 +102,10 @@ jobs:
 
       - name: Vulnerabilidades conocidas
         run: |
-          python -m pip install --upgrade pip pip-audit
+          python -m pip install --upgrade pip
+          pip install --require-hashes -r requirements-dev.txt
           pip-audit --requirement requirements.txt --strict
+          pip-audit --requirement requirements-dev.txt --strict
 
   estilo-ampliado:
     runs-on: ubuntu-latest
@@ -116,8 +117,10 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version-file: .python-version
+          cache: pip
 
       - name: Reglas de seguridad y buenas practicas (informativo)
         run: |
-          pip install ruff
+          python -m pip install --upgrade pip
+          pip install --require-hashes -r requirements-dev.txt
           ruff check . --select S,B,DJ,UP --statistics --exit-zero

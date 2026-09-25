@@ -1,23 +1,20 @@
 import os
 import sys
-import dj_database_url
 from pathlib import Path
+
+import dj_database_url
 from dotenv import load_dotenv
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-try:
-    load_dotenv(os.path.join(BASE_DIR, '.env'))
-except ImportError:
-    pass
+load_dotenv(BASE_DIR / '.env')
 
 DEBUG = os.environ.get('DEBUG', 'False').lower() == 'true'
 
 _SOLO_ESTATICOS = 'collectstatic' in sys.argv
 
 if sys.argv[1:2] == ['test']:
-    for _clave in ('RESEND_API_KEY', 'MAILGUN_API_KEY', 'MAILGUN_DOMAIN', 'PROVEEDOR_CORREO'):
-        os.environ.pop(_clave, None)
+    os.environ.pop('RESEND_API_KEY', None)
 
 SECRET_KEY = os.environ.get('SECRET_KEY')
 if not SECRET_KEY:
@@ -30,10 +27,8 @@ if not SECRET_KEY:
         )
 
 ALLOWED_HOSTS = [
-    h.strip() for h in os.environ.get(
-        'ALLOWED_HOSTS',
-        'localhost,127.0.0.1,finanzas.pythonanywhere.com,www.finanzas.pythonanywhere.com'
-    ).split(',') if h.strip()
+    h.strip() for h in os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
+    if h.strip()
 ]
 
 DOMINIO_RAILWAY = os.environ.get('RAILWAY_PUBLIC_DOMAIN', '').strip()
@@ -92,7 +87,7 @@ TEMPLATES = [
 ]
 WSGI_APPLICATION = 'core.wsgi.application'
 
-database_url = os.environ.get("DATABASE_URL")
+database_url = os.environ.get('DATABASE_URL')
 
 DB_SSL = os.environ.get('DB_SSL', '1').lower() not in ('0', 'false', 'no')
 
@@ -108,11 +103,10 @@ else:
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+            'NAME': BASE_DIR / 'db.sqlite3',
         }
     }
 
-if not database_url:
     from django.db.backends.signals import connection_created
 
     def _activar_wal(sender, connection, **kwargs):
@@ -137,9 +131,9 @@ TIME_ZONE = 'America/Santiago'
 USE_I18N = True
 USE_TZ = True
 
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATIC_URL = 'static/'
-STATICFILES_DIRS = [ BASE_DIR / 'static' ]
+STATICFILES_DIRS = [BASE_DIR / 'static']
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
@@ -179,7 +173,6 @@ if not DEBUG:
     SECURE_CONTENT_TYPE_NOSNIFF = True
     X_FRAME_OPTIONS = 'DENY'
     SECURE_REFERRER_POLICY = 'same-origin'
-
     SECURE_CROSS_ORIGIN_OPENER_POLICY = 'same-origin'
 
     CSRF_TRUSTED_ORIGINS = [
@@ -208,7 +201,6 @@ SESSION_EXPIRE_AT_BROWSER_CLOSE = False
 
 DATA_UPLOAD_MAX_MEMORY_SIZE = 6 * 1024 * 1024
 FILE_UPLOAD_MAX_MEMORY_SIZE = 6 * 1024 * 1024
-
 DATA_UPLOAD_MAX_NUMBER_FIELDS = 3000
 
 PASSWORD_HASHERS = [
@@ -220,8 +212,7 @@ PASSWORD_HASHERS = [
 
 PASSWORD_RESET_TIMEOUT = 60 * 60
 
-DEFAULT_FROM_EMAIL = os.environ.get(
-    'CORREO_FROM', os.environ.get('MAILGUN_FROM', 'Rekon <no-responder@localhost>'))
+DEFAULT_FROM_EMAIL = os.environ.get('CORREO_FROM', 'Rekon <no-responder@localhost>')
 
 if database_url:
     CACHES = {
@@ -276,17 +267,14 @@ if not DEBUG and not _SOLO_ESTATICOS and 'runserver' not in sys.argv:
 
 SENTRY_DSN = os.environ.get('SENTRY_DSN', '').strip()
 if SENTRY_DSN and not _SOLO_ESTATICOS:
-    try:
-        import sentry_sdk
-        from sentry_sdk.integrations.django import DjangoIntegration
+    import sentry_sdk
+    from sentry_sdk.integrations.django import DjangoIntegration
 
-        sentry_sdk.init(
-            dsn=SENTRY_DSN,
-            integrations=[DjangoIntegration()],
-            send_default_pii=False,
-            traces_sample_rate=0.0,
-            environment=os.environ.get('ENTORNO', 'produccion'),
-            release=os.environ.get('RAILWAY_GIT_COMMIT_SHA', '')[:12] or None,
-        )
-    except ImportError:
-        pass
+    sentry_sdk.init(
+        dsn=SENTRY_DSN,
+        integrations=[DjangoIntegration()],
+        send_default_pii=False,
+        traces_sample_rate=0.0,
+        environment=ENTORNO,
+        release=os.environ.get('RAILWAY_GIT_COMMIT_SHA', '')[:12] or None,
+    )
