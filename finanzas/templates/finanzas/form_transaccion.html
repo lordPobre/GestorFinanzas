@@ -1,4 +1,5 @@
 {% extends 'finanzas/base.html' %}
+{% load static %}
 {% block title %}{% if editar %}Editar movimiento{% else %}Registrar movimiento{% endif %} · FinApp{% endblock %}
 {% block topbar_sub %}{% if editar %}Corregir un movimiento{% else %}Anotar un ingreso o un gasto{% endif %}{% endblock %}
 
@@ -18,10 +19,6 @@
       {% csrf_token %}
       <input type="hidden" name="next" value="{% url 'dashboard' %}">
 
-      {% comment %}
-        El tipo va primero: define de qué se está hablando y qué categorías
-        tienen sentido más abajo.
-      {% endcomment %}
       {{ form.tipo.as_hidden }}
       <div class="seg" id="segTipoMov" style="margin-bottom:20px">
         <button type="button" data-value="EGRESO"
@@ -54,10 +51,6 @@
         {% for e in form.fecha.errors %}<div class="hint" style="color:var(--coral);font-size:11px;margin-top:5px">{{ e }}</div>{% endfor %}
       </div>
 
-      {% comment %}
-        Solo para gastos: un ingreso no se "paga". El bloque se esconde al
-        elegir Ingreso.
-      {% endcomment %}
       <div id="bloquePagoForm" style="margin-bottom:20px">
         <div class="label" style="margin-bottom:9px">¿Ya la pagaste?</div>
         <input type="hidden" name="es_pendiente" id="id_es_pendiente" value="">
@@ -82,50 +75,5 @@
 {% endblock %}
 
 {% block extra_js %}
-<script nonce="{{ csp_nonce }}">
-(function () {
-  var oculto = document.getElementById('{{ form.tipo.id_for_label }}');
-  var seg = document.getElementById('segTipoMov');
-  var bloque = document.getElementById('bloquePagoForm');
-  var monto = document.getElementById('{{ form.monto.id_for_label }}');
-  if (!seg || !oculto) return;
-
-  function aplicar(tipo) {
-    oculto.value = tipo;
-    var esGasto = tipo !== 'INGRESO';
-    seg.querySelectorAll('button').forEach(function (b) {
-      var activo = b.dataset.value === tipo;
-      b.className = activo ? (esGasto ? 'on-coral' : 'on-green') : '';
-    });
-    if (bloque) bloque.style.display = esGasto ? 'block' : 'none';
-    if (monto) monto.style.color = esGasto ? 'var(--coral)' : 'var(--green)';
-  }
-
-  seg.addEventListener('click', function (e) {
-    var b = e.target.closest('button'); if (!b) return;
-    e.preventDefault();
-    aplicar(b.dataset.value);
-  });
-  aplicar(oculto.value || 'EGRESO');
-
-  /* Ya pagado / aún lo debo */
-  var segPago = document.getElementById('segPagoForm');
-  var campo = document.getElementById('id_es_pendiente');
-  var nota = document.getElementById('notaPagoForm');
-  if (segPago) {
-    segPago.addEventListener('click', function (e) {
-      var b = e.target.closest('button'); if (!b) return;
-      e.preventDefault();
-      var pendiente = b.dataset.pendiente === '1';
-      campo.value = pendiente ? '1' : '';
-      segPago.querySelectorAll('button').forEach(function (x) {
-        x.className = x === b ? (pendiente ? 'on-coral' : 'on-green') : '';
-      });
-      nota.textContent = pendiente
-        ? 'Queda en la lista de pagos del mes para marcarlo cuando lo pagues.'
-        : 'Cuenta como gasto del mes en los dos casos. La diferencia es si la plata ya se fue.';
-    });
-  }
-})();
-</script>
+<script src="{% static 'js/pantallas/form-transaccion.js' %}" nonce="{{ csp_nonce }}" data-tipo="{{ form.tipo.id_for_label }}" data-monto="{{ form.monto.id_for_label }}"></script>
 {% endblock %}

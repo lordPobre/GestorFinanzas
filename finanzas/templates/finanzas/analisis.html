@@ -7,14 +7,7 @@
 <script src="{% static 'vendor/chart/chart.umd.min.js' %}"></script>
 {% endblock %}
 
-{% comment %}
-  Solo la segunda línea de la píldora del saludo. Pisar "topbar_left" entero
-  dejaba una etiqueta de 10px suelta, sin avatar ni superficie, al lado de la
-  barra de búsqueda.
-{% endcomment %}
 {% block topbar_sub %}Sobre tus últimos 3 meses{% endblock %}
-
-
 
 {% block content %}
 
@@ -50,7 +43,6 @@
 
 {% else %}
 
-{# ============ Titular ============ #}
 <div class="glass card-lg" data-spot
      style="margin-bottom:18px;background:linear-gradient(135deg,rgba(255,170,44,.14),rgba(255,255,255,.03));border-color:rgba(255,170,44,.26)">
   <div style="display:flex;flex-wrap:wrap;align-items:flex-start;justify-content:space-between;gap:24px">
@@ -89,7 +81,6 @@
       </div>
     </div>
 
-    {# Anillo de riesgo #}
     <div style="display:flex;flex-direction:column;align-items:center;gap:10px;min-width:150px">
       <div style="position:relative;width:132px;height:132px">
         <svg viewBox="0 0 120 120" style="width:132px;height:132px;transform:rotate(-90deg)">
@@ -113,7 +104,6 @@
   </div>
 </div>
 
-{# ============ Interpretación IA (bajo demanda) ============ #}
 <div class="glass card ia-card" style="padding:22px;margin-bottom:16px;display:none" id="cajaIA" data-spot>
   <div class="ia-head">
     <span class="ia-tile"><i class="fas fa-lightbulb"></i></span>
@@ -141,7 +131,6 @@
   </div>
 </div>
 
-{# ============ Por qué ese riesgo ============ #}
 <div class="grid-chart ancho-der" style="margin-bottom:16px">
 
   <div class="glass card" style="padding:22px" data-spot>
@@ -155,17 +144,6 @@
       </span>
     </div>
 
-    {% comment %}
-      El peso se muestra con tres marcas, no con la palabra "bajo" en una
-      píldora: el color del icono ya decía lo mismo, así que la píldora
-      repetía información y no aportaba la idea de "suma puntos". Con las
-      marcas se ve de un vistazo cuánto pesa cada factor y cómo se comparan
-      entre ellos — es el mismo recurso que las cuotas de una compra.
-
-      El color va una sola vez, en --tono, y de ahí lo toman el icono, las
-      marcas y el borde. Así no hay que repetir el {% if %} en cada
-      elemento de la tarjeta.
-    {% endcomment %}
     <div style="display:flex;flex-direction:column;gap:9px">
       {% for f in analisis.riesgo_factores %}
       <div style="--tono:{% if f.peso == 'alto' %}#e25c5c{% elif f.peso == 'medio' %}#ffaa2c{% else %}#53d258{% endif %};
@@ -221,13 +199,6 @@
       <canvas id="chartSerie" data-om-raster></canvas>
     </div>
 
-    {% comment %}
-      El saldo total de la deuda salía como una línea sobre estas mismas barras,
-      pero con su PROPIO eje: las barras se medían contra $140k y la línea contra
-      $80k. Comparar sus alturas no significaba nada, y la línea parecía estar por
-      encima de las barras sin estarlo. Es otra pregunta, así que va aparte, en
-      texto, donde no hay escala que confundir.
-    {% endcomment %}
     <div style="margin-top:16px;padding-top:16px;border-top:1px solid rgba(255,255,255,.06);display:flex;gap:22px;flex-wrap:wrap">
       <div>
         <div class="label" style="margin-bottom:5px">Te queda debiendo</div>
@@ -257,7 +228,6 @@
   </div>
 </div>
 
-{# ============ Mes por mes ============ #}
 <div class="glass card" style="padding:22px" data-spot>
   <div class="modal-title" style="font-size:15px;font-weight:500">Mes por mes</div>
   <div class="hint" style="font-size:11.5px;margin:3px 0 16px">
@@ -271,7 +241,6 @@
       <span class="mono" style="font-size:12px;min-width:74px;color:{% if f.es_mes_actual %}var(--amber-claro){% elif f.es_pasado %}var(--text-muted){% else %}var(--text-secondary){% endif %}">{{ f.mes }}</span>
 
       <div class="row-main">
-        {# Una sola barra partida: verde lo pagado, naranja lo que falta #}
         <div class="split-bar" style="height:8px">
           {% if f.pagado %}<span style="width:{% widthratio f.pagado f.total 100 %}%;background:linear-gradient(90deg,#059669,var(--green))"></span>{% endif %}
           {% if f.pendiente %}<span style="width:{% widthratio f.pendiente f.total 100 %}%;background:linear-gradient(90deg,#ea580c,#fb923c)"></span>{% endif %}
@@ -313,223 +282,12 @@
 {% endif %}
 {% endblock %}
 
-
 {% block extra_js %}
-{% comment %}
-  Los datos salen del HTML en vez de incrustarse en el JavaScript:
-  json.dumps escapa comillas pero no "</script>", así que un texto del
-  usuario podía cerrar la etiqueta. json_script escapa <, > y &.
-{% endcomment %}
 {{ serie_meses_json|json_script:"d-serie_meses_json" }}
 {{ serie_pagado_json|json_script:"d-serie_pagado_json" }}
 {{ serie_pendiente_json|json_script:"d-serie_pendiente_json" }}
 
-<script nonce="{{ csp_nonce }}">
-(function () {
-  var GRID = 'rgba(255,255,255,.055)';
-  /* Literal a propósito: sobre canvas un var() no es un color válido y
-     cae al negro por defecto. */
-  var TICK = 'rgba(245, 245, 245, .62)';
-  var TEXTO = 'rgba(245,245,245,.72)';
-  var FONT = "'Manrope', sans-serif";
+<script src="{% static 'js/pantallas/analisis.js' %}" nonce="{{ csp_nonce }}" data-indice-actual="{{ indice_actual }}"></script>
 
-  /* ---- Cuánto pagas en cuotas cada mes ----
-
-     Un solo eje. ANTES había dos: las barras contra el eje izquierdo y la
-     línea del saldo total contra el derecho, con topes distintos ($140k y
-     $80k). Dos reglas en el mismo dibujo hacen que las alturas no se puedan
-     comparar: la línea aparecía por encima de las barras sin estar por
-     encima de nada. El saldo ahora va en texto, bajo el gráfico.
-
-     Además la línea no contaba lo que parecía: el saldo de un mes pasado
-     ya estaba pagado, así que la serie salía plana y caía a cero de golpe
-     en el último mes con cuotas. Un acantilado, no una tendencia. */
-  var el = document.getElementById("chartSerie");
-  if (!el || !window.Chart) return;
-
-  var angosto = window.innerWidth < 720;
-  var idxActual = {{ indice_actual }};
-  var etiquetas = JSON.parse(document.getElementById("d-serie_meses_json").textContent);
-  var pagado = JSON.parse(document.getElementById("d-serie_pagado_json").textContent);
-  var pendiente = JSON.parse(document.getElementById("d-serie_pendiente_json").textContent);
-
-  /* Franja sobre el mes en curso y una línea que separa pasado de futuro.
-     La etiqueta "hoy" se pisaba con los nombres de mes del eje; ahora va
-     dentro del área, alineada al borde. */
-  var marcaHoy = {
-    id: "marcaHoy",
-     beforeDatasetsDraw: function (chart) {
-      var x = chart.scales.x.getPixelForValue(idxActual);
-      var area = chart.chartArea;
-      var ancho = chart.scales.x.width / etiquetas.length;
-      var c = chart.ctx;
-      c.save();
-      c.fillStyle = "rgba(255,170,44,.07)";
-      c.fillRect(x - ancho / 2, area.top, ancho, area.bottom - area.top);
-      c.beginPath();
-      c.setLineDash([4, 4]);
-      c.lineWidth = 1;
-      c.strokeStyle = "rgba(255,170,44,.4)";
-      c.moveTo(x + ancho / 2, area.top);
-      c.lineTo(x + ancho / 2, area.bottom);
-      c.stroke();
-      c.setLineDash([]);
-      if (!angosto) {
-        c.fillStyle = '#ffaa2c';
-        c.font = "10px 'Manrope', sans-serif";
-        c.textAlign = "center";
-        c.fillText("este mes", x, area.top + 12);
-      }
-      c.restore();
-    }
-  };
-
-  new Chart(el, {
-    type: "bar",
-    data: {
-      labels: etiquetas,
-      datasets: [
-        { label: "Pagado", data: pagado,
-          backgroundColor: "rgba(52,211,153,.85)", stack: "cuota",
-          borderRadius: 5, borderSkipped: false, maxBarThickness: 26 },
-        { label: "Falta pagar", data: pendiente,
-          backgroundColor: "rgba(251,146,60,.85)", stack: "cuota",
-          borderRadius: 5, borderSkipped: false, maxBarThickness: 26 }
-      ]
-    },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      interaction: { mode: "index", intersect: false },
-      plugins: {
-        legend: { display: false },
-        tooltip: {
-          backgroundColor: "rgba(33,33,33,.96)",
-          borderColor: "rgba(255,170,44,.28)", borderWidth: 1,
-          titleFont: { family: "'Manrope', sans-serif", size: 12, weight: "600" },
-          bodyFont: { family: FONT, size: 12 },
-          footerFont: { family: FONT, size: 11, weight: "400" },
-          footerColor: "rgba(241,240,255,.5)",
-          padding: 13, cornerRadius: 14, boxPadding: 5, usePointStyle: true,
-          filter: function (c) { return c.parsed.y > 0; },
-          callbacks: {
-            /* El total va en el título, que es la pregunta real: "cuánto
-               pago este mes". El reparto queda abajo, como detalle. */
-            title: function (items) {
-              var i = items[0].dataIndex;
-              var total = (pagado[i] || 0) + (pendiente[i] || 0);
-              return items[0].label + " · $" + total.toLocaleString("es-CL");
-            },
-            label: function (c) {
-              return " " + c.dataset.label + ": $" + Math.round(c.parsed.y).toLocaleString("es-CL");
-            },
-            footer: function (items) {
-              var i = items[0].dataIndex;
-              if (!pendiente[i]) return "Mes cerrado";
-              if (i < idxActual) return "Quedó sin pagar";
-              if (i === idxActual) return "Es lo que te toca este mes";
-              return "Todavía no vence";
-            }
-          }
-        }
-      },
-      scales: {
-        x: { stacked: true, grid: { display: false }, border: { display: false },
-             ticks: { color: TICK, font: { family: FONT, size: angosto ? 9 : 10 },
-                      maxRotation: 0, autoSkipPadding: angosto ? 26 : 8,
-                      callback: function (v) {
-                        var l = this.getLabelForValue(v);
-                        return angosto ? String(l).split(" ")[0] : l;
-                      } } },
-        y: { stacked: true, grid: { color: GRID }, border: { display: false },
-             beginAtZero: true,
-             ticks: { color: TICK, font: { family: FONT, size: angosto ? 9 : 10 },
-                      maxTicksLimit: angosto ? 5 : 7,
-                      callback: function (v) { return "$" + (v / 1000) + "k"; } } }
-      }
-    },
-    plugins: [marcaHoy]
-  });
-})();
-</script>
-
-<script nonce="{{ csp_nonce }}">
-(function () {  /* ---- Interpretación con IA, bajo demanda ---- */
-  var btn = document.getElementById('btnIA');
-  if (!btn) return;
-  var caja = document.getElementById('cajaIA');
-  var estado = document.getElementById('iaEstado');
-  var contenido = document.getElementById('iaContenido');
-
-  function fallo(msg) {
-    contenido.style.display = 'none';
-    estado.style.display = 'block';
-    estado.textContent = msg;
-  }
-
-  /* La respuesta es un objeto con cuatro partes: diagnóstico, lista de
-     recomendaciones, proyección y una frase de cierre. Se arma cada una;
-     antes se volcaba el objeto completo y salía "[object Object]". */
-  function pintar(ia) {
-    if (!ia || typeof ia !== 'object' || !ia.diagnostico) {
-      fallo('La respuesta llegó incompleta. Vuelve a intentarlo.');
-      return;
-    }
-
-    document.getElementById('iaDiagnostico').textContent = ia.diagnostico;
-
-    var recs = Array.isArray(ia.recomendaciones) ? ia.recomendaciones : [];
-    var cajaRecs = document.getElementById('iaRecs');
-    cajaRecs.innerHTML = '';
-    recs.forEach(function (r, i) {
-      var fila = document.createElement('div');
-      fila.className = 'ia-rec';
-      var num = document.createElement('span');
-      num.className = 'ia-rec-num';
-      num.textContent = i + 1;
-      var txt = document.createElement('div');
-      txt.className = 'ia-rec-txt';
-      txt.textContent = r;
-      fila.appendChild(num);
-      fila.appendChild(txt);
-      cajaRecs.appendChild(fila);
-    });
-    document.getElementById('iaBloqueRecs').style.display = recs.length ? 'block' : 'none';
-
-    if (ia.proyeccion_texto) {
-      document.getElementById('iaProyeccion').textContent = ia.proyeccion_texto;
-      document.getElementById('iaBloqueProy').style.display = 'block';
-    }
-    if (ia.mensaje_motivacional) {
-      document.getElementById('iaMotivacional').textContent = ia.mensaje_motivacional;
-      document.getElementById('iaBloqueMotiv').style.display = 'block';
-    }
-
-    estado.style.display = 'none';
-    contenido.style.display = 'block';
-  }
-
-  btn.addEventListener('click', function () {
-    btn.disabled = true;
-    btn.innerHTML = '<i class="fas fa-circle-notch fa-spin" style="font-size:11px"></i>Pensando…';
-    caja.style.display = 'block';
-    contenido.style.display = 'none';
-    estado.style.display = 'block';
-    estado.textContent = 'Leyendo tus números…';
-
-    fetch('{% url "analisis_ia" %}', { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
-      .then(function (r) { return r.json(); })
-      .then(function (d) {
-        if (d.ok) pintar(d.ia);
-        else fallo('La IA no está disponible ahora. Los números de arriba no dependen de ella.');
-      })
-      .catch(function () {
-        fallo('No se pudo conectar. Los números de arriba no dependen de la IA.');
-      })
-      .finally(function () {
-        btn.disabled = false;
-        btn.innerHTML = '<i class="fas fa-wand-magic-sparkles" style="font-size:11px"></i>Explicarlo con IA';
-      });
-  });
-})();
-</script>
+<script src="{% static 'js/pantallas/analisis-2.js' %}" nonce="{{ csp_nonce }}" data-url-ia="{% url 'analisis_ia' %}"></script>
 {% endblock %}

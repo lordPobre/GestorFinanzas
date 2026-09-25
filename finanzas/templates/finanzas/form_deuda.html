@@ -1,4 +1,5 @@
 {% extends 'finanzas/base.html' %}
+{% load static %}
 {% load humanize %}
 {% block title %}{% if editar %}Editar compra{% else %}Nueva compra en cuotas{% endif %} · FinApp{% endblock %}
 {% block topbar_sub %}{% if editar %}Ajustar una compra a plazo{% else %}Registrar una compra a plazo{% endif %}{% endblock %}
@@ -89,35 +90,5 @@
 {% endblock %}
 
 {% block extra_js %}
-<script nonce="{{ csp_nonce }}">
-/* El total y el mes final, en vivo. La persona pone la cuota, que es el dato
-   que tiene; lo que se calcula se ve antes de guardar. */
-(function () {
-  var cuota = document.getElementById('{{ form.valor_cuota.id_for_label }}');
-  var cuotas = document.getElementById('{{ form.cuotas_totales.id_for_label }}');
-  var inicio = document.getElementById('{{ form.fecha_inicio.id_for_label }}');
-  var caja = document.getElementById('cajaCuota');
-  var monto = document.getElementById('cuotaMonto');
-  var fin = document.getElementById('cuotaFin');
-  var MESES = ['enero','febrero','marzo','abril','mayo','junio','julio',
-               'agosto','septiembre','octubre','noviembre','diciembre'];
-  if (!cuota || !cuotas) return;
-
-  function pintar() {
-    var v = Number(cuota.value || 0), n = Number(cuotas.value || 0);
-    if (v <= 0 || n <= 0) { caja.style.display = 'none'; return; }
-    caja.style.display = 'block';
-    monto.textContent = '$' + Math.round(v * n).toLocaleString('es-CL');
-    var texto = n + ' cuota' + (n === 1 ? '' : 's') + ' de $' + Math.round(v).toLocaleString('es-CL');
-    if (inicio && inicio.value) {
-      var f = new Date(inicio.value + 'T00:00:00');
-      f.setMonth(f.getMonth() + n - 1);
-      texto += ' · terminas en ' + MESES[f.getMonth()] + ' ' + f.getFullYear();
-    }
-    fin.textContent = texto;
-  }
-  [cuota, cuotas, inicio].forEach(function (el) { if (el) el.addEventListener('input', pintar); });
-  pintar();
-})();
-</script>
+<script src="{% static 'js/pantallas/form-deuda.js' %}" nonce="{{ csp_nonce }}" data-cuota="{{ form.valor_cuota.id_for_label }}" data-cuotas="{{ form.cuotas_totales.id_for_label }}" data-inicio="{{ form.fecha_inicio.id_for_label }}"></script>
 {% endblock %}

@@ -1,4 +1,5 @@
 {% extends 'finanzas/base.html' %}
+{% load static %}
 {% load humanize moneda %}
 {% block search_placeholder %}Filtrar compras en cuotas{% endblock %}
 {% block title %}Compras en cuotas · Rekon{% endblock %}
@@ -16,16 +17,6 @@
   <button class="btn btn-purple" data-open="#modalDeuda" data-tour="cuotas"><i class="fas fa-plus" style="font-size:11px"></i>Nueva compra en cuotas</button>
 </div>
 
-{% comment %}
-  Las tres con fondo de color, igual que el carrusel de Inicio: ámbar lo que
-  toca pagar ahora, coral lo que aún debes, verde lo que ya salió. El borde
-  de color sobre fondo gris no alcanzaba a diferenciarlas.
-{% endcomment %}
-{% comment %}
-  Mismo componente que en "Me deben": tres tarjetas con fondo de color,
-  icono, monto y una nota que dice de qué es la cifra. Antes eran cajas de
-  colores distintos entre sí y con la misma jerarquía que el resto.
-{% endcomment %}
 <div class="grid-metrics tarjetas-color" style="margin-bottom:20px">
 
   <div class="tarjeta-color ambar">
@@ -67,19 +58,7 @@
 </div>
 <div class="grid-cards">
   {% for d in deudas %}
-  {% comment %}
-    El carril del gesto. Las acciones van detrás de la tarjeta y se
-    descubren al deslizarla; en escritorio aparecen al pasar el cursor,
-    donde no hay dedo con que arrastrar.
-  {% endcomment %}
   <div class="swipe" data-searchable{% if forloop.first %} data-tour="gesto"{% endif %}>
-    {% comment %}
-      Un panel a cada lado: editar se descubre arrastrando la tarjeta hacia
-      la derecha y eliminar hacia la izquierda. Juntos bajo el mismo borde,
-      el pulgar llegaba al botón de borrar buscando el de editar.
-      En escritorio el CSS los vuelve a poner juntos a la derecha, donde el
-      cursor los descubre al pasar por encima.
-    {% endcomment %}
     <div class="swipe-acciones izq" aria-hidden="true">
       <a href="{% url 'editar_deuda' d.pk %}" class="swipe-btn editar" title="Editar {{ d.acreedor }}">
         <i class="fas fa-pen"></i><span>Editar</span>
@@ -169,10 +148,6 @@
   {% endfor %}
 </div>
 
-{% comment %}
-  Histórico. Plegado y sin el gesto de deslizar: son compras cerradas, no
-  hay nada que pagar ni editar. Solo consultar y, si acaso, borrar.
-{% endcomment %}
 {% if saldadas %}
 <details class="glass card" style="margin-top:18px;padding:0" data-spot>
   <summary style="padding:16px 20px;cursor:pointer;display:flex;align-items:center;gap:13px">
@@ -216,7 +191,6 @@
 {% endif %}
 
 {% endblock %}
-
 
 {% block modals %}
 <div class="modal-overlay" id="modalDeuda">
@@ -279,33 +253,6 @@
 </div>
 {% endblock %}
 
-
 {% block extra_js %}
-<script nonce="{{ csp_nonce }}">
-/* Total y mes final en vivo: la persona escribe la cuota, y lo que no sabe
-   -- cuánto termina pagando -- se muestra antes de guardar. */
-(function () {
-  var cuota = document.getElementById('{{ form.valor_cuota.id_for_label }}');
-  var cuotas = document.getElementById('{{ form.cuotas_totales.id_for_label }}');
-  var inicio = document.getElementById('{{ form.fecha_inicio.id_for_label }}');
-  var out = document.getElementById('cuotaPreview');
-  var fin = document.getElementById('finPreview');
-  var meses = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
-  function paint() {
-    var v = Number(cuota.value || 0), c = Number(cuotas.value || 0);
-    if (!v || !c) {
-      out.textContent = '$0';
-      fin.textContent = 'Pon la cuota y cuántas son';
-      return;
-    }
-    out.textContent = '$' + Math.round(v * c).toLocaleString('es-CL');
-    var texto = c + ' cuota' + (c === 1 ? '' : 's') + ' de $' + Math.round(v).toLocaleString('es-CL');
-    var base = inicio && inicio.value ? new Date(inicio.value + 'T00:00:00') : new Date();
-    base.setMonth(base.getMonth() + c - 1);
-    fin.textContent = texto + ' · última en ' + meses[base.getMonth()] + ' ' + base.getFullYear();
-  }
-  [cuota, cuotas, inicio].forEach(function (el) { if (el) el.addEventListener('input', paint); });
-  paint();
-})();
-</script>
+<script src="{% static 'js/pantallas/deudas.js' %}" nonce="{{ csp_nonce }}" data-cuota="{{ form.valor_cuota.id_for_label }}" data-cuotas="{{ form.cuotas_totales.id_for_label }}" data-inicio="{{ form.fecha_inicio.id_for_label }}"></script>
 {% endblock %}

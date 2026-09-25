@@ -99,35 +99,5 @@
 
 {% block extra_js %}
 <script src="{% static 'js/passkeys.js' %}" nonce="{{ csp_nonce }}"></script>
-<script nonce="{{ csp_nonce }}">
-(function () {
-  var form = document.getElementById('formPasskey');
-  var boton = document.getElementById('btnPasskey');
-  var aviso = document.getElementById('avisoPasskey');
-  var pass = document.getElementById('passPasskey');
-  var nombre = document.getElementById('nombrePasskey');
-
-  if (!window.RekonPasskeys || !RekonPasskeys.soportado()) {
-    document.getElementById('sinSoporte').hidden = false;
-    boton.disabled = true;
-    return;
-  }
-
-  form.addEventListener('submit', function (e) {
-    e.preventDefault();
-    aviso.hidden = true;
-    boton.disabled = true;
-    RekonPasskeys.registrar(
-      { opciones: '{% url "passkey_registro_opciones" %}', verificar: '{% url "passkey_registro_verificar" %}' },
-      { password: pass ? pass.value : '', nombre: nombre.value }
-    ).then(function () {
-      window.location.reload();
-    }).catch(function (err) {
-      aviso.textContent = RekonPasskeys.mensaje(err, false);
-      aviso.hidden = false;
-      boton.disabled = false;
-    });
-  });
-})();
-</script>
+<script src="{% static 'js/pantallas/passkeys.js' %}" nonce="{{ csp_nonce }}" data-url-opciones="{% url 'passkey_registro_opciones' %}" data-url-verificar="{% url 'passkey_registro_verificar' %}"></script>
 {% endblock %}

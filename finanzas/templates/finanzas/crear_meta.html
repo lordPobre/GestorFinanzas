@@ -1,4 +1,5 @@
 {% extends 'finanzas/base.html' %}
+{% load static %}
 {% block title %}{% if editar %}Editar meta{% else %}Nueva meta{% endif %} · FinApp{% endblock %}
 {% block topbar_sub %}{% if editar %}Ajustar una meta{% else %}Ponle nombre a tu ahorro{% endif %}{% endblock %}
 
@@ -72,36 +73,5 @@
 {% endblock %}
 
 {% block extra_js %}
-<script nonce="{{ csp_nonce }}">
-/* El aporte mensual sugerido, en vivo. Sin esto la fecha límite es un campo
-   más; con esto se ve de inmediato si la meta es realista. */
-(function () {
-  var meta = document.getElementById('{{ form.monto_meta.id_for_label }}');
-  var actual = document.getElementById('{{ form.monto_actual.id_for_label }}');
-  var fecha = document.getElementById('{{ form.fecha_limite.id_for_label }}');
-  var caja = document.getElementById('cajaPlan');
-  var mes = document.getElementById('planMes');
-  var nota = document.getElementById('planNota');
-  if (!meta || !fecha) return;
-
-  function pintar() {
-    var falta = Number(meta.value || 0) - Number(actual && actual.value || 0);
-    if (falta <= 0 || !fecha.value) { caja.style.display = 'none'; return; }
-    var hoy = new Date(), fin = new Date(fecha.value);
-    var meses = (fin.getFullYear() - hoy.getFullYear()) * 12 + (fin.getMonth() - hoy.getMonth());
-    if (meses <= 0) {
-      caja.style.display = 'block';
-      mes.textContent = '$' + Math.round(falta).toLocaleString('es-CL');
-      nota.textContent = 'La fecha es este mes: tendrías que juntarlo todo de una vez.';
-      return;
-    }
-    caja.style.display = 'block';
-    mes.textContent = '$' + Math.round(falta / meses).toLocaleString('es-CL');
-    nota.textContent = 'Te faltan $' + Math.round(falta).toLocaleString('es-CL')
-      + ' y quedan ' + meses + ' mes' + (meses === 1 ? '' : 'es') + '.';
-  }
-  [meta, actual, fecha].forEach(function (el) { if (el) el.addEventListener('input', pintar); });
-  pintar();
-})();
-</script>
+<script src="{% static 'js/pantallas/crear-meta.js' %}" nonce="{{ csp_nonce }}" data-meta="{{ form.monto_meta.id_for_label }}" data-actual="{{ form.monto_actual.id_for_label }}" data-fecha="{{ form.fecha_limite.id_for_label }}"></script>
 {% endblock %}

@@ -140,38 +140,6 @@
 
 {% block extra_js %}
 <script src="{% static 'js/passkeys.js' %}" nonce="{{ csp_nonce }}"></script>
-<script nonce="{{ csp_nonce }}">
-(function () {
-  if (!window.RekonPasskeys || !RekonPasskeys.soportado()) return;
-  var bloque = document.getElementById('bloquePasskey');
-  var boton = document.getElementById('btnPasskey');
-  var aviso = document.getElementById('avisoPasskey');
-  var texto = document.getElementById('avisoPasskeyTexto');
-  var entrar = document.getElementById('btnEntrar');
-  bloque.hidden = false;
-  if (entrar) {
-    entrar.classList.remove('btn-amber');
-    entrar.classList.add('btn-glass');
-  }
-
-  boton.addEventListener('click', function () {
-    aviso.hidden = true;
-    boton.disabled = true;
-    var siguiente = new URLSearchParams(window.location.search).get('next') || '';
-    RekonPasskeys.entrar(
-      { opciones: '{% url "passkey_entrar_opciones" %}', verificar: '{% url "passkey_entrar_verificar" %}' },
-      siguiente
-    ).then(function (r) {
-      window.location.href = r.destino;
-    }).catch(function (err) {
-      texto.textContent = RekonPasskeys.mensaje(err, true);
-      aviso.hidden = false;
-      boton.disabled = false;
-      var usuario = document.querySelector('input[name=username]');
-      if (usuario) usuario.focus();
-    });
-  });
-})();
-</script>
+<script src="{% static 'js/pantallas/login.js' %}" nonce="{{ csp_nonce }}" data-url-opciones="{% url 'passkey_entrar_opciones' %}" data-url-verificar="{% url 'passkey_entrar_verificar' %}"></script>
 <script src="{% static 'js/pantallas/login-2.js' %}" nonce="{{ csp_nonce }}"></script>
 {% endblock %}

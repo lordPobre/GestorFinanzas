@@ -1,4 +1,5 @@
 {% extends 'registration/auth_base.html' %}
+{% load static %}
 {% block title %}Nueva contraseña · Rekon{% endblock %}
 
 {% block pitch %}
@@ -13,10 +14,6 @@
 
 {% block card %}
 {% if not valido %}
-{% comment %}
-  Un enlace caducado y uno inventado dan la misma respuesta: distinguirlos
-  le diría a quien prueba al azar cuándo acertó con un usuario real.
-{% endcomment %}
 <span style="display:inline-flex;align-items:center;justify-content:center;width:56px;height:56px;border-radius:20px;background:var(--coral-tenue);color:var(--coral);font-size:22px;margin-bottom:22px">
   <i class="fas fa-link-slash"></i>
 </span>
@@ -67,11 +64,6 @@
 
   <div style="display:flex;flex-direction:column;gap:18px">
     {% if pide_codigo %}
-    {% comment %}
-      Con dos pasos activo también se pide el código: si no, bastaría con
-      entrar a la bandeja de correo para quedarse con la cuenta, y el
-      segundo factor no protegería nada.
-    {% endcomment %}
     <div id="bloqueCodigo">
       <label class="auth-label" for="id_codigo_2fa">Código de tu app de autenticación</label>
       <input type="text" name="codigo" id="id_codigo_2fa" class="auth-campo"
@@ -125,76 +117,6 @@
 
 {% block extra_js %}
 {% if valido %}
-<script nonce="{{ csp_nonce }}">
-(function () {
-  var p1 = document.getElementById('{{ form.new_password1.id_for_label }}');
-  var p2 = document.getElementById('{{ form.new_password2.id_for_label }}');
-  var bar = document.getElementById('fuerzaBar');
-  var texto = document.getElementById('fuerzaTexto');
-  var coincide = document.getElementById('coincide');
-
-  var niveles = [
-    { ancho: '25%', color: 'linear-gradient(90deg,#dc2626,#f87171)', label: 'Muy débil: fácil de adivinar.' },
-    { ancho: '50%', color: 'linear-gradient(90deg,#ea580c,#fb923c)', label: 'Débil: agrega números o símbolos.' },
-    { ancho: '75%', color: 'linear-gradient(90deg,var(--amber-oscuro),var(--amber))', label: 'Buena.' },
-    { ancho: '100%', color: 'linear-gradient(90deg,#059669,var(--green))', label: 'Fuerte.' }
-  ];
-
-  if (p1) {
-    p1.addEventListener('input', function () {
-      var v = p1.value, puntos = 0;
-      if (v.length >= 8) puntos++;
-      if (/[A-Z]/.test(v)) puntos++;
-      if (/[0-9]/.test(v)) puntos++;
-      if (/[^A-Za-z0-9]/.test(v)) puntos++;
-      if (!v) { bar.style.width = '0%'; texto.textContent = 'Mézclala con números y mayúsculas.'; return; }
-      var n = niveles[Math.max(0, puntos - 1)];
-      bar.style.width = n.ancho;
-      bar.style.background = n.color;
-      texto.textContent = n.label;
-    });
-  }
-
-  if (p2) {
-    p2.addEventListener('input', function () {
-      if (!p2.value) { coincide.textContent = ''; coincide.style.color = 'var(--text-muted)'; return; }
-      var igual = p1.value === p2.value;
-      coincide.textContent = igual ? 'Coinciden.' : 'Todavía no coinciden.';
-      coincide.style.color = igual ? 'var(--green)' : 'var(--coral)';
-    });
-  }
-
-  /* El botón del ojo lo maneja finapp.js con [data-ver-pass]. Tenerlo aquí
-     también hacía que un toque disparara los dos manejadores y la contraseña
-     se mostrara y se volviera a ocultar en el mismo clic. */
-
-  /* Solo dígitos en el código del segundo factor. */
-  var codigo = document.getElementById('id_codigo_2fa');
-  if (codigo) {
-    codigo.addEventListener('input', function () {
-      if (document.getElementById('esRespaldo').value === '1') return;
-      codigo.value = codigo.value.replace(/[^0-9]/g, '');
-    });
-  }
-
-  /* Cambiar al código de respaldo: mismo campo, otras reglas. */
-  var btn = document.getElementById('btnRespaldo');
-  if (btn && codigo) {
-    btn.addEventListener('click', function () {
-      document.getElementById('esRespaldo').value = '1';
-      codigo.value = '';
-      codigo.maxLength = 9;
-      codigo.placeholder = 'ABCD-2345';
-      codigo.setAttribute('inputmode', 'text');
-      codigo.style.letterSpacing = '.1em';
-      codigo.style.fontSize = '18px';
-      var etiqueta = document.querySelector('label[for="id_codigo_2fa"]');
-      if (etiqueta) etiqueta.textContent = 'Código de respaldo';
-      btn.hidden = true;
-      codigo.focus();
-    });
-  }
-})();
-</script>
+<script src="{% static 'js/pantallas/restablecer.js' %}" nonce="{{ csp_nonce }}" data-p1="{{ form.new_password1.id_for_label }}" data-p2="{{ form.new_password2.id_for_label }}"></script>
 {% endif %}
 {% endblock %}
