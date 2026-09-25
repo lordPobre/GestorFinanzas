@@ -1,16 +1,11 @@
 {% extends 'finanzas/base.html' %}
+{% load static %}
 {% load humanize moneda %}
 {% block search_placeholder %}Buscar persona o préstamo{% endblock %}
 {% block title %}Me deben · Rekon{% endblock %}
 
 {% block content %}
 
-{% comment %}
-  Las tres cifras iban apretadas en el encabezado, a la derecha del título:
-  cajas de 13px de padding que en cuanto el monto crecía se partían en dos
-  líneas o se caían de fila. Ahora son tarjetas con el mismo tratamiento que
-  las de compras en cuotas: fondo de color, curva de luz y su propia franja.
-{% endcomment %}
 <div class="section-head" style="margin-top:0">
   <div>
     <h1 class="page-title">Me deben</h1>
@@ -60,18 +55,11 @@
 </div>
 <div class="grid-detail">
 
-  {# ---- Columna: personas ---- #}
   <div class="glass" style="padding:16px" data-spot>
     <div class="label" style="margin:4px 6px 11px">Personas</div>
     <div class="row-list">
       {% for p in personas %}
-      {% comment %}
-        Mismo gesto que en las compras en cuotas: la fila se desliza y
-        descubre la acción. Acá solo eliminar — una persona no tiene datos
-        propios que editar más allá del nombre y el contacto, que se cambian
-        desde su detalle.
-      {% endcomment %}
-      <div class="swipe swipe-fila" data-searchable>
+            <div class="swipe swipe-fila" data-searchable>
         <div class="swipe-acciones" aria-hidden="true">
           <form method="post" action="{% url 'eliminar_persona' p.pk %}" style="margin:0;display:contents"
                 data-confirm="¿Eliminar a {{ p.nombre }}? Se borran sus {{ p.cantidad_prestamos }} préstamo{{ p.cantidad_prestamos|pluralize:'s' }} y el historial de abonos.">
@@ -103,7 +91,6 @@
     <button class="btn btn-dashed btn-block" style="margin-top:10px;padding:11px;font-size:11.5px" data-open="#modalPersona">+ Agregar persona</button>
   </div>
 
-  {# ---- Columna: detalle de la persona seleccionada ---- #}
   {% if persona %}
   <div class="glass" style="padding:24px" data-spot>
     <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:20px">
@@ -126,12 +113,7 @@
       </div>
     </div>
 
-    {% comment %}
-      Mini tarjetas con fondo propio. Antes usaban .glass sobre un panel que
-      también es --surface: el mismo color, así que se veían como texto
-      suelto sin separación entre una cifra y la siguiente.
-    {% endcomment %}
-    <div class="mini-cards">
+        <div class="mini-cards">
       <div class="mini-card verde">
         <span class="mini-icono"><i class="fas fa-hand-holding-dollar"></i></span>
         <div>
@@ -154,16 +136,7 @@
         </div>
       </div>
 
-      {% comment %}
-        La suma de las dos de al lado: lo que toca cobrar ahora. No es el
-        total de la deuda — eso es la primera tarjeta — sino la cuota de este
-        mes más los pagos únicos que siguen sin saldarse. Estaban las dos
-        partes por separado y había que sumarlas de cabeza.
-
-        Solo se dibuja si hay algo que cobrar: en una persona ya saldada
-        sería una cuarta tarjeta en cero repitiendo lo que dicen las otras.
-      {% endcomment %}
-      {% if persona.cobro_del_mes %}
+            {% if persona.cobro_del_mes %}
       <div class="mini-card destacada">
         <span class="mini-icono"><i class="fas fa-equals"></i></span>
         <div>
@@ -186,12 +159,7 @@
     <div class="label" style="margin-bottom:11px">Préstamos</div>
     <div style="display:flex;flex-direction:column;gap:10px">
       {% for x in prestamos %}
-      {% comment %}
-        La franja de color a la izquierda: verde si ya está saldado, lila si
-        va en cuotas, azul si es pago único. Antes las tarjetas eran todas
-        iguales y había que leer el badge para distinguirlas.
-      {% endcomment %}
-      <div class="prestamo-card {% if x.esta_pagado %}saldado{% elif x.tipo == 'CUOTAS' %}cuotas{% else %}unico{% endif %}">
+            <div class="prestamo-card {% if x.esta_pagado %}saldado{% elif x.tipo == 'CUOTAS' %}cuotas{% else %}unico{% endif %}">
         <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:13px">
           <div style="min-width:0">
             <div style="display:flex;align-items:center;gap:9px;flex-wrap:wrap">
@@ -242,9 +210,7 @@
 
 {% endblock %}
 
-
 {% block modals %}
-{# ---- Nueva persona ---- #}
 <div class="modal-overlay" id="modalPersona">
   <div class="modal-box" style="max-width:400px">
     <div class="modal-head">
@@ -262,16 +228,7 @@
         <input type="text" name="contacto" id="id_contacto_persona" placeholder="Teléfono, email o nota">
       </div>
 
-      {% comment %}
-        El primer préstamo, acá mismo.
-
-        ANTES este modal solo pedía nombre y contacto, aunque crear_persona ya
-        aceptaba un préstamo inicial. Peor: el modal de "nuevo préstamo" está
-        dentro de {% templatetag openblock %} if persona {% templatetag closeblock %},
-        así que sin ninguna persona creada NO EXISTÍA — no había forma de
-        registrar un préstamo en cuotas desde cero.
-      {% endcomment %}
-      <details style="margin-bottom:18px" id="detallePrestamo">
+            <details style="margin-bottom:18px" id="detallePrestamo">
         <summary style="display:flex;align-items:center;gap:9px;padding:12px 14px;border-radius:14px;
                         background:rgba(255,255,255,.04);border:1px solid var(--glass-border);cursor:pointer">
           <i class="fas fa-plus" style="font-size:10px;color:var(--purple)"></i>
@@ -315,7 +272,6 @@
   </div>
 </div>
 
-{# ---- Nuevo préstamo ---- #}
 {% if persona %}
 <div class="modal-overlay" id="modalPrestamo">
   <div class="modal-box">
@@ -363,7 +319,6 @@
   </div>
 </div>
 
-{# ---- Un modal de abono por préstamo ---- #}
 {% for x in prestamos %}
 {% if not x.esta_pagado %}
 <div class="modal-overlay" id="abono{{ x.pk }}">
@@ -405,54 +360,6 @@
 {% endif %}
 {% endblock %}
 
-
 {% block extra_js %}
-<script nonce="{{ csp_nonce }}">
-/* Atajos de monto en los modales de abono */
-document.querySelectorAll('[data-monto]').forEach(function (b) {
-  b.addEventListener('click', function () {
-    var form = b.closest('form');
-    form.querySelectorAll('[data-monto]').forEach(function (x) { x.classList.remove('on'); });
-    b.classList.add('on');
-    form.querySelector('input[name="monto"]').value = b.dataset.monto;
-  });
-});
-
-/* Único vs. cuotas. Se aplica a los DOS formularios (nueva persona y nuevo
-   préstamo) con la misma función, en vez de duplicar la lógica. */
-function conectarTipoPrestamo(ids) {
-  var seg = document.getElementById(ids.seg);
-  if (!seg) return;
-  var hidden = document.getElementById(ids.hidden);
-  var campo = document.getElementById(ids.campo);
-  var monto = document.getElementById(ids.monto);
-  var cuotas = document.getElementById(ids.cuotas);
-  var out = document.getElementById(ids.out);
-
-  function paint() {
-    var esCuotas = hidden.value === 'CUOTAS';
-    var m = Number(monto.value || 0), c = Number((cuotas && cuotas.value) || 0);
-    campo.style.display = esCuotas ? '' : 'none';
-    if (!m) { out.textContent = '$0'; return; }
-    out.textContent = esCuotas && c
-      ? '$' + Math.round(m / c).toLocaleString('es-CL') + ' al mes durante ' + c + ' meses'
-      : '$' + m.toLocaleString('es-CL') + ' de una vez';
-  }
-
-  seg.addEventListener('click', function (e) {
-    var b = e.target.closest('button'); if (!b) return;
-    seg.querySelectorAll('button').forEach(function (x) { x.className = ''; });
-    b.className = 'on';
-    hidden.value = b.dataset.value;
-    paint();
-  });
-  [monto, cuotas].forEach(function (el) { if (el) el.addEventListener('input', paint); });
-  paint();
-}
-
-conectarTipoPrestamo({ seg: 'segTipoPrestamo', hidden: 'id_tipo_prestamo', campo: 'campoCuotas',
-                       monto: 'id_monto_prestamo', cuotas: 'id_cuotas_prestamo', out: 'prestamoPreview' });
-conectarTipoPrestamo({ seg: 'segTipoPersona', hidden: 'id_tipo_persona', campo: 'campoCuotasPersona',
-                       monto: 'id_monto_persona', cuotas: 'id_cuotas_persona', out: 'personaPreview' });
-</script>
+<script src="{% static 'js/pantallas/prestamos.js' %}" nonce="{{ csp_nonce }}"></script>
 {% endblock %}

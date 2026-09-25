@@ -6,7 +6,6 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Bienvenido · Rekon</title>
 
-  {# Favicon: SVG con respaldo PNG, igual que en base.html. #}
   <link rel="icon" type="image/svg+xml" href="{% static 'img/favicon.svg' %}">
   <link rel="alternate icon" href="{% static 'img/favicon.png' %}">
   <link rel="apple-touch-icon" href="{% static 'img/favicon-180.png' %}">
@@ -47,17 +46,10 @@
 
 <div class="ob">
 
-  {# La marca actual: la misma teja ámbar con fa-chart-line del sidebar y del
-     acceso, no el SVG de logo.html, que es el logotipo anterior. Se escribe
-     acá en vez de incluir un parcial porque el onboarding la muestra centrada
-     y algo más grande que en el menú. #}
   <div style="display:flex;justify-content:center;align-items:center;gap:11px;margin-bottom:26px">
     <span class="brand-mark" style="width:44px;height:44px;border-radius:15px;font-size:17px">
       <i class="fas fa-chart-line"></i>
     </span>
-    {# El nombre va con estilos propios y no con .brand-name: esa clase se
-       oculta bajo 1000px junto con el resto del sidebar colapsado, y acá
-       tiene que verse siempre. #}
     <span style="font-family:'Manrope',sans-serif;font-size:20px;font-weight:800;letter-spacing:-.02em;color:var(--text-primary)">Rekon</span>  </div>
 
   <div class="pasos" id="pasos">
@@ -67,7 +59,6 @@
   <form method="post" action="{% url 'completar_onboarding' %}" id="formOb">
     {% csrf_token %}
 
-    {# ---------------- 1. Ingreso ---------------- #}
     <div class="paso activo" data-paso="1">
       <div class="glass card-lg" data-spot>
         <div class="ob-titulo">Hola{% if profile.nombre_display %}, {{ profile.nombre_display }}{% endif %}</div>
@@ -99,7 +90,6 @@
       </div>
     </div>
 
-    {# ---------------- 2. Cuotas ---------------- #}
     <div class="paso" data-paso="2">
       <div class="glass card-lg" data-spot>
         <div class="ob-titulo">¿Estás pagando algo en cuotas?</div>
@@ -142,7 +132,6 @@
       </div>
     </div>
 
-    {# ---------------- 3. Presupuesto ---------------- #}
     <div class="paso" data-paso="3">
       <div class="glass card-lg" data-spot>
         <div class="ob-titulo">¿Cuánto quieres gastar al mes?</div>
@@ -178,75 +167,6 @@
   </div>
 </div>
 
-<script nonce="{{ csp_nonce }}">
-(function () {
-  var pasos = Array.prototype.slice.call(document.querySelectorAll('.paso'));
-  var marcas = Array.prototype.slice.call(document.querySelectorAll('#pasos > span'));
-  var actual = 0;
-
-  function mostrar(i) {
-    actual = Math.max(0, Math.min(i, pasos.length - 1));
-    pasos.forEach(function (p, k) { p.classList.toggle('activo', k === actual); });
-    marcas.forEach(function (m, k) { m.classList.toggle('on', k <= actual); });
-    var campo = pasos[actual].querySelector('input');
-    if (campo) setTimeout(function () { campo.focus(); }, 80);
-  }
-
-  document.addEventListener('click', function (e) {
-    if (e.target.closest('[data-siguiente]')) { e.preventDefault(); mostrar(actual + 1); }
-    if (e.target.closest('[data-atras]')) { e.preventDefault(); mostrar(actual - 1); }
-
-    /* Atajos de monto: teclear un sueldo entero en el teléfono es tedioso. */
-    var chip = e.target.closest('[data-atajos] > button');
-    if (chip) {
-      e.preventDefault();
-      var grupo = chip.parentElement;
-      var campo = document.querySelector(grupo.dataset.atajos);
-      grupo.querySelectorAll('button').forEach(function (b) { b.classList.remove('on'); });
-      chip.classList.add('on');
-      if (campo) { campo.value = chip.dataset.monto; campo.dispatchEvent(new Event('input')); }
-    }
-  });
-
-  /* Enter avanza en vez de enviar el formulario a medias. */
-  document.getElementById('formOb').addEventListener('keydown', function (e) {
-    if (e.key === 'Enter' && actual < pasos.length - 1) { e.preventDefault(); mostrar(actual + 1); }
-  });
-
-  /* El total, en vivo: se escribe la cuota y se suma según cuántas son. */
-  var valorCuota = document.getElementById('deuda_cuota');
-  var n = document.getElementById('deuda_cuotas');
-  var caja = document.getElementById('cajaCuotaOb');
-  var monto = document.getElementById('cuotaObMonto');
-  function cuota() {
-    var v = Number(valorCuota.value || 0), c = Number(n.value || 0);
-    if (v <= 0 || c <= 0) { caja.style.display = 'none'; return; }
-    caja.style.display = 'block';
-    monto.textContent = '$' + Math.round(v * c).toLocaleString('es-CL');
-  }
-  [valorCuota, n].forEach(function (el) { el.addEventListener('input', cuota); });
-
-  /* El presupuesto contra el ingreso declarado: un techo mayor que lo que
-     entra no es un presupuesto, y conviene decirlo al tiro. */
-  var pres = document.getElementById('presupuesto');
-  var ingreso = document.getElementById('ingreso_monto');
-  var nota = document.getElementById('notaPresupuesto');
-  pres.addEventListener('input', function () {
-    var p = Number(pres.value || 0), i = Number(ingreso.value || 0);
-    if (!p || !i) {
-      nota.textContent = 'Puedes cambiarlo cuando quieras desde tu perfil.';
-      nota.style.color = '';
-      return;
-    }
-    if (p >= i) {
-      nota.textContent = 'Ese límite es igual o mayor a lo que entra. No te dejaría margen.';
-      nota.style.color = 'var(--coral)';
-    } else {
-      nota.textContent = 'Te quedarían $' + Math.round(i - p).toLocaleString('es-CL') + ' de margen al mes.';
-      nota.style.color = 'var(--green)';
-    }
-  });
-})();
-</script>
+<script src="{% static 'js/pantallas/onboarding.js' %}" nonce="{{ csp_nonce }}"></script>
 </body>
 </html>

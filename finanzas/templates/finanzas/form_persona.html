@@ -1,4 +1,5 @@
 {% extends 'finanzas/base.html' %}
+{% load static %}
 {% block title %}Agregar persona · FinApp{% endblock %}
 {% block topbar_sub %}Alguien que te debe dinero{% endblock %}
 
@@ -78,16 +79,5 @@
 {% endblock %}
 
 {% block extra_js %}
-<script nonce="{{ csp_nonce }}">
-/* El campo de cuotas solo aparece si el préstamo es en cuotas. */
-(function () {
-  var seg = document.getElementById('segTipoPersona');
-  var campo = document.getElementById('campoCuotasPersona');
-  if (!seg || !campo) return;
-  seg.addEventListener('click', function (e) {
-    var b = e.target.closest('button'); if (!b) return;
-    campo.style.display = b.dataset.value === 'CUOTAS' ? 'block' : 'none';
-  });
-})();
-</script>
+<script src="{% static 'js/pantallas/form-persona.js' %}" nonce="{{ csp_nonce }}"></script>
 {% endblock %}

@@ -1,4 +1,5 @@
 {% extends 'finanzas/base.html' %}
+{% load static %}
 {% load moneda %}
 {% block title %}Revisar cartola · Rekon{% endblock %}
 {% block topbar_sub %}Nada se guarda hasta que confirmes{% endblock %}
@@ -14,12 +15,6 @@
   <a href="{% url 'descartar_cartola' %}" class="btn btn-glass btn-sm">Descartar</a>
 </div>
 
-{% comment %}
-  El saldo de una cartola es una cadena: cada fila deja un saldo que la
-  siguiente continúa. Si esa cadena cierra contra el saldo que el propio
-  banco declara arriba, entonces no se perdió ninguna fila al leer el PDF.
-  Es la única garantía real que se puede dar, así que se muestra primero.
-{% endcomment %}
 {% if c.cuadra %}
 <div class="cartola-aviso ok">
   <i class="fas fa-circle-check"></i>
@@ -65,22 +60,9 @@
       <input type="checkbox" name="sel_{{ f.i }}" id="sel_{{ f.i }}" class="cartola-check"
              {% if f.marcada %}checked{% endif %} aria-label="Importar este movimiento">
 
-      {% comment %}
-        En el teléfono estas dos líneas SON la fila: el comercio con su monto
-        arriba, la fecha con su categoría debajo. En escritorio los dos
-        contenedores son `display: contents`, así que sus hijos siguen siendo
-        celdas de la tabla de cinco columnas y nada cambia.
-      {% endcomment %}
-      <div class="cartola-principal">
+            <div class="cartola-principal">
         <div class="cartola-desc">
-          {% comment %}
-            La descripción se edita en el sitio: el nombre que imprime el banco
-            ("REDCOMPRA LIDER 4521 CL") casi nunca es el que uno querría leer
-            en el historial, y corregirlo después es entrar movimiento por
-            movimiento. En el teléfono va sin caja — es el título de la fila —
-            y el subrayado punteado es lo que dice que se puede escribir.
-          {% endcomment %}
-          <input type="text" name="desc_{{ f.i }}" value="{{ f.descripcion }}" maxlength="200"
+                    <input type="text" name="desc_{{ f.i }}" value="{{ f.descripcion }}" maxlength="200"
                  aria-label="Descripción del movimiento">
         </div>
 
@@ -93,15 +75,7 @@
         <label class="cartola-fecha mono" for="sel_{{ f.i }}">{{ f.fecha_obj|date:"d/m" }}</label>
         <span class="cartola-sep" aria-hidden="true">·</span>
 
-        {% comment %}
-          La categoría en el teléfono se lee como texto y se toca como un
-          selector: el <select> nativo queda encima, transparente, y este
-          texto es lo que se ve. Así no hace falta un segundo recuadro gris
-          idéntico al de la descripción, que era justo lo que hacía ver la
-          fila desordenada. En escritorio el texto se oculta y el selector
-          vuelve a ser la cuarta columna de la tabla.
-        {% endcomment %}
-        <span class="cartola-cat-caja">
+                <span class="cartola-cat-caja">
           <span class="cartola-cat-txt" data-cat-txt>{% if f.tipo == 'INGRESO' %}{% for valor, etiqueta in cartola_cats_ingreso %}{% if valor == f.categoria %}{{ etiqueta }}{% endif %}{% endfor %}{% else %}{% for valor, etiqueta in cartola_cats_egreso %}{% if valor == f.categoria %}{{ etiqueta }}{% endif %}{% endfor %}{% endif %}</span>
           <i class="fas fa-chevron-down" aria-hidden="true"></i>
           <select name="cat_{{ f.i }}" class="cartola-cat" aria-label="Categoría del movimiento">
@@ -118,22 +92,13 @@
         </span>
       </div>
 
-      {% comment %}
-        Solo se dibuja si tiene algo que decir: una fila corriente no gasta
-        una línea vacía. Un egreso siempre la lleva, porque cualquier compra
-        puede no ser suya.
-      {% endcomment %}
-      {% if f.ya_existe or f.es_cuota or f.es_suscripcion or f.aviso or f.tipo == 'EGRESO' %}
+            {% if f.ya_existe or f.es_cuota or f.es_suscripcion or f.aviso or f.tipo == 'EGRESO' %}
       <div class="cartola-detalle">
         <div class="cartola-marcas">
           {% if f.ya_existe %}<span class="badge badge-mute">Ya está</span>{% endif %}
           {% if f.es_cuota %}<span class="badge badge-orange">{{ f.texto_cuota }}</span>{% endif %}
           {% if f.es_suscripcion %}<span class="badge badge-blue">Se repite cada mes</span>{% endif %}
-          {% comment %}
-            El aviso de una cuota es una explicación, no una advertencia: en
-            ámbar, repetido en veinte filas, gritaba que algo andaba mal.
-          {% endcomment %}
-          {% if f.aviso %}<span class="cartola-nota-fila{% if f.es_cuota %} suave{% endif %}">{{ f.aviso }}</span>{% endif %}
+                    {% if f.aviso %}<span class="cartola-nota-fila{% if f.es_cuota %} suave{% endif %}">{{ f.aviso }}</span>{% endif %}
         </div>
 
         {% if f.es_cuota %}
@@ -156,13 +121,7 @@
         {% endif %}
 
         {% if f.tipo == 'EGRESO' %}
-        {% comment %}
-          La compra de otro. El selector aparece al marcar la casilla: veinte
-          filas con un desplegable cada una son veinte decisiones que nadie
-          pidió tomar. "Otra persona" abre el campo de nombre en la misma
-          línea, para no salir de la revisión a crear la persona aparte.
-        {% endcomment %}
-        <div class="cartola-deben">
+                <div class="cartola-deben">
           <label class="cartola-extra">
             <input type="checkbox" name="deben_{{ f.i }}" data-deben>
             <span class="cartola-extra-txt">
@@ -174,13 +133,7 @@
             {% endif %}
           </label>
           <div class="cartola-deben-quien" hidden>
-            {% comment %}
-              Deshabilitados mientras la casilla esté apagada: un campo
-              deshabilitado no viaja en el POST. Con veinte filas eran
-              cuarenta parámetros de más por nada, y Django corta el envío
-              al pasar su límite de campos.
-            {% endcomment %}
-            <select name="deben_persona_{{ f.i }}" data-deben-persona disabled
+                        <select name="deben_persona_{{ f.i }}" data-deben-persona disabled
                     aria-label="Quién te debe esta compra">
               <option value="">¿Quién te la debe?</option>
               {% for p in personas %}
@@ -207,82 +160,5 @@
 {% endblock %}
 
 {% block extra_js %}
-<script nonce="{{ csp_nonce }}">
-(function () {
-  var form = document.getElementById('formConfirmar');
-  if (!form) return;
-  var checks = form.querySelectorAll('.cartola-check');
-  var cuenta = document.getElementById('cuenta');
-
-  function actualizar() {
-    var n = 0;
-    checks.forEach(function (c) {
-      if (c.checked) n++;
-      /* La fila destildada se apaga: con ciento cincuenta filas, mirar
-         casilla por casilla para saber qué se va a guardar no es leer una
-         lista, es auditarla. */
-      var fila = c.closest('.cartola-fila');
-      if (fila) fila.classList.toggle('apagada', !c.checked);
-    });
-    cuenta.textContent = n === 0
-      ? 'No hay nada marcado.'
-      : 'Se guardará' + (n === 1 ? ' 1 movimiento.' : 'n ' + n + ' movimientos.');
-    document.getElementById('btnGuardar').disabled = n === 0;
-  }
-
-  checks.forEach(function (c) { c.addEventListener('change', actualizar); });
-
-  /* En el teléfono la categoría es un texto con el <select> invisible
-     encima, así que el texto hay que moverlo a mano cuando cambia. */
-  form.querySelectorAll('.cartola-cat').forEach(function (sel) {
-    var txt = sel.parentNode.querySelector('[data-cat-txt]');
-    if (!txt) return;
-    sel.addEventListener('change', function () {
-      txt.textContent = sel.options[sel.selectedIndex].text;
-    });
-  });
-
-  /* "No es mía": el selector de persona aparece al marcar, y el campo de
-     nombre solo al elegir "Otra persona". Marcar la casilla también marca la
-     fila: pedir que se anote un préstamo de un movimiento que no se va a
-     importar no lleva a nada. */
-  form.querySelectorAll('[data-deben]').forEach(function (cb) {
-    var caja = cb.closest('.cartola-deben');
-    var quien = caja.querySelector('.cartola-deben-quien');
-    var sel = caja.querySelector('[data-deben-persona]');
-    var nombre = caja.querySelector('[data-deben-nombre]');
-
-    function pintar() {
-      quien.hidden = !cb.checked;
-      sel.disabled = !cb.checked;
-      nombre.hidden = !cb.checked || sel.value !== 'nueva';
-      nombre.disabled = nombre.hidden;
-      if (!nombre.hidden) nombre.focus();
-    }
-    cb.addEventListener('change', function () {
-      if (cb.checked) {
-        var fila = cb.closest('.cartola-fila').querySelector('.cartola-check');
-        if (fila && !fila.checked) { fila.checked = true; actualizar(); }
-      }
-      pintar();
-    });
-    sel.addEventListener('change', pintar);
-  });
-
-  form.querySelectorAll('[data-marcar]').forEach(function (b) {
-    b.addEventListener('click', function () {
-      var modo = b.dataset.marcar;
-      checks.forEach(function (c) {
-        var repetida = c.closest('.cartola-fila').classList.contains('repetida');
-        c.checked = modo === 'todos' ? true
-                  : modo === 'ninguno' ? false
-                  : !repetida;
-      });
-      actualizar();
-    });
-  });
-
-  actualizar();
-})();
-</script>
+<script src="{% static 'js/pantallas/revisar-cartola.js' %}" nonce="{{ csp_nonce }}"></script>
 {% endblock %}

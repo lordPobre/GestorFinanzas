@@ -1,4 +1,5 @@
 {% extends 'finanzas/base.html' %}
+{% load static %}
 {% block title %}Códigos de respaldo · FinApp{% endblock %}
 {% block topbar_sub %}Guárdalos en un lugar seguro{% endblock %}
 
@@ -18,11 +19,7 @@
       </div>
     </div>
 
-    {% comment %}
-      Se muestran una sola vez: en la base solo queda su hash, igual que con
-      una contraseña. Si se pierden hay que generar otros.
-    {% endcomment %}
-    <div class="aviso-2fa">
+        <div class="aviso-2fa">
       <i class="fas fa-triangle-exclamation" style="font-size:12px;flex-shrink:0;margin-top:2px"></i>
       <div>Esta es la única vez que los verás. Cópialos ahora.</div>
     </div>
@@ -52,45 +49,5 @@
 {% endblock %}
 
 {% block extra_js %}
-<script nonce="{{ csp_nonce }}">
-(function () {
-  var codigos = Array.prototype.map.call(
-    document.querySelectorAll('.codigo-respaldo'),
-    function (el) { return el.textContent.trim(); }
-  );
-  var texto = 'Códigos de respaldo de FinApp\n' +
-              'Cada uno sirve una sola vez.\n\n' + codigos.join('\n');
-
-  document.getElementById('btnCopiar').addEventListener('click', function () {
-    var b = this;
-    navigator.clipboard.writeText(texto).then(function () {
-      b.innerHTML = '<i class="fas fa-check" style="font-size:11px"></i>Copiados';
-      setTimeout(function () {
-        b.innerHTML = '<i class="fas fa-copy" style="font-size:11px"></i>Copiar todos';
-      }, 2000);
-    });
-  });
-
-  document.getElementById('btnDescargar').addEventListener('click', function () {
-    /* El archivo se arma en el navegador: los códigos no vuelven a viajar
-       por la red. */
-    var blob = new Blob([texto], { type: 'text/plain' });
-    var url = URL.createObjectURL(blob);
-    var a = document.createElement('a');
-    a.href = url;
-    a.download = 'finapp-codigos-respaldo.txt';
-    a.click();
-    URL.revokeObjectURL(url);
-  });
-
-  /* Continuar se activa solo al confirmar: sin esto es fácil pasar de largo
-     y quedarse sin forma de recuperar la cuenta. */
-  var check = document.getElementById('confirmo');
-  var btn = document.getElementById('btnListo');
-  check.addEventListener('change', function () {
-    btn.style.pointerEvents = check.checked ? 'auto' : 'none';
-    btn.style.opacity = check.checked ? '1' : '.45';
-  });
-})();
-</script>
+<script src="{% static 'js/pantallas/codigos-respaldo.js' %}" nonce="{{ csp_nonce }}"></script>
 {% endblock %}

@@ -3,10 +3,6 @@
 {% load humanize moneda %}
 {% block search_placeholder %}Filtrar movimientos y pagos{% endblock %}
 
-{% comment %}
-  El selector de mes vuelve al topbar en escritorio, junto al buscador, que es
-  donde estaba. La copia de móvil vive en el contenido.
-{% endcomment %}
 {% block topbar_mes %}
 {% include 'finanzas/_mes_nav.html' with variante="mes-nav-desktop" %}
 {% endblock %}
@@ -20,12 +16,6 @@
 
 {% if mostrar_encuesta %}{% include 'finanzas/_aviso_encuesta.html' %}{% endif %}
 
-{% comment %}
-  Primeros pasos. Reemplaza al bloque vacío de "empecemos por lo que entra":
-  hacía la misma invitación pero no decía qué falta ni qué ya está hecho.
-  Cada punto se marca solo cuando el dato existe, y la tarjeta desaparece
-  cuando están todos (o cuando el usuario la esconde).
-{% endcomment %}
 {% if primeros_pasos %}
 <div class="glass pasos-card" data-pasos data-spot>
   <div class="pasos-cab">
@@ -68,34 +58,7 @@
 </div>
 {% endif %}
 
-{% comment %}
-  0. QUÉ MES SE ESTÁ VIENDO
-
-  En escritorio va arriba, junto al buscador (bloque topbar_mes). Acá queda
-  la copia para el teléfono, donde el topbar no se muestra: sin ella no hay
-  forma de mirar un mes pasado.
-{% endcomment %}
 {% include 'finanzas/_mes_nav.html' with variante="mes-nav-movil" %}
-{% comment %}
-  1. LO IMPORTANTE HOY — la conclusión, arriba de todo.
-
-  El número de "te queda libre" salía TRES veces: acá, en la tarjeta "Por día"
-  con el texto repitiéndolo al lado, y otra vez en la cuarta métrica. Tres
-  copias del mismo dato hacen dudar cuál es el bueno. Ahora vive solo acá.
-{% endcomment %}
-{% comment %}
-  Carrusel de tarjetas, como la plantilla: se desliza con el dedo en el
-  teléfono y se reparte en tres columnas en escritorio. La primera es la
-  ámbar del saldo; las otras dos son los números que en esta app pesan
-  igual — lo que debes y lo que te deben.
-{% endcomment %}
-{% comment %}
-  Cuotas de meses anteriores que siguen impagas.
-
-  Va arriba de las tarjetas y no dentro de una: el monto ya está descontado
-  de "puedes gastar", así que si no se dice en alguna parte, el usuario ve
-  una cifra más baja sin explicación. Solo aparece en el mes en curso.
-{% endcomment %}
 {% if atrasado_arrastrado %}
 <a href="{% url 'deudas' %}" class="aviso-atraso">
   <span class="aviso-atraso-icono"><i class="fas fa-triangle-exclamation"></i></span>
@@ -135,23 +98,14 @@
     </div>
   </a>
 
-  {% comment %}
-    Coral: es plata que sale. El color identifica la tarjeta, así que se
-    mantiene aunque el monto sea cero.
-  {% endcomment %}
-  <a href="{% url 'deudas' %}" class="balance-card deuda" data-spot data-tarjeta-link>
+    <a href="{% url 'deudas' %}" class="balance-card deuda" data-spot data-tarjeta-link>
     <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px">
       <div>
         <div style="font-size:17px;font-weight:700;letter-spacing:-.02em">Debes en cuotas</div>
         <div class="label" style="margin-top:2px">{{ mis_cuotas|length }} compra{{ mis_cuotas|length|pluralize:"s" }} a plazo</div>
       </div>
     </div>
-    {% comment %}
-      La cuota del mes en grande, el total debajo. Es lo que hay que pagar
-      ahora; el total es contexto. Al revés, la cifra grande era una que no
-      se paga en meses y la accionable quedaba en letra pequeña.
-    {% endcomment %}
-    <div class="display" style="font-size:32px;margin:18px 0 0">
+        <div class="display" style="font-size:32px;margin:18px 0 0">
       {% if total_cuotas_mes %}{{ total_cuotas_mes|money }}{% else %}Sin cuotas{% endif %}
     </div>
     <div class="balance-pie" style="font-size:11.5px;margin-top:16px">
@@ -160,23 +114,14 @@
     </div>
   </a>
 
-  {% comment %}
-    Verde: es plata que vuelve. Mismo tratamiento que la ámbar, distinto
-    color, para que las tres se lean como la misma familia.
-  {% endcomment %}
-  <a href="{% url 'prestamos' %}" class="balance-card cobrar" data-spot data-tarjeta-link>
+    <a href="{% url 'prestamos' %}" class="balance-card cobrar" data-spot data-tarjeta-link>
     <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px">
       <div>
         <div style="font-size:17px;font-weight:700;letter-spacing:-.02em">Te deben</div>
         <div class="label" style="margin-top:2px">{{ prestamos_activos }} préstamo{{ prestamos_activos|pluralize:"s" }} activo{{ prestamos_activos|pluralize:"s" }}</div>
       </div>
     </div>
-    {% comment %}
-      money y no intcomma: intcomma usa el separador de miles del locale
-      activo de Django, que no es el chileno — de ahí que saliera
-      "$10 000" con espacio en vez de "$10.000".
-    {% endcomment %}
-    <div class="display" style="font-size:32px;margin:18px 0 0">
+        <div class="display" style="font-size:32px;margin:18px 0 0">
       {{ total_por_cobrar|default:0|money }}
     </div>
     <div class="balance-pie" style="font-size:11.5px;margin-top:16px">
@@ -189,16 +134,6 @@
   <span class="on"></span><span></span><span></span>
 </div>
 
-{% comment %}
-  2. TU MES — un solo bloque.
-
-  Antes esto eran TRES bloques seguidos que decían casi lo mismo: la fila
-  ingresos/egresos, una barra de tres tramos suelta sin título, y una
-  cuadrícula de tres tarjetas ("Entró este mes", "Ya gastaste", "Aún debes
-  pagar"). total_ingresos aparecía dos veces y por_pagar otras dos. Ahora es
-  un bloque: los dos totales arriba, la barra al medio, y el desglose de
-  cada tramo debajo con su color.
-{% endcomment %}
 <div class="section-head">
   <h2 class="section-title">Tu mes</h2>
   <span class="section-sub" style="cursor:default">{{ nombre_mes }}</span>
@@ -206,7 +141,6 @@
 
 <div class="glass card-lg" style="margin-bottom:18px" data-spot>
 
-  {# Entró y salió, la comparación de la que sale todo lo demás #}
   <div class="mes-totales">
     <div>
       <span class="icon-tile green"><i class="fas fa-arrow-down"></i></span>
@@ -225,18 +159,13 @@
     </div>
   </div>
 
-  {# La barra reparte lo que entró en sus tres destinos #}
   <div class="split-bar" style="height:12px;margin-bottom:14px">
     <span style="width:{{ pct_gastado }}%;background:var(--blue)" title="Ya gastado"></span>
     <span style="width:{{ pct_por_pagar }}%;background:var(--amber)" title="Por pagar"></span>
     <span style="width:{{ pct_disponible }}%;background:var(--green)" title="Disponible"></span>
   </div>
 
-  {% comment %}
-    Cada tramo con su monto. Una leyenda de colores sin cifras obliga a
-    mirar la barra y adivinar; con el monto al lado se lee de una.
-  {% endcomment %}
-  <div class="mes-tramos">
+    <div class="mes-tramos">
 
     <div class="mes-tramo">
       <span class="mes-punto" style="background:var(--blue)"></span>
@@ -277,14 +206,6 @@
     </div>
   </div>
 </div>
-{% comment %}
-  3. LO QUE DEBES EN TOTAL
-
-  El dashboard mostraba cuánto se paga ESTE mes y nada más. Faltaba la
-  pregunta que la gente hace primero: cuánto debo en total. Sin eso, una
-  cuota de $30.000 se ve igual de liviana el primer mes que el último, y no
-  hay forma de ver si vas avanzando.
-{% endcomment %}
 {% if mis_cuotas %}
 <div class="section-head">
   <h2 class="section-title">Lo que debes en total</h2>
@@ -320,7 +241,6 @@
     </div>
   </div>
 
-  {# Avance total: la única forma de ver que la deuda se está achicando #}
   <div style="margin-top:20px">
     <div class="progress-bar" style="height:10px">
       <div class="progress-fill green shine" style="width:{{ deuda_pct_pagado }}%"></div>
@@ -331,7 +251,6 @@
     </div>
   </div>
 
-  {# Una fila por compra. Se abre para ver el detalle y pagar sin salir. #}
   <div class="deuda-lista">
     {% for c in mis_cuotas %}
     <details class="deuda-item" data-searchable>
@@ -386,21 +305,10 @@
   </div>
 </div>
 {% endif %}
-{% comment %}
-  4. AVISOS — solo si hay algo que decir.
-{% endcomment %}
 {% if insights %}
 <div class="section-head">
   <h2 class="section-title">Atención a esto</h2>
 </div>
-{% comment %}
-  Tarjetas en cuadrícula, no filas a lo ancho: un aviso es una frase corta,
-  y estirada sobre 1400px queda un renglón perdido con mucho vacío al lado.
-  En cuadrícula caben dos o tres por fila y cada uno se lee como una pieza.
-
-  El color, el borde y la etiqueta vienen del contexto (TONOS_INSIGHT en
-  views.py) para no repetir el bloque una vez por tipo.
-{% endcomment %}
 <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:10px;margin-bottom:18px">
   {% for i in insights %}
   <div style="display:flex;gap:12px;padding:15px 16px;border-radius:var(--r-md);background:var(--surface-2);border:1px solid {{ i.borde }}">
@@ -416,16 +324,6 @@
 </div>
 {% endif %}
 
-{% comment %}
-  5. QUÉ HAY QUE PAGAR — la lista y el calendario, juntos.
-
-  Antes el calendario estaba 300 líneas más abajo, en otra sección: dos
-  vistas de la MISMA pregunta separadas por media pantalla, sin nada que
-  las relacionara. La lista dice qué; el calendario, cuándo.
-
-  Cuando el mes está pagado la lista se pliega a una línea: no hay nada que
-  hacer con ella.
-{% endcomment %}
 <div class="section-head">
   <h2 class="section-title">Qué hay que pagar</h2>
   {% if not mes_al_dia and monto_sin_pagar %}
@@ -475,16 +373,8 @@
 </details>
 
 {% else %}
-{# ============ Lo que hay que pagar este mes ============ #}
 <div class="glass card" style="padding:22px;margin-bottom:18px" data-spot>
-  {% comment %}
-    Cabecera compacta: el monto, el aviso de atrasos y la barra eran tres
-    bloques sueltos con aire entre ellos, y el número más importante
-    quedaba perdido a la derecha en letra pequeña.
-
-    Ahora el monto manda y el resto cuelga de él en una sola pieza.
-  {% endcomment %}
-  <div class="pagos-cabecera">
+    <div class="pagos-cabecera">
     <div class="pagos-titulo">
       <div>
         <div class="modal-title" style="font-size:15px;font-weight:500">Pagos de {{ nombre_mes }}</div>
@@ -522,7 +412,6 @@
       {% endif %}
     </div>
 
-    {# La barra va pegada a la cifra: es la misma información en otra forma #}
     <div class="split-bar" style="height:7px;margin-top:12px">
       {% if monto_ya_pagado %}<span style="width:{% widthratio monto_ya_pagado total_comprometido_mes 100 %}%;background:linear-gradient(90deg,#059669,var(--green))"></span>{% endif %}
       {% if monto_sin_pagar %}<span style="width:{% widthratio monto_sin_pagar total_comprometido_mes 100 %}%;background:linear-gradient(90deg,#ea580c,#fb923c)"></span>{% endif %}
@@ -533,25 +422,8 @@
   {% if pendientes %}
   <div class="row-list">
     {% for i in pendientes %}
-    {% comment %}
-      La clase de tipo pinta la franja y la ficha: lila cuota, naranja
-      suscripción, rosa cuenta, azul gasto. Antes todas las pendientes eran
-      ámbar y había que leer el detalle de cada una para saber qué era.
-
-      El estado manda sobre el tipo: lo atrasado en coral y lo pagado
-      apagado, porque eso es lo que hay que atender primero.
-    {% endcomment %}
-    <div class="pago-fila t-{{ i.tipo }}{% if i.atrasado %} atrasado{% elif i.pagado %} pagado{% endif %}" data-searchable>
-      {% comment %}
-        Con la marca reconocida la ficha lleva el logo y el color oficial de
-        la plataforma. Las que Font Awesome no tiene (Netflix, HBO, Disney+)
-        usan su inicial sobre el color de la marca, igual que en la pantalla
-        de Suscripciones.
-
-        Pagada gana sobre todo lo demás: el check es el estado, y verlo vale
-        más que volver a ver de qué plataforma era.
-      {% endcomment %}
-      {% if i.pagado %}
+        <div class="pago-fila t-{{ i.tipo }}{% if i.atrasado %} atrasado{% elif i.pagado %} pagado{% endif %}" data-searchable>
+            {% if i.pagado %}
       <span class="pago-ficha"><i class="fas fa-check"></i></span>
       {% elif i.marca.reconocida %}
       <span class="pago-ficha marca" style="color:{{ i.marca.color }};background:{{ i.marca.color }}1f;border-color:{{ i.marca.color }}3d">
@@ -667,18 +539,6 @@
 
 </div>
 
-{% comment %}
-  6. CÓMO VIENES
-
-  Un solo gráfico, a ancho completo. Antes eran dos tarjetas: barras
-  agrupadas y una dona de categorías. La dona repetía lo que ya dicen las
-  Estadísticas y le robaba la mitad del ancho al gráfico que sí importa.
-
-  Dos líneas y el espacio entre ellas: ese hueco ES tu ahorro. Verde cuando
-  entra más de lo que sale, coral cuando es al revés. Es la única forma de
-  ver de un vistazo si el mes cierra bien, algo que dos barras lado a lado
-  obligan a restar mentalmente.
-{% endcomment %}
 <div class="section-head">
   <h2 class="section-title">Cómo vienes</h2>
   <a href="{% url 'estadisticas' %}" class="section-sub">Ver estadísticas</a>
@@ -709,42 +569,24 @@
     </div>
   </div>
 
-  {# La leyenda va arriba y a mano: la de Chart.js no deja poner los montos #}
   <div class="flujo-leyenda">
     <span><i class="punto" style="background:var(--green)"></i>Entra</span>
     <span><i class="punto" style="background:var(--coral)"></i>Sale</span>
     <span class="flujo-pista">Desliza sobre el gráfico para ver cada mes</span>
   </div>
 
-  {% comment %}
-    La altura va en el elemento, no solo en la clase: sin altura definida
-    Chart.js estira el lienzo indefinidamente y no dibuja nada.
-  {% endcomment %}
-  <div class="flujo-lienzo">
-    {% comment %}
-      Las series viajan en atributos del lienzo. Antes iban en
-      <script type="application/json">, pero la política de contenidos
-      bloquea cualquier <script> sin nonce y los datos no llegaban: el
-      gráfico salía con los ejes y sin líneas.
-    {% endcomment %}
-    <canvas id="chartFlujo" data-om-raster
+    <div class="flujo-lienzo">
+        <canvas id="chartFlujo" data-om-raster
             data-meses="{{ meses_json|a_json }}"
             data-ingresos="{{ ingresos_json|a_json }}"
             data-gastos="{{ gastos_json|a_json }}"
             data-cuotas="{{ cuotas_json|a_json }}"></canvas>
   </div>
 
-  {% comment %}
-    Con un solo mes registrado el gráfico se ve vacío y parece roto. Decirlo
-    es mejor que dejar una línea plana sin explicación.
-  {% endcomment %}
-  <div class="hint" style="font-size:11px;margin-top:12px;display:none" id="notaPocoHistorial">
+    <div class="hint" style="font-size:11px;margin-top:12px;display:none" id="notaPocoHistorial">
     Solo hay un mes con movimientos. La comparación se vuelve útil a partir del segundo.
   </div>
 </div>
-{% comment %}
-  7. EL DETALLE — movimientos y metas.
-{% endcomment %}
 <div class="grid-registro">
     <div>
       <div class="section-head" style="margin-top:0">
@@ -752,26 +594,10 @@
         <button class="section-sub" style="background:none;border:none;padding:0;font-family:inherit"
                 data-open="#modalGasto" data-preset-tipo="EGRESO">Agregar</button>
       </div>
-      {% comment %}
-        Plegable: con muchos movimientos la lista crecía sin tope y empujaba
-        las metas fuera de la vista. Se ven los cinco últimos y el resto se
-        abre a un toque.
-
-        Es un contenedor con altura máxima, no un details: así el primer
-        movimiento oculto queda a medias y se ve que hay más abajo, que es
-        lo que invita a abrirlo.
-      {% endcomment %}
-      <div class="glass card mov-panel" style="padding:22px" data-spot data-plegable>
+            <div class="glass card mov-panel" style="padding:22px" data-spot data-plegable>
       <div class="row-list mov-list">
         {% for t in ultimas %}
-        {% comment %}
-          Cada fila va en un carril deslizable, igual que las compras en
-          cuotas y las personas. En un teléfono los dos botones de acción se
-          comían 77px de los 298 de la fila y al nombre le quedaban 90: por
-          eso "Cuota 3/3 — Regalo madre" salía recortado. Detrás del gesto,
-          el nombre se queda con el ancho completo.
-        {% endcomment %}
-        <div class="swipe swipe-fila swipe-mov tono-{{ t.clase_tono }}{% if t.por_pagar %} sin-pagar{% endif %}" data-searchable>
+                <div class="swipe swipe-fila swipe-mov tono-{{ t.clase_tono }}{% if t.por_pagar %} sin-pagar{% endif %}" data-searchable>
 
           <div class="swipe-acciones">
             {% if t.por_pagar %}
@@ -814,11 +640,7 @@
 
             <div class="row-main">
               <div class="row-title">{{ t.descripcion|default:t.get_categoria_display }}</div>
-              {% comment %}
-                La categoría solo si hay descripción propia: sin ella el
-                título ya ES la categoría y salía dos veces en la fila.
-              {% endcomment %}
-              <div class="row-meta">
+                            <div class="row-meta">
                 {{ t.fecha|date:"j M" }}{% if t.descripcion %} · {{ t.get_categoria_display }}{% endif %}
                 {% if t.por_pagar %} · <span style="color:var(--amber)">sin pagar</span>{% endif %}
               </div>
@@ -854,16 +676,7 @@
         <h2 class="section-title">Metas de ahorro</h2>
         <a href="{% url 'metas' %}" class="section-sub">Ver mas</a>
       </div>
-      {% comment %}
-        Dos columnas con la barra de color abajo, como en la plantilla. Cada
-        meta lleva su propio color para distinguirlas de un vistazo.
-      {% endcomment %}
-      {% comment %}
-        Filas a lo ancho, no dos columnas estrechas: con el ancho completo cabe
-        el icono, el nombre, cuánto falta y el avance en una sola línea. En
-        una columna de 130px el monto quedaba solo y sin contexto.
-      {% endcomment %}
-      <div class="metas-lista">
+                  <div class="metas-lista">
         {% for m in metas %}
         <a href="{% url 'metas' %}#meta{{ m.pk }}" class="meta-fila">
           <span class="meta-icono" style="background:{{ m.color }}22;color:{{ m.color }}">
@@ -894,9 +707,7 @@
 
 {% endblock %}
 
-
 {% block modals %}
-{# ============ Un modal por día con pagos ============ #}
 {% for d in dias_con_pago %}
 <div class="modal-overlay" id="dia{{ d.numero }}">
   <div class="modal-box" style="max-width:420px">
@@ -937,7 +748,6 @@
 </div>
 {% endfor %}
 
-{# ============ Aportar a una meta ============ #}
 {% for m in metas %}
 {% if not m.esta_completa %}
 <div class="modal-overlay" id="meta{{ m.pk }}">
@@ -969,283 +779,6 @@
 {% endfor %}
 {% endblock %}
 
-
 {% block extra_js %}
-<script nonce="{{ csp_nonce }}">
-/* ============================================================
-   2. EL GRÁFICO
-   Chart.js dibuja sobre canvas, así que nada de aquí puede leer variables
-   CSS: todos los colores van literales.
-   ============================================================ */
-(function () {
-  var el = document.getElementById('chartFlujo');
-  if (!el) return;
-
-  /* Si la librería no cargó (sin conexión, CDN caído, política de contenidos
-     que lo bloquea) se dice, en vez de dejar un hueco sin explicación. */
-  if (typeof Chart === 'undefined') {
-    el.parentElement.innerHTML =
-      '<div style="display:flex;align-items:center;justify-content:center;height:100%;' +
-      'font-size:12px;color:rgba(245, 245, 245, .62);text-align:center;padding:20px">' +
-      'No se pudo cargar el gráfico. Revisa tu conexión y recarga.</div>';
-    return;
-  }
-
-  /* Lee una serie embebida con json_script. Si falta o viene mal, devuelve
-     una lista vacía en vez de romper el script entero. */
-  /* Lee una serie embebida con json_script.
-
-     Acepta las dos formas posibles: una lista, o una cadena que a su vez
-     contiene JSON. La segunda pasa cuando la vista todavía envía el
-     resultado de json.dumps: json_script lo serializa OTRA VEZ y aquí
-     llega un texto en lugar de un array. Sin este doble intento, la serie
-     quedaba vacía y el gráfico salía en blanco. */
-  /* Las series salen de los atributos del lienzo. El navegador ya devolvió
-     el texto desescapado, así que basta con interpretarlo. */
-  function serie(nombre) {
-    var bruto = el.dataset[nombre];
-    if (!bruto) return [];
-    try {
-      var v = JSON.parse(bruto);
-      if (typeof v === 'string') v = JSON.parse(v);
-      return Array.isArray(v) ? v : [];
-    } catch (e) { return []; }
-  }
-
-  var VERDE = '#53d258', CORAL = '#e25c5c';
-  var TICK  = 'rgba(245, 245, 245, .62)';
-  var TEXTO = 'rgba(245,245,245,.72)';
-  var FONT  = "'Manrope', sans-serif";
-  var quieto = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  /* En un teléfono no caben seis "Abr 2026" seguidos: se pisaban entre ellos.
-     Se mide en cada dibujado, no una vez, para que al girar el teléfono la
-     etiqueta cambie sola. */
-  function angosto() { return (el.clientWidth || window.innerWidth) < 520; }
-
-  var meses = serie('meses');
-  var ingresos = serie('ingresos');
-  var gastos = serie('gastos');
-  var cuotas = serie('cuotas');
-  var salidas = gastos.map(function (g, i) { return g + (cuotas[i] || 0); });
-
-  function pesos(v) { return '$' + Math.round(v).toLocaleString('es-CL'); }
-  function corto(v) {
-    v = Math.abs(v);
-    if (v >= 1000000) return '$' + (v / 1000000).toFixed(1).replace('.', ',').replace(',0', '') + 'M';
-    if (v >= 1000) return '$' + Math.round(v / 1000) + 'k';
-    return '$' + Math.round(v);
-  }
-
-  /* ---- Punto vivo en el mes actual ----
-     Un halo sobre el último dato: marca dónde estás parado en la serie. */
-  var faro = {
-    id: 'faro',
-    afterDatasetsDraw: function (chart) {
-      var meta = chart.getDatasetMeta(0);
-      if (!meta.data.length) return;
-      var p = meta.data[meta.data.length - 1];
-      if (!p) return;
-      var c = chart.ctx;
-      var t = chart.$pulso || 0;
-      c.save();
-      c.beginPath();
-      c.arc(p.x, p.y, 5 + t * 7, 0, Math.PI * 2);
-      c.fillStyle = 'rgba(83,210,88,' + (0.22 * (1 - t)) + ')';
-      c.fill();
-      c.beginPath();
-      c.arc(p.x, p.y, 4.5, 0, Math.PI * 2);
-      c.fillStyle = VERDE;
-      c.fill();
-      c.strokeStyle = '#383838';
-      c.lineWidth = 2.5;
-      c.stroke();
-      c.restore();
-    },
-  };
-
-  /* Rango del eje a partir de los datos con movimiento. Los meses en cero se
-     excluyen del mínimo: uno solo hundiría la escala y aplanaría el resto. */
-  function rango(series) {
-    var vals = [];
-    series.forEach(function (s) {
-      s.forEach(function (v) { if (v > 0) vals.push(v); });
-    });
-    if (!vals.length) return { piso: 0, techo: 100000 };
-    var min = Math.min.apply(null, vals);
-    var max = Math.max.apply(null, vals);
-    var margen = Math.max((max - min) * 0.35, max * 0.08);
-    var piso = Math.max(0, min - margen), techo = max + margen;
-    var bruto = (techo - piso) / 4, pot = Math.pow(10, Math.floor(Math.log10(bruto)));
-    var paso = [1, 2, 2.5, 5, 10].map(function (f) { return f * pot; }).filter(function (p) { return p >= bruto; })[0];
-    return { piso: Math.floor(piso / paso) * paso, techo: Math.ceil(techo / paso) * paso, paso: paso };
-  }
-  var r0 = rango([ingresos, salidas]);
-  var piso = r0.piso, techo = r0.techo;
-
-  var chart = new Chart(el, {
-    type: 'line',
-    data: {
-      labels: meses,
-      datasets: [
-        {
-          label: 'Entra', data: ingresos,
-          borderColor: VERDE, borderWidth: 2.5,
-          /* El relleno va HASTA la otra línea: el hueco entre ambas es el
-             ahorro. Verde si entra más, coral si sale más — el mismo par de
-             líneas cuenta las dos situaciones sin cambiar de gráfico. */
-          fill: { target: '+1',
-                  above: 'rgba(83,210,88,.17)',
-                  below: 'rgba(226,92,92,.17)' },
-          tension: 0.38,
-          pointRadius: 0,
-          pointHoverRadius: 6,
-          pointHoverBackgroundColor: VERDE,
-          pointHoverBorderColor: '#383838',
-          pointHoverBorderWidth: 2.5,
-        },
-        {
-          label: 'Sale', data: salidas,
-          borderColor: CORAL, borderWidth: 2.5,
-          fill: false,
-          tension: 0.38,
-          pointRadius: 0,
-          pointHoverRadius: 6,
-          pointHoverBackgroundColor: CORAL,
-          pointHoverBorderColor: '#383838',
-          pointHoverBorderWidth: 2.5,
-        },
-      ],
-    },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      animation: quieto ? false : { duration: 900, easing: 'easeOutQuart' },
-      interaction: { mode: 'index', intersect: false, axis: 'x' },
-      layout: { padding: { top: 10, right: 4, bottom: 0, left: 0 } },
-      plugins: {
-        legend: { display: false },
-        tooltip: {
-          backgroundColor: 'rgba(24,24,24,.97)',
-          borderColor: 'rgba(255,255,255,.1)',
-          borderWidth: 1,
-          titleColor: '#f5f5f5',
-          titleFont: { family: FONT, size: 12.5, weight: '800' },
-          bodyColor: TEXTO,
-          bodyFont: { family: FONT, size: 12 },
-          footerColor: '#ffaa2c',
-          footerFont: { family: FONT, size: 11.5, weight: '700' },
-          padding: 14, cornerRadius: 14, caretSize: 6,
-          usePointStyle: true, boxWidth: 8, boxHeight: 8, boxPadding: 6,
-          callbacks: {
-            label: function (c) { return ' ' + c.dataset.label + ': ' + pesos(c.parsed.y); },
-            /* El saldo del mes, que antes había que restar a ojo. */
-            footer: function (items) {
-              if (items.length < 2) return '';
-              var i = items[0].dataIndex;
-              var saldo = (chart.data.datasets[0].data[i] || 0) - (chart.data.datasets[1].data[i] || 0);
-              return (saldo >= 0 ? '↑ Te quedaron ' : '↓ Te faltaron ') + pesos(Math.abs(saldo));
-            },
-          },
-        },
-      },
-      scales: {
-        x: {
-          grid: { display: false },
-          border: { color: 'rgba(255,255,255,.08)' },
-          ticks: { color: TICK,
-                   font: function () { return { family: FONT, size: angosto() ? 10 : 11, weight: '600' }; },
-                   maxRotation: 0, minRotation: 0, padding: 8,
-                   autoSkip: true, autoSkipPadding: 14,
-                   /* Solo el mes cuando la pantalla es angosta: el año se
-                      repite en toda la serie y el mes completo va en el
-                      globo al tocar el gráfico. */
-                   callback: function (v) {
-                     var l = this.getLabelForValue(v);
-                     return angosto() ? String(l).split(' ')[0] : l;
-                   } },
-        },
-        y: {
-          grid: { color: 'rgba(255,255,255,.06)', drawTicks: false },
-          border: { display: false },
-          /* El eje se ajusta a los datos en vez de arrancar en cero: con
-             cero, dos series que se mueven entre 500k y 850k quedaban
-             aplastadas en el tercio superior y toda variación se veía plana.
-             El 20% de holgura evita que las líneas toquen los bordes. */
-          min: piso, max: techo,
-          ticks: { color: TICK, font: { family: FONT, size: 10.5 },
-                   stepSize: r0.paso, maxTicksLimit: 7, padding: 10, callback: corto },
-        },
-      },
-    },
-    plugins: [faro],
-  });
-
-  /* El halo del último punto respira. Se detiene si el sistema pide menos
-     movimiento, y también cuando la pestaña no está visible: si no, el
-     navegador acumula cuadros y el gráfico se traba al volver. */
-  if (!quieto) {
-    var t0 = null;
-    (function pulsar(ts) {
-      if (t0 === null) t0 = ts;
-      var ciclo = ((ts - t0) % 2200) / 2200;
-      chart.$pulso = ciclo;
-      chart.draw();
-      if (!document.hidden) window.requestAnimationFrame(pulsar);
-      else window.setTimeout(function () { window.requestAnimationFrame(pulsar); }, 400);
-    })(0);
-  }
-
-  var conDatos = meses.filter(function (m, i) { return ingresos[i] > 0 || salidas[i] > 0; }).length;
-  if (conDatos <= 1) {
-    var nota = document.getElementById('notaPocoHistorial');
-    if (nota) nota.style.display = 'block';
-  }
-
-  var seg = document.getElementById('segRango');
-  if (seg) {
-    seg.addEventListener('click', function (e) {
-      var b = e.target.closest('button');
-      if (!b) return;
-      seg.querySelectorAll('button').forEach(function (x) { x.classList.remove('on'); });
-      b.classList.add('on');
-      var n = Number(b.dataset.meses);
-      chart.data.labels = meses.slice(-n);
-      chart.data.datasets[0].data = ingresos.slice(-n);
-      chart.data.datasets[1].data = salidas.slice(-n);
-      var r = rango([ingresos.slice(-n), salidas.slice(-n)]);
-      chart.options.scales.y.min = r.piso;
-      chart.options.scales.y.max = r.techo;
-      chart.options.scales.y.ticks.stepSize = r.paso;
-      chart.update();
-    });
-  }
-})();
-
-/* ============================================================
-   Tarjetas de saldo: no navegar cuando el gesto fue un deslizamiento.
-
-   Bajo 900px las tres tarjetas son un carrusel con scroll nativo. Ahora la
-   tarjeta entera es un enlace, y arrastrar para pasar a la siguiente termina
-   con el dedo levantado encima de un <a>: el navegador lo toma como clic y
-   te saca de la pantalla sin que lo hayas pedido.
-
-   La guardia mide cuánto se movió el puntero entre pointerdown y el clic.
-   Más de 10px es un deslizamiento, no un toque.
-   ============================================================ */
-(function () {
-  var x0 = 0, y0 = 0;
-  document.addEventListener('pointerdown', function (e) {
-    x0 = e.clientX; y0 = e.clientY;
-  }, true);
-
-  document.querySelectorAll('[data-tarjeta-link]').forEach(function (a) {
-    a.addEventListener('click', function (e) {
-      var dx = Math.abs(e.clientX - x0);
-      var dy = Math.abs(e.clientY - y0);
-      // clientX 0/0 es un clic de teclado (Enter): ese sí debe pasar.
-      if (e.detail === 0) return;
-      if (dx > 10 || dy > 10) e.preventDefault();
-    });
-  });
-})();
-</script>
+<script src="{% static 'js/pantallas/dashboard.js' %}" nonce="{{ csp_nonce }}"></script>
 {% endblock %}

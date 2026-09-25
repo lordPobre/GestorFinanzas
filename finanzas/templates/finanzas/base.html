@@ -22,67 +22,9 @@
   <link rel="stylesheet" href="{% static 'vendor/fontawesome/css/all.min.css' %}">
   <link rel="stylesheet" href="{% static 'css/finapp.css' %}">
   {% block extra_head %}{% endblock %}
-  <script nonce="{{ csp_nonce }}">
+  <script src="{% static 'js/pantallas/base.js' %}" nonce="{{ csp_nonce }}"></script>
 
-  (function () {
-    function open(id) {
-      var m = document.querySelector(id);
-      if (m) { m.classList.add('open'); document.body.style.overflow = 'hidden'; }
-    }
-    function closeAll() {
-      document.querySelectorAll('.modal-overlay.open').forEach(function (m) { m.classList.remove('open'); });
-      document.body.style.overflow = '';
-    }
-    document.addEventListener('click', function (e) {
-      if (window.__finappJsCargado) return;
-      var o = e.target.closest('[data-open]');
-      if (o) { e.preventDefault(); open(o.getAttribute('data-open')); return; }
-      if (e.target.closest('[data-close]')) { e.preventDefault(); closeAll(); return; }
-      if (e.target.classList.contains('modal-overlay')) closeAll();
-    });
-    document.addEventListener('keydown', function (e) {
-      if (!window.__finappJsCargado && e.key === 'Escape') closeAll();
-    });
-    window.finappOpen = open;
-    window.finappClose = closeAll;
-  })();
-
-  try {
-    if (localStorage.getItem('finapp.pasos.oculto') === '1') {
-      document.documentElement.classList.add('pasos-ocultos');
-    }
-  } catch (e) {}
-  </script>
-
-  <script nonce="{{ csp_nonce }}">
-
-  (function () {
-    if (!('serviceWorker' in navigator)) return;
-    window.addEventListener('load', function () {
-      navigator.serviceWorker.register('/sw.js').then(function (reg) {
-
-        reg.addEventListener('updatefound', function () {
-          var nuevo = reg.installing;
-          if (!nuevo) return;
-          nuevo.addEventListener('statechange', function () {
-            if (nuevo.state === 'installed' && navigator.serviceWorker.controller) {
-              nuevo.postMessage('saltar-espera');
-            }
-          });
-        });
-      }).catch(function () {
-
-      });
-
-      var recargado = false;
-      navigator.serviceWorker.addEventListener('controllerchange', function () {
-        if (recargado) return;
-        recargado = true;
-        window.location.reload();
-      });
-    });
-  })();
-  </script>
+  <script src="{% static 'js/pantallas/base-2.js' %}" nonce="{{ csp_nonce }}"></script>
 </head>
 <body>
 
@@ -243,26 +185,7 @@
         </button>
       </div>
 
-      <script nonce="{{ csp_nonce }}">
-      (function () {
-        function texto(h) {
-          if (h >= 7 && h < 12) return 'Buenos días';
-          if (h >= 12 && h < 20) return 'Buenas tardes';
-          return 'Buenas noches';
-        }
-        function pintar() {
-          var t = texto(new Date().getHours());
-          var nodos = document.querySelectorAll('[data-saludo]');
-          for (var i = 0; i < nodos.length; i++) nodos[i].textContent = t;
-        }
-        pintar();
-
-        window.setInterval(pintar, 60000);
-        document.addEventListener('visibilitychange', function () {
-          if (!document.hidden) pintar();
-        });
-      })();
-      </script>
+      <script src="{% static 'js/pantallas/base-3.js' %}" nonce="{{ csp_nonce }}"></script>
       {% block content %}{% endblock %}
     </main>
   </div>
