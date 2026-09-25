@@ -12,37 +12,8 @@
 <link rel="stylesheet" href="{% static 'vendor/fonts/fuentes.css' %}">
 <link rel="stylesheet" href="{% static 'vendor/fontawesome/css/all.min.css' %}">
 <link rel="stylesheet" href="{% static 'css/finapp.css' %}">
-<style>
-  /* Solo lo que esta pantalla necesita y no está en finapp.css: es una
-     página suelta, sin barra lateral ni menú. */
-  body {
-    display: flex; align-items: center; justify-content: center;
-    padding: 24px 16px; min-height: 100vh;
-  }
-  .ob { width: 100%; max-width: 460px; }
-
-  .pasos { display: flex; gap: 6px; margin-bottom: 26px; }
-  .pasos > span {
-    flex: 1; height: 4px; border-radius: 100px;
-    background: var(--surface-2); transition: background .3s var(--ease-out);
-  }
-  .pasos > span.on { background: var(--amber); }
-
-  .paso { display: none; animation: entra .32s var(--ease-out); }
-  .paso.activo { display: block; }
-  @keyframes entra { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
-
-  .ob-titulo {
-    font-family: 'Manrope', sans-serif; font-size: 25px; font-weight: 800;
-    letter-spacing: -.03em; line-height: 1.2; margin-bottom: 8px;
-  }
-  .ob-sub { font-size: 13.5px; color: var(--text-secondary); line-height: 1.55; margin-bottom: 24px; }
-
-  /* Atajos de monto: teclear un sueldo completo en el teléfono es tedioso */
-  .atajos { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
-</style>
 </head>
-<body>
+<body class="ob-pagina">
 
 <div class="ob">
 

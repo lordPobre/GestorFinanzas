@@ -3343,3 +3343,156 @@ input[type=date]::-webkit-datetime-edit-fields-wrapper { padding: 0; }
   .encuesta-fila > span:empty { display: none; }
   .encuesta-escala[style*="--cols:11"] { grid-template-columns: repeat(6, minmax(0, 1fr)); }
 }
+
+.auth {
+  display: flex; min-height: 100vh; min-height: 100dvh;
+  font-family: 'Manrope', system-ui, sans-serif;
+  background: var(--bg); color: var(--text-primary);
+}
+.auth-marca {
+  position: relative; overflow: hidden;
+  flex: 0 0 44%; min-width: 400px;
+  display: flex; flex-direction: column; justify-content: space-between;
+  padding: 44px 46px;
+  background: linear-gradient(140deg, var(--amber) 0%, var(--amber-claro) 100%);
+  color: #1a1200;
+}
+
+.auth-marca::after {
+  content: ''; position: absolute; right: -28%; bottom: -46%;
+  width: 110%; height: 130%; border-radius: 50%;
+  background: rgba(255, 255, 255, .16); pointer-events: none;
+}
+.auth-marca > * { position: relative; z-index: 1; }
+.auth-titular {
+  margin: 0; font-size: 40px; font-weight: 800;
+  line-height: 1.14; letter-spacing: -.035em; text-wrap: pretty;
+}
+.auth-panel {
+  flex: 1; display: flex; align-items: center; justify-content: center;
+  padding: 48px 40px;
+}
+.auth-panel > div { width: 100%; max-width: 392px; }
+.auth-h {
+  margin: 0; font-size: 26px; font-weight: 800; letter-spacing: -.03em;
+}
+
+.auth input.auth-campo:not([type=checkbox]):not([type=radio]) {
+  width: 100%; box-sizing: border-box;
+  padding: 15px 16px 15px 42px;
+  border-radius: 16px; border: 1.5px solid transparent;
+  background: #2b2b2b; color: var(--text-primary);
+  font-family: 'Manrope', sans-serif; font-size: 14px; font-weight: 500;
+}
+.auth input.auth-campo:focus { outline: none; border-color: var(--amber); background: #333; }
+.auth input.auth-campo:focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
+.auth-icono {
+  position: absolute; left: 16px; font-size: 12px;
+  color: var(--text-muted); pointer-events: none;
+}
+.auth-label {
+  display: block; font-size: 11.5px; font-weight: 700;
+  letter-spacing: .02em; color: var(--text-secondary); margin-bottom: 9px;
+}
+
+.auth-digitos { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; }
+.auth input.auth-digito:not([type=checkbox]):not([type=radio]) {
+  width: 100%; box-sizing: border-box; padding: 16px 0;
+  border-radius: 15px; border: 1.5px solid rgba(255, 255, 255, .09);
+  background: #2b2b2b; color: var(--text-primary);
+  font-family: 'JetBrains Mono', monospace; font-size: 23px; font-weight: 600;
+  text-align: center;
+}
+.auth input.auth-digito:focus { outline: none; border-color: var(--amber); background: #333; }
+.auth input.auth-digito:focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
+.auth input.auth-digito:disabled { opacity: .5; }
+
+.auth-salida {
+  display: flex; align-items: center; gap: 10px;
+  width: 100%; box-sizing: border-box;
+  padding: 12px 14px; border: none; border-radius: 14px;
+  background: none; color: var(--text-secondary); text-decoration: none;
+  font-family: 'Manrope', sans-serif; font-size: 12.5px; font-weight: 600;
+  text-align: left; cursor: pointer;
+}
+.auth-salida:hover { background: var(--bg-elev); color: var(--text-primary); }
+
+@media (max-width: 900px) {
+  .auth { flex-direction: column; }
+  .auth-marca {
+    flex: 0 0 auto; min-width: 0;
+
+    padding: calc(26px + env(safe-area-inset-top)) 22px 26px; gap: 18px;
+  }
+  .auth-marca .auth-pie,
+  .auth-marca .auth-ventajas { display: none; }
+  .auth-titular { font-size: 24px; }
+  .auth-marca p { font-size: 13px; margin-top: 10px; }
+  .auth-panel { padding: 32px 22px calc(44px + env(safe-area-inset-bottom)); }
+}
+@media (max-width: 420px) {
+  .auth-digitos { gap: 7px; }
+  .auth input.auth-digito:not([type=checkbox]):not([type=radio]) {
+    padding: 13px 0; font-size: 19px; border-radius: 13px;
+  }
+}
+
+.legal {
+  font-family: 'Manrope', system-ui, sans-serif;
+  background: var(--bg); color: var(--text-primary);
+  min-height: 100vh; min-height: 100dvh;
+}
+.legal-ancho { max-width: 720px; margin: 0 auto; padding: 34px 22px 80px; }
+.legal-cuerpo { font-size: 14.5px; line-height: 1.72; color: var(--text-primary); }
+.legal-cuerpo h2 {
+  margin: 38px 0 12px; font-size: 18px; font-weight: 800;
+  letter-spacing: -.02em; color: var(--text-primary);
+}
+.legal-cuerpo h3 {
+  margin: 26px 0 8px; font-size: 14.5px; font-weight: 700;
+  color: var(--amber);
+}
+.legal-cuerpo p { margin: 0 0 14px; text-wrap: pretty; }
+.legal-cuerpo ul { margin: 0 0 16px; padding-left: 20px; }
+.legal-cuerpo li { margin-bottom: 7px; }
+.legal-cuerpo strong { font-weight: 700; }
+.legal-cuerpo table {
+  width: 100%; border-collapse: collapse; margin: 0 0 18px; font-size: 13px;
+}
+.legal-cuerpo th, .legal-cuerpo td {
+  text-align: left; padding: 10px 12px; vertical-align: top;
+  border-bottom: 1px solid rgba(255, 255, 255, .07);
+}
+.legal-cuerpo th { font-weight: 700; color: var(--text-secondary); font-size: 11.5px; text-transform: uppercase; letter-spacing: .05em; }
+
+@media (max-width: 560px) {
+  .legal-ancho { padding: 22px 16px 60px; }
+  .legal-cuerpo { font-size: 14px; }
+  .legal-cuerpo table, .legal-cuerpo th, .legal-cuerpo td { font-size: 12.5px; }
+  .legal-cuerpo th, .legal-cuerpo td { padding: 8px 9px; }
+}
+
+.ob-pagina {
+  display: flex; align-items: center; justify-content: center;
+  padding: 24px 16px; min-height: 100vh;
+}
+.ob-pagina .ob { width: 100%; max-width: 460px; }
+
+.ob-pagina .pasos { display: flex; gap: 6px; margin-bottom: 26px; }
+.ob-pagina .pasos > span {
+  flex: 1; height: 4px; border-radius: 100px;
+  background: var(--surface-2); transition: background .3s var(--ease-out);
+}
+.ob-pagina .pasos > span.on { background: var(--amber); }
+
+.ob-pagina .paso { display: none; animation: ob-entra .32s var(--ease-out); }
+.ob-pagina .paso.activo { display: block; }
+@keyframes ob-entra { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+
+.ob-pagina .ob-titulo {
+  font-family: 'Manrope', sans-serif; font-size: 25px; font-weight: 800;
+  letter-spacing: -.03em; line-height: 1.2; margin-bottom: 8px;
+}
+.ob-pagina .ob-sub { font-size: 13.5px; color: var(--text-secondary); line-height: 1.55; margin-bottom: 24px; }
+
+.ob-pagina .atajos { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
