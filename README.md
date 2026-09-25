@@ -25,7 +25,7 @@ Requiere Python 3.12.
 ```bash
 python -m venv .venv
 source .venv/bin/activate        # Windows: .venv\Scripts\activate
-pip install -r requirements.txt -r requirements-dev.txt
+python -m pip install -r requirements.txt -r requirements-dev.txt
 cp .env.example .env             # y rellena lo que necesites
 python manage.py migrate
 python manage.py createsuperuser
@@ -103,31 +103,40 @@ Detalle completo en [docs/DESPLIEGUE-RAILWAY.md](docs/DESPLIEGUE-RAILWAY.md).
 ## Cómo está organizado
 
 ```
-core/            settings, urls, wsgi
+core/              settings, urls, wsgi
 finanzas/
-  models.py      los datos y toda la lógica de calendario de cuotas
-  views.py       las pantallas de plata: panel, cuotas, metas, préstamos
-  views_cuenta.py  entrar, registro, perfil, datos personales, sesiones
-  views_cartola.py
+  models/          un archivo por tema: movimientos, cuotas, metas, suscripciones,
+                   prestamos, perfil, seguridad, encuesta
   forms.py
-  cartolas/      un lector por banco, más uno genérico
-  analisis.py    motor determinístico del diagnóstico
-  ia.py          interpretación con Claude, opcional
-  seguridad.py   bloqueo de intentos y límite de peticiones
-  middleware.py  Content-Security-Policy con nonce
+  urls.py
+  views/           una pantalla o grupo de pantallas por archivo
+    comun.py       contexto compartido (menú, panel de registro) y utilidades de las vistas
+    panel.py       inicio
+    cuotas.py  movimientos.py  metas.py  prestamos.py  suscripciones.py
+    categorias.py  estadisticas.py  analisis.py  descargas.py  sistema.py
+    cuenta.py      entrar, registro, perfil, datos personales, sesiones
+    cartola.py  encuesta.py  passkeys.py
+  servicios/       cálculos sin request: reciben usuario y fechas, devuelven datos
+    mes.py  cuotas.py  pendientes.py  suscripciones.py  panel.py
+  cartolas/        un lector por banco, más uno genérico
+  analisis.py      motor determinístico del diagnóstico
+  ia.py            interpretación con Claude, opcional
+  seguridad.py     bloqueo de intentos y límite de peticiones
+  middleware.py    Content-Security-Policy con nonce
   almacenamiento.py  disco local o Cloudflare R2
-  correo.py      envío por la API de Resend
-  avisos.py      aviso mensual de cobros
-  inactividad.py aviso y borrado de cuentas abandonadas
-  verificacion.py confirmación del correo al registrarse
-  sesiones.py    sesiones abiertas y cierre a distancia
-  legal.py       versión de la política y páginas legales
-static/          css, js, service worker
-docs/            despliegue, respaldos, auditorías, cumplimiento
+  correo.py        envío por la API de Resend
+  avisos.py        aviso mensual de cobros
+  inactividad.py   aviso y borrado de cuentas abandonadas
+  verificacion.py  confirmación del correo al registrarse
+  sesiones.py      sesiones abiertas y cierre a distancia
+  legal.py         versión de la política y páginas legales
+  tests/           una prueba por tema (test_*.py)
+static/            css, js, service worker
+docs/              despliegue, respaldos, auditorías, cumplimiento
 ```
 
-`views.py` y `models.py` son archivos grandes. Al tocar un área, la práctica
-acordada es extraerla a su propio módulo en vez de seguir creciendo.
+Una vista lee la petición, llama a `servicios/` y arma la respuesta. Un
+servicio no lee `request`, no manda mensajes y no redirige.
 
 ## Tareas programadas
 

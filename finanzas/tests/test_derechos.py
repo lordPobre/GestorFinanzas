@@ -1,15 +1,3 @@
-﻿"""Tests de los derechos del titular y de la salud del servicio.
-
-Tres cosas que no pueden romperse sin que nadie se entere:
-
-  · Un ingreso ya conocido del mes siguiente tiene que poder anotarse, y un
-    gasto futuro no. La validación vivía al revés y el selector de fecha del
-    panel quedaba inservible para su caso principal.
-  · Eliminar la cuenta tiene que borrar TODO y no dejar nada colgando. Y no
-    puede ocurrir sin reautenticación.
-  · La descarga de datos tiene que traer lo del titular y nada de otro, y
-    nunca las credenciales del segundo factor.
-"""
 from datetime import date, timedelta
 from decimal import Decimal
 import json
@@ -18,12 +6,11 @@ from django.contrib.auth.models import User
 from django.test import TestCase
 from django.urls import reverse
 
-from .forms import TransaccionForm
-from .models import (CodigoRespaldo, Deuda, MetaAhorro, Persona, Prestamo,
+from ..forms import TransaccionForm
+from ..models import (CodigoRespaldo, Deuda, MetaAhorro, Persona, Prestamo,
                      SegundoFactor, Suscripcion, Transaccion, UserProfile)
 
 class FechaDeUnMovimiento(TestCase):
-    """Qué fechas acepta el formulario y cuáles no."""
 
     def setUp(self):
         self.ana = User.objects.create_user('ana', 'ana@ejemplo.cl', 'clave-larga-1')
@@ -56,9 +43,7 @@ class FechaDeUnMovimiento(TestCase):
             self.assertTrue(form.is_valid(), f'{tipo}: {form.errors.as_json()}')
 
     def test_el_ingreso_futuro_no_ensucia_el_mes_en_curso(self):
-        """El total del mes se calcula por rango, así que el de octubre no
-        puede aparecer en el de septiembre."""
-        from .servicios.mes import resumen_mes
+        from ..servicios.mes import resumen_mes
 
         hoy = date.today()
         futuro = hoy + timedelta(days=45)
@@ -177,8 +162,6 @@ class SaludDelServicio(TestCase):
         self.assertEqual(datos['partes']['cache'], 'ok')
 
 class BloqueoDelSegundoFactor(TestCase):
-    """El código de seis dígitos también se limita: sin tope, un millón de
-    combinaciones se prueban en minutos."""
 
     def setUp(self):
         from django.core.cache import cache

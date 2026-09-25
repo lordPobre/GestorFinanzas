@@ -1,11 +1,10 @@
-"""Tests del lector de cartola CuentaRUT de BancoEstado."""
 from datetime import date
 from decimal import Decimal
 
 from django.test import SimpleTestCase
 
-from .cartolas import BANCOS
-from .cartolas.base import ErrorCartola
+from ..cartolas import BANCOS
+from ..cartolas.base import ErrorCartola
 
 CARTOLA = """CARTOLA CUENTARUT N° 20344444
 Cliente

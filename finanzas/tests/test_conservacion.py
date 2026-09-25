@@ -1,15 +1,3 @@
-"""Tests de conservación y de los topes de lectura.
-
-Dos cosas que solo se pueden comprobar con pruebas, porque su efecto es
-irreversible o tardío:
-
-  · El borrado por inactividad. Nunca debe adelantarse al aviso, nunca debe
-    borrar a quien volvió, y no debe marcar como avisada a una cuenta cuyo
-    correo no salió — si lo hiciera, se borraría sin que nadie se enterara.
-  · Los topes al leer una cartola. Un PDF de pocas páginas puede traer miles
-    de páginas comprimidas, y extraer su texto se come la memoria del
-    proceso: cae la app para todos, no solo para quien lo subió.
-"""
 from datetime import timedelta
 from decimal import Decimal
 from unittest.mock import patch
@@ -18,14 +6,13 @@ from django.contrib.auth.models import User
 from django.test import TestCase
 from django.utils import timezone
 
-from . import inactividad
-from .cartolas.base import (MAX_MOVIMIENTOS, MAX_PAGINAS, Cartola, ErrorCartola,
+from .. import inactividad
+from ..cartolas.base import (MAX_MOVIMIENTOS, MAX_PAGINAS, Cartola, ErrorCartola,
                             MovimientoLeido, _topar, texto_de_pdf)
-from .models import Transaccion, UserProfile
+from ..models import Transaccion, UserProfile
 
 
 def _cuenta(nombre, dias_sin_entrar, **extra):
-    """Una cuenta con su última señal de vida movida al pasado."""
     ahora = timezone.now()
     viejo = ahora - timedelta(days=dias_sin_entrar)
 
@@ -51,8 +38,6 @@ class SeleccionDeCuentas(TestCase):
         self.assertEqual(nombres, ['vieja'])
 
     def test_la_sesion_abierta_cuenta_como_actividad(self):
-        """last_login queda congelado en quien no vuelve a pasar por el
-        formulario de acceso; ultima_actividad es la que manda."""
         usuario, perfil = _cuenta('fiel', 400)
         perfil.ultima_actividad = timezone.now() - timedelta(days=3)
         perfil.save(update_fields=['ultima_actividad'])
@@ -84,8 +69,6 @@ class ElAviso(TestCase):
         self.assertIsNotNone(self.perfil.aviso_inactividad_enviado)
 
     def test_si_el_correo_falla_la_cuenta_no_queda_avisada(self):
-        """Si se marcara igual, la cuenta se borraría en 30 días sin que su
-        dueño hubiera recibido nada."""
         with patch('finanzas.correo.enviar', return_value=False):
             self.assertFalse(inactividad.avisar(self.usuario, self.perfil))
 
@@ -186,8 +169,6 @@ class TopesDeCartola(TestCase):
         self.assertIs(_topar(c), c)
 
     def test_demasiados_movimientos_se_rechazan_enteros(self):
-        """Cortar la lista sería peor: la pantalla de revisión mostraría una
-        cartola aparentemente completa y el resto desaparecería en silencio."""
         with self.assertRaises(ErrorCartola):
             _topar(self._cartola(MAX_MOVIMIENTOS + 1))
 

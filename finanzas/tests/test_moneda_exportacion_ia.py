@@ -9,11 +9,11 @@ from unittest import mock
 from django.contrib.auth.models import User
 from django.test import SimpleTestCase, TestCase
 
-from . import ia
-from .analisis import analizar_finanzas
-from .exportar import escribir_csv, filas_movimientos, libro_excel, nombre_mes, resumen_por_mes
-from .models import Transaccion
-from .templatetags.moneda import a_json, money, money_corto, money_signed, pct
+from .. import ia
+from ..analisis import analizar_finanzas
+from ..exportar import escribir_csv, filas_movimientos, libro_excel, nombre_mes, resumen_por_mes
+from ..models import Transaccion
+from ..templatetags.moneda import a_json, money, money_corto, money_signed, pct
 
 
 class FiltrosDeMoneda(SimpleTestCase):

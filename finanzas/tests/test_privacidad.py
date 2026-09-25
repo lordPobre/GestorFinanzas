@@ -1,15 +1,3 @@
-"""Tests de las obligaciones de privacidad.
-
-Lo que se comprueba acá es lo que un auditor pediría ver funcionando:
-
-  · Las páginas legales son públicas. Si pidieran sesión, quien está
-    decidiendo si se registra no podría leer a qué se compromete.
-  · Nadie se da de alta sin aceptar, y la aceptación queda con versión y
-    fecha, no como un sí suelto.
-  · El interruptor del análisis con IA se respeta en el servidor. Si solo
-    se respetara en el navegador, una llamada directa a la URL seguiría
-    mandando datos al tercero.
-"""
 from datetime import date
 from decimal import Decimal
 
@@ -17,8 +5,8 @@ from django.contrib.auth.models import User
 from django.test import TestCase
 from django.urls import reverse
 
-from . import legal
-from .models import Transaccion, UserProfile
+from .. import legal
+from ..models import Transaccion, UserProfile
 
 class PaginasLegales(TestCase):
     def test_son_publicas(self):
@@ -100,8 +88,6 @@ class OposicionAlAnalisisConIA(TestCase):
         self.assertTrue(self.perfil.analisis_ia)
 
 class RegistroDeActividad(TestCase):
-    """El campo sobre el que se medirá la inactividad tiene que escribirse
-    solo, o el plazo de conservación declarado no se puede aplicar."""
 
     def setUp(self):
         self.ana = User.objects.create_user('ana', 'ana@ejemplo.cl', 'clave-larga-1')

@@ -1,11 +1,10 @@
-"""Tests del lector de cartolas exportadas (CSV y Excel) y del diagnóstico."""
 import io
 from decimal import Decimal
 
 from django.test import SimpleTestCase
 
-from .cartolas.base import ErrorCartola, muestra_anonima
-from .cartolas.tabla import es_tabla, leer_tabla
+from ..cartolas.base import ErrorCartola, muestra_anonima
+from ..cartolas.tabla import es_tabla, leer_tabla
 
 CARGO_ABONO = """Cartola cuenta corriente Banco BCI
 Fecha;Descripción;Cargo;Abono;Saldo

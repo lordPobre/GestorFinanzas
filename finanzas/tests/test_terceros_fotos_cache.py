@@ -9,10 +9,10 @@ from django.test import TestCase
 from django.urls import reverse
 from dateutil.relativedelta import relativedelta
 
-from . import legal
-from .almacenamiento import AlmacenMedia
-from .models import Deuda, Transaccion
-from .servicios import mes
+from .. import legal
+from ..almacenamiento import AlmacenMedia
+from ..models import Deuda, Transaccion
+from ..servicios import mes
 
 EXTERNOS = ('fonts.googleapis.com', 'fonts.gstatic.com', 'cdnjs.cloudflare.com', 'cdn.jsdelivr.net')
 

@@ -1,4 +1,4 @@
-﻿from datetime import date, timedelta
+from datetime import date, timedelta
 from decimal import Decimal
 
 from django.contrib import admin
@@ -10,11 +10,11 @@ from django.utils import timezone
 
 from core.urls import entrada_admin
 
-from . import auditoria
-from .models import EventoSeguridad, SegundoFactor, Transaccion, UserProfile
-from .seguridad import (MAX_INTENTOS, MAX_POR_CUENTA, MAX_POR_IP, esta_bloqueado,
+from .. import auditoria
+from ..models import EventoSeguridad, SegundoFactor, Transaccion, UserProfile
+from ..seguridad import (MAX_INTENTOS, MAX_POR_CUENTA, MAX_POR_IP, esta_bloqueado,
                         limpiar_intentos, registrar_fallo)
-from .servicios.mes import resumen_mes
+from ..servicios.mes import resumen_mes
 
 urlpatterns = [
     path('panel-prueba/', admin.site.urls),
@@ -22,7 +22,7 @@ urlpatterns = [
 ]
 
 
-@override_settings(ROOT_URLCONF='finanzas.tests_lote_a')
+@override_settings(ROOT_URLCONF='finanzas.tests.test_acceso_y_montos')
 class PanelPorElAccesoNormal(TestCase):
     def setUp(self):
         cache.clear()

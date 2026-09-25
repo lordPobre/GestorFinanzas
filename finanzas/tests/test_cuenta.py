@@ -1,13 +1,3 @@
-"""Tests del área de cuenta: confirmación del correo y sesiones abiertas.
-
-El correo es lo único que permite recuperar una cuenta, así que lo que se
-comprueba acá es que no se dé por bueno sin que nadie lo confirme: ni al
-registrarse, ni al cambiarlo después, ni con un enlace viejo.
-
-De las sesiones se comprueba lo único que importa de verdad: que cerrar una a
-distancia deje al otro navegador fuera en la petición siguiente, y que la
-clave de sesión de un tercero no sirva para cerrarle la suya.
-"""
 from unittest.mock import patch
 
 from django.contrib.auth.models import User
@@ -15,8 +5,8 @@ from django.core.cache import cache
 from django.test import TestCase
 from django.urls import reverse
 
-from . import verificacion
-from .models import SesionActiva, UserProfile
+from .. import verificacion
+from ..models import SesionActiva, UserProfile
 
 
 class ConfirmacionAlRegistrarse(TestCase):
@@ -47,8 +37,6 @@ class ConfirmacionAlRegistrarse(TestCase):
         self.assertEqual(enviar.call_args[0][0], 'nueva@ejemplo.cl')
 
     def test_no_confirmar_no_impide_usar_la_app(self):
-        """Exigirlo dejaría fuera a quien se registra donde no tiene su
-        correo abierto."""
         with patch('finanzas.correo.enviar', return_value=True):
             self.client.post(self.URL, self._datos())
 
@@ -75,8 +63,6 @@ class ElEnlaceDeConfirmacion(TestCase):
         self.assertIsNotNone(self.perfil.correo_verificado_en)
 
     def test_no_inicia_sesion(self):
-        """Abrir el enlace prueba que la dirección existe, no que quien lo
-        abre sea el dueño de la cuenta."""
         self.client.get(self._url())
         self.assertNotIn('_auth_user_id', self.client.session)
 
@@ -151,13 +137,10 @@ class SesionesAbiertas(TestCase):
         primero.post(reverse('sesiones_activas'), {'accion': 'cerrar_todas'})
 
         self.assertEqual(SesionActiva.objects.filter(usuario=self.ana).count(), 1)
-        # El segundo navegador ya no tiene sesión válida: la vista protegida
-        # lo manda al acceso.
         respuesta = segundo.get(reverse('perfil'))
         self.assertEqual(respuesta.status_code, 302)
         self.assertIn('/login/', respuesta['Location'])
 
-        # El primero sigue dentro.
         self.assertEqual(primero.get(reverse('perfil')).status_code, 200)
 
     def test_no_se_puede_cerrar_la_sesion_de_otra_persona(self):

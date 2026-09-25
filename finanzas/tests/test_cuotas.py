@@ -1,35 +1,19 @@
-﻿"""Tests sobre lo que no puede fallar en silencio: las fórmulas de dinero.
-
-No es una suite completa — es la que evita que alguien cambie una fórmula
-de saldo o de cuotas y el bug llegue a producción sin que nada avise.
-Cubre: el redondeo de cuotas (Deuda.monto_cuota_de), qué mes toca pagar y
-cuáles están atrasados (periodo_a_pagar / periodos_atrasados), y el
-resumen del mes (resumen_mes) con montos conocidos.
-"""
 from datetime import date, timedelta
 from decimal import Decimal
 
 from django.contrib.auth.models import User
 from django.test import TestCase
 
-from .forms import DeudaForm
-from .models import Deuda, PagoCuota, Transaccion
-from .servicios.mes import resumen_mes
+from ..forms import DeudaForm
+from ..models import Deuda, PagoCuota, Transaccion
+from ..servicios.mes import resumen_mes
 
 
 class ArrastreCuotasAtrasadasTests(TestCase):
-    """Una cuota impaga de un mes anterior tiene que pesar en el mes actual.
-
-    Antes no pesaba: cada mes contaba solo su propia cuota, así que dejar una
-    sin pagar la hacía desaparecer del cálculo y 'disponible' quedaba más
-    alto de lo real. El arrastre va SOLO al mes en curso — al navegar a un
-    mes pasado hay que verlo como fue.
-    """
 
     def setUp(self):
         self.usuario = User.objects.create_user('ana', password='x')
         self.hoy = date.today()
-        # Una compra que empezó hace tres meses, sin ningún pago.
         inicio = (self.hoy.replace(day=10) - timedelta(days=70)).replace(day=10)
         self.deuda = Deuda.objects.create(
             usuario=self.usuario, acreedor='Tienda',
@@ -49,14 +33,11 @@ class ArrastreCuotasAtrasadasTests(TestCase):
             len([p for p in self.deuda.periodos_atrasados
                  if p < self.hoy.year * 100 + self.hoy.month]),
         )
-        # El disponible ya viene con el arrastre descontado.
         esperado = (r['ingresos'] - r['gastos']
                     - r['total_cuotas_mes'] - r['atrasado_arrastrado'])
         self.assertAlmostEqual(r['disponible'], esperado, places=2)
 
     def test_no_cuenta_dos_veces_la_cuota_del_mes_en_curso(self):
-        """periodos_atrasados incluye el mes actual si ya venció; ese ya está
-        en cuotas_pendientes y no debe sumarse otra vez."""
         periodo_actual = self.hoy.year * 100 + self.hoy.month
         r = resumen_mes(self.usuario, self.hoy.year, self.hoy.month)
         self.assertTrue(all(c['periodo'] < periodo_actual
@@ -80,14 +61,11 @@ class ArrastreCuotasAtrasadasTests(TestCase):
 
 
 class MontoCuotaDeTests(TestCase):
-    """La última cuota debe absorber el residuo del redondeo, siempre."""
 
     def setUp(self):
         self.usuario = User.objects.create_user('ana', password='x')
 
     def test_reparte_sin_perder_nada_por_redondeo(self):
-        # $1.000.000 en 12 cuotas: 83.333,33... por cuota. Sin el ajuste de
-        # la última, 12 * 83.333 = 999.996 — se pierden $4 por el camino.
         deuda = Deuda.objects.create(
             usuario=self.usuario, acreedor='Tienda', monto_total=Decimal('1000000'),
             cuotas_totales=12, fecha_inicio=date(2026, 1, 15),
@@ -96,7 +74,6 @@ class MontoCuotaDeTests(TestCase):
         total_repartido = sum(
             (deuda.monto_cuota_de(p) for p in periodos), Decimal('0'))
         self.assertEqual(total_repartido, Decimal('1000000'))
-        # Las primeras 11 son la cuota redondeada; la última absorbe el resto.
         for p in periodos[:-1]:
             self.assertEqual(deuda.monto_cuota_de(p), Decimal('83333'))
         self.assertEqual(deuda.monto_cuota_de(periodos[-1]), Decimal('83337'))
@@ -111,14 +88,11 @@ class MontoCuotaDeTests(TestCase):
 
 
 class PeriodosDeudaTests(TestCase):
-    """Qué mes toca pagar y cuáles están atrasados: la base de los badges
-    de urgencia en toda la app."""
 
     def setUp(self):
         self.usuario = User.objects.create_user('ana', password='x')
 
     def test_periodo_a_pagar_es_el_pendiente_mas_antiguo(self):
-        # Empezó hace 3 meses, nadie ha pagado nada: el más viejo primero.
         inicio = date.today().replace(day=1) - timedelta(days=90)
         inicio = inicio.replace(day=1)
         deuda = Deuda.objects.create(
@@ -140,8 +114,6 @@ class PeriodosDeudaTests(TestCase):
         self.assertEqual(deuda.periodo_a_pagar, deuda.periodos_programados[1])
 
     def test_pagar_un_mes_futuro_no_lo_marca_como_atrasado_ni_pendiente(self):
-        # Adelantarse a un pago no debe dejar huecos raros: ese periodo
-        # simplemente sale de pendientes y atrasados.
         inicio = date.today().replace(day=1)
         deuda = Deuda.objects.create(
             usuario=self.usuario, acreedor='Compra', monto_total=Decimal('120000'),
@@ -154,26 +126,18 @@ class PeriodosDeudaTests(TestCase):
         self.assertNotIn(futuro, deuda.periodos_atrasados)
 
     def test_periodos_atrasados_solo_cuenta_los_que_ya_vencieron(self):
-        # Empezó hace 4 meses y no se ha pagado nada: los meses ya pasados
-        # deben salir como atrasados; el mes en curso o futuros, no.
         inicio = date.today().replace(day=1) - timedelta(days=120)
         inicio = inicio.replace(day=1)
         deuda = Deuda.objects.create(
             usuario=self.usuario, acreedor='Compra', monto_total=Decimal('400000'),
             cuotas_totales=10, fecha_inicio=inicio,
         )
-        # periodos_atrasados compara la FECHA de cobro contra hoy, no el
-        # periodo en sí: el mes en curso puede salir atrasado si su día de
-        # cobro (el mismo día que fecha_inicio) ya pasó este mes.
         atrasados = deuda.periodos_atrasados
         self.assertTrue(all(deuda.fecha_cobro_de(p) < date.today() for p in atrasados))
         self.assertGreaterEqual(len(atrasados), 3)
 
 
 class ResumenMesTests(TestCase):
-    """resumen_mes es la fuente de 'ingresos', 'gastos' y 'disponible' que
-    se muestra en el dashboard, el panel de registro y el sidebar. Si esto
-    se rompe, se rompe toda la app a la vez."""
 
     def setUp(self):
         self.usuario = User.objects.create_user('ana', password='x')
@@ -186,7 +150,6 @@ class ResumenMesTests(TestCase):
         Transaccion.objects.create(
             usuario=self.usuario, tipo='EGRESO', monto=Decimal('200000'),
             categoria='Comida', fecha=date(2026, 6, 10))
-        # Un ingreso o gasto de otro mes no debe contarse.
         Transaccion.objects.create(
             usuario=self.usuario, tipo='EGRESO', monto=Decimal('999999'),
             categoria='Comida', fecha=date(2026, 5, 10))
@@ -208,7 +171,6 @@ class ResumenMesTests(TestCase):
         self.assertEqual(r['total_cuotas_mes'], 100000.0)
         self.assertEqual(r['cuotas_pendientes_mes'], 100000.0)
         self.assertEqual(r['cuotas_pagadas_mes'], 0.0)
-        # comprometido = gastos del día a día (0) + cuotas del mes (100000)
         self.assertEqual(r['comprometido'], 100000.0)
         self.assertEqual(r['disponible'], 900000.0)
 
@@ -226,8 +188,6 @@ class ResumenMesTests(TestCase):
         self.assertEqual(r['total_cuotas_mes'], 100000.0)
 
     def test_gasto_marcado_como_cuota_no_se_duplica_en_gastos_del_dia_a_dia(self):
-        # es_cuota=True: resumen_mes debe excluirlo de 'gastos' porque las
-        # cuotas se suman aparte (ver comentario en resumen_mes).
         Transaccion.objects.create(
             usuario=self.usuario, tipo='EGRESO', monto=Decimal('50000'),
             categoria='Tecnologia', fecha=date(2026, 6, 10), es_cuota=True)
@@ -240,11 +200,6 @@ class ResumenMesTests(TestCase):
 
 
 class DeudaFormCuotaTests(TestCase):
-    """El formulario pide el valor de la cuota; el total se calcula.
-
-    Antes se pedía el total y se dividía. Si alguien vuelve a invertirlo, los
-    montos del dashboard y de las exportaciones quedan mal sin que nada avise.
-    """
 
     def setUp(self):
         self.usuario = User.objects.create_user('bruno', password='x')

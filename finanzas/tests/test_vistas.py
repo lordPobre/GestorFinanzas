@@ -1,18 +1,3 @@
-"""Tests de vistas: quién puede ver qué.
-
-Los tests de finanzas/tests.py cubren las fórmulas de dinero. Estos cubren
-la otra cosa que no puede fallar en silencio: que los datos de una persona
-no se le muestren a otra.
-
-El riesgo concreto es sencillo de describir. Casi todas las URL llevan el id
-del objeto (`/pagar-cuota/42/`), y basta con que una vista nueva se olvide
-del filtro `usuario=request.user` para que cualquiera pueda leer o borrar
-datos ajenos cambiando un número en la barra de direcciones. No es un ataque
-sofisticado: es escribir otro número.
-
-La lista PROTEGIDAS de abajo es la parte importante de este archivo. Al
-agregar una vista que reciba el id de algo, agregar también su entrada acá.
-"""
 from datetime import date
 from decimal import Decimal
 
@@ -20,12 +5,11 @@ from django.contrib.auth.models import User
 from django.test import TestCase
 from django.urls import reverse
 
-from .models import (Deuda, GastoPendiente, MetaAhorro, PagoCuota, Persona,
+from ..models import (Deuda, GastoPendiente, MetaAhorro, PagoCuota, Persona,
                      Prestamo, Suscripcion, Transaccion)
 
 
 class BaseDosUsuarios(TestCase):
-    """Dos cuentas con un juego completo de datos cada una."""
 
     def setUp(self):
         self.ana = User.objects.create_user('ana', 'ana@ejemplo.cl', 'clave-larga-1')
@@ -58,9 +42,7 @@ class BaseDosUsuarios(TestCase):
 
 
 class AislamientoEntreUsuariosTests(BaseDosUsuarios):
-    """Beto no puede tocar nada de Ana."""
 
-    # (nombre de la url, clave del objeto, método)
     PROTEGIDAS = [
         ('editar_deuda', 'deuda', 'post'),
         ('pagar_cuota', 'deuda', 'post'),
@@ -101,8 +83,6 @@ class AislamientoEntreUsuariosTests(BaseDosUsuarios):
                 )
 
     def test_los_datos_de_ana_siguen_intactos(self):
-        """Que responda 404 no basta: hay que comprobar que no alcanzó a
-        escribir nada antes de rechazar."""
         self.client.force_login(self.beto)
         for nombre, clave, metodo in self.PROTEGIDAS:
             url = reverse(nombre, args=[self.de_ana[clave].pk])
@@ -132,7 +112,6 @@ class AislamientoEntreUsuariosTests(BaseDosUsuarios):
 
 
 class SesionRequeridaTests(BaseDosUsuarios):
-    """Sin sesión, todo redirige al acceso. Ninguna pantalla se escapa."""
 
     PUBLICAS = {'login', 'registro', 'recuperar', 'restablecer',
                 'logout', 'service_worker'}
@@ -147,20 +126,12 @@ class SesionRequeridaTests(BaseDosUsuarios):
                 self.assertIn('/login/', respuesta['Location'])
 
     def test_una_vista_de_detalle_no_filtra_por_redireccion(self):
-        """Sin sesión debe redirigir, no responder 404: un 404 confirmaría
-        que el id existe."""
         url = reverse('detalle_persona', args=[self.de_ana['persona'].pk])
         respuesta = self.client.get(url)
         self.assertEqual(respuesta.status_code, 302)
 
 
 class ConsultasPorPantallaTests(BaseDosUsuarios):
-    """Candados sobre las consultas N+1 ya corregidas.
-
-    No miden rendimiento: comprueban que las propiedades siguen leyendo del
-    prefetch en vez de consultar de nuevo. Si alguien vuelve a poner un
-    .count() o un values_list() en el camino, estos tests lo detienen.
-    """
 
     def test_periodos_pagados_de_deuda_no_consulta_si_hay_prefetch(self):
         deuda = self.de_ana['deuda']

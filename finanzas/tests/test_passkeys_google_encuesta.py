@@ -9,9 +9,9 @@ from django.test import TestCase, override_settings
 from django.urls import reverse
 from webauthn.helpers import bytes_to_base64url
 
-from . import google_login
-from .models import EventoSeguridad, Passkey, RespuestaEncuesta, SegundoFactor, UserProfile
-from .views.passkeys import _handle
+from .. import google_login
+from ..models import EventoSeguridad, Passkey, RespuestaEncuesta, SegundoFactor, UserProfile
+from ..views.passkeys import _handle
 
 AJAX = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
 
