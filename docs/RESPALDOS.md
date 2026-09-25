@@ -37,7 +37,7 @@ Railway Config File: `/railway/respaldo.json`. Ya trae el comando y el horario
 (`0 7 * * *`, 3 o 4 de la mañana en Chile).
 
 Este servicio no se construye con Nixpacks sino con
-`railway/Dockerfile.respaldo`: Python 3.12 más el cliente oficial de
+`railway/Dockerfile.respaldo`: Python 3.13 más el cliente oficial de
 PostgreSQL desde apt.postgresql.org. Así `pg_dump` coincide con la versión
 del servidor, que hoy es la 18. Nixpacks no tiene PostgreSQL 18 y, si se le
 pide otra versión con `NIXPACKS_PKGS`, choca con la 16 que instala solo.

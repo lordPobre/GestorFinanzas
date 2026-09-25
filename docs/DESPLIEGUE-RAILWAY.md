@@ -17,7 +17,7 @@ igual que hoy. No hay reescritura.
 | `railway.json` | `collectstatic` en el build, `migrate` antes de cada despliegue, y la política de reinicio. |
 | `.env.example` | Plantilla de todas las variables que lee el código, con qué pasa si falta cada una. No lleva secretos. |
 | `.gitignore` | Se le agregaron `media/`, `respaldos/` y `*.sqlite3.gz`. Ver la nota de abajo. |
-| `.python-version` | Fija Python 3.12, la misma que usa el CI. Railway la lee al construir. |
+| `.python-version` | Fija Python 3.13, la misma que usa el CI. Railway la lee al construir. |
 
 Tres ajustes en `core/settings.py`, todos por variable de entorno y sin
 cambiar el comportamiento en local:
@@ -39,14 +39,12 @@ comprimida. No estaba ignorado: bastaba un `git add .` desde la carpeta
 equivocada para publicar los datos de todos tus usuarios en un repo. Tampoco
 estaba `media/`, donde caen las fotos de perfil en local. Ya están los tres.
 
-**Python 3.10 sirve, pero se te vence.** Es la versión que corres hoy y con la
-que vas a desplegar, porque mover el hosting y el intérprete al mismo tiempo
-convierte cualquier error en una adivinanza. Dicho eso: 3.10 llega a fin de
-soporte en octubre de 2026, o sea el mes que viene. Después no recibe más
-parches de seguridad. Subir a 3.12 es un cambio de una línea en
-`.python-version` más correr los tests, y en Railway se prueba sin riesgo
-porque el despliegue anterior sigue en línea hasta que el nuevo pasa. Hazlo
-como paso aparte, una vez que el traslado esté firme.
+**Versión de Python.** La fija `.python-version` (hoy 3.13) y la leen el CI,
+Railway y el entorno local. Para cambiarla hay que cambiar ese archivo, la
+imagen de `railway/Dockerfile.respaldo` y `target-version` en
+`pyproject.toml`, y volver a compilar los `requirements*.txt` con la versión
+nueva. Railway mantiene el despliegue anterior en línea hasta que el nuevo
+pasa `/salud/`, así que un error de versión no deja la app caída.
 
 **Faltaban dos dependencias en `requirements.txt`.** El código importa
 `pypdf` (`finanzas/cartolas/base.py`) y `openpyxl` (`finanzas/exportar.py`),

@@ -20,7 +20,7 @@ como aplicación en el teléfono (PWA).
 
 ## Levantar el entorno
 
-Requiere Python 3.12.
+Requiere Python 3.13.
 
 ```bash
 python -m venv .venv
@@ -74,7 +74,7 @@ Los rangos se declaran en `requirements.in` (producción) y
 `requirements-dev.in` (ruff, coverage, pip-tools, pip-audit). Los `.txt` se
 generan con versiones exactas y hashes, y el CI instala con
 `--require-hashes`. Para agregar o actualizar una dependencia, edita el `.in`
-y vuelve a compilar con Python 3.12:
+y vuelve a compilar con Python 3.13:
 
 ```bash
 pip-compile --generate-hashes --allow-unsafe --output-file requirements.txt requirements.in
