@@ -1,21 +1,3 @@
-"""Manda el aviso mensual de pagos pendientes.
-
-Pensado para una tarea diaria del hosting (en PythonAnywhere, "Tasks" →
-diaria a las 13:00 UTC, que en Chile son las 9 o 10 de la mañana):
-
-    python manage.py avisar_pagos
-
-Corre todos los días y no hace nada salvo cuando es el día que el usuario
-eligió — 20 por defecto. Así un solo horario sirve para todos y no hay que
-tocar el hosting cuando alguien cambia su día.
-
-El registro del último mes enviado (perfil.aviso_ultimo_periodo) es lo que
-evita el correo repetido si la tarea se ejecuta dos veces el mismo día.
-
-    --forzar            ignora el día y el registro; manda ahora
-    --seco              no envía: solo dice a quién le tocaría y con qué
-    --usuario <nombre>  solo esa cuenta
-"""
 from datetime import date
 
 from django.contrib.auth.models import User
@@ -71,10 +53,7 @@ class Command(BaseCommand):
                 omitidos += 1
                 continue
 
-            # Los cobros de suscripciones se generan al abrir el dashboard.
-            # Si el usuario no entró este mes, el cobro de septiembre todavía
-            # no existe y el aviso saldría incompleto.
-            from finanzas.views import generar_cobros_suscripciones
+            from finanzas.servicios.suscripciones import generar_cobros_suscripciones
             generar_cobros_suscripciones(usuario)
 
             datos = avisos.resumen(usuario, hoy)
@@ -97,8 +76,6 @@ class Command(BaseCommand):
                     f"  {usuario.username} → {destino}: {datos['cantidad']} pagos, "
                     f"{datos['total']}"))
             else:
-                # Sin marcar el periodo: así el próximo intento reintenta en
-                # vez de dar el mes por avisado.
                 fallidos += 1
                 self.stdout.write(self.style.ERROR(
                     f'  {usuario.username}: el envío falló (ver el log de finanzas)'))

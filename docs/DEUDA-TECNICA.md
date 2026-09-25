@@ -4,24 +4,15 @@ Lo que quedó identificado en la revisión de septiembre de 2026 y no se hizo
 todavía, con el motivo y el siguiente paso. Se revisa cada vez que se cierra un
 lote.
 
-## 1. Lógica de negocio dentro de las vistas
+## 1. Lógica de negocio dentro de las vistas (resuelto 2026-09-25)
 
-`views.py` bajó de 2.147 a unas 1.950 líneas. El primer paso ya está hecho:
-`finanzas/servicios/mes.py` tiene `resumen_mes`, `salud_financiera` y
-`nombre_mes_es`, y `views.py` los reexporta para que nada más cambie.
+`views.py` ya no existe. Las vistas están en `finanzas/views/`, con un
+archivo por pantalla, y los cálculos en `finanzas/servicios/` (`mes`,
+`cuotas`, `pendientes`, `suscripciones`, `panel`).
 
-Siguiente, en este orden, un archivo por vez y con las pruebas en verde entre
-cada uno:
-
-| Módulo nuevo | Qué se mueve desde `views.py` |
-| --- | --- |
-| `servicios/cuotas.py` | `serie_cuotas`, `_mis_cuotas_detalle`, `_proyecciones_deuda_activas` |
-| `servicios/pendientes.py` | `pendientes_del_mes`, `_calendario_del_mes` |
-| `servicios/suscripciones.py` | `generar_cobros_suscripciones` |
-| `servicios/panel.py` | `_serie_seis_meses`, `_desglose_categorias`, `_insights_dashboard`, `contadores` |
-
-La regla: un servicio recibe un usuario y fechas, y devuelve datos. No lee
-`request`, no manda mensajes y no redirige.
+Queda `contadores()` en `views/comun.py`: sigue armando en cada pantalla el
+formulario de registro y la salud del mes. Partirlo es el punto 1 de
+`ARQUITECTURA.md`.
 
 ## 2. Montos como `float` fuera de `resumen_mes`
 

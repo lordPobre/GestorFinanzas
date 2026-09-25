@@ -1,4 +1,4 @@
-"""Tests sobre lo que no puede fallar en silencio: las fórmulas de dinero.
+﻿"""Tests sobre lo que no puede fallar en silencio: las fórmulas de dinero.
 
 No es una suite completa — es la que evita que alguien cambie una fórmula
 de saldo o de cuotas y el bug llegue a producción sin que nada avise.
@@ -14,7 +14,7 @@ from django.test import TestCase
 
 from .forms import DeudaForm
 from .models import Deuda, PagoCuota, Transaccion
-from .views import resumen_mes
+from .servicios.mes import resumen_mes
 
 
 class ArrastreCuotasAtrasadasTests(TestCase):

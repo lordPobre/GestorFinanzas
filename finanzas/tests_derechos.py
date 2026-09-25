@@ -1,4 +1,4 @@
-"""Tests de los derechos del titular y de la salud del servicio.
+﻿"""Tests de los derechos del titular y de la salud del servicio.
 
 Tres cosas que no pueden romperse sin que nadie se entere:
 
@@ -58,7 +58,7 @@ class FechaDeUnMovimiento(TestCase):
     def test_el_ingreso_futuro_no_ensucia_el_mes_en_curso(self):
         """El total del mes se calcula por rango, así que el de octubre no
         puede aparecer en el de septiembre."""
-        from .views import resumen_mes
+        from .servicios.mes import resumen_mes
 
         hoy = date.today()
         futuro = hoy + timedelta(days=45)

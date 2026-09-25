@@ -1,4 +1,4 @@
-from datetime import date, timedelta
+﻿from datetime import date, timedelta
 from decimal import Decimal
 
 from django.contrib import admin
@@ -14,7 +14,7 @@ from . import auditoria
 from .models import EventoSeguridad, SegundoFactor, Transaccion, UserProfile
 from .seguridad import (MAX_INTENTOS, MAX_POR_CUENTA, MAX_POR_IP, esta_bloqueado,
                         limpiar_intentos, registrar_fallo)
-from .views import resumen_mes
+from .servicios.mes import resumen_mes
 
 urlpatterns = [
     path('panel-prueba/', admin.site.urls),

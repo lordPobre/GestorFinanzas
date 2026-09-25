@@ -1,15 +1,3 @@
-"""Cuenta: entrar, registrarse, perfil, datos personales y cierre.
-
-Estaba todo en views.py junto al dashboard, las cuotas y las metas. Son
-áreas distintas: acá no se calcula ni un peso — se decide quién entra, qué
-aceptó, qué se lleva y qué se borra. Tenerlo aparte hace que un cambio en el
-acceso no obligue a leer dos mil líneas de finanzas, y que las pruebas de
-cuenta importen solo esto.
-
-Lo que sigue en views.py son las pantallas de plata. Este módulo importa de
-allí tres ayudas compartidas (contadores, el perfil y el nombre del mes) y
-nunca al revés, así que no hay import circular.
-"""
 import json
 import logging
 from datetime import date, datetime
@@ -27,23 +15,18 @@ from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.utils import timezone
 
-from . import auditoria, legal, sesiones, verificacion
-from .models import (Categoria, CodigoRespaldo, Deuda, EventoSeguridad, GastoPendiente, MetaAhorro,
+from .. import auditoria, legal, sesiones, verificacion
+from ..models import (Categoria, CodigoRespaldo, Deuda, EventoSeguridad, GastoPendiente, MetaAhorro,
                      Passkey, Persona, Presupuesto, RespuestaEncuesta, SegundoFactor, Suscripcion,
                      Transaccion, UserProfile)
-from .seguridad import (MAX_INTENTOS as MAX_INTENTOS_LOGIN, _ip, esta_bloqueado,
+from ..seguridad import (MAX_INTENTOS as MAX_INTENTOS_LOGIN, _ip, esta_bloqueado,
                         limitar, limpiar_intentos, registrar_fallo)
-from .views import _monto_post, contadores, get_or_create_profile, nombre_mes_es
+from ..servicios.mes import nombre_mes_es
+from .comun import contadores, get_or_create_profile, monto_post
 
 logger = logging.getLogger('finanzas')
 
 def entrar(request):
-    """Acceso con tope de intentos.
-
-    La LoginView de Django no limita nada: se pueden probar contraseñas sin
-    fin. En una app con datos financieros eso es la puerta más fácil, así
-    que cinco fallos bloquean quince minutos.
-    """
     from django.contrib.auth.forms import AuthenticationForm
 
     ip = _ip(request)
@@ -94,12 +77,6 @@ def entrar(request):
                   {'form': AuthenticationForm()})
 
 def verificar_codigo(request):
-    """Segundo paso del acceso.
-
-    El usuario llega con '2fa_pendiente' en la sesión, puesto por entrar().
-    Hasta que el código sea correcto no hay login(), así que no puede tocar
-    ninguna pantalla de la app.
-    """
     uid = request.session.get('2fa_pendiente')
     if not uid:
         return redirect('login')
@@ -155,14 +132,6 @@ def verificar_codigo(request):
     })
 
 def _qr_svg(uri, escala=6):
-    """Código QR como SVG, listo para incrustar en el HTML.
-
-    SVG y no PNG: escala sin pixelarse y no necesita Pillow ni guardar un
-    archivo. Se dibuja como una sola ruta de rectángulos, que pesa poco.
-
-    Si la librería no está instalada devuelve None y la pantalla muestra la
-    clave manual, que funciona igual de bien aunque sea más incómoda.
-    """
     try:
         import qrcode
     except ImportError:
@@ -203,13 +172,6 @@ def _qr_svg(uri, escala=6):
 
 @login_required(login_url='/login/')
 def configurar_2fa(request):
-    """Activar la verificación en dos pasos.
-
-    El secreto se crea al abrir la pantalla pero el factor queda inactivo
-    hasta que el usuario confirme un código. Así se comprueba que su app
-    quedó bien configurada ANTES de exigirle el código para entrar — si no,
-    se quedaría fuera de su propia cuenta.
-    """
     factor, _ = SegundoFactor.objects.get_or_create(
         usuario=request.user,
         defaults={'secreto': SegundoFactor.generar_secreto()},
@@ -266,12 +228,6 @@ MAX_SOLICITUDES_RESET = 3
 VENTANA_RESET = 900
 
 def _usuario_por_correo(correo):
-    """Busca por User.email y, si no aparece, por UserProfile.email.
-
-    Las cuentas creadas antes de que el email fuera obligatorio guardaban
-    el correo solo en el perfil. Sin este segundo intento, esos usuarios no
-    podrían recuperar nunca su contraseña.
-    """
     correo = (correo or '').strip()
     if not correo:
         return None
@@ -283,14 +239,13 @@ def _usuario_por_correo(correo):
     return perfil.usuario if perfil else None
 
 def recuperar(request):
-    """Pide el correo y manda el enlace."""
     from django.contrib.auth.tokens import default_token_generator
     from django.core.cache import cache
     from django.template.loader import render_to_string
     from django.utils.encoding import force_bytes
     from django.utils.http import urlsafe_base64_encode
 
-    from .correo import configurado as correo_configurado, enviar, url_absoluta
+    from ..correo import configurado as correo_configurado, enviar, url_absoluta
 
     enviado = False
     correo_txt = ''
@@ -339,7 +294,6 @@ def recuperar(request):
                   {'enviado': enviado, 'email': correo_txt})
 
 def restablecer(request, uidb64, token):
-    """Valida el enlace y cambia la contraseña."""
     from django.contrib.auth.forms import SetPasswordForm
     from django.contrib.auth.tokens import default_token_generator
     from django.utils.encoding import force_str
@@ -426,8 +380,6 @@ def registro(request):
             logger.info('Alta de cuenta %s con politica version %s',
                         user.pk, legal.VERSION)
 
-            # Doble opt-in: el correo queda sin confirmar hasta que la
-            # persona abra el enlace. No se le impide entrar — se le avisa.
             if verificacion.enviar(request, user):
                 messages.info(
                     request,
@@ -452,17 +404,17 @@ def completar_onboarding(request):
     if request.method != 'POST':
         return redirect('dashboard')
 
-    ingreso_monto = _monto_post(request, 'ingreso_monto')
+    ingreso_monto = monto_post(request, 'ingreso_monto')
     if ingreso_monto > 0:
         Transaccion.objects.create(
             usuario=request.user, tipo='INGRESO', monto=ingreso_monto,
-            categoria='Sueldo',  # antes 'Otros': el sueldo es la categoría real
+            categoria='Sueldo',
             descripcion=request.POST.get('ingreso_desc') or 'Ingreso mensual',
             fecha=timezone.localdate(),
         )
 
     acreedor = request.POST.get('deuda_acreedor', '').strip()
-    deuda_cuota = _monto_post(request, 'deuda_cuota')
+    deuda_cuota = monto_post(request, 'deuda_cuota')
     if acreedor and deuda_cuota > 0:
         try:
             cuotas = max(1, int(request.POST.get('deuda_cuotas', 1)))
@@ -474,7 +426,7 @@ def completar_onboarding(request):
             fecha_inicio=timezone.localdate(),
         )
 
-    presupuesto_val = _monto_post(request, 'presupuesto')
+    presupuesto_val = monto_post(request, 'presupuesto')
     if presupuesto_val > 0:
         p, _ = Presupuesto.objects.get_or_create(
             usuario=request.user, defaults={'limite_mensual': presupuesto_val})
@@ -488,8 +440,6 @@ def completar_onboarding(request):
     return redirect(reverse('dashboard') + '?tour=1')
 
 class PerfilForm(forms.ModelForm):
-    """Antes se definía dentro de la vista, así que se reconstruía en cada
-    request y no se podía importar desde otro módulo."""
 
     MAX_FOTO_MB = 5
     class Meta:
@@ -506,8 +456,6 @@ class PerfilForm(forms.ModelForm):
         }
 
     def clean_foto(self):
-        """Una foto de teléfono pesa 5-12 MB sin comprimir. Sin tope, el
-        servidor las guarda todas y el avatar de 40px descarga megas."""
         foto = self.cleaned_data.get('foto')
         if foto and getattr(foto, 'size', 0) > self.MAX_FOTO_MB * 1024 * 1024:
             raise forms.ValidationError(
@@ -540,9 +488,6 @@ def perfil(request):
                             pk=request.user.pk).exists():
                         request.user.email = correo
                         request.user.save(update_fields=['email'])
-                        # La dirección nueva no está comprobada: dar por
-                        # verificado lo que nadie confirmó vaciaría de
-                        # sentido el paso del registro.
                         profile.correo_verificado = False
                         profile.correo_verificado_en = None
                         profile.save(update_fields=['correo_verificado',
@@ -629,7 +574,6 @@ def _valor_serializable(valor):
 CAMPOS_OCULTOS = {'secreto', 'codigo_hash', 'password', 'clave_publica', 'credencial_id', 'contador'}
 
 def _fila(obj):
-    """Un objeto como diccionario plano, sin claves ajenas ni secretos."""
     fila = {}
     for campo in obj._meta.fields:
         if campo.name in CAMPOS_OCULTOS or campo.name == 'id' or campo.is_relation:
@@ -638,19 +582,10 @@ def _fila(obj):
     return fila
 
 def _filas(consulta):
-    """Los objetos de una consulta como lista de diccionarios planos."""
     return [_fila(obj) for obj in consulta]
 
 @login_required(login_url='/login/')
 def mis_datos(request):
-    """Todo lo que la app guarda de ti, en un solo archivo JSON.
-
-    La exportación a Excel y CSV entrega los movimientos, que es lo que se
-    usa a diario. Esto es distinto: es el expediente completo —perfil,
-    personas, préstamos, metas, suscripciones, presupuesto, estado del
-    segundo factor— para que puedas llevártelo o revisarlo. JSON y no Excel
-    porque tiene que ser fiel, no bonito.
-    """
     u = request.user
     hoy = timezone.localdate()
 
@@ -713,20 +648,6 @@ def mis_datos(request):
 
 @login_required(login_url='/login/')
 def eliminar_cuenta(request):
-    """Borra la cuenta y todo lo que cuelga de ella. Sin vuelta atrás.
-
-    Se pide la contraseña otra vez, no basta con tener la sesión abierta:
-    un teléfono desbloqueado y desatendido no debería poder borrar el
-    historial financiero de su dueño. Quien entró con Google no tiene
-    contraseña utilizable, así que a esa cuenta se le pide escribir su
-    nombre de usuario.
-
-    Todas las claves ajenas a User son CASCADE, así que user.delete() se
-    lleva movimientos, cuotas, personas, préstamos, metas, suscripciones,
-    categorías, presupuesto y segundo factor. Lo único que no viaja en la
-    cascada es la foto: vive en R2 o en el disco, y hay que borrarla a mano
-    antes de perder la referencia.
-    """
     u = request.user
     tiene_password = u.has_usable_password()
 
@@ -771,12 +692,6 @@ def eliminar_cuenta(request):
     return redirect('login')
 
 def verificar_correo(request, token):
-    """Confirma la dirección desde el enlace del correo.
-
-    No inicia sesión. Abrir el enlace prueba que la dirección existe, no que
-    quien lo abre sea el dueño de la cuenta: cualquiera con acceso a esa
-    bandeja —o un reenvío— entraría sin contraseña.
-    """
     usuario = verificacion.usuario_de(token)
     if usuario is None:
         return render(request, 'registration/correo_confirmado.html', {'valido': False})
@@ -816,13 +731,6 @@ def reenviar_verificacion(request):
 
 @login_required(login_url='/login/')
 def sesiones_activas(request):
-    """Las sesiones abiertas de la cuenta, con cierre a distancia.
-
-    Cambiar la contraseña no cierra las sesiones ya abiertas: Django las
-    mantiene vivas a propósito para no echar de la app a quien la cambia. Si
-    alguien se quedó dentro en un computador ajeno, esta pantalla es la única
-    forma de sacarlo sin esperar a que caduque.
-    """
     clave = request.session.session_key or ''
 
     if request.method == 'POST':

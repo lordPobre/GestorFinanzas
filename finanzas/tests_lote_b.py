@@ -11,7 +11,7 @@ from webauthn.helpers import bytes_to_base64url
 
 from . import google_login
 from .models import EventoSeguridad, Passkey, RespuestaEncuesta, SegundoFactor, UserProfile
-from .views_passkeys import _handle
+from .views.passkeys import _handle
 
 AJAX = {'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'}
 
@@ -98,7 +98,7 @@ class FaceIdOHuella(Base):
         self.assertNotIn('_auth_user_id', self.client.session)
         self.assertTrue(EventoSeguridad.objects.filter(tipo='passkey_fallida').exists())
 
-    @patch('finanzas.views_passkeys.verify_authentication_response')
+    @patch('finanzas.views.passkeys.verify_authentication_response')
     def test_una_firma_valida_entra_sin_contrasena_ni_codigo(self, verificar):
         verificar.return_value = SimpleNamespace(new_sign_count=7)
         SegundoFactor.objects.create(usuario=self.ana, secreto=pyotp.random_base32(), activo=True)
@@ -114,7 +114,7 @@ class FaceIdOHuella(Base):
         self.assertIsNotNone(passkey.ultimo_uso)
         self.assertEqual(EventoSeguridad.objects.get(tipo='acceso').detalle, 'face_id_o_huella')
 
-    @patch('finanzas.views_passkeys.verify_authentication_response')
+    @patch('finanzas.views.passkeys.verify_authentication_response')
     def test_una_firma_de_otra_cuenta_no_entra(self, verificar):
         verificar.return_value = SimpleNamespace(new_sign_count=1)
         beto = User.objects.create_user('beto', 'beto@ejemplo.cl', 'clave-larga-2')

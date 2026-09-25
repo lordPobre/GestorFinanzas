@@ -21,10 +21,10 @@ from webauthn.helpers.structs import (AuthenticatorSelectionCriteria,
                                       ResidentKeyRequirement,
                                       UserVerificationRequirement)
 
-from . import auditoria
-from .models import Passkey, SegundoFactor
-from .seguridad import _ip, esta_bloqueado, limitar, limpiar_intentos, registrar_fallo
-from .views import contadores
+from .. import auditoria
+from ..models import Passkey, SegundoFactor
+from ..seguridad import _ip, esta_bloqueado, limitar, limpiar_intentos, registrar_fallo
+from .comun import contadores
 
 logger = logging.getLogger('finanzas')
 

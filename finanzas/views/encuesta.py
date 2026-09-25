@@ -9,8 +9,8 @@ from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 
-from . import encuesta as enc
-from .models import RespuestaEncuesta
+from .. import encuesta as enc
+from ..models import RespuestaEncuesta
 
 
 def _entero(valor, minimo, maximo):
