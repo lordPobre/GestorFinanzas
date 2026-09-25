@@ -2,7 +2,8 @@ from .cuotas import Deuda, PagoCuota
 from .encuesta import RespuestaEncuesta
 from .metas import MetaAhorro, AporteMeta
 from .movimientos import Transaccion, Categoria, Presupuesto, GastoPendiente
-from .perfil import _ruta_avatar, SEGUNDOS_URL_FIRMADA, SEGUNDOS_URL_FOTO_EN_CACHE, UserProfile
+from .perfil import _ruta_avatar, SEGUNDOS_URL_FOTO_EN_CACHE, UserProfile
+from ..almacenamiento import SEGUNDOS_URL_FIRMADA
 from .prestamos import Persona, Prestamo, AbonoPrestamo
 from .seguridad import SegundoFactor, CodigoRespaldo, SesionActiva, Passkey, EventoSeguridad
 from .suscripciones import Suscripcion, PagoServicio

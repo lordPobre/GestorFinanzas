@@ -5,7 +5,7 @@ from django.db import models
 from django.db.models.signals import post_delete
 from django.dispatch import receiver
 
-from ..almacenamiento import SEGUNDOS_URL_FIRMADA, obtener_almacen
+from ..almacenamiento import obtener_almacen
 
 
 def _ruta_avatar(instance, filename):
