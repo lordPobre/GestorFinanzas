@@ -1,0 +1,218 @@
+{% load static %}<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#ffaa2c">
+  <title>Rekon · Cuánto puedes gastar, sin planilla</title>
+  <meta name="description" content="Registra en dos toques, mira una sola cifra clara y deja que la app te avise antes de que se te pase una cuota. Gratis y sin pedir la clave del banco.">
+  <meta property="og:title" content="Rekon · Cuánto puedes gastar, sin planilla">
+  <meta property="og:description" content="Gratis. No pide la clave del banco.">
+  <meta property="og:type" content="website">
+
+  <link rel="manifest" href="{% static 'site.webmanifest' %}">
+  <link rel="icon" type="image/svg+xml" href="{% static 'img/favicon.svg' %}">
+  <link rel="alternate icon" href="{% static 'img/favicon.png' %}">
+  <link rel="apple-touch-icon" href="{% static 'img/favicon-180.png' %}">
+
+  <link rel="stylesheet" href="{% static 'vendor/fonts/fuentes.css' %}">
+  <link rel="stylesheet" href="{% static 'vendor/fontawesome/css/all.min.css' %}">
+  <link rel="stylesheet" href="{% static 'css/finapp.css' %}">
+  <script src="{% static 'js/pantallas/landing.js' %}" nonce="{{ csp_nonce }}"></script>
+</head>
+<body class="lp">
+
+<header class="lp-hero">
+  <nav class="lp-nav">
+    <span class="lp-marca"><span class="lp-marca-icono"><i class="fas fa-chart-line"></i></span>Rekon</span>
+    <a href="{% url 'login' %}" class="lp-nav-entrar">Entrar</a>
+  </nav>
+  <div class="lp-hero-grid">
+    <div class="lp-hero-texto">
+      <h1>Cuánto puedes gastar, sin planilla.</h1>
+      <p>Registra en dos toques, mira una sola cifra clara y deja que la app te avise antes de que se te pase una cuota.</p>
+      <div class="lp-hero-acciones">
+        <a href="{% url 'registro' %}" class="lp-btn lp-btn-oscuro">Crear cuenta gratis<i class="fas fa-arrow-right"></i></a>
+        <span class="lp-hero-nota">Gratis. No pide la clave del banco.</span>
+      </div>
+    </div>
+    <div class="lp-telefono" aria-hidden="true">
+      <div class="lp-pantalla" data-lp-telefono title="Repetir">
+        <div class="lp-tel-barra"><span>9:41</span><span><i class="fas fa-signal"></i><i class="fas fa-wifi"></i><i class="fas fa-battery-full"></i></span></div>
+        <div class="lp-tel-saludo" data-lp-fase="1">
+          <span class="lp-tel-avatar">C</span>
+          <div><div class="lp-tel-hola">Buenos días</div><div class="lp-tel-nombre">Camila</div></div>
+          <span class="lp-tel-campana"><i class="fas fa-bell"></i></span>
+        </div>
+        <div class="lp-tel-saldo" data-lp-fase="2">
+          <div class="lp-tel-saldo-etq">Puedes gastar este mes</div>
+          <div class="lp-tel-cifra" data-lp-cifra data-meta="412300">$412.300</div>
+          <div class="lp-tel-progreso"><div data-lp-barra data-ancho="58%"></div></div>
+          <div class="lp-tel-saldo-pie"><span>Quedan 11 días</span><span>58% usado</span></div>
+        </div>
+        <div class="lp-tel-duo" data-lp-fase="3">
+          <div><div>Debes</div><div style="color:var(--coral)">$186.900</div></div>
+          <div><div>Te deben</div><div style="color:var(--green)">$45.000</div></div>
+        </div>
+        <div class="lp-tel-titulo" data-lp-fase="4">Por pagar este mes</div>
+        <div class="lp-tel-lista">
+          <div class="lp-tel-fila" data-lp-fase="4">
+                <span class="lp-tel-icono" style="background:color-mix(in srgb, var(--amber) 14%, transparent);color:var(--amber)"><i class="fas fa-credit-card"></i></span>
+                <div class="lp-tel-fila-txt"><div>Notebook</div><div>Cuota 3 de 12</div></div>
+                <span class="lp-mono">$54.990</span><span class="lp-tel-pagada" data-lp-pagada><i class="fas fa-check"></i>Pagada</span>
+              </div>
+          <div class="lp-tel-fila" data-lp-fase="5">
+                <span class="lp-tel-icono" style="background:color-mix(in srgb, var(--green) 14%, transparent);color:var(--green)"><i class="fas fa-rotate"></i></span>
+                <div class="lp-tel-fila-txt"><div>Plan celular</div><div>Se cobra el 15</div></div>
+                <span class="lp-mono">$12.990</span>
+              </div>
+          <div class="lp-tel-fila" data-lp-fase="6">
+                <span class="lp-tel-icono" style="background:color-mix(in srgb, var(--blue) 14%, transparent);color:var(--blue)"><i class="fas fa-file-invoice"></i></span>
+                <div class="lp-tel-fila-txt"><div>Cuenta de la luz</div><div>Vence el 22</div></div>
+                <span class="lp-mono">$31.400</span>
+              </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<section class="lp-cifra">
+  <div class="lp-eyebrow" data-lp-revelar>La cifra</div>
+  <div class="lp-cifra-grande" data-lp-revelar>$412.300</div>
+  <div class="lp-cifra-grid">
+    <p data-lp-revelar><b>Lo que te queda libre de verdad.</b> <span>Lo que entró, menos tus gastos, las cuotas y lo que todavía tienes por pagar.</span></p>
+    <div class="lp-ecuacion" data-lp-hijos>
+      <div class="lp-chip"><span class="lp-op-in"></span><div class="lp-chip-etq">Entró</div><div class="lp-mono lp-chip-monto" style="color:var(--green)">$1.250.000</div></div><span class="lp-op">−</span><div class="lp-chip"><span class="lp-op-in">−</span><div class="lp-chip-etq">Gastos</div><div class="lp-mono lp-chip-monto" style="color:var(--text-primary)">$512.800</div></div><span class="lp-op">−</span><div class="lp-chip"><span class="lp-op-in">−</span><div class="lp-chip-etq">Cuotas</div><div class="lp-mono lp-chip-monto" style="color:var(--amber)">$186.900</div></div><span class="lp-op">−</span><div class="lp-chip"><span class="lp-op-in">−</span><div class="lp-chip-etq">Por pagar</div><div class="lp-mono lp-chip-monto" style="color:var(--coral)">$138.000</div></div><span class="lp-op">=</span>
+      <div class="lp-chip lp-chip-total"><span class="lp-op-in">=</span><div class="lp-chip-etq">Libre</div><div class="lp-mono lp-chip-monto">$412.300</div></div>
+    </div>
+  </div>
+</section>
+
+<section class="lp-funciones">
+  <div class="lp-func-caja" data-lp-revelar>
+    <div class="lp-func-lista">
+      <div class="lp-eyebrow">Lo que hace</div>
+      <h2>Todo lo que sale de tu bolsillo.</h2>
+      <div class="lp-tabs" role="tablist" data-lp-hijos>
+        <button type="button" class="lp-tab" role="tab" data-lp-tab="cuotas" aria-selected="true" data-texto="Pones el valor de la cuota y cuántas son. La app deja una cuota en cada mes y te muestra cuánto falta.">
+              <span class="lp-tab-icono"><i class="fas fa-credit-card"></i></span>
+              <span><span class="lp-tab-titulo">Compras en cuotas</span><span class="lp-tab-linea">Una cuota en cada mes y lo que falta a la vista.</span></span>
+            </button>
+        <button type="button" class="lp-tab" role="tab" data-lp-tab="cartola" aria-selected="false" data-texto="Sube el PDF del banco o de la tarjeta. Las cuotas salen solas y el archivo se descarta.">
+              <span class="lp-tab-icono"><i class="fas fa-file-import"></i></span>
+              <span><span class="lp-tab-titulo">La cartola, en vez de anotar</span><span class="lp-tab-linea">Sube el PDF del banco o de la tarjeta.</span></span>
+            </button>
+        <button type="button" class="lp-tab" role="tab" data-lp-tab="deben" aria-selected="false" data-texto="Anota a quién le prestaste, registra los abonos parciales y mira cuánto falta.">
+              <span class="lp-tab-icono"><i class="fas fa-hand-holding-dollar"></i></span>
+              <span><span class="lp-tab-titulo">Lo que te deben</span><span class="lp-tab-linea">Préstamos por persona, con abonos parciales.</span></span>
+            </button>
+        <button type="button" class="lp-tab" role="tab" data-lp-tab="subs" aria-selected="false" data-texto="El streaming, el gimnasio, el plan del celular. Se anotan una vez y se cobran solas cada mes.">
+              <span class="lp-tab-icono"><i class="fas fa-rotate"></i></span>
+              <span><span class="lp-tab-titulo">Suscripciones</span><span class="lp-tab-linea">Se anotan una vez y se cobran solas cada mes.</span></span>
+            </button>
+      </div>
+    </div>
+    <div class="lp-func-escena">
+      <div class="lp-panel lp-panel-cuotas" role="tabpanel" data-lp-panel="cuotas"><div style="width:520px;padding:28px;border-radius:28px;background:linear-gradient(180deg,#242424,#1b1b1b);border:1px solid rgba(255,255,255,.08);box-shadow:inset 0 1px 0 rgba(255,255,255,.06)">
+                  <div style="display:flex;justify-content:space-between;align-items:flex-start"><div><div style="font-size:12px;font-weight:700;color:var(--text-muted)">Notebook · 12 cuotas</div><div style="margin-top:4px;font-size:30px;font-weight:800;letter-spacing:-.04em">$54.990 <span style="font-size:14px;font-weight:600;color:var(--text-muted)">al mes</span></div></div><span style="padding:7px 12px;border-radius:100px;background:var(--amber-tenue);color:var(--amber);font-size:12px;font-weight:800">Cuota 3 de 12</span></div>
+                  <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-top:24px"><div style="padding:12px 0;border-radius:14px;background:var(--amber);color:var(--tinta-ambar);text-align:center"><i class="fas fa-check" style="font-size:11px"></i><div style="margin-top:4px;font-size:11px;font-weight:800">oct</div></div><div style="padding:12px 0;border-radius:14px;background:var(--amber);color:var(--tinta-ambar);text-align:center"><i class="fas fa-check" style="font-size:11px"></i><div style="margin-top:4px;font-size:11px;font-weight:800">nov</div></div><div style="padding:12px 0;border-radius:14px;border:2px solid var(--amber);box-shadow:0 0 0 5px var(--amber-tenue);color:var(--amber);text-align:center"><div style="font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600">3</div><div style="margin-top:4px;font-size:11px;font-weight:800">dic</div></div><div style="padding:12px 0;border-radius:14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);color:var(--text-tenue);text-align:center"><div style="font-family:'JetBrains Mono',monospace;font-size:11px">4</div><div style="margin-top:4px;font-size:11px;font-weight:700">ene</div></div><div style="padding:12px 0;border-radius:14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);color:var(--text-tenue);text-align:center"><div style="font-family:'JetBrains Mono',monospace;font-size:11px">5</div><div style="margin-top:4px;font-size:11px;font-weight:700">feb</div></div><div style="padding:12px 0;border-radius:14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);color:var(--text-tenue);text-align:center"><div style="font-family:'JetBrains Mono',monospace;font-size:11px">6</div><div style="margin-top:4px;font-size:11px;font-weight:700">mar</div></div><div style="padding:12px 0;border-radius:14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);color:var(--text-tenue);text-align:center"><div style="font-family:'JetBrains Mono',monospace;font-size:11px">7</div><div style="margin-top:4px;font-size:11px;font-weight:700">abr</div></div><div style="padding:12px 0;border-radius:14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);color:var(--text-tenue);text-align:center"><div style="font-family:'JetBrains Mono',monospace;font-size:11px">8</div><div style="margin-top:4px;font-size:11px;font-weight:700">may</div></div><div style="padding:12px 0;border-radius:14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);color:var(--text-tenue);text-align:center"><div style="font-family:'JetBrains Mono',monospace;font-size:11px">9</div><div style="margin-top:4px;font-size:11px;font-weight:700">jun</div></div><div style="padding:12px 0;border-radius:14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);color:var(--text-tenue);text-align:center"><div style="font-family:'JetBrains Mono',monospace;font-size:11px">10</div><div style="margin-top:4px;font-size:11px;font-weight:700">jul</div></div><div style="padding:12px 0;border-radius:14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);color:var(--text-tenue);text-align:center"><div style="font-family:'JetBrains Mono',monospace;font-size:11px">11</div><div style="margin-top:4px;font-size:11px;font-weight:700">ago</div></div><div style="padding:12px 0;border-radius:14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);color:var(--text-tenue);text-align:center"><div style="font-family:'JetBrains Mono',monospace;font-size:11px">12</div><div style="margin-top:4px;font-size:11px;font-weight:700">sep</div></div></div>
+                  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:22px;padding-top:20px;border-top:1px solid var(--line)">
+                    <div><div style="font-size:11px;color:var(--text-muted)">Total</div><div style="font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:600;margin-top:3px">$659.880</div></div>
+                    <div><div style="font-size:11px;color:var(--text-muted)">Te faltan</div><div style="font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:600;margin-top:3px;color:var(--amber)">$494.910</div></div>
+                    <div><div style="font-size:11px;color:var(--text-muted)">Terminas en</div><div style="font-size:14px;font-weight:800;margin-top:3px">septiembre</div></div>
+                  </div>
+                </div></div>
+      <div class="lp-panel lp-panel-cartola" role="tabpanel" data-lp-panel="cartola" hidden><div style="display:grid;grid-template-columns:190px 70px 320px;align-items:center">
+                  <div style="position:relative;height:260px;border-radius:18px;background:#2b2b2b;border:1px solid rgba(255,255,255,.08);padding:20px 18px;overflow:hidden">
+                    <span style="display:inline-block;padding:3px 7px;border-radius:6px;background:var(--coral);color:#fff;font-size:9.5px;font-weight:800;letter-spacing:.04em">PDF</span>
+                    <div style="margin-top:16px;display:flex;flex-direction:column;gap:10px"><span style="height:5px;width:86%;border-radius:3px;background:rgba(245,245,245,.2)"></span><span style="height:5px;width:64%;border-radius:3px;background:rgba(245,245,245,.14)"></span><span style="height:5px;width:78%;border-radius:3px;background:rgba(245,245,245,.14)"></span><span style="height:5px;width:52%;border-radius:3px;background:rgba(245,245,245,.14)"></span><span style="height:5px;width:72%;border-radius:3px;background:rgba(245,245,245,.14)"></span><span style="height:5px;width:60%;border-radius:3px;background:rgba(245,245,245,.14)"></span><span style="height:5px;width:70%;border-radius:3px;background:rgba(245,245,245,.14)"></span></div>
+                    <div style="position:absolute;left:0;right:0;top:120px;height:44px;background:linear-gradient(180deg,rgba(255,170,44,0),rgba(255,170,44,.35),rgba(255,170,44,0));border-bottom:1.5px solid var(--amber)"></div>
+                    <div style="position:absolute;left:18px;bottom:14px;font-size:9.5px;font-weight:700;color:var(--text-muted)">cartola-septiembre.pdf</div>
+                  </div>
+                  <div style="display:flex;justify-content:center"><span style="display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:50%;background:var(--amber-tenue);color:var(--amber);font-size:12px"><i class="fas fa-arrow-right"></i></span></div>
+                  <div style="display:flex;flex-direction:column;gap:8px">
+                    <div style="display:flex;align-items:center;gap:12px;padding:13px 14px;border-radius:16px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06)"><span style="width:32px;height:32px;border-radius:10px;background:#ffaa2c22;color:var(--amber);display:inline-flex;align-items:center;justify-content:center;font-size:12px"><i class="fas fa-credit-card"></i></span><div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:700">Notebook</div><div style="font-size:11px;color:var(--text-muted)">Cuota 3 de 12</div></div><span style="font-family:'JetBrains Mono',monospace;font-size:12.5px;font-weight:600">$54.990</span></div>
+                    <div style="display:flex;align-items:center;gap:12px;padding:13px 14px;border-radius:16px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06)"><span style="width:32px;height:32px;border-radius:10px;background:#e25c5c22;color:var(--coral);display:inline-flex;align-items:center;justify-content:center;font-size:12px"><i class="fas fa-cart-shopping"></i></span><div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:700">Supermercado</div><div style="font-size:11px;color:var(--text-muted)">Comida</div></div><span style="font-family:'JetBrains Mono',monospace;font-size:12.5px;font-weight:600">$38.420</span></div>
+                    <div style="display:flex;align-items:center;gap:12px;padding:13px 14px;border-radius:16px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06)"><span style="width:32px;height:32px;border-radius:10px;background:#53d25822;color:var(--green);display:inline-flex;align-items:center;justify-content:center;font-size:12px"><i class="fas fa-rotate"></i></span><div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:700">Plan celular</div><div style="font-size:11px;color:var(--text-muted)">Suscripción</div></div><span style="font-family:'JetBrains Mono',monospace;font-size:12.5px;font-weight:600">$12.990</span></div>
+                    <div style="display:flex;align-items:center;gap:8px;margin-top:4px;padding:10px 14px;border-radius:14px;border:1.5px dashed rgba(255,255,255,.14);color:var(--text-muted);font-size:11.5px;font-weight:700"><i class="fas fa-trash-can" style="font-size:10px"></i>El PDF se descartó</div>
+                  </div>
+                </div></div>
+      <div class="lp-panel lp-panel-deben" role="tabpanel" data-lp-panel="deben" hidden><div style="width:520px;padding:28px;border-radius:28px;background:linear-gradient(180deg,#242424,#1b1b1b);border:1px solid rgba(255,255,255,.08);box-shadow:inset 0 1px 0 rgba(255,255,255,.06);display:grid;grid-template-columns:190px minmax(0,1fr);gap:28px;align-items:center">
+                  <div style="position:relative;width:190px;height:190px;border-radius:50%;background:conic-gradient(var(--green) 0 40%,var(--line) 40% 100%)">
+                    <div style="position:absolute;inset:14px;border-radius:50%;background:#1e1e1e;display:flex;flex-direction:column;align-items:center;justify-content:center">
+                      <div style="font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:600">$30.000</div>
+                      <div style="margin-top:4px;font-size:11px;color:var(--text-muted)">de $75.000</div>
+                    </div>
+                  </div>
+                  <div>
+                    <div style="display:flex;align-items:center;gap:10px"><span style="width:36px;height:36px;border-radius:50%;background:var(--green);color:#07260b;display:inline-flex;align-items:center;justify-content:center;font-size:14px;font-weight:800">J</span><div><div style="font-size:15px;font-weight:800">Javiera</div><div style="font-size:11.5px;color:var(--text-muted)">Le prestaste $75.000</div></div></div>
+                    <div style="margin-top:18px;display:flex;flex-direction:column;gap:8px">
+                      <div style="display:flex;justify-content:space-between;font-size:12.5px"><span style="color:var(--text-secondary)">Abono · 12 ago</span><span style="font-family:'JetBrains Mono',monospace;font-weight:600;color:var(--green)">+$10.000</span></div>
+                      <div style="display:flex;justify-content:space-between;font-size:12.5px"><span style="color:var(--text-secondary)">Abono · 2 sep</span><span style="font-family:'JetBrains Mono',monospace;font-weight:600;color:var(--green)">+$20.000</span></div>
+                      <div style="display:flex;justify-content:space-between;margin-top:6px;padding-top:12px;border-top:1px solid var(--line);font-size:13px;font-weight:800"><span>Falta</span><span style="font-family:'JetBrains Mono',monospace;font-weight:600">$45.000</span></div>
+                    </div>
+                  </div>
+                </div></div>
+      <div class="lp-panel lp-panel-subs" role="tabpanel" data-lp-panel="subs" hidden><div style="width:460px;padding:24px;border-radius:28px;background:linear-gradient(180deg,#242424,#1b1b1b);border:1px solid rgba(255,255,255,.08);box-shadow:inset 0 1px 0 rgba(255,255,255,.06);display:flex;flex-direction:column;gap:10px">
+                  <div style="display:grid;grid-template-columns:44px minmax(0,1fr) auto;gap:14px;align-items:center;padding:14px 16px;border-radius:18px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06)"><span style="width:44px;height:44px;border-radius:14px;background:var(--blue);color:var(--tinta-ambar);display:inline-flex;align-items:center;justify-content:center;font-size:15px;font-weight:800">S</span><div><div style="font-size:14px;font-weight:800">Streaming</div><div style="font-size:11.5px;color:var(--text-muted)">Se cobra el 5</div></div><span style="font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:600">$7.990</span></div>
+                  <div style="display:grid;grid-template-columns:44px minmax(0,1fr) auto;gap:14px;align-items:center;padding:14px 16px;border-radius:18px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06)"><span style="width:44px;height:44px;border-radius:14px;background:var(--green);color:var(--tinta-ambar);display:inline-flex;align-items:center;justify-content:center;font-size:15px;font-weight:800">G</span><div><div style="font-size:14px;font-weight:800">Gimnasio</div><div style="font-size:11.5px;color:var(--text-muted)">Se cobra el 10</div></div><span style="font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:600">$24.990</span></div>
+                  <div style="display:grid;grid-template-columns:44px minmax(0,1fr) auto;gap:14px;align-items:center;padding:14px 16px;border-radius:18px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06)"><span style="width:44px;height:44px;border-radius:14px;background:var(--amber);color:var(--tinta-ambar);display:inline-flex;align-items:center;justify-content:center;font-size:15px;font-weight:800">C</span><div><div style="font-size:14px;font-weight:800">Plan celular</div><div style="font-size:11.5px;color:var(--text-muted)">Se cobra el 15</div></div><span style="font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:600">$12.990</span></div>
+                  <div style="display:flex;justify-content:space-between;align-items:baseline;margin-top:8px;padding:14px 4px 0;border-top:1px solid var(--line)"><span style="font-size:13px;font-weight:700;color:var(--text-secondary)">Al mes, anotado solo</span><span style="font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:600">$45.970</span></div>
+                </div></div>
+    </div>
+  </div>
+  <p class="lp-func-texto" data-lp-texto>Pones el valor de la cuota y cuántas son. La app deja una cuota en cada mes y te muestra cuánto falta.</p>
+</section>
+
+<section class="lp-privacidad">
+  <div class="lp-priv-grid">
+    <div data-lp-hijos>
+      <div style="display:inline-flex;align-items:stretch;transform:rotate(-2.5deg);transform-origin:left center;color:var(--green);font-family:'JetBrains Mono',monospace">
+                <span style="display:inline-flex;align-items:center;justify-content:center;width:38px;border:2px solid var(--green);border-right:none;border-radius:10px 0 0 10px;font-size:13px"><i class="fas fa-fingerprint"></i></span>
+                <span style="display:flex;flex-direction:column;justify-content:center;padding:6px 14px 6px 12px;border:2px solid var(--green);border-radius:0 10px 10px 0;box-shadow:inset 0 0 0 3px var(--fondo-privacidad),inset 0 0 0 4px rgba(83,210,88,.55)">
+                  <span style="font-size:12px;font-weight:600;letter-spacing:.22em">PRIVACIDAD</span>
+                  <span style="font-size:9.5px;font-weight:500;letter-spacing:.14em;opacity:.75">SIN CLAVE DEL BANCO</span>
+                </span>
+              </div>
+      <h2>Lo que hacemos con tus datos cabe en una boleta.</h2>
+      <p>Rekon no se conecta a tu banco. Todo lo que ve es lo que tú anotas o decides subir, y la cartola se lee en memoria y se descarta ahí mismo.</p>
+    </div>
+    <div class="lp-boleta" data-lp-revelar>
+      <div style="padding:36px 34px 30px;background:#f3efe6;color:var(--tinta-ambar);font-family:'JetBrains Mono',monospace;font-size:13px;line-height:1.5;-webkit-mask:radial-gradient(circle 7px at 50% 0,#0000 98%,#000) 50% 0/18px 100% repeat-x;mask:radial-gradient(circle 7px at 50% 0,#0000 98%,#000) 50% 0/18px 100% repeat-x">
+                <div style="text-align:center;font-size:15px;font-weight:600;letter-spacing:.12em">REKON</div>
+                <div style="text-align:center;font-size:11px;letter-spacing:.08em;opacity:.65;margin-top:4px">BOLETA DE PRIVACIDAD</div>
+                <div style="margin:20px 0 16px;border-top:1.5px dashed rgba(26,18,0,.35)"></div>
+                <div style="display:flex;flex-direction:column;gap:11px">
+                  <div style="display:flex;align-items:baseline;gap:8px"><span style="">Claves del banco pedidas</span><span style="flex:1;border-bottom:1.5px dotted rgba(26,18,0,.35);transform:translateY(-4px)"></span><span style="font-weight:700;">0</span></div>
+                  <div style="display:flex;align-items:baseline;gap:8px"><span style="">Cartolas guardadas</span><span style="flex:1;border-bottom:1.5px dotted rgba(26,18,0,.35);transform:translateY(-4px)"></span><span style="font-weight:700;">0</span></div>
+                  <div style="display:flex;align-items:baseline;gap:8px"><span style="">Datos compartidos</span><span style="flex:1;border-bottom:1.5px dotted rgba(26,18,0,.35);transform:translateY(-4px)"></span><span style="font-weight:700;">0</span></div>
+                  <div style="display:flex;align-items:baseline;gap:8px"><span style="">Face ID y dos pasos</span><span style="flex:1;border-bottom:1.5px dotted rgba(26,18,0,.35);transform:translateY(-4px)"></span><span style="font-weight:700;">incluido</span></div>
+                  <div style="display:flex;align-items:baseline;gap:8px"><span style="">Excel · CSV · JSON</span><span style="flex:1;border-bottom:1.5px dotted rgba(26,18,0,.35);transform:translateY(-4px)"></span><span style="font-weight:700;">cuando quieras</span></div>
+                  <div style="display:flex;align-items:baseline;gap:8px"><span style="">Borrar tu cuenta</span><span style="flex:1;border-bottom:1.5px dotted rgba(26,18,0,.35);transform:translateY(-4px)"></span><span style="font-weight:700;">cuando quieras</span></div>
+                </div>
+                <div style="margin:18px 0 14px;border-top:1.5px dashed rgba(26,18,0,.35)"></div>
+                <div style="display:flex;justify-content:space-between;align-items:baseline;font-size:17px;font-weight:600"><span>TOTAL</span><span>$0</span></div>
+                <div style="margin-top:22px;height:44px;background:repeating-linear-gradient(90deg,var(--tinta-ambar) 0 2px,transparent 2px 4px,var(--tinta-ambar) 4px 5px,transparent 5px 8px,var(--tinta-ambar) 8px 11px,transparent 11px 13px)"></div>
+                <div style="margin-top:12px;text-align:center;font-size:11px;opacity:.65">Gracias por no darnos tu clave.</div>
+              </div>
+    </div>
+  </div>
+</section>
+
+<footer class="lp-cierre">
+  <div class="lp-cierre-grid">
+    <h2 data-lp-revelar>Empieza con una sola cifra.</h2>
+    <div class="lp-cierre-acciones" data-lp-revelar>
+      <a href="{% url 'registro' %}" class="lp-btn lp-btn-oscuro">Crear cuenta gratis<i class="fas fa-arrow-right"></i></a>
+      <span>¿Ya tienes cuenta? <a href="{% url 'login' %}">Entrar</a></span>
+    </div>
+  </div>
+  <div class="lp-cierre-pie">
+    <span>Se instala en el teléfono como una app, sin pasar por la tienda.</span>
+    <span class="lp-cierre-enlaces"><a href="{% url 'privacidad' %}">Privacidad</a><a href="{% url 'terminos' %}">Términos de uso</a></span>
+  </div>
+</footer>
+
+</body>
+</html>

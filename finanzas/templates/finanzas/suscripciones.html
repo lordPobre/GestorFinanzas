@@ -70,7 +70,7 @@
        {% if not s.activa %}style="opacity:.55"{% endif %}>
 
     <span class="marca-tile" style="background:{{ s.marca.color }}1f;color:{{ s.marca.color }};
-                 {% if not s.marca.reconocida %}border:1px solid rgba(255,170,44,.26){% endif %}">
+                 {% if not s.marca.reconocida %}border:1px solid var(--amber-borde){% endif %}">
       {% if s.marca.usa_inicial %}{{ s.inicial }}{% else %}<i class="{{ s.marca.icono }}"></i>{% endif %}
     </span>
 

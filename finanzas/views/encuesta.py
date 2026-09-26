@@ -11,6 +11,7 @@ from django.views.decorators.http import require_POST
 
 from .. import encuesta as enc
 from ..models import RespuestaEncuesta
+from .comun import contadores
 
 
 def _entero(valor, minimo, maximo):
@@ -66,6 +67,7 @@ def encuesta(request):
         'secciones': list(enumerate(enc.SECCIONES)),
         'escala5': range(1, 6),
         'escala10': range(0, 11),
+        **contadores(request.user),
     })
 
 
@@ -155,4 +157,5 @@ def encuesta_resultados(request):
         'restantes': max(0, len(todos) - limite),
         'url_mas': enlace(n=limite + 20),
         'url_csv': base_url + '?' + urlencode({'grupo': grupo, 'formato': 'csv'}),
+        **contadores(request.user),
     })

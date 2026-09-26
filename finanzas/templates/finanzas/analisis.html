@@ -44,7 +44,7 @@
 {% else %}
 
 <div class="glass card-lg" data-spot
-     style="margin-bottom:18px;background:linear-gradient(135deg,var(--amber-tenue),rgba(255,255,255,.03));border-color:rgba(255,170,44,.26)">
+     style="margin-bottom:18px;background:linear-gradient(135deg,var(--amber-tenue),rgba(255,255,255,.03));border-color:var(--amber-borde)">
   <div style="display:flex;flex-wrap:wrap;align-items:flex-start;justify-content:space-between;gap:24px">
 
     <div style="flex:1;min-width:300px">
@@ -84,10 +84,10 @@
     <div style="display:flex;flex-direction:column;align-items:center;gap:10px;min-width:150px">
       <div style="position:relative;width:132px;height:132px">
         <svg viewBox="0 0 120 120" style="width:132px;height:132px;transform:rotate(-90deg)">
-          <circle cx="60" cy="60" r="52" fill="none" stroke="rgba(255,255,255,.07)" stroke-width="9"></circle>
+          <circle cx="60" cy="60" r="52" fill="none" stroke="var(--line)" stroke-width="9"></circle>
           <circle cx="60" cy="60" r="52" fill="none" stroke-width="9" stroke-linecap="round"
                   stroke-dasharray="327" stroke-dashoffset="{{ riesgo_offset }}"
-                  stroke="{% if analisis.riesgo_nivel == 'critico' %}#f87171{% elif analisis.riesgo_nivel == 'alto' %}var(--coral){% elif analisis.riesgo_nivel == 'moderado' %}#fb923c{% else %}var(--green){% endif %}"></circle>
+                  stroke="{% if analisis.riesgo_nivel == 'critico' %}#f87171{% elif analisis.riesgo_nivel == 'alto' %}var(--coral){% elif analisis.riesgo_nivel == 'moderado' %}var(--naranja){% else %}var(--green){% endif %}"></circle>
         </svg>
         <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px">
           <span class="display" style="font-size:27px">{{ analisis.riesgo_score }}</span>
@@ -148,7 +148,7 @@
       {% for f in analisis.riesgo_factores %}
       <div style="--tono:{% if f.peso == 'alto' %}var(--coral){% elif f.peso == 'medio' %}var(--amber){% else %}var(--green){% endif %};
                   padding:15px 16px;border-radius:var(--r-md);background:var(--surface-2);
-                  border:1px solid rgba(255,255,255,.07);
+                  border:1px solid var(--line);
                   border-color:color-mix(in srgb, var(--tono) 30%, transparent)">
         <div style="display:flex;align-items:center;gap:11px;margin-bottom:9px">
           <span style="display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;flex-shrink:0;border-radius:10px;font-size:11px;color:var(--tono);background:rgba(255,255,255,.06);background:color-mix(in srgb, var(--tono) 15%, transparent)">
@@ -188,7 +188,7 @@
         <span class="mono" style="font-size:11px;color:var(--green);white-space:nowrap">{{ total_pagado_serie|money }}</span>
       </div>
       <div style="display:flex;align-items:center;gap:7px">
-        <span style="width:9px;height:9px;border-radius:3px;background:#fb923c"></span>
+        <span style="width:9px;height:9px;border-radius:3px;background:var(--naranja)"></span>
         <span style="font-size:11px;color:var(--text-secondary);white-space:nowrap">Por pagar</span>
         <span class="mono" style="font-size:11px;color:var(--orange);white-space:nowrap">{{ total_pendiente_serie|money }}</span>
       </div>

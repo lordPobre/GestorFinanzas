@@ -76,7 +76,7 @@
 </div>
 <div class="seg" style="margin-bottom:16px;max-width:340px" id="segPerfil">
   <button type="button" class="on" data-panel="datos">Tus datos</button>
-  <button type="button" data-panel="seguridad">Seguridad</button>
+  <button type="button" data-panel="seguridad" data-tour="seguridad">Seguridad</button>
 </div>
 
 <div id="panelDatos">
@@ -292,7 +292,7 @@
       <span class="icon-tile orange"><i class="fas fa-route"></i></span>
       <div class="row-main">
         <div class="row-title">Cómo funciona la app</div>
-        <div class="row-meta">Un recorrido de 8 pasos por cada pantalla</div>
+        <div class="row-meta">Un recorrido por cada pantalla</div>
       </div>
       <button type="button" class="btn btn-glass btn-sm" data-tour-iniciar>Ver el tour</button>
     </div>
@@ -320,7 +320,7 @@
 <div id="panelSeguridad" style="display:none">
 
   {% with n_passkeys=user.passkeys.count %}
-  <a href="{% url 'passkeys' %}" class="fila-ajuste">
+  <a href="{% url 'passkeys' %}" class="fila-ajuste" data-tour="face-id">
     <span class="icon-tile fila-ajuste-icono {% if n_passkeys %}green{% else %}blue{% endif %}">
       <i class="fas fa-fingerprint"></i>
     </span>
@@ -343,7 +343,7 @@
   </a>
   {% endwith %}
 
-  <a href="{% url 'configurar_2fa' %}" class="fila-ajuste">
+  <a href="{% url 'configurar_2fa' %}" class="fila-ajuste" data-tour="dos-pasos">
     <span class="icon-tile fila-ajuste-icono {% if user.segundo_factor.activo %}green{% else %}orange{% endif %}">
       <i class="fas fa-shield-halved"></i>
     </span>
@@ -369,7 +369,7 @@
     <i class="fas fa-chevron-right fila-ajuste-flecha"></i>
   </a>
 
-  <a href="{% url 'sesiones_activas' %}" class="fila-ajuste">
+  <a href="{% url 'sesiones_activas' %}" class="fila-ajuste" data-tour="sesiones">
     <span class="icon-tile fila-ajuste-icono blue">
       <i class="fas fa-laptop"></i>
     </span>
@@ -388,7 +388,7 @@
     {% csrf_token %}
     <input type="hidden" name="accion" value="password">
 
-    <div class="glass card" style="padding:24px;margin-bottom:16px" data-spot>
+    <div class="glass card" style="padding:24px;margin-bottom:16px" data-spot data-tour="contrasena">
       <div class="modal-title" style="font-size:15px;font-weight:500">Cambiar contraseña</div>
       <div class="hint" style="font-size:11.5px;margin:3px 0 20px">
         Necesitas la actual. Al cambiarla no se cierra tu sesión.
@@ -454,7 +454,7 @@
     </div>
   </div>
 
-  <div class="glass card borde-coral" style="margin-top:16px">
+  <div class="glass card borde-coral" style="margin-top:16px" data-tour="eliminar-cuenta">
     <div style="display:flex;align-items:center;gap:14px">
       <span class="icon-tile coral" style="flex-shrink:0"><i class="fas fa-trash-can"></i></span>
       <div class="row-main">

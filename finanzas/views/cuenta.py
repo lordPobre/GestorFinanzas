@@ -188,7 +188,7 @@ def configurar_2fa(request):
                 auditoria.registrar('2fa_activada', request)
                 messages.success(request, 'Verificación en dos pasos activada.')
                 return render(request, 'finanzas/codigos_respaldo.html',
-                              {'codigos': codigos, 'recien_creados': True})
+                              {'codigos': codigos, 'recien_creados': True, **contadores(request.user)})
             messages.error(request, 'El código no coincide. Revisa la hora de tu teléfono.')
 
         elif accion == 'desactivar':
@@ -208,7 +208,7 @@ def configurar_2fa(request):
             codigos = CodigoRespaldo.generar(request.user)
             auditoria.registrar('codigos_regenerados', request)
             return render(request, 'finanzas/codigos_respaldo.html',
-                          {'codigos': codigos, 'recien_creados': False})
+                          {'codigos': codigos, 'recien_creados': False, **contadores(request.user)})
 
     contexto = {
         'factor': factor,
@@ -661,6 +661,7 @@ def eliminar_cuenta(request):
                 'metas': MetaAhorro.objects.filter(usuario=u).count(),
                 'suscripciones': Suscripcion.objects.filter(usuario=u).count(),
             },
+            **contadores(request.user),
         })
 
     if request.POST.get('confirmacion', '').strip().upper() != 'ELIMINAR':

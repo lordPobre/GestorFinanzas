@@ -113,11 +113,11 @@ class AislamientoEntreUsuariosTests(BaseDosUsuarios):
 
 class SesionRequeridaTests(BaseDosUsuarios):
 
-    PUBLICAS = {'login', 'registro', 'recuperar', 'restablecer',
+    PUBLICAS = {'dashboard', 'login', 'registro', 'recuperar', 'restablecer',
                 'logout', 'service_worker'}
 
     def test_las_pantallas_privadas_piden_entrar(self):
-        for nombre in ['dashboard', 'deudas', 'prestamos', 'metas', 'categorias',
+        for nombre in ['deudas', 'prestamos', 'metas', 'categorias',
                        'suscripciones', 'estadisticas', 'perfil',
                        'analisis_predictivo', 'exportar_excel', 'exportar_csv']:
             with self.subTest(url=nombre):

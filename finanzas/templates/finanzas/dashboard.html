@@ -233,8 +233,8 @@
         <div class="mono" style="font-size:16px;color:var(--green)">{{ deuda_pagada_total|money }}</div>
       </div>
       {% if cuotas_atrasadas_total %}
-      <div class="deuda-dato" style="background:rgba(248,113,113,.12);border-color:rgba(248,113,113,.26)">
-        <div class="label" style="color:rgba(251,113,133,.75);margin-bottom:5px">Atrasadas</div>
+      <div class="deuda-dato" style="background:var(--coral-tenue);border-color:var(--coral-borde)">
+        <div class="label" style="color:var(--coral);margin-bottom:5px">Atrasadas</div>
         <div class="mono" style="font-size:16px;color:var(--coral)">{{ cuotas_atrasadas_total }}</div>
       </div>
       {% endif %}

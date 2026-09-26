@@ -1,35 +1,7 @@
-/* Tour guiado de Rekon.
- *
- * Recorre las pantallas de la app con un foco sobre el elemento real y un
- * globo que lo explica. El recorrido cruza páginas: el paso actual se guarda
- * en el navegador (no hay migración ni campo nuevo en el perfil), así que al
- * pasar de Inicio a Cuotas el tour sigue donde iba.
- *
- * Se activa con ?tour=1 (lo hace el final del onboarding y el botón del
- * perfil) y se puede retomar con la píldora de abajo si el usuario se fue a
- * otra pantalla por su cuenta.
- *
- * Los destinos de cada paso NO están escritos acá: los pasa base.html con
- * {% url %}, para que un cambio de rutas no rompa el tour.
- *
- * DOS RECORRIDOS SOBRE LA MISMA LISTA
- * -----------------------------------
- * Cuando se agregan funciones, quien ya terminó el tour no las descubre: su
- * marca de "listo" hace que el recorrido no vuelva a aparecer nunca. Por eso
- * la lista lleva VERSION y cada paso nuevo se marca con `nuevo: true`.
- *
- *   · Quien no ha hecho el tour lo hace completo, con las nuevas intercaladas
- *     donde corresponde.
- *   · Quien ya lo terminó en una versión anterior recibe solo una píldora
- *     ofreciéndole lo nuevo. Si la toca, recorre únicamente esos pasos. Si no,
- *     no se le interrumpe nada: la píldora se cierra y no vuelve.
- *
- * Subir VERSION es lo único que hace falta la próxima vez.
- */
 (function () {
   'use strict';
 
-  var VERSION = 2;
+  var VERSION = 3;
 
   var LS_PASO = 'finapp.tour.paso';
   var LS_LISTO = 'finapp.tour.listo';
@@ -45,7 +17,7 @@
       texto: 'Este número es lo que te queda para el resto del mes: lo que entró, menos tus gastos, las cuotas y lo que todavía tienes por pagar. Al lado están lo que debes y lo que te deben.'
     },
     {
-      ruta: 'inicio', icono: 'fa-heart-pulse', nuevo: true,
+      ruta: 'inicio', icono: 'fa-heart-pulse', desde: 2,
       sel: '[data-tour="salud"]',
       titulo: 'La salud de tu mes',
       texto: 'Un número del 1 al 100 que resume cuánto de lo que entró ya está comprometido en cuotas, suscripciones y cuentas por pagar. Baja cuando te endeudas y sube cuando pagas.'
@@ -57,13 +29,13 @@
       texto: 'Desde acá se anota todo, en cualquier pantalla. Se abre un panel con teclado de montos: eliges categoría, dices si ya lo pagaste y se guarda al toque.'
     },
     {
-      ruta: 'importar', icono: 'fa-file-import', nuevo: true,
+      ruta: 'importar', icono: 'fa-file-import', desde: 2,
       sel: '[data-tour="cartola"]',
       titulo: 'Subir la cartola del banco',
       texto: 'En vez de anotar movimiento por movimiento, sube el PDF que descargas del banco. Sirve la cartola de cualquier banco y el estado de cuenta de cualquier tarjeta de casa comercial. El archivo no se guarda: se lee en memoria y se descarta ahí mismo.'
     },
     {
-      ruta: 'importar', icono: 'fa-list-check', nuevo: true,
+      ruta: 'importar', icono: 'fa-list-check', desde: 2,
       sel: '[data-tour="cartola-cuotas"]',
       titulo: 'Las cuotas salen solas del estado de cuenta',
       texto: 'De un estado de cuenta de tarjeta se importa la cuota del mes, no el total de la compra: así una compra en doce cuotas no se cuenta doce veces. Cada fila queda marcada con su número —3 de 12— y antes de mostrarte nada se comprueba que todo sume el total que declara el propio documento.'
@@ -75,7 +47,7 @@
       texto: 'Pones el valor de la cuota y cuántas son; la app suma el total y deja una cuota en cada mes. Cada mes marcas la cuota como pagada desde su fila.'
     },
     {
-      ruta: 'cuotas', icono: 'fa-hand-pointer', nuevo: true, gesto: true,
+      ruta: 'cuotas', icono: 'fa-hand-pointer', desde: 2, gesto: true,
       sel: '[data-tour="gesto"]',
       titulo: 'Desliza para editar o eliminar',
       texto: 'Arrastra la tarjeta con el dedo y asoman sus acciones: Editar por el canto izquierdo, Eliminar por el derecho. Son gestos opuestos a propósito, para no borrar algo cuando querías corregirlo. En el computador asoman al pasar el cursor.'
@@ -105,36 +77,82 @@
       texto: 'Mes a mes y por categoría, con el presupuesto de fondo para ver en qué te pasaste. Es la pantalla para mirar una vez al mes, no todos los días.'
     },
     {
-      ruta: 'analisis', icono: 'fa-wand-magic-sparkles', nuevo: true,
+      ruta: 'analisis', icono: 'fa-wand-magic-sparkles', desde: 2,
       sel: '[data-tour="ia"], [data-tour="ia-alt"]',
       titulo: 'Que te lo expliquen en palabras',
       texto: 'Análisis ya te muestra en qué se te fue la plata. Este botón lo escribe en palabras: qué cambió respecto al mes pasado y qué conviene mirar. Se pide cuando tú quieras; no corre solo.'
     },
     {
-      ruta: 'perfil', icono: 'fa-envelope-open-text', nuevo: true,
+      ruta: 'perfil', icono: 'fa-lock', desde: 3,
+      pestana: '#segPerfil [data-panel="seguridad"]',
+      sel: '[data-tour="seguridad"]',
+      titulo: 'Tu seguridad, en un solo lugar',
+      texto: 'En tu perfil, la pestaña Seguridad reúne todo lo que protege tu cuenta: cómo entras, en qué aparatos está abierta, la contraseña y la opción de borrar la cuenta.'
+    },
+    {
+      ruta: 'perfil', icono: 'fa-fingerprint', desde: 3,
+      pestana: '#segPerfil [data-panel="seguridad"]',
+      sel: '[data-tour="face-id"]',
+      titulo: 'Entrar con Face ID o huella',
+      texto: 'Registra este teléfono o computador y la próxima vez entras con la cara o el dedo, sin escribir la contraseña. Puedes registrar varios aparatos y quitar cualquiera desde aquí.'
+    },
+    {
+      ruta: 'perfil', icono: 'fa-shield-halved', desde: 3,
+      pestana: '#segPerfil [data-panel="seguridad"]',
+      sel: '[data-tour="dos-pasos"]',
+      titulo: 'Verificación en dos pasos',
+      texto: 'Además de la contraseña, al entrar te pedimos un código de una app como Google Authenticator. Si alguien consigue tu contraseña, igual no puede entrar. Al activarla recibes códigos de respaldo por si pierdes el teléfono.'
+    },
+    {
+      ruta: 'perfil', icono: 'fa-laptop', desde: 3,
+      pestana: '#segPerfil [data-panel="seguridad"]',
+      sel: '[data-tour="sesiones"]',
+      titulo: 'Dónde está abierta tu cuenta',
+      texto: 'Muestra los aparatos que tienen tu sesión abierta. Si ves uno que no reconoces, ciérralo desde ahí.'
+    },
+    {
+      ruta: 'perfil', icono: 'fa-key', desde: 3,
+      pestana: '#segPerfil [data-panel="seguridad"]',
+      sel: '[data-tour="contrasena"]',
+      titulo: 'Cambiar la contraseña',
+      texto: 'Necesitas la actual. Al cambiarla sigues con la sesión abierta en este aparato.'
+    },
+    {
+      ruta: 'perfil', icono: 'fa-trash-can', desde: 3,
+      pestana: '#segPerfil [data-panel="seguridad"]',
+      sel: '[data-tour="eliminar-cuenta"]',
+      titulo: 'Borrar tu cuenta',
+      texto: 'Borra la cuenta y todo tu historial. No se puede deshacer, así que antes conviene descargar tus datos desde la pestaña Tus datos.'
+    },
+    {
+      ruta: 'perfil', icono: 'fa-envelope-open-text', desde: 2,
+      pestana: '#segPerfil [data-panel="datos"]',
       sel: '[data-tour="aviso"]',
       titulo: 'El aviso mensual por correo',
       texto: 'Una vez al mes te llega un correo con lo que queda por pagar: las cuotas, las suscripciones y las cuentas del mes. Eliges el día del envío y lo puedes apagar cuando quieras.'
     },
     {
       ruta: 'perfil', icono: 'fa-file-arrow-down',
+      pestana: '#segPerfil [data-panel="datos"]',
       sel: '[data-tour="exportar"]',
       titulo: 'Tus datos son tuyos',
       texto: 'Desde tu perfil descargas todo en Excel o CSV, con una hoja por mes. Acá también se cambia el presupuesto y se vuelve a ver este tour.'
     }
   ];
 
-  var NUEVOS = PASOS.filter(function (p) { return p.nuevo; });
+  var NUEVOS = [];
+
+  function calcularNuevos() {
+    var vista = versionVista();
+    NUEVOS = PASOS.filter(function (p) { return p.desde && p.desde > vista; });
+  }
 
   var rutas = {};
   var indice = -1;
-  /* La lista que se está recorriendo: la completa, o solo los pasos nuevos. */
   var secuencia = PASOS;
   var modo = '';
   var invitacion = false;
   var capa = null, hueco = null, globo = null, pildora = null, objetivo = null;
-
-  /* ---------- estado ---------- */
 
   function fijarModo(m) {
     modo = m;
@@ -153,8 +171,6 @@
   }
   function terminado() { try { return localStorage.getItem(LS_LISTO) === '1'; } catch (e) { return false; } }
 
-  /* Quien terminó el tour antes de que existiera el número de versión no
-     tiene la marca: cuenta como versión 1, que es lo que vio. */
   function versionVista() {
     try { return Number(localStorage.getItem(LS_VERSION)) || 1; } catch (e) { return 1; }
   }
@@ -164,8 +180,6 @@
       localStorage.setItem(LS_VERSION, String(VERSION));
       localStorage.removeItem(LS_PASO);
       localStorage.removeItem(LS_MODO);
-      /* El recorrido de novedades no "termina" el tour: ya estaba terminado.
-         Solo deja constancia de hasta qué versión se llegó. */
       if (modo !== 'novedades') localStorage.setItem(LS_LISTO, '1');
     } catch (e) {}
     modo = '';
@@ -179,8 +193,6 @@
     fijarModo('');
   }
 
-  /* ---------- utilidades ---------- */
-
   function normalizar(u) {
     if (!u) return '';
     return u.replace(/[?#].*$/, '').replace(/\/+$/, '') || '/';
@@ -188,9 +200,6 @@
   function rutaDe(paso) { return rutas[paso.ruta] || '/'; }
   function aqui(paso) { return normalizar(rutaDe(paso)) === normalizar(location.pathname); }
 
-  /* El primer elemento del selector que de verdad se ve: en escritorio el
-     botón de registrar vive en el topbar y en el teléfono en el botón
-     flotante, y los dos llevan el mismo data-tour. */
   function elementoDe(paso) {
     var lista = document.querySelectorAll(paso.sel);
     for (var k = 0; k < lista.length; k++) {
@@ -208,18 +217,11 @@
     return el;
   }
 
-  /* ---------- la demostración del gesto ---------- */
-
-  /* El paso del deslizar es el único que no se entiende leyéndolo: hay que
-     verlo. La clase la pone el tour y la animación vive en el CSS, así que
-     respeta prefers-reduced-motion sin preguntar nada acá. */
   function limpiarGesto() {
     document.querySelectorAll('.tour-gesto').forEach(function (el) {
       el.classList.remove('tour-gesto');
     });
   }
-
-  /* ---------- pintado ---------- */
 
   function armarCapa() {
     if (capa) return;
@@ -307,8 +309,6 @@
     globo.style.left = Math.round(left) + 'px';
   }
 
-  /* El elemento tiene que estar a la vista antes de medir: si queda bajo el
-     pliegue, el globo se coloca sobre un hueco que nadie ve. */
   function acercar(el, luego) {
     var r = el.getBoundingClientRect();
     var fuera = r.top < 90 || r.bottom > window.innerHeight - 150;
@@ -326,12 +326,13 @@
     var paso = secuencia[n];
     if (!aqui(paso)) { guardar(n); indice = n; ocultarCapa(); verPildora(n); return; }
 
+    if (paso.pestana) {
+      var pestana = document.querySelector(paso.pestana);
+      if (pestana && !pestana.classList.contains('on')) pestana.click();
+    }
+
     var el = elementoDe(paso);
     if (!el) {
-      /* El elemento no existe o no se ve en esta pantalla: la sección está
-         vacía, o es el marcador de salud que en el teléfono vive en la barra
-         lateral escondida. Se pasa al siguiente en vez de dejar el globo
-         apuntando a la nada. */
       if (saltos > secuencia.length) { cerrar(true); return; }
       mostrar(n + 1, saltos + 1);
       return;
@@ -372,8 +373,6 @@
       avisoFinal(eraNovedades);
       marcarPasoTourHecho();
     } else {
-      /* Salir con Escape o tocando el fondo no cancela el tour: queda la
-         píldora para retomarlo donde iba. */
       verPildora(indice);
     }
   }
@@ -389,8 +388,6 @@
     setTimeout(function () { if (aviso.parentNode) aviso.parentNode.removeChild(aviso); }, 4800);
   }
 
-  /* ---------- píldora para retomar ---------- */
-
   function verPildora(n) {
     if (n < 0) return;
     if (terminado() && !invitacion && modo !== 'novedades') return;
@@ -398,8 +395,6 @@
       pildora = crear('div', 'tour-pildora');
       pildora.addEventListener('click', function (e) {
         if (e.target.closest('[data-tour-cerrar]')) { cerrar(true); return; }
-        /* Primer toque a la invitación: recién ahí se entra al recorrido de
-           novedades. Antes de eso no se le toca nada al usuario. */
         if (invitacion) {
           invitacion = false;
           fijarModo('novedades');
@@ -422,8 +417,6 @@
   }
 
   function ocultarPildora() { if (pildora) pildora.classList.remove('on'); }
-
-  /* ---------- checklist de primeros pasos ---------- */
 
   function marcarPasoTourHecho() {
     document.querySelectorAll('[data-paso-tour]').forEach(function (el) {
@@ -450,16 +443,14 @@
     if (terminado()) marcarPasoTourHecho();
   }
 
-  /* ---------- arranque ---------- */
-
   function iniciar(cfg) {
     rutas = (cfg && cfg.rutas) || {};
+    calcularNuevos();
     prepararChecklist();
 
     var pedido = /[?&]tour=1(&|$)/.test(location.search);
     if (pedido) {
       reiniciar();
-      /* Se limpia el ?tour=1 para que un F5 no reinicie el recorrido. */
       if (window.history.replaceState) {
         var limpia = location.pathname + location.search.replace(/([?&])tour=1(&|$)/, '$1').replace(/[?&]$/, '');
         window.history.replaceState({}, '', limpia + location.hash);
@@ -474,18 +465,13 @@
 
     if (terminado()) {
       if (modo === 'novedades') {
-        /* Recorrido de novedades a medio camino: se comporta como el tour
-           normal, abriendo el globo si el paso vive en esta pantalla. */
         var k = leerPaso();
         if (k < 0) k = 0;
         indice = k;
         if (aqui(secuencia[k])) mostrar(k); else verPildora(k);
         return;
       }
-      /* Terminado y al día: no se muestra nada. */
       if (versionVista() >= VERSION || !NUEVOS.length) return;
-      /* Hay funciones nuevas desde la última vez. Solo la píldora: a alguien
-         que ya usa la app no se le tapa la pantalla sin que lo pida. */
       invitacion = true;
       indice = 0;
       verPildora(0);

@@ -48,3 +48,30 @@ Revisado contra `lordPobre/GestorFinanzas@main` (commit `273637732aa2`).
 | 5 | C10: quitar comentarios | Bajo |
 
 Cada lote se entrega por separado y se sube con el CI en verde antes de empezar el siguiente.
+
+## Estado (25 de septiembre de 2026)
+
+| Punto | Estado | Lote |
+| --- | --- | --- |
+| A1 requisitos con hashes | Hecho | 1 |
+| A2 docs completos en el repo | Hecho | 1 |
+| B3 plantillas sin uso | Hecho | 1 |
+| C4–C9, C11 limpieza | Hecho | 1 |
+| C10 comentarios | Hecho | 5 |
+| D12 paquete `views/` y `servicios/` | Hecho | 2 |
+| D13 paquete `models/` | Hecho | 3 |
+| D14 paquete `tests/` | Hecho | 3 |
+| D15 URL con un solo estilo | Hecho, con redirecciones 308 desde las rutas antiguas | 9 |
+| D16 no tocar | Se mantiene | — |
+| E17 estilos en línea y colores | Hecho: clases en el lote 6, colores a variables en el lote 12 | 6, 12 |
+| E18 scripts a `static/js/pantallas/` | Hecho | 4a, 4b |
+| E19 bloques `<style>` a `finapp.css` | Hecho | 4c, 8 |
+| E20 ordenar `finapp.css` | Parcial: reglas sin uso quitadas e índice en `docs/ESTILOS.md` | 10 |
+
+Fuera de la revisión se hicieron además el cambio a Python 3.13 (lote 7) y el panel de acceso corto en el teléfono (lote 8).
+
+### Lo que queda de E20
+
+No se movieron reglas de lugar. Se revisó con un programa qué reglas se podían mover sin cambiar el resultado: una regla puede cambiar de lugar si no define las mismas propiedades que las reglas que salta, o si nunca pueden aplicarse al mismo elemento. De 35 grupos de reglas fuera de su sección, solo 3 pasaron esa prueba. Los demás saltan reglas genéricas (`.x > *`, `.x span`) o clases que las plantillas arman con variables, y esos casos no se pueden descartar sin mirar cada pantalla.
+
+La mayoría de esas reglas son los ajustes generales para teléfono que están en la sección de la barra inferior. Ahí funcionan bien y el índice lo indica. Si algún día se reordena, conviene hacerlo una sección a la vez, comparando capturas antes y después.
