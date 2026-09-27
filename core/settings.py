@@ -212,7 +212,7 @@ PASSWORD_HASHERS = [
 
 PASSWORD_RESET_TIMEOUT = 60 * 60
 
-DEFAULT_FROM_EMAIL = os.environ.get('CORREO_FROM', 'Rekon <no-responder@localhost>')
+DEFAULT_FROM_EMAIL = os.environ.get('CORREO_FROM', 'Fintora <no-responder@localhost>')
 
 if database_url:
     CACHES = {

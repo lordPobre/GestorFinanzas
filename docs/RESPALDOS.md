@@ -1,6 +1,6 @@
 # Respaldos y restauración
 
-Procedimiento para la base Postgres de Rekon en Railway. Un respaldo que nunca
+Procedimiento para la base Postgres de Fintora en Railway. Un respaldo que nunca
 se restauró no se sabe si funciona: la última sección es un simulacro que se
 corre una vez al mes.
 

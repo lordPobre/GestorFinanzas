@@ -278,7 +278,7 @@ def recuperar(request):
             cuerpo = render_to_string('registration/correo_recuperar.txt', contexto_correo)
             cuerpo_html = render_to_string('registration/correo_recuperar.html', contexto_correo)
             if not enviar(usuario.email or correo_txt,
-                          'Recupera tu contraseña de Rekon', cuerpo, cuerpo_html):
+                          'Recupera tu contraseña de Fintora', cuerpo, cuerpo_html):
                 logging.getLogger('finanzas').error(
                     'Reset solicitado para %s pero el correo no salió', usuario.pk)
                 if not correo_configurado():
@@ -594,7 +594,7 @@ def mis_datos(request):
 
     datos = {
         'generado': timezone.now().isoformat(),
-        'aplicacion': 'Rekon',
+        'aplicacion': 'Fintora',
         'cuenta': {
             'usuario': u.get_username(),
             'correo': u.email,
@@ -640,7 +640,7 @@ def mis_datos(request):
 
     cuerpo = json.dumps(datos, ensure_ascii=False, indent=2)
     respuesta = HttpResponse(cuerpo, content_type='application/json; charset=utf-8')
-    archivo = f'Rekon_mis_datos_{u.get_username()}_{hoy:%Y-%m-%d}.json'
+    archivo = f'Fintora_mis_datos_{u.get_username()}_{hoy:%Y-%m-%d}.json'
     respuesta['Content-Disposition'] = f'attachment; filename="{archivo}"'
     logger.info('Descarga de datos personales solicitada por el usuario %s', u.pk)
     auditoria.registrar('datos_descargados', request, u)

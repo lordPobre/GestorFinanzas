@@ -32,15 +32,15 @@ Las direcciones salen de *Mis datos* del panel o de la base
 
 Texto sugerido:
 
-> **Asunto:** Rekon actualiza su política de privacidad
+> **Asunto:** Fintora actualiza su política de privacidad
 >
 > Hola:
 >
 > El 1 de octubre de 2026 entra en vigencia la versión 1.2 de la política de
-> privacidad de Rekon. Los cambios son:
+> privacidad de Fintora. Los cambios son:
 >
 > - Puedes entrar con Face ID o huella. Tu cara y tu huella nunca salen de tu
->   teléfono: Rekon solo recibe una firma que confirma que eres tú.
+>   teléfono: Fintora solo recibe una firma que confirma que eres tú.
 > - Se guarda un registro de seguridad de tu cuenta (accesos, intentos
 >   fallidos y cambios de seguridad) durante 12 meses.
 > - Se hace una copia de respaldo diaria de la base, que se conserva 30 días
@@ -117,7 +117,7 @@ Sin esto, los correos de recuperación y los avisos caen en spam o se rechazan.
    horas.
 
 6. En Railway, deja `CORREO_FROM` con una dirección de ese dominio, por
-   ejemplo `Rekon <no-responder@tudominio.cl>`.
+   ejemplo `Fintora <no-responder@tudominio.cl>`.
 
 **Cómo saber que quedó:** pide una recuperación de contraseña a una cuenta de
 Gmail. En el correo recibido → *Mostrar original* tienen que aparecer
@@ -151,7 +151,7 @@ pausa el servicio web unos minutos en Railway y revisa que llegue el aviso.
 1. Sentry → tu proyecto → **Alerts** → **Create Alert** → **Issues**.
 2. Condición: *A new issue is created*.
 3. Acción: *Send a notification to* tu correo.
-4. Guarda con el nombre `Error nuevo en Rekon`.
+4. Guarda con el nombre `Error nuevo en Fintora`.
 
 **Cómo saber que quedó:** en staging, provoca un error (por ejemplo, abre una
 URL que haga fallar una vista) y revisa que llegue el correo en un par de

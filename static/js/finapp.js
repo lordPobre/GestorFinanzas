@@ -1,5 +1,5 @@
 /* ============================================================
-   Rekon · Interacciones
+   Fintora · Interacciones
    Sin dependencias. Se carga al final del <body>.
    ============================================================ */
 (function () {

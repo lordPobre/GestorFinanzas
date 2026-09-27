@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#191919">
-  <title>{% block title %}Rekon{% endblock %}</title>
+  <meta name="theme-color" content="#101010">
+  <title>{% block title %}Fintora{% endblock %}</title>
 
   <link rel="icon" type="image/svg+xml" href="{% static 'img/favicon.svg' %}">
   <link rel="alternate icon" href="{% static 'img/favicon.png' %}">
@@ -12,36 +12,64 @@
   <link rel="stylesheet" href="{% static 'vendor/fonts/fuentes.css' %}">
   <link rel="stylesheet" href="{% static 'vendor/fontawesome/css/all.min.css' %}">
   <link rel="stylesheet" href="{% static 'css/finapp.css' %}">
-
+  <script src="{% static 'js/pantallas/legal.js' %}" nonce="{{ csp_nonce }}"></script>
 </head>
 <body class="legal">
-  <div class="legal-ancho">
 
-    <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:30px">
-      <a href="{% url 'dashboard' %}" style="display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--text-primary)">
-        <img src="{% static 'img/favicon.svg' %}" alt="" width="26" height="26">
-        <span style="font-size:16px;font-weight:800;letter-spacing:-.02em">Rekon</span>
-      </a>
-      <div style="display:flex;gap:8px">
-        <a href="{% url 'privacidad' %}" class="btn btn-glass btn-sm">Privacidad</a>
-        <a href="{% url 'terminos' %}" class="btn btn-glass btn-sm">Términos</a>
+<header class="legal-cabecera">
+  <nav class="legal-nav">
+    <a href="{% url 'dashboard' %}" class="legal-marca"><span class="legal-marca-icono"><i class="fas fa-chart-line"></i></span>Fintora</a>
+    <div class="legal-nav-acciones">
+      <div class="legal-tabs">
+        <a href="{% url 'privacidad' %}"{% block actual_privacidad %}{% endblock %}>Privacidad</a>
+        <a href="{% url 'terminos' %}"{% block actual_terminos %}{% endblock %}>Términos de uso</a>
       </div>
+      <a href="{% url 'dashboard' %}" class="legal-volver"><span>Volver a Fintora</span><i class="fas fa-arrow-right legal-volver-flecha" aria-hidden="true"></i><i class="fas fa-xmark legal-volver-cerrar" aria-hidden="true"></i></a>
     </div>
-
-    <h1 class="page-title" style="margin:0 0 6px">{% block encabezado %}{% endblock %}</h1>
-    <div class="hint" style="margin-bottom:26px">
-      Versión {{ version }} · vigente desde {{ vigente_desde }}
+  </nav>
+  <div class="legal-hero">
+    <div>
+      <div class="legal-eyebrow">Documento legal</div>
+      <h1>{% block encabezado %}{% endblock %}</h1>
+      <div class="legal-intro">{% block intro %}{% endblock %}</div>
     </div>
+    <dl class="legal-version">
+      <div><dt>Versión</dt><dd class="legal-mono">{{ version }}</dd></div>
+      <div><dt>Vigente desde</dt><dd>{{ vigente_desde }}</dd></div>
+      {% block normativa %}<div><dt>Normativa</dt><dd>Ley 21.719, Chile</dd></div>{% endblock %}
+    </dl>
+  </div>
+</header>
 
+<main class="legal-grid">
+  <nav class="legal-indice" data-legal-indice aria-label="En esta página">
+    <div class="legal-indice-titulo">En esta página</div>
+  </nav>
+  <div class="legal-indice-movil" data-legal-indice-movil>
+    <details>
+      <summary><span><i class="fas fa-list"></i>Contenido</span><span><span data-legal-cuenta></span><i class="fas fa-chevron-down"></i></span></summary>
+      <nav class="legal-indice-lista" data-legal-lista aria-label="Contenido"></nav>
+    </details>
+  </div>
+
+  <div class="legal-contenido">
     <div class="legal-cuerpo">
       {% block cuerpo %}{% endblock %}
     </div>
 
-    <div style="margin-top:44px;padding-top:22px;border-top:1px solid var(--line);display:flex;gap:14px;flex-wrap:wrap;align-items:center">
-      <a href="{% url 'dashboard' %}" class="btn btn-glass btn-sm">Volver a la app</a>
-      <span class="hint" style="font-size:12px">{{ responsable }} · {{ correo_contacto }}</span>
+    <div class="legal-contacto">
+      <div>
+        <div class="legal-contacto-titulo">¿Algo no quedó claro?</div>
+        <div class="legal-contacto-sub">{{ responsable }}</div>
+      </div>
+      <a href="mailto:{{ correo_contacto }}"><span>{{ correo_contacto }}</span><i class="fas fa-arrow-right"></i></a>
     </div>
-
+    <div class="legal-pie">
+      <span>Versión {{ version }}, vigente desde {{ vigente_desde }}.</span>
+      <span>{% block ver_tambien %}{% endblock %}</span>
+    </div>
   </div>
+</main>
+
 </body>
 </html>

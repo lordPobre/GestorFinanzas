@@ -28,7 +28,7 @@ from .comun import contadores
 
 logger = logging.getLogger('finanzas')
 
-RP_NOMBRE = 'Rekon'
+RP_NOMBRE = 'Fintora'
 CLAVE_BLOQUEO = ''
 BACKEND = 'django.contrib.auth.backends.ModelBackend'
 

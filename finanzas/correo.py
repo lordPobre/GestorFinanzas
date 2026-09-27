@@ -10,7 +10,7 @@ log = logging.getLogger('finanzas')
 
 TIEMPO_ESPERA = 10
 URL_RESEND = 'https://api.resend.com/emails'
-AGENTE = 'Rekon/1.0 (+https://github.com/lordPobre/GestorFinanzas)'
+AGENTE = 'Fintora/1.0 (+https://github.com/lordPobre/GestorFinanzas)'
 
 
 def configurado():

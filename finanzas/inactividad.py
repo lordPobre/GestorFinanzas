@@ -105,7 +105,7 @@ def avisar(usuario, perfil=None, ahora=None):
     }
     ok = correo.enviar(
         destino,
-        'Tu cuenta de Rekon se va a borrar por inactividad',
+        'Tu cuenta de Fintora se va a borrar por inactividad',
         render_to_string('finanzas/correo_inactividad.txt', contexto),
         render_to_string('finanzas/correo_inactividad.html', contexto),
     )

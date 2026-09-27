@@ -112,5 +112,5 @@
     });
   }
 
-  window.RekonPasskeys = { soportado: soportado, registrar: registrar, entrar: entrar, mensaje: mensaje };
+  window.FintoraPasskeys = { soportado: soportado, registrar: registrar, entrar: entrar, mensaje: mensaje };
 })();

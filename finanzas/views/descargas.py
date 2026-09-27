@@ -21,7 +21,7 @@ def exportar_excel(request):
         contenido,
         content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     )
-    archivo = f'Rekon_movimientos_{hoy:%Y-%m-%d}.xlsx'
+    archivo = f'Fintora_movimientos_{hoy:%Y-%m-%d}.xlsx'
     response['Content-Disposition'] = f'attachment; filename="{archivo}"'
     return response
 
@@ -29,7 +29,7 @@ def exportar_excel(request):
 def exportar_csv(request):
     hoy = timezone.localdate()
     response = HttpResponse(content_type='text/csv; charset=utf-8-sig')
-    archivo = f'Rekon_movimientos_{hoy:%Y-%m-%d}.csv'
+    archivo = f'Fintora_movimientos_{hoy:%Y-%m-%d}.csv'
     response['Content-Disposition'] = f'attachment; filename="{archivo}"'
     exportar.escribir_csv(csv.writer(response, delimiter=';'),
                           request.user, request.user.get_username(), hoy)

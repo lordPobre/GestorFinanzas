@@ -8,7 +8,7 @@
   if (!form || !boton || !script) return;
   var rutas = { opciones: script.dataset.urlOpciones, verificar: script.dataset.urlVerificar };
 
-  if (!window.RekonPasskeys || !RekonPasskeys.soportado()) {
+  if (!window.FintoraPasskeys || !FintoraPasskeys.soportado()) {
     document.getElementById('sinSoporte').hidden = false;
     boton.disabled = true;
     return;
@@ -18,13 +18,13 @@
     e.preventDefault();
     aviso.hidden = true;
     boton.disabled = true;
-    RekonPasskeys.registrar(
+    FintoraPasskeys.registrar(
       rutas,
       { password: pass ? pass.value : '', nombre: nombre.value }
     ).then(function () {
       window.location.reload();
     }).catch(function (err) {
-      aviso.textContent = RekonPasskeys.mensaje(err, false);
+      aviso.textContent = FintoraPasskeys.mensaje(err, false);
       aviso.hidden = false;
       boton.disabled = false;
     });

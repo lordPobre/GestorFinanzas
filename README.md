@@ -1,4 +1,4 @@
-# Rekon — gestor de finanzas personales
+# Fintora — gestor de finanzas personales
 
 Aplicación web para llevar el control del dinero del mes: ingresos, gastos,
 compras en cuotas, préstamos por cobrar, suscripciones y metas de ahorro.

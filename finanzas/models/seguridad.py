@@ -29,7 +29,7 @@ class SegundoFactor(models.Model):
         import pyotp
         return pyotp.TOTP(self.secreto).provisioning_uri(
             name=self.usuario.email or self.usuario.username,
-            issuer_name="Rekon",
+            issuer_name="Fintora",
         )
 
     def verificar(self, codigo):

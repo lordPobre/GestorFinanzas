@@ -52,7 +52,7 @@ def enviar(request, usuario):
     }
     ok = correo.enviar(
         destino,
-        'Confirma tu correo en Rekon',
+        'Confirma tu correo en Fintora',
         render_to_string('registration/correo_verificar.txt', contexto),
         render_to_string('registration/correo_verificar.html', contexto),
     )

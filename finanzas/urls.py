@@ -21,6 +21,8 @@ def ruta_antigua(nombre):
 
 urlpatterns = [
     path('', landing.inicio, name='dashboard'),
+    path('ayuda/chat/', landing.ayuda_chat, name='ayuda_chat'),
+    path('ayuda/contacto/', landing.ayuda_contacto, name='ayuda_contacto'),
 
     path('cuotas/', cuotas.deudas, name='deudas'),
     path('cuotas/nueva/', cuotas.crear_deuda, name='crear_deuda'),

@@ -1,6 +1,6 @@
 (function () {
   var script = document.currentScript;
-  if (!script || !window.RekonPasskeys || !RekonPasskeys.soportado()) return;
+  if (!script || !window.FintoraPasskeys || !FintoraPasskeys.soportado()) return;
   var rutas = { opciones: script.dataset.urlOpciones, verificar: script.dataset.urlVerificar };
   var bloque = document.getElementById('bloquePasskey');
   var boton = document.getElementById('btnPasskey');
@@ -18,10 +18,10 @@
     aviso.hidden = true;
     boton.disabled = true;
     var siguiente = new URLSearchParams(window.location.search).get('next') || '';
-    RekonPasskeys.entrar(rutas, siguiente).then(function (r) {
+    FintoraPasskeys.entrar(rutas, siguiente).then(function (r) {
       window.location.href = r.destino;
     }).catch(function (err) {
-      texto.textContent = RekonPasskeys.mensaje(err, true);
+      texto.textContent = FintoraPasskeys.mensaje(err, true);
       aviso.hidden = false;
       boton.disabled = false;
       var usuario = document.querySelector('input[name=username]');
