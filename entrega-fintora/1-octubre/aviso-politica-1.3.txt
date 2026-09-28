@@ -1,0 +1,18 @@
+Asunto: Actualizamos la política de privacidad de Fintora
+
+Hola:
+
+El 8 de octubre de 2026 entra en vigencia la versión 1.3 de la política de privacidad de Fintora. Reemplaza a la versión 1.2, vigente desde el 1 de octubre.
+
+Qué cambia:
+
+- Chat de ayuda. Si escribes en el chat, el texto de la conversación se envía a Anthropic para generar la respuesta. No se envía ningún dato de tu cuenta.
+- Formulario de contacto del chat. Si dejas tu correo para que te respondamos, lo usamos solo para eso.
+- Cartolas. Lo que se lee de una cartola queda guardado en tu sesión hasta 8 horas, mientras revisas y confirmas los movimientos.
+
+Puedes leer la política completa en {SITE_URL}/privacidad/.
+
+Si no estás de acuerdo, puedes descargar tus datos o eliminar tu cuenta desde tu perfil. Para cualquier consulta, escríbenos a soporte@perseustechnology.dev.
+
+Carlos López Figueroa
+Fintora

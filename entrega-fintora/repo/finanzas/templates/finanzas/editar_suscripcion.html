@@ -1,0 +1,72 @@
+{% extends 'finanzas/base.html' %}
+{% load static %}
+{% load humanize %}
+{% block title %}Editar suscripción · Fintora{% endblock %}
+
+{% block topbar_actions %}
+<a href="{% url 'suscripciones' %}" class="btn btn-glass"><i class="fas fa-arrow-left" style="font-size:11px"></i>Volver</a>
+{% endblock %}
+
+{% block content %}
+<div style="max-width:440px">
+
+  <div class="glass card-lg" data-spot>
+    <div style="display:flex;align-items:center;gap:13px;margin-bottom:6px">
+      <span class="icon-tile" style="width:38px;height:38px;border-radius:13px"><i class="fas fa-rotate" style="font-size:14px"></i></span>
+      <div class="page-title" style="font-size:19px">Editar {{ sub.nombre }}</div>
+    </div>
+    <div class="hint" style="margin-bottom:22px">
+      El historial de pagos se mantiene. El monto nuevo se usa desde el cobro de este mes, si todavía no lo pagaste.
+    </div>
+
+    <form method="post" action="{% url 'editar_suscripcion' sub.pk %}">
+      {% csrf_token %}
+
+      <div class="field">
+        <label class="label" for="id_sub_nombre">Servicio</label>
+        <input type="text" name="nombre" id="id_sub_nombre" value="{{ sub.nombre }}" required autofocus>
+      </div>
+
+      <div class="form-row" style="margin-bottom:16px">
+        <div style="flex:1.5">
+          <label class="label" for="id_sub_monto">Monto mensual</label>
+          <input type="number" name="monto" id="id_sub_monto" class="mono" value="{{ monto_entero }}" min="1" required>
+        </div>
+        <div style="flex:1">
+          <label class="label" for="id_sub_dia">Día de cobro</label>
+          <input type="number" name="dia_cobro" id="id_sub_dia" class="mono" min="1" max="28" value="{{ sub.dia_cobro }}">
+        </div>
+      </div>
+      <div class="hint" style="font-size:11px;margin:-8px 0 18px">Del 1 al 28, para que exista en todos los meses.</div>
+
+      <div class="label" style="margin-bottom:9px">Categoría</div>
+      <input type="hidden" name="categoria" id="id_sub_categoria" value="{{ sub.categoria|default:'Suscripciones' }}">
+      <div class="chips" data-field="#id_sub_categoria" style="margin-bottom:18px">
+        <button type="button" class="chip{% if sub.categoria == 'Suscripciones' or not sub.categoria %} on{% endif %}" data-value="Suscripciones">Suscripciones</button>
+        <button type="button" class="chip{% if sub.categoria == 'Ocio' %} on{% endif %}" data-value="Ocio">Entretenimiento</button>
+        <button type="button" class="chip{% if sub.categoria == 'Servicios' %} on{% endif %}" data-value="Servicios">Servicios</button>
+        <button type="button" class="chip{% if sub.categoria == 'Salud' %} on{% endif %}" data-value="Salud">Salud</button>
+      </div>
+
+      <div class="preview-box">
+        <div class="label" style="color:var(--amber);margin-bottom:9px">Lo que te costaría</div>
+        <div style="display:flex;justify-content:space-between;align-items:baseline">
+          <span style="font-size:12px;color:var(--text-secondary)">Al año</span>
+          <span class="display" style="font-size:19px;color:var(--purple)" id="subAnual">$0</span>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:10px">
+        <button type="submit" class="btn btn-purple" style="flex:1;padding:15px;border-radius:15px;font-size:13.5px">
+          <i class="fas fa-check" style="font-size:11px"></i>Guardar cambios
+        </button>
+        <a href="{% url 'suscripciones' %}" class="btn btn-glass" style="padding:15px 18px;border-radius:15px">Cancelar</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/pantallas/form-suscripcion.js' %}" nonce="{{ csp_nonce }}"></script>
+{% endblock %}

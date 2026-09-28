@@ -1,0 +1,11 @@
+{
+  "$schema": "https://railway.com/railway.schema.json",
+  "build": {
+    "builder": "NIXPACKS"
+  },
+  "deploy": {
+    "startCommand": "python manage.py avisar_pagos",
+    "cronSchedule": "0 13 * * *",
+    "restartPolicyType": "NEVER"
+  }
+}
