@@ -1263,8 +1263,9 @@ label { display: block; }
 .marca-svg { display: block; width: 70%; height: 70%; }
 .auth-logo {
   display: inline-flex; align-items: center; justify-content: center;
-  width: 42px; height: 42px; border-radius: 14px; background: var(--tinta-ambar);
+  width: 58px; height: 58px; border-radius: 18px; background: var(--tinta-ambar);
 }
+.auth-logo .marca-svg { width: 76%; height: 76%; }
 .brand-name { font-family: 'Manrope', sans-serif; font-size: 15px; font-weight: 800; letter-spacing: -.02em; }
 .brand-sub  { font-size: 10.5px; color: var(--text-muted); }
 
@@ -3633,8 +3634,9 @@ html:not(.legal-js) .legal-indice, html:not(.legal-js) .legal-indice-movil { dis
 
 .lp-hero { background: linear-gradient(140deg, var(--amber), var(--amber-oscuro)); color: var(--tinta-ambar); padding: 26px 56px 0; overflow: hidden; }
 .lp-nav { display: flex; align-items: center; justify-content: space-between; max-width: 1280px; margin: 0 auto; }
-.lp-marca { display: inline-flex; align-items: center; gap: 11px; font-size: 18px; font-weight: 800; letter-spacing: -.02em; }
-.lp-marca-icono { display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 12px; background: var(--tinta-ambar); }
+.lp-marca { display: inline-flex; align-items: center; gap: 14px; font-size: 25px; font-weight: 800; letter-spacing: -.025em; }
+.lp-marca-icono { display: inline-flex; align-items: center; justify-content: center; width: 54px; height: 54px; border-radius: 17px; background: var(--tinta-ambar); }
+  .lp-marca-icono .marca-svg { width: 76%; height: 76%; }
 .lp-nav-entrar { padding: 11px 20px; border-radius: 100px; border: 1.5px solid rgba(26, 18, 0, .3); color: var(--tinta-ambar); font-size: 13.5px; font-weight: 800; }
 .lp-nav-entrar:hover { background: rgba(26, 18, 0, .08); color: var(--tinta-ambar); }
 .lp-hero-grid { display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 48px; align-items: end; max-width: 1280px; margin: 56px auto 0; }
@@ -3731,8 +3733,8 @@ html:not(.legal-js) .legal-indice, html:not(.legal-js) .legal-indice-movil { dis
 
 @media (max-width: 900px) {
   .lp-hero { padding: 20px 22px 0; }
-  .lp-marca { font-size: 16px; gap: 9px; }
-  .lp-marca-icono { width: 32px; height: 32px; border-radius: 11px; }
+  .lp-marca { font-size: 21px; gap: 11px; }
+  .lp-marca-icono { width: 44px; height: 44px; border-radius: 14px; }
   .lp-nav-entrar { padding: 9px 16px; font-size: 13px; }
   .lp-hero-grid { grid-template-columns: minmax(0, 1fr); gap: 32px; margin-top: 38px; }
   .lp-hero-texto { padding-bottom: 0; }
