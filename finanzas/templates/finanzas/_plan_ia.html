@@ -1,0 +1,15 @@
+<div style="padding:22px;border-radius:var(--r-xl);background:var(--surface);display:flex;flex-direction:column;gap:14px;flex:1;border:1px solid var(--amber-borde)">
+  <div style="display:flex;align-items:center;gap:12px">
+    <span aria-hidden="true" style="position:relative;display:inline-flex;align-items:flex-end;justify-content:center;gap:3px;width:40px;height:40px;padding-bottom:12px;box-sizing:border-box;border-radius:14px 14px 14px 4px;background:var(--amber-tenue);flex-shrink:0"><span style="width:4px;height:7px;border-radius:2px;background:var(--green)"></span><span style="width:4px;height:11px;border-radius:2px;background:var(--green)"></span><span style="width:4px;height:15px;border-radius:2px;background:var(--amber)"></span><span style="position:absolute;top:7px;right:7px;width:5px;height:5px;border-radius:50%;background:var(--amber)"></span></span>
+    <div>
+      <div style="font-size:16px;font-weight:700">En simples palabras</div>
+      <div style="font-size:12px;color:var(--text-muted);margin-top:2px;text-wrap:pretty">La IA explica el plan. Los números los calcula Fintora.</div>
+    </div>
+  </div>
+  <div id="planIAEstado" style="font-size:13px;line-height:1.6;color:var(--text-secondary);text-wrap:pretty">Recibe solo montos: nada de nombres de comercios, descripciones ni personas.</div>
+  <div id="planIAParrafos" hidden style="display:none;flex-direction:column;gap:12px"></div>
+  <button type="button" id="planIABtn" style="margin-top:auto;align-self:flex-start;padding:0 22px;display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:46px;border:none;border-radius:100px;background:var(--amber);color:var(--tinta-ambar);font:800 13.5px 'Manrope',system-ui,sans-serif;cursor:pointer">
+    <span aria-hidden="true" style="display:inline-flex;align-items:flex-end;gap:2px;height:12px"><span style="width:3px;height:5px;border-radius:1.5px;background:currentColor"></span><span style="width:3px;height:8px;border-radius:1.5px;background:currentColor"></span><span style="width:3px;height:12px;border-radius:1.5px;background:currentColor"></span></span>
+    <span id="planIABtnTexto">Explicar mi plan</span>
+  </button>
+</div>

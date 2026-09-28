@@ -4,7 +4,7 @@ from django.urls import path, reverse
 
 from . import google_login, legal
 from .views import (analisis, cartola, categorias, cuenta, cuotas, descargas,
-                    encuesta, estadisticas, landing, metas, movimientos, passkeys, prestamos, sistema, suscripciones)
+                    encuesta, estadisticas, landing, metas, movimientos, passkeys, plan, prestamos, sistema, suscripciones)
 
 
 class RedireccionPermanente(HttpResponseRedirect):
@@ -62,6 +62,8 @@ urlpatterns = [
 
     path('analisis/', analisis.analisis_predictivo, name='analisis_predictivo'),
     path('analisis/ia/', analisis.analisis_ia, name='analisis_ia'),
+    path('analisis/plan/', plan.plan_plata, name='plan_plata'),
+    path('analisis/plan/ia/', plan.plan_ia, name='plan_ia'),
 
     path('cuentas-por-pagar/nueva/', movimientos.crear_gasto_pendiente, name='crear_gasto_pendiente'),
     path('cuentas-por-pagar/<int:gasto_id>/pagar/', movimientos.pagar_gasto_pendiente, name='pagar_gasto_pendiente'),
