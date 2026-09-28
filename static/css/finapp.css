@@ -2328,7 +2328,7 @@ select:focus-visible, textarea:focus-visible, [tabindex]:focus-visible {
 
   .fab-group .fab-mini { display: none; }
 
-  .main { padding-bottom: calc(124px + 16px + var(--safe-b)); }
+  .main, .topbar + .main { padding-bottom: calc(124px + 16px + var(--safe-b)); }
 
   .section-title { font-size: 19px; padding-left: 11px; }
   .section-head { margin: 24px 0 12px; }
