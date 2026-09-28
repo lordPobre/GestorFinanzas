@@ -1,7 +1,7 @@
 from django.shortcuts import render
 
-VERSION = '1.2'
-VIGENTE_DESDE = '1 de octubre de 2026'
+VERSION = '1.3'
+VIGENTE_DESDE = '8 de octubre de 2026'
 
 RESPONSABLE = 'Carlos López Figueroa, Valparaíso, Chile'
 CORREO_CONTACTO = 'soporte@perseustechnology.dev'
