@@ -54,6 +54,7 @@ urlpatterns = [
     path('prestamos/', prestamos.prestamos, name='prestamos'),
     path('prestamos/persona/nueva/', prestamos.crear_persona, name='crear_persona'),
     path('prestamos/persona/<int:persona_id>/', prestamos.detalle_persona, name='detalle_persona'),
+    path('prestamos/persona/<int:persona_id>/contacto/', prestamos.editar_contacto, name='editar_contacto'),
     path('prestamos/persona/<int:persona_id>/eliminar/', prestamos.eliminar_persona, name='eliminar_persona'),
     path('prestamos/persona/<int:persona_id>/nuevo/', prestamos.crear_prestamo, name='crear_prestamo'),
     path('prestamos/<int:prestamo_id>/abonar/', prestamos.abonar_prestamo, name='abonar_prestamo'),

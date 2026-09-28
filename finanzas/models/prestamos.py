@@ -1,4 +1,6 @@
+import re
 from decimal import Decimal
+from urllib.parse import quote
 
 from django.contrib.auth.models import User
 from django.db import models
@@ -9,6 +11,24 @@ CERO = Decimal('0')
 
 def _d(valor):
     return valor if isinstance(valor, Decimal) else Decimal(str(valor or 0))
+
+
+def _pesos(valor):
+    return '$' + f'{int(round(_d(valor))):,}'.replace(',', '.')
+
+
+def normalizar_telefono(texto):
+    texto = (texto or '').strip()
+    if not texto or not re.fullmatch(r'[\d\s+\-().]+', texto):
+        return None
+    digitos = re.sub(r'\D', '', texto)
+    if digitos.startswith('00'):
+        digitos = digitos[2:]
+    if len(digitos) == 9 and digitos.startswith('9'):
+        digitos = '56' + digitos
+    elif len(digitos) == 8:
+        digitos = '569' + digitos
+    return digitos if 10 <= len(digitos) <= 15 else None
 
 
 class Persona(models.Model):
@@ -64,6 +84,31 @@ class Persona(models.Model):
     @property
     def cobro_del_mes(self):
         return self.cuotas_del_mes + self.unicos_pendientes
+
+    @property
+    def telefono_whatsapp(self):
+        return normalizar_telefono(self.contacto)
+
+    @property
+    def mensaje_whatsapp(self):
+        lineas = [f'Hola {self.nombre}, te escribo para recordarte lo que tienes pendiente conmigo:', '']
+        for p in self.prestamos_activos:
+            linea = f'- {p.descripcion}: {_pesos(p.monto_pendiente)}'
+            if p.tipo == 'CUOTAS':
+                linea += f' (cuota de {_pesos(p.monto_cuota)}, van {p.cuotas_abonadas} de {p.cuotas_totales})'
+            lineas.append(linea)
+        lineas += ['', f'Total pendiente: {_pesos(self.total_pendiente)}']
+        if self.cuotas_del_mes and self.cobro_del_mes != self.total_pendiente:
+            lineas.append(f'Para este mes: {_pesos(self.cobro_del_mes)}')
+        lineas += ['', 'Gracias.']
+        return '\n'.join(lineas)
+
+    @property
+    def enlace_whatsapp(self):
+        telefono = self.telefono_whatsapp
+        if not telefono or not self.tiene_deuda:
+            return ''
+        return f'https://wa.me/{telefono}?text={quote(self.mensaje_whatsapp)}'
 
     @property
     def resumen_meta(self):

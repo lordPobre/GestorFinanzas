@@ -3,6 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.http import Http404, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
+from django.views.decorators.http import require_POST
 
 from ..models import AbonoPrestamo, Persona, Prestamo
 from .comun import contadores, monto_post, redirigir
@@ -153,6 +154,18 @@ def abonar_prestamo(request, prestamo_id):
         else:
             messages.success(request, 'Abono registrado.')
     return redirect('detalle_persona', persona_id=prestamo.persona.id)
+
+@login_required(login_url='/login/')
+@require_POST
+def editar_contacto(request, persona_id):
+    persona = get_object_or_404(Persona, id=persona_id, usuario=request.user)
+    persona.contacto = request.POST.get('contacto', '').strip()[:80]
+    persona.save(update_fields=['contacto'])
+    if persona.contacto and not persona.telefono_whatsapp:
+        messages.warning(request, 'Guardado, pero no parece un teléfono. Para WhatsApp escríbelo como +56 9 1234 5678.')
+    else:
+        messages.success(request, 'Contacto actualizado.')
+    return redirect('detalle_persona', persona_id=persona.pk)
 
 @login_required(login_url='/login/')
 def eliminar_persona(request, persona_id):
