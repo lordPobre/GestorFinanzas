@@ -24,7 +24,7 @@
 
 <header class="lp-hero">
   <nav class="lp-nav">
-    <span class="lp-marca"><span class="lp-marca-icono"><i class="fas fa-chart-line"></i></span>Fintora</span>
+    <span class="lp-marca"><span class="lp-marca-icono">{% include "finanzas/marca_color.html" %}</span>Fintora</span>
     <a href="{% url 'login' %}" class="lp-nav-entrar">Entrar</a>
   </nav>
   <div class="lp-hero-grid">
@@ -260,7 +260,7 @@
   <div class="lp-chat-panel" id="lp-chat-panel" role="dialog" aria-label="Ayuda de Fintora" data-lp-chat-panel hidden>
     <div class="lp-chat-asa" aria-hidden="true"><span></span></div>
     <div class="lp-chat-cabeza">
-      <span class="lp-chat-logo"><i class="fas fa-chart-line"></i></span>
+      <span class="lp-chat-logo">{% include "finanzas/marca_icono.html" %}</span>
       <div>
         <div class="lp-chat-nombre">Ayuda de Fintora</div>
         <div class="lp-chat-sub">Responde una IA, solo sobre Fintora</div>

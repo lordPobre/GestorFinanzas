@@ -18,7 +18,7 @@
 
 <header class="legal-cabecera">
   <nav class="legal-nav">
-    <a href="{% url 'dashboard' %}" class="legal-marca"><span class="legal-marca-icono"><i class="fas fa-chart-line"></i></span>Fintora</a>
+    <a href="{% url 'dashboard' %}" class="legal-marca"><span class="legal-marca-icono">{% include "finanzas/marca_icono.html" %}</span>Fintora</a>
     <div class="legal-nav-acciones">
       <div class="legal-tabs">
         <a href="{% url 'privacidad' %}"{% block actual_privacidad %}{% endblock %}>Privacidad</a>

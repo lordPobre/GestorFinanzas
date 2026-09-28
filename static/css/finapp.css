@@ -1257,7 +1257,13 @@ label { display: block; }
 .brand-mark {
   width: 38px; height: 38px; border-radius: 13px; flex-shrink: 0;
   display: flex; align-items: center; justify-content: center;
-  background: var(--amber); color: var(--tinta-ambar); font-size: 15px;
+  background: linear-gradient(150deg, var(--amber-claro), var(--amber-oscuro));
+  color: var(--tinta-ambar);
+}
+.marca-svg { display: block; width: 70%; height: 70%; }
+.auth-logo {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 42px; height: 42px; border-radius: 14px; background: var(--tinta-ambar);
 }
 .brand-name { font-family: 'Manrope', sans-serif; font-size: 15px; font-weight: 800; letter-spacing: -.02em; }
 .brand-sub  { font-size: 10.5px; color: var(--text-muted); }
@@ -3360,7 +3366,7 @@ input[type=date]::-webkit-datetime-edit-fields-wrapper { padding: 0; }
 .legal-nav { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
 .legal-marca { display: flex; align-items: center; gap: 10px; color: var(--text-primary); font-size: 17px; font-weight: 800; letter-spacing: -.02em; }
 .legal-marca:hover { color: var(--text-primary); }
-.legal-marca-icono { display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 34px; border-radius: 11px; background: var(--amber); color: var(--tinta-ambar); font-size: 13px; }
+.legal-marca-icono { display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 34px; border-radius: 11px; background: linear-gradient(150deg, var(--amber-claro), var(--amber-oscuro)); color: var(--tinta-ambar); }
 .legal-nav-acciones { display: flex; align-items: center; gap: 14px; }
 .legal-tabs { display: flex; padding: 4px; border-radius: 100px; background: rgba(255, 255, 255, .05); border: 1px solid var(--line); }
 .legal-tabs a { padding: 9px 18px; border-radius: 100px; color: var(--text-secondary); font-size: 13px; font-weight: 700; text-align: center; }
@@ -3628,7 +3634,7 @@ html:not(.legal-js) .legal-indice, html:not(.legal-js) .legal-indice-movil { dis
 .lp-hero { background: linear-gradient(140deg, var(--amber), var(--amber-oscuro)); color: var(--tinta-ambar); padding: 26px 56px 0; overflow: hidden; }
 .lp-nav { display: flex; align-items: center; justify-content: space-between; max-width: 1280px; margin: 0 auto; }
 .lp-marca { display: inline-flex; align-items: center; gap: 11px; font-size: 18px; font-weight: 800; letter-spacing: -.02em; }
-.lp-marca-icono { display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 12px; background: var(--tinta-ambar); color: var(--amber); font-size: 14px; }
+.lp-marca-icono { display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 12px; background: var(--tinta-ambar); }
 .lp-nav-entrar { padding: 11px 20px; border-radius: 100px; border: 1.5px solid rgba(26, 18, 0, .3); color: var(--tinta-ambar); font-size: 13.5px; font-weight: 800; }
 .lp-nav-entrar:hover { background: rgba(26, 18, 0, .08); color: var(--tinta-ambar); }
 .lp-hero-grid { display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 48px; align-items: end; max-width: 1280px; margin: 56px auto 0; }
@@ -3726,7 +3732,7 @@ html:not(.legal-js) .legal-indice, html:not(.legal-js) .legal-indice-movil { dis
 @media (max-width: 900px) {
   .lp-hero { padding: 20px 22px 0; }
   .lp-marca { font-size: 16px; gap: 9px; }
-  .lp-marca-icono { width: 32px; height: 32px; border-radius: 11px; font-size: 12px; }
+  .lp-marca-icono { width: 32px; height: 32px; border-radius: 11px; }
   .lp-nav-entrar { padding: 9px 16px; font-size: 13px; }
   .lp-hero-grid { grid-template-columns: minmax(0, 1fr); gap: 32px; margin-top: 38px; }
   .lp-hero-texto { padding-bottom: 0; }
@@ -3824,7 +3830,7 @@ html:not(.lp-js) .lp-chat { display: none; }
 .lp-chat-asa { display: none; }
 .lp-chat-cabeza { display: flex; align-items: center; gap: 12px; padding: 18px 18px 16px; border-bottom: 1px solid var(--line); }
 .lp-chat-cabeza > div { flex: 1; min-width: 0; }
-.lp-chat-logo { flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; width: 38px; height: 38px; border-radius: 12px; background: var(--amber); color: var(--tinta-ambar); font-size: 14px; }
+.lp-chat-logo { flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; width: 38px; height: 38px; border-radius: 12px; background: linear-gradient(150deg, var(--amber-claro), var(--amber-oscuro)); color: var(--tinta-ambar); }
 .lp-chat-nombre { font-size: 15px; font-weight: 800; letter-spacing: -.01em; }
 .lp-chat-sub { font-size: 11.5px; color: var(--text-muted); }
 .lp-chat-cerrar { flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; border: none; border-radius: 50%; background: rgba(255, 255, 255, .06); color: var(--text-primary); font-size: 13px; cursor: pointer; }
