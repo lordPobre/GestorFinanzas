@@ -1,107 +1,98 @@
 {% extends 'finanzas/base.html' %}
 {% load static %}
 {% block title %}Importar cartola · Fintora{% endblock %}
-{% block topbar_sub %}Traer tus movimientos del banco{% endblock %}
 
 {% block content %}
-<section class="seccion-hero">
-  <div class="seccion-cab">
-    <h1 class="seccion-titulo">Importar cartola</h1>
-  </div>
-  <p class="seccion-nota">Sube el archivo que descargas del banco — PDF, CSV o Excel — y revisa los movimientos antes de guardarlos.</p>
-  <ol class="cartola-pasos" aria-label="Pasos">
-    <li class="on"><span>1</span>Subir</li>
-    <li><span>2</span>Revisar</li>
-    <li><span>3</span>Guardar</li>
+
+<div class="sec-top centrado">
+  <a href="{% url 'dashboard' %}" class="sec-volver" aria-label="Volver al inicio"><i class="fas fa-chevron-left"></i></a>
+  <h1 class="sec-titulo">Importar cartola</h1>
+  <span class="sec-hueco" aria-hidden="true"></span>
+</div>
+
+<section class="sec-hero ca-hero">
+  <ol class="ca-pasos" aria-label="Pasos">
+    <li class="on"><span>1</span><em>Subir</em></li>
+    <li><span>2</span><em>Revisar</em></li>
+    <li><span>3</span><em>Guardar</em></li>
   </ol>
+  <span class="ca-titular">Sube tu cartola</span>
+  <span class="ca-nota">El archivo que descargas del banco o de tu tarjeta, en PDF, CSV o Excel. Revisas cada movimiento antes de guardarlo.</span>
 </section>
 
-<div class="cartola-layout">
+<section class="sec-hoja">
+  <div class="ca-cuerpo">
+    <form method="post" enctype="multipart/form-data" id="formCartola" class="ca-form">
+      {% csrf_token %}
+      <label class="cartola-zona ca-zona" id="zona" data-tour="cartola">
+        <input type="file" name="cartola" accept=".pdf,.csv,.tsv,.txt,.xlsx,.xlsm,application/pdf,text/csv" id="inputCartola" class="visually-hidden">
+        <span class="ca-zona-icono"><i class="fas fa-file-arrow-up"></i></span>
+        <span class="cartola-titulo ca-zona-titulo" id="zonaTitulo">Toca para elegir el archivo</span>
+        <span class="cartola-nota ca-zona-nota" id="zonaNota">o arrástralo aquí · PDF, CSV o Excel · máximo 6 MB</span>
+      </label>
 
-  <form class="glass card-lg" method="post" enctype="multipart/form-data" id="formCartola">
-    {% csrf_token %}
-
-        <label class="cartola-zona" id="zona" data-tour="cartola">
-      <input type="file" name="cartola" accept=".pdf,.csv,.tsv,.txt,.xlsx,.xlsm,application/pdf,text/csv" id="inputCartola" class="visually-hidden">
-      <span class="cartola-icono"><i class="fas fa-file-invoice-dollar"></i></span>
-      <span class="cartola-titulo" id="zonaTitulo">Arrastra aquí tu cartola</span>
-      <span class="cartola-nota" id="zonaNota">o toca para buscarla · PDF, CSV o Excel · banco o tarjeta de casa comercial · máximo 6 MB</span>
-    </label>
-
-    <div class="field" style="margin-top:18px" data-tour="cartola-cuotas">
-      <label class="label" for="banco">De dónde viene</label>
-      <select name="banco" id="banco">
-        <option value="">Reconocerlo solo</option>
-        {% for titulo, lectores in grupos %}
-        <optgroup label="{{ titulo }}">
-          {% for clave, nombre in lectores %}
-          <option value="{{ clave }}">{{ nombre }}</option>
+      <div class="field" data-tour="cartola-cuotas">
+        <label class="label" for="banco">De dónde viene</label>
+        <select name="banco" id="banco">
+          <option value="">Reconocerlo solo</option>
+          {% for titulo, lectores in grupos %}
+          <optgroup label="{{ titulo }}">
+            {% for clave, nombre in lectores %}
+            <option value="{{ clave }}">{{ nombre }}</option>
+            {% endfor %}
+          </optgroup>
           {% endfor %}
-        </optgroup>
-        {% endfor %}
-      </select>
-      <div class="hint" style="margin-top:6px;font-size:11.5px">
-        Déjalo en «Reconocerlo solo» salvo que el archivo no se lea: casi
-        siempre acierta por el nombre impreso en el PDF.
+        </select>
+        <div class="hint" style="margin-top:6px">Déjalo en «Reconocerlo solo» salvo que el archivo no se lea: casi siempre acierta por el nombre impreso en el PDF.</div>
       </div>
-    </div>
 
-    <button type="submit" class="btn btn-amber btn-block" style="margin-top:18px" id="btnLeer" disabled>
-      Leer cartola
-    </button>
-  </form>
+      <button type="submit" class="sec-btn agua grande" id="btnLeer" disabled>Leer cartola</button>
+    </form>
 
-  <div style="display:flex;flex-direction:column;gap:14px">
-    {% if diagnostico %}
-    <div class="glass card-lg borde-coral">
-      <div style="display:flex;gap:14px;align-items:flex-start;margin-bottom:14px">
-        <span class="icon-tile coral" style="width:38px;height:38px;border-radius:13px;font-size:14px;flex-shrink:0">
-          <i class="fas fa-vial"></i>
+    <div class="ca-lado">
+      {% if diagnostico %}
+      <div class="sec-tip rojo ca-diag">
+        <span class="sec-tip-icono"><i class="fas fa-vial"></i></span>
+        <span class="sec-tip-txt">
+          <b>No pude leer «{{ diagnostico.archivo }}»</b>
+          <span>Abajo está la forma del archivo con los datos borrados: cada número quedó en 9 y cada palabra que no es parte de la estructura, en X. Cópiala y mándala para que este formato quede soportado. No lleva nombres, montos ni número de cuenta.</span>
         </span>
-        <div style="flex:1;min-width:0">
-          <div class="row-title">No pude leer «{{ diagnostico.archivo }}»</div>
-          <div class="hint" style="margin-top:5px;font-size:11.5px;line-height:1.6">
-            Abajo está la forma del archivo con los datos borrados: cada número
-            quedó en 9 y cada palabra que no es parte de la estructura, en X.
-            Cópiala y mándala para que este formato quede soportado. No lleva
-            nombres, montos ni número de cuenta.
-          </div>
-        </div>
       </div>
-
-      <textarea id="diagTexto" readonly rows="10" spellcheck="false"
-                style="width:100%;box-sizing:border-box;padding:12px 13px;border-radius:14px;border:1px solid var(--line);background:var(--bg-elev);color:var(--text-secondary);font-family:'JetBrains Mono',monospace;font-size:10.5px;line-height:1.55;resize:vertical;white-space:pre;overflow:auto">{{ diagnostico.texto }}</textarea>
-
-      <div style="display:flex;gap:8px;align-items:center;margin-top:12px;flex-wrap:wrap">
-        <button type="button" class="btn btn-glass btn-sm" id="btnCopiarDiag">
-          <i class="fas fa-copy" style="font-size:11px"></i>Copiar la muestra
-        </button>
-        <span class="hint" style="font-size:11px" id="diagAviso"></span>
+      <textarea id="diagTexto" class="ca-diag-texto" readonly rows="10" spellcheck="false">{{ diagnostico.texto }}</textarea>
+      <div class="ca-diag-acciones">
+        <button type="button" class="sec-chico" id="btnCopiarDiag"><i class="fas fa-copy"></i>Copiar la muestra</button>
+        <span class="hint" id="diagAviso"></span>
       </div>
-    </div>
-    {% endif %}
+      {% endif %}
 
-    <div class="glass card-lg">
-      <div class="label" style="margin-bottom:12px">Cómo funciona</div>
-      <ol class="cartola-pasos">
-        <li><b>Se lee el archivo.</b> Sirve la cartola de cualquier banco y el estado de cuenta de cualquier tarjeta de casa comercial, en PDF o exportada a CSV o Excel. Tiene que ser el archivo que descarga el banco, no una foto ni una captura: una imagen no trae el texto adentro.</li>
-        <li><b>Se comprueba antes de mostrarte nada.</b> Una cartola de cuenta se verifica por la cadena de saldos; un estado de cuenta de tarjeta, sumando las cuotas contra el total facturado. Si las cuentas no dan, te avisa y no guarda nada.</li>
-        <li><b>Si tu emisor no está en la lista</b>, se intenta igual con el mismo motor. Se niega a entregar movimientos que no pueda verificar, y si no puede leerlo te muestra la forma del archivo para que ese formato se pueda agregar.</li>
-        <li><b>Se revisa.</b> Verás cada movimiento con su categoría propuesta. Puedes cambiarla, corregir la descripción o dejar fuera lo que no quieras.</li>
-        <li><b>Se guarda</b> solo lo que dejaste marcado.</li>
-      </ol>
-    </div>
+      <details class="sec-historial">
+        <summary>
+          <span class="sec-ficha agua"><i class="fas fa-circle-question"></i></span>
+          <span class="sec-txt">
+            <span class="sec-nombre">Cómo funciona</span>
+            <span class="sec-meta">Se lee, se comprueba y tú decides qué se guarda</span>
+          </span>
+          <i class="fas fa-chevron-down"></i>
+        </summary>
+        <ol class="ca-como">
+          <li><b>Se lee el archivo.</b> Sirve la cartola de cualquier banco y el estado de cuenta de cualquier tarjeta de casa comercial, en PDF o exportada a CSV o Excel. Tiene que ser el archivo que descarga el banco, no una foto ni una captura: una imagen no trae el texto adentro.</li>
+          <li><b>Se comprueba antes de mostrarte nada.</b> Una cartola de cuenta se verifica por la cadena de saldos; un estado de cuenta de tarjeta, sumando las cuotas contra el total facturado. Si las cuentas no dan, te avisa y no guarda nada.</li>
+          <li><b>Si tu emisor no está en la lista</b>, se intenta igual con el mismo motor. Se niega a entregar movimientos que no pueda verificar, y si no puede leerlo te muestra la forma del archivo para que ese formato se pueda agregar.</li>
+          <li><b>Se revisa.</b> Verás cada movimiento con su categoría propuesta. Puedes cambiarla, corregir la descripción o dejar fuera lo que no quieras.</li>
+          <li><b>Se guarda</b> solo lo que dejaste marcado.</li>
+        </ol>
+      </details>
 
-    <div class="glass card-lg">
-      <div class="label" style="margin-bottom:10px">Sobre tus datos</div>
-      <div class="hint" style="font-size:11.5px;line-height:1.6">
-        El archivo no se guarda. Se lee en memoria, se saca el texto y se
-        descarta ahí mismo. Tampoco sale de tu servidor: la cartola se
-        interpreta acá, sin mandarla a ningún servicio externo.
+      <div class="sec-tip agua">
+        <span class="sec-tip-icono"><i class="fas fa-lock"></i></span>
+        <span class="sec-tip-txt">
+          <b>Sobre tus datos</b>
+          <span>El archivo no se guarda. Se lee en memoria, se saca el texto y se descarta ahí mismo. Tampoco sale de tu servidor: la cartola se interpreta acá, sin mandarla a ningún servicio externo.</span>
+        </span>
       </div>
     </div>
   </div>
-</div>
+</section>
 {% endblock %}
 
 {% block extra_js %}

@@ -6,148 +6,104 @@
 
 {% block content %}
 
-<section class="seccion-hero">
-  <div class="seccion-cab">
-    <h1 class="seccion-titulo">Suscripciones</h1>
-    <button class="btn btn-purple seccion-accion" data-open="#modalSub" data-tour="suscripciones" aria-label="Nueva suscripción"><i class="fas fa-plus" style="font-size:12px"></i><span>Nueva suscripción</span></button>
+<div class="sec-top">
+  <h1 class="sec-titulo">Suscripciones</h1>
+  <button type="button" class="sec-accion" data-open="#modalSub" data-tour="suscripciones" aria-label="Nueva suscripción"><i class="fas fa-plus"></i><span>Nueva suscripción</span></button>
+</div>
+
+<section class="sec-hero">
+  <span class="sec-label">Pagas al mes</span>
+  <span class="sec-monto">{{ total_mensual|default:0|money }}</span>
+  <div class="sec-chips">
+    <span class="chip-vidrio">{{ total_anual|default:0|money }} al año</span>
+    {% if monto_pendiente_mes %}<span class="chip-vidrio">Falta pagar {{ monto_pendiente_mes|money }}</span>
+    {% elif suscripciones %}<span class="chip-vidrio">Al día</span>{% endif %}
   </div>
-  <p class="seccion-nota">Lo que se cobra solo cada mes. Apaga el interruptor para dejar de pagarla; el historial se mantiene.</p>
+</section>
+
+<section class="sec-hoja">
+  {% if atrasadas %}
+  <div class="sec-tip rojo">
+    <span class="sec-tip-icono"><i class="fas fa-triangle-exclamation"></i></span>
+    <span class="sec-tip-txt">
+      <b>{{ atrasadas }} suscripción{{ atrasadas|pluralize:"es" }} con meses sin pagar</b>
+      <span>Suman {{ monto_atrasado|money }} de cobros que ya pasaron.</span>
+    </span>
+  </div>
+  {% endif %}
+
+  {% for grupo in duplicadas %}
+  <div class="sec-tip agua">
+    <span class="sec-tip-icono"><i class="fas fa-lightbulb"></i></span>
+    <span class="sec-tip-txt">
+      <b>Puedes ahorrar {{ grupo.ahorro_anual|money }} al año</b>
+      <span>{% for i in grupo.items %}{{ i.nombre }}{% if not forloop.last %}{% if forloop.revcounter == 2 %} y {% else %}, {% endif %}{% endif %}{% endfor %} se superponen. Deja uno.</span>
+    </span>
+  </div>
+  {% endfor %}
+
   {% if suscripciones %}
-  <div class="seccion-cifra">
-    <span class="seccion-label">Pagas al mes</span>
-    <span class="seccion-monto">{{ total_mensual|money }}</span>
-    <div class="inicio-chips">
-      <span class="chip-vidrio">{{ total_anual|money }} al año</span>
-      {% if monto_pendiente_mes %}<span class="chip-vidrio pendiente">Falta pagar {{ monto_pendiente_mes|money }}</span>
-      {% else %}<span class="chip-vidrio al-dia">Al día · {{ monto_pagado_mes|money }} pagados</span>{% endif %}
+  <div class="su-lista">
+    {% for s in suscripciones %}
+    <div class="su-fila{% if not s.activa %} pausada{% endif %}{% if s.estado_mes == 'atrasada' %} atrasada{% endif %}" data-desplegable data-searchable>
+      <div class="su-linea">
+        <button type="button" class="sec-cab" data-desplegar aria-expanded="false">
+          <span class="sec-ficha su-marca" style="background:{{ s.marca.color }}24;color:{{ s.marca.color }}">{% if s.marca.usa_inicial %}<b>{{ s.inicial }}</b>{% else %}<i class="{{ s.marca.icono }}"></i>{% endif %}</span>
+          <span class="sec-txt">
+            <span class="sec-nombre su-nombre">{{ s.nombre }}</span>
+            <span class="sec-meta{% if s.activa and s.periodo_a_pagar %} pendiente{% endif %}">{% if not s.activa %}Pausada · ahorras {{ s.monto_anual|money }} al año{% elif s.estado_mes == 'atrasada' %}{{ s.monto|money }} · atrasada{% else %}{{ s.monto|money }} · se cobra el {{ s.dia_cobro }}{% endif %}</span>
+          </span>
+        </button>
+
+        {% if s.activa %}
+          {% if s.periodo_a_pagar %}
+          <form method="post" action="{% url 'pagar_servicio' s.pk %}" class="su-accion">
+            {% csrf_token %}
+            <input type="hidden" name="periodo" value="{{ s.periodo_a_pagar }}">
+            <button type="submit" class="su-pagar" title="{{ s.texto_a_pagar }}">Pagar</button>
+          </form>
+          {% else %}
+          <form method="post" action="{% url 'anular_pago_servicio' s.pk %}" class="su-accion" data-confirm="¿Marcar {{ s.nombre }} como no pagada este mes?">
+            {% csrf_token %}
+            <button type="submit" class="su-pagada" title="Deshacer el pago del mes" aria-label="Pagada. Deshacer el pago del mes"><i class="fas fa-circle-check"></i>Pagada</button>
+          </form>
+          {% endif %}
+        {% else %}
+          <form method="post" action="{% url 'cancelar_suscripcion' s.pk %}" class="su-accion">
+            {% csrf_token %}
+            <button type="submit" class="su-switch" title="Reactivar {{ s.nombre }}" aria-label="Reactivar {{ s.nombre }}"><span></span></button>
+          </form>
+        {% endif %}
+      </div>
+
+      <div class="sec-mas">
+        <span class="sec-mas-nota">{{ s.monto_anual|money }} al año · {{ s.texto_cobro }}</span>
+        <div class="sec-mas-fila">
+          <a href="{% url 'editar_suscripcion' s.pk %}" class="sec-chico"><i class="fas fa-pen"></i>Editar</a>
+          {% if s.activa %}
+          <form method="post" action="{% url 'cancelar_suscripcion' s.pk %}" data-confirm="¿Dejar de pagar {{ s.nombre }}? Ahorras {{ s.monto_anual|money }} al año.">
+            {% csrf_token %}
+            <button type="submit" class="sec-chico"><i class="fas fa-pause"></i>Pausar</button>
+          </form>
+          {% endif %}
+          <form method="post" action="{% url 'eliminar_suscripcion' s.pk %}" data-confirm="¿Eliminar {{ s.nombre }} por completo? El historial de gastos se mantiene.">
+            {% csrf_token %}
+            <button type="submit" class="sec-chico peligro"><i class="fas fa-trash-can"></i>Eliminar</button>
+          </form>
+        </div>
+      </div>
     </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="sec-vacio">
+    <span class="sec-vacio-icono"><i class="fas fa-rotate"></i></span>
+    <span class="sec-vacio-titulo">No tienes suscripciones registradas</span>
+    <span class="sec-vacio-txt">Agrega las que pagas todos los meses y Fintora las cobra sola, para que aparezcan en tus gastos sin anotarlas.</span>
+    <button type="button" class="sec-btn rojo-suave" data-open="#modalSub">Agregar la primera</button>
   </div>
   {% endif %}
 </section>
-
-{% if atrasadas %}
-<div class="glass-coral" style="margin-bottom:14px;padding:16px 20px;border-radius:18px;display:flex;align-items:center;gap:13px;flex-wrap:wrap">
-  <span class="icon-tile coral" style="width:30px;height:30px"><i class="fas fa-triangle-exclamation" style="font-size:12px"></i></span>
-  <div style="flex:1;min-width:200px">
-    <div style="font-size:12.5px;font-weight:500;margin-bottom:3px">
-      {{ atrasadas }} suscripción{{ atrasadas|pluralize:"es" }} con meses sin pagar
-    </div>
-    <div class="hint" style="font-size:11.5px">Suman {{ monto_atrasado|money }} de cobros que ya pasaron.</div>
-  </div>
-</div>
-{% endif %}
-
-{% if duplicadas %}
-<div class="tarjetas-color subs-ahorro">
-  {% for grupo in duplicadas %}
-  <div class="tarjeta-color agua">
-    <div class="tc-cabecera">
-      <span class="tc-icono"><i class="fas fa-lightbulb" style="font-size:12px"></i></span>
-      <span class="tc-label">Puedes ahorrar</span>
-    </div>
-    <div class="tc-monto">{{ grupo.ahorro_anual|money }}<span class="tc-unidad">al año</span></div>
-    <div class="tc-nota">
-      Pagas {{ grupo.items|length }} servicios de {{ grupo.categoria|lower }}:
-      {% for i in grupo.items %}{{ i.nombre }}{% if not forloop.last %} y {% endif %}{% endfor %}
-      se superponen. Deja uno.
-    </div>
-  </div>
-  {% endfor %}
-</div>
-{% endif %}
-
-{% if suscripciones %}
-<div class="glass" data-spot style="overflow:hidden">
-  {% for s in suscripciones %}
-  <div class="sub-row {% if not s.activa %}pausada{% endif %}" data-searchable
-       {% if not s.activa %}style="opacity:.55"{% endif %}>
-
-    <span class="marca-tile" style="background:{{ s.marca.color }}1f;color:{{ s.marca.color }};
-                 {% if not s.marca.reconocida %}border:1px solid var(--amber-borde){% endif %}">
-      {% if s.marca.usa_inicial %}{{ s.inicial }}{% else %}<i class="{{ s.marca.icono }}"></i>{% endif %}
-    </span>
-
-    <div class="row-main">
-      <div class="row-title" style="font-size:13px;{% if not s.activa %}text-decoration:line-through;color:var(--text-muted){% endif %}">
-        {{ s.nombre }}
-        {% if s.estado_mes == 'atrasada' %}<span class="badge badge-coral" style="margin-left:7px">Atrasada</span>{% endif %}
-      </div>
-      <div class="row-meta">
-        <span class="sub-monto-movil mono">{{ s.monto|money }}</span>
-        <span class="hide-mobile">{{ s.texto_cobro }} · {{ s.texto_estado }}</span>
-        <span class="solo-movil">· el {{ s.dia_cobro }} de cada mes</span>
-      </div>
-    </div>
-
-    <div class="sub-monto" style="text-align:right">
-      <div class="mono" style="font-size:13px;{% if not s.activa %}color:var(--text-muted){% endif %}">{{ s.monto|money }}</div>
-      <div style="font-size:10px;color:var(--text-muted);margin-top:2px">al mes</div>
-    </div>
-
-    <div style="text-align:right" class="sub-anual hide-mobile">
-      <div class="mono" style="font-size:12px;color:var(--text-secondary)">{{ s.monto_anual|money }}</div>
-      <div style="font-size:10px;color:var(--text-muted);margin-top:2px">al año</div>
-    </div>
-
-    <div class="sub-acciones">
-      <a href="{% url 'editar_suscripcion' s.pk %}" class="icon-btn" title="Editar" aria-label="Editar {{ s.nombre }}"><i class="fas fa-pen" style="font-size:11px"></i></a>
-
-      <form method="post" action="{% url 'eliminar_suscripcion' s.pk %}" class="form-borrar" style="margin:0"
-            data-confirm="¿Eliminar {{ s.nombre }} por completo? El historial de gastos se mantiene.">
-        {% csrf_token %}
-        <button type="submit" class="icon-btn" title="Eliminar" aria-label="Eliminar {{ s.nombre }}"><i class="fas fa-trash-can" style="font-size:11px"></i></button>
-      </form>
-
-      <form method="post" action="{% url 'cancelar_suscripcion' s.pk %}" class="sub-estado"
-            {% if s.activa %}data-confirm="¿Dejar de pagar {{ s.nombre }}? Ahorras {{ s.monto_anual|money }} al año."{% endif %}>
-        {% csrf_token %}
-        <button type="submit" class="switch {% if s.activa %}on{% endif %}"
-                title="{% if s.activa %}Cancelar{% else %}Reactivar{% endif %} {{ s.nombre }}"
-                aria-label="{% if s.activa %}Cancelar{% else %}Reactivar{% endif %} {{ s.nombre }}">
-          <span class="knob"></span>
-        </button>
-        <span class="sub-estado-texto" aria-hidden="true">{% if s.activa %}Activa{% else %}Pausada{% endif %}</span>
-      </form>
-
-      {% if s.activa %}
-        {% if s.periodo_a_pagar %}
-        <form method="post" action="{% url 'pagar_servicio' s.pk %}" class="form-pagar sub-pago" style="margin:0">
-          {% csrf_token %}
-          <input type="hidden" name="periodo" value="{{ s.periodo_a_pagar }}">
-          <button type="submit" class="btn btn-orange btn-sm" title="{{ s.texto_a_pagar }}">
-            <i class="fas fa-check" style="font-size:9px"></i>Pagar
-          </button>
-        </form>
-        {% else %}
-        <form method="post" action="{% url 'anular_pago_servicio' s.pk %}" class="sub-pago" style="margin:0"
-              data-confirm="¿Marcar {{ s.nombre }} como no pagada este mes?">
-          {% csrf_token %}
-          <button type="submit" class="btn btn-sm sub-pagada" title="Deshacer el pago del mes" aria-label="Pagada. Deshacer el pago del mes">
-            <i class="fas fa-circle-check" style="font-size:10px"></i>Pagada
-          </button>
-        </form>
-        {% endif %}
-      {% else %}
-        <span class="sub-pago" aria-hidden="true"></span>
-      {% endif %}
-    </div>
-  </div>
-  {% endfor %}
-</div>
-
-
-
-{% else %}
-<div class="glass empty">
-  <i class="fas fa-rotate"></i>
-  <div class="empty-title">No tienes suscripciones registradas</div>
-  <div class="empty-text">
-    Agrega las que pagas todos los meses y Fintora las cobra sola, para que aparezcan
-    en tus gastos sin que tengas que anotarlas.
-  </div>
-  <button class="btn btn-purple" data-open="#modalSub">Agregar la primera</button>
-</div>
-{% endif %}
 
 {% endblock %}
 
@@ -157,19 +113,16 @@
     <div class="modal-head">
       <div>
         <div class="modal-title">Nueva suscripción</div>
-        <div class="modal-sub">Se cobra sola cada mes hasta que la canceles.</div>
+        <div class="modal-sub">Se cobra sola cada mes hasta que la pauses.</div>
       </div>
       <button class="modal-close" data-close aria-label="Cerrar"><i class="fas fa-xmark"></i></button>
     </div>
-
     <form method="post" action="{% url 'crear_suscripcion' %}">
       {% csrf_token %}
-
       <div class="field">
         <label class="label" for="id_sub_nombre">Servicio</label>
         <input type="text" name="nombre" id="id_sub_nombre" placeholder="Ej: Netflix, Spotify, Gimnasio" required>
       </div>
-
       <div class="form-row" style="margin-bottom:16px">
         <div style="flex:1.5">
           <label class="label" for="id_sub_monto">Monto mensual</label>
@@ -180,7 +133,6 @@
           <input type="number" name="dia_cobro" id="id_sub_dia" class="mono" min="1" max="28" value="1">
         </div>
       </div>
-
       <div class="label" style="margin-bottom:9px">Categoría</div>
       <input type="hidden" name="categoria" id="id_sub_categoria" value="Suscripciones">
       <div class="chips" data-field="#id_sub_categoria" style="margin-bottom:18px">
@@ -189,18 +141,14 @@
         <button type="button" class="chip" data-value="Servicios">Servicios</button>
         <button type="button" class="chip" data-value="Salud">Salud</button>
       </div>
-
       <div class="preview-box">
         <div class="label" style="color:var(--amber);margin-bottom:9px">Lo que te costaría</div>
         <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:5px">
-          <span style="font-size:12px;color:var(--text-secondary)">Al año</span>
-          <span class="display" style="font-size:19px;color:var(--purple)" id="subAnual">$0</span>
+          <span style="font-size:13px;color:var(--text-secondary)">Al año</span>
+          <span class="display" style="font-size:19px" id="subAnual">$0</span>
         </div>
-        <div style="font-size:11.5px;color:var(--text-muted)" id="subNota">
-          Se suma a tus {{ total_mensual|money }} mensuales actuales.
-        </div>
+        <div style="font-size:13px;color:var(--text-muted)" id="subNota">Se suma a tus {{ total_mensual|default:0|money }} mensuales actuales.</div>
       </div>
-
       <button type="submit" class="btn btn-purple btn-block">Agregar suscripción</button>
     </form>
   </div>

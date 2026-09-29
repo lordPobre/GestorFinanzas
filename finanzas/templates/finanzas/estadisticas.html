@@ -8,161 +8,107 @@
 <script src="{% static 'vendor/chart/chart.umd.min.js' %}"></script>
 {% endblock %}
 
-{% block topbar_left %}
-<div>
-  <div class="label" style="color:var(--amber)">Tus números</div>
-</div>
-<div class="search">
-  <i class="fas fa-magnifying-glass" style="font-size:11px;color:var(--text-muted)"></i>
-  <input type="search" data-search placeholder="Buscar categoría">
-</div>
-{% endblock %}
-
 {% block content %}
 
-<section class="seccion-hero">
-  <div class="seccion-cab">
-    <h1 class="seccion-titulo" data-tour="graficos">Estadísticas</h1>
+<div class="sec-top">
+  <h1 class="sec-titulo" data-tour="graficos">Estadísticas</h1>
+</div>
+
+<section class="sec-hero es-hero" data-dona>
+  <div class="es-dona" data-dona-anillo>
+    <div class="es-dona-centro"><span>Gastaste</span><b data-dona-total>$0</b></div>
   </div>
-  <p class="seccion-nota">Cómo cambian tus gastos mes a mes, y en qué te pasaste. Los gastos incluyen las cuotas del mes.</p>
+  <div class="es-resumen">
+    {% if ranking %}
+    {% with r=ranking.0 %}
+    <span class="es-titular">{{ r.label }} es tu mayor gasto</span>
+    <span class="es-nota" data-dona-nota></span>
+    {% if r.delta != None %}
+    <span class="sec-badge {% if r.subio %}rojo{% else %}verde{% endif %}">{% if r.subio %}{{ r.delta }}% más{% else %}{{ r.delta|cut:"-" }}% menos{% endif %} que el mes pasado</span>
+    {% endif %}
+    {% endwith %}
+    {% else %}
+    <span class="es-titular">Sin gastos este mes</span>
+    <span class="es-nota">Registra un gasto y aquí verás en qué se te va.</span>
+    {% endif %}
+  </div>
 </section>
 
-<div class="grid-metrics">
-
-  <div class="metrica" data-spot>
-    <div class="metrica-cab">
-      <span class="metrica-icono"><i class="fas fa-wave-square"></i></span>
-      <span class="label">Gasto promedio</span>
-    </div>
-    <div class="metrica-cifra">{{ promedio_gasto|money }}</div>
-    <div class="stat-note">Promedio de los meses con movimiento.</div>
+<section class="sec-hoja">
+  <div class="sec-pestanas" data-pestanas-sec="estadisticas" role="tablist">
+    <button type="button" class="on" data-pestana="cat" role="tab">Categorías</button>
+    <button type="button" data-pestana="mes" role="tab">Mes a mes</button>
+    <button type="button" data-pestana="cuotas" role="tab">Cuotas</button>
   </div>
 
-  <div class="metrica tono-verde" data-spot>
-    <div class="metrica-cab">
-      <span class="metrica-icono"><i class="fas fa-trophy"></i></span>
-      <span class="label">Mejor mes</span>
+  <div class="es-panel" data-panel-sec="estadisticas" data-pestana="cat">
+    {% for r in ranking %}
+    <div class="es-cat" data-searchable data-cat-total="{{ r.total|floatformat:'0u' }}" data-cat-color="{{ r.color }}">
+      <div class="es-cat-cab">
+        <span class="es-cat-nombre"><i style="background:{{ r.color }}"></i>{{ r.label }}</span>
+        <span class="es-cat-monto">{{ r.total|money }}</span>
+      </div>
+      <div class="es-cat-barra"><span style="width:{{ r.ancho }}%;background:{{ r.color }}"></span></div>
+      {% if r.delta != None %}
+      <span class="es-cat-delta{% if r.subio %} sube{% endif %}">{% if r.subio %}+{% endif %}{{ r.delta }}% que el mes pasado</span>
+      {% else %}
+      <span class="es-cat-delta">Nueva este mes</span>
+      {% endif %}
     </div>
-    <div class="metrica-cifra">{{ mejor_mes|default:"—" }}</div>
-    <div class="stat-note">
-      {% if mejor_ahorro > 0 %}Ahorraste {{ mejor_ahorro|money }}.
-      {% else %}Aún sin un mes en positivo.{% endif %}
+    {% empty %}
+    <div class="sec-vacio">
+      <span class="sec-vacio-icono"><i class="fas fa-chart-pie"></i></span>
+      <span class="sec-vacio-titulo">Sin gastos este mes</span>
+      <span class="sec-vacio-txt">Registra un gasto y aquí verás en qué se te va.</span>
     </div>
+    {% endfor %}
   </div>
 
-  <div class="metrica tono-coral" data-spot>
-    <div class="metrica-cab">
-      <span class="metrica-icono"><i class="fas fa-fire"></i></span>
-      <span class="label">Mes más caro</span>
-    </div>
-    <div class="metrica-cifra">{{ peor_mes|default:"—" }}</div>
-    <div class="stat-note">{{ peor_gasto|money }} en salidas.</div>
-  </div>
-
-    <div class="metrica tono-ambar" data-spot>
-    <div class="metrica-cab">
-      <span class="metrica-icono"><i class="fas fa-piggy-bank"></i></span>
-      <span class="label">Tasa de ahorro</span>
-    </div>
-    <div class="metrica-cifra">{{ tasa_ahorro }}<span class="metrica-unidad">%</span></div>
-    <div class="metrica-barra">
-      <span style="width:{% if tasa_ahorro > 0 %}{{ tasa_ahorro }}{% else %}0{% endif %}%"></span>
-    </div>
-    <div class="stat-note">
-      {% if tasa_ahorro > 0 %}De cada $100 que entran, guardas ${{ tasa_ahorro }}.
-      {% else %}Estás gastando más de lo que entra.{% endif %}
-    </div>
-  </div>
-</div>
-<div class="glass card-lg flujo-panel" data-spot style="margin-bottom:16px">
-
-  <div class="flujo-cabecera">
-    <div>
-      <div class="label" style="margin-bottom:6px">Ahorro del último año</div>
-      <div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap">
-        <span class="display" style="font-size:30px;line-height:1;color:{% if ahorro_anual >= 0 %}var(--green){% else %}var(--coral){% endif %}">
-          {{ ahorro_anual|money }}
-        </span>
-        <span class="flujo-delta {% if tasa_ahorro >= 0 %}sube{% else %}baja{% endif %}">
-          {{ tasa_ahorro }}% de lo que entró
-        </span>
+  <div class="es-panel" data-panel-sec="estadisticas" data-pestana="mes" hidden>
+    <div class="es-flujo-cab">
+      <div>
+        <span class="es-flujo-label">Ahorro del último año</span>
+        <span class="es-flujo-cifra{% if ahorro_anual < 0 %} rojo{% endif %}">{{ ahorro_anual|money }}</span>
+      </div>
+      <div class="seg es-rango" id="segRango">
+        <button type="button" data-meses="3">3M</button>
+        <button type="button" data-meses="6">6M</button>
+        <button type="button" class="on" data-meses="12">1 año</button>
       </div>
     </div>
-
-    <div class="seg" style="padding:3px" id="segRango">
-      <button type="button" data-meses="3">3M</button>
-      <button type="button" data-meses="6">6M</button>
-      <button type="button" class="on" data-meses="12">1 año</button>
-    </div>
-  </div>
-
-  <div class="flujo-leyenda">
-    <span><i class="punto" style="background:var(--green)"></i>Entra</span>
-    <span><i class="punto" style="background:var(--coral)"></i>Sale</span>
-    <span class="flujo-pista">Desliza sobre el gráfico para ver cada mes</span>
-  </div>
-
-    <div class="flujo-lienzo"><canvas id="chartFlujo" data-om-raster
+    <div class="es-leyenda"><span><i class="verde"></i>Entra</span><span><i class="rojo"></i>Sale</span></div>
+    <div class="es-lienzo"><canvas id="chartFlujo" data-om-raster
             data-meses="{{ meses_json|a_json }}"
             data-ingresos="{{ ingresos_json|a_json }}"
             data-gastos="{{ gastos_json|a_json }}"></canvas></div>
-</div>
-
-<div class="grid-chart ancho-izq">
-
-  <div class="glass card" style="padding:22px" data-spot>
-    <div class="modal-title" style="font-size:15px;font-weight:500">Ranking de categorías</div>
-    <div class="hint" style="font-size:11.5px;margin:3px 0 18px">Este mes, comparado con el anterior</div>
-
-    <div style="display:flex;flex-direction:column;gap:13px">
-      {% for r in ranking %}
-      <div data-searchable>
-        <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px;gap:10px">
-          <span style="font-size:12.5px">{{ r.label }}</span>
-          <span style="display:flex;align-items:baseline;gap:9px">
-            {% if r.delta != None %}
-              <span style="font-size:11px;color:{% if r.subio %}var(--coral){% else %}var(--green){% endif %}">
-                {% if r.subio %}+{% endif %}{{ r.delta }}% vs. mes pasado
-              </span>
-            {% else %}
-              <span style="font-size:11px;color:var(--text-muted)">nueva</span>
-            {% endif %}
-            <span class="mono" style="font-size:12.5px">{{ r.total|money }}</span>
-          </span>
-        </div>
-        <div class="progress-bar" style="height:8px">
-          <div class="progress-fill" style="width:{{ r.ancho }}%;background:linear-gradient(90deg,{{ r.color }}55,{{ r.color }})"></div>
-        </div>
-      </div>
-      {% empty %}
-      <div class="empty" style="padding:32px 12px">
-        <i class="fas fa-chart-pie" style="font-size:26px"></i>
-        <div class="empty-title" style="font-size:14px">Sin gastos este mes</div>
-        <div class="empty-text" style="font-size:11.5px">Registra un gasto y aquí verás en qué se te va.</div>
-      </div>
-      {% endfor %}
+    <div class="es-metricas">
+      <div class="es-metrica"><span>Gasto promedio</span><b>{{ promedio_gasto|money }}</b></div>
+      <div class="es-metrica"><span>Mejor mes</span><b class="verde">{{ mejor_mes|default:"—" }}</b><small>{% if mejor_ahorro > 0 %}Ahorraste {{ mejor_ahorro|money }}{% else %}Aún sin un mes en positivo{% endif %}</small></div>
+      <div class="es-metrica"><span>Mes más caro</span><b class="rojo">{{ peor_mes|default:"—" }}</b><small>{{ peor_gasto|money }} en salidas</small></div>
+      <div class="es-metrica"><span>Tasa de ahorro</span><b>{{ tasa_ahorro }}%</b><small>{% if tasa_ahorro > 0 %}De cada $100 guardas ${{ tasa_ahorro }}{% else %}Gastas más de lo que entra{% endif %}</small></div>
     </div>
   </div>
 
-  <div class="glass card" style="padding:22px" data-spot>
-    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
-      <div class="modal-title" style="font-size:15px;font-weight:500">Cuotas activas</div>
-      <a href="{% url 'deudas' %}" class="btn btn-soft btn-sm">Ver todas</a>
+  <div class="es-panel" data-panel-sec="estadisticas" data-pestana="cuotas" hidden>
+    <div class="es-flujo-cab">
+      <div>
+        <span class="es-flujo-label">Cuotas activas</span>
+        <span class="es-nota">Lo que pagas al mes y lo que aún debes</span>
+      </div>
+      <a href="{% url 'deudas' %}" class="ini-link">Ver todas<i class="fas fa-chevron-right"></i></a>
     </div>
-    <div class="hint" style="font-size:11.5px;margin:3px 0 16px">Lo que pagas al mes y lo que aún debes</div>
-    <div style="position:relative;height:230px">
+    <div class="es-lienzo">
       <canvas id="chartCuotas"
           data-labels="{{ labels_json|a_json }}"
           data-data="{{ data_json|a_json }}"
           data-restante="{{ data_restante_json|a_json }}" data-om-raster></canvas>
     </div>
   </div>
-</div>
+</section>
 
 {% endblock %}
 
 {% block extra_js %}
 <script src="{% static 'js/pantallas/estadisticas.js' %}" nonce="{{ csp_nonce }}"></script>
-
 <script src="{% static 'js/pantallas/estadisticas-2.js' %}" nonce="{{ csp_nonce }}"></script>
 {% endblock %}

@@ -2,147 +2,126 @@
 {% load static %}
 {% load humanize moneda %}
 {% block search_placeholder %}Filtrar compras en cuotas{% endblock %}
-{% block title %}Compras en cuotas · Fintora{% endblock %}
+{% block title %}Cuotas · Fintora{% endblock %}
 
 {% block content %}
 
-<section class="seccion-hero">
-  <div class="seccion-cab">
-    <h1 class="seccion-titulo">Compras en cuotas</h1>
-    <button class="btn btn-purple seccion-accion" data-open="#modalDeuda" data-tour="cuotas" aria-label="Nueva compra en cuotas"><i class="fas fa-plus" style="font-size:12px"></i><span>Nueva compra en cuotas</span></button>
-  </div>
-  <p class="seccion-nota">Lo que compraste a plazo. Cada cuota que marcas como pagada se registra como gasto del mes; si te equivocas, la puedes anular.</p>
-  <div class="seccion-cifra">
-    <span class="seccion-label">Este mes pagas</span>
-    <span class="seccion-monto">{{ total_cuotas_mes|money }}</span>
-    <div class="inicio-chips">
-      {% if deudas_activas %}<span class="chip-vidrio">{{ deudas_activas }} compra{{ deudas_activas|pluralize:"s" }}</span>{% endif %}
-      <span class="chip-vidrio">Te faltan {{ total_restante|money }}</span>
-      {% if se_libera %}<span class="chip-vidrio">Terminas {{ se_libera.fecha_fin_estimada|date:"M Y" }}</span>{% endif %}
-      {% if total_pagado %}<span class="chip-vidrio">Ya pagaste {{ total_pagado|money }}</span>{% endif %}
-      {% if cuotas_atrasadas %}<span class="chip-vidrio atraso">{{ cuotas_atrasadas }} atrasada{{ cuotas_atrasadas|pluralize:"s" }}</span>{% endif %}
-    </div>
+<div class="sec-top">
+  <h1 class="sec-titulo">Cuotas</h1>
+  <button type="button" class="sec-accion" data-open="#modalDeuda" data-tour="cuotas" aria-label="Nueva compra en cuotas"><i class="fas fa-plus"></i><span>Nueva compra</span></button>
+</div>
+
+<section class="sec-hero">
+  <span class="sec-label">Este mes pagas</span>
+  <span class="sec-monto">{{ total_cuotas_mes|money }}</span>
+  <div class="sec-chips">
+    <span class="chip-vidrio">Te faltan {{ total_restante|money }}</span>
+    {% if se_libera %}<span class="chip-vidrio">Terminas {{ se_libera.fecha_fin_estimada|date:"b Y" }}</span>{% endif %}
   </div>
 </section>
 
-<div class="grid-cards">
-  {% for d in deudas %}
-  <div class="swipe" data-searchable{% if forloop.first %} data-tour="gesto"{% endif %}>
-    <div class="swipe-acciones izq" aria-hidden="true">
-      <a href="{% url 'editar_deuda' d.pk %}" class="swipe-btn editar" title="Editar {{ d.acreedor }}">
-        <i class="fas fa-pen"></i><span>Editar</span>
-      </a>
-    </div>
-    <div class="swipe-acciones der" aria-hidden="true">
-      <form method="post" action="{% url 'eliminar_deuda' d.pk %}" style="margin:0;display:contents"
-            data-confirm="¿Eliminar {{ d.acreedor }}? Se borran también sus {{ d.cuotas_pagadas }} pago{{ d.cuotas_pagadas|pluralize:'s' }} registrado{{ d.cuotas_pagadas|pluralize:'s' }}.">
+<section class="sec-hoja">
+  <div class="cu-lista">
+    {% for d in deudas %}
+    <article class="cu-card urg-{{ d.urgencia }}" data-desplegable data-searchable{% if forloop.first %} data-tour="gesto"{% endif %}>
+      <button type="button" class="sec-cab" data-desplegar aria-expanded="false">
+        <span class="sec-ficha cu-icono"><i class="fas fa-credit-card"></i></span>
+        <span class="sec-txt">
+          <span class="sec-nombre">{{ d.acreedor }}</span>
+          <span class="sec-meta cu-meta">Cuota {{ d.cuota_actual }} de {{ d.cuotas_totales }} · {% if d.urgencia == 'vencida' %}{{ d.monto_cuota|money }}{% else %}vence {{ d.proximo_vencimiento|date:"j b" }}{% endif %}</span>
+        </span>
+        {% if d.urgencia == 'vencida' %}
+        <span class="sec-badge rojo">{{ d.texto_urgencia }}</span>
+        {% elif d.urgencia == 'normal' %}
+        <span class="sec-badge verde">Al día</span>
+        {% else %}
+        <span class="sec-cifra">{{ d.monto_cuota|money }}</span>
+        {% endif %}
+      </button>
+
+      {% if d.urgencia != 'normal' %}
+      <div class="cu-pips" style="grid-template-columns:repeat({{ d.cuotas_totales }},minmax(0,1fr))">
+        {% for m in d.rango_cuotas %}<span class="{{ m.clase }}" title="Cuota {{ m.indice }}"></span>{% endfor %}
+      </div>
+      {% endif %}
+
+      {% if d.urgencia == 'vencida' %}
+      <form method="post" action="{% url 'pagar_cuota' d.pk %}" class="sec-form">
         {% csrf_token %}
         <input type="hidden" name="next" value="{% url 'deudas' %}">
-        <button type="submit" class="swipe-btn borrar" title="Eliminar {{ d.acreedor }}">
-          <i class="fas fa-trash-can"></i><span>Eliminar</span>
-        </button>
+        <input type="hidden" name="periodo" value="{{ d.periodo_a_pagar }}">
+        <button type="submit" class="sec-btn rojo">Pagar cuota de {{ d.monto_cuota|money }}</button>
       </form>
-    </div>
+      {% endif %}
 
-  <div class="glass card swipe-card deuda-card dc urg-{{ d.urgencia }}" data-spot>
-    <div class="dc-cab">
-      <span class="dc-icono"><i class="fas {% if d.esta_saldada %}fa-circle-check{% elif d.urgencia == 'critica' %}fa-triangle-exclamation{% else %}fa-credit-card{% endif %}"></i></span>
-      <div class="dc-txt">
-        <span class="dc-nombre">{{ d.acreedor }}</span>
-        <span class="dc-meta">{% if d.esta_saldada %}Pagada completa{% else %}Cuota {{ d.cuota_actual }} de {{ d.cuotas_totales }} · {{ d.monto_cuota|money }}{% endif %}</span>
-      </div>
-      <span class="urg urg-{{ d.urgencia }}">{{ d.texto_urgencia }}</span>
-    </div>
-
-    <div class="pips dc-pips">
-      {% for m in d.rango_cuotas %}<span class="pip {{ m.clase }}" title="Cuota {{ m.indice }}"></span>{% endfor %}
-    </div>
-
-    <div class="dc-pie">
-      <span>Te queda <b>{{ d.monto_restante|money }}</b> de {{ d.monto_total|money }}</span>
-      <span>{{ d.get_categoria_display }}</span>
-    </div>
-
-    <div class="dc-acciones">
-      {% if d.esta_saldada %}
-        <span class="btn btn-green" style="flex:1;cursor:default">Sin cuotas pendientes</span>
-      {% else %}
-        <form method="post" action="{% url 'pagar_cuota' d.pk %}" style="flex:1;margin:0">
+      <div class="sec-mas">
+        {% if d.urgencia != 'vencida' %}
+        <form method="post" action="{% url 'pagar_cuota' d.pk %}" class="sec-form">
           {% csrf_token %}
           <input type="hidden" name="next" value="{% url 'deudas' %}">
           <input type="hidden" name="periodo" value="{{ d.periodo_a_pagar }}">
-          <button type="submit" class="btn {% if d.urgencia == 'critica' %}btn-red{% else %}btn-purple{% endif %}" style="width:100%">Pagar cuota de {{ d.monto_cuota|money }}</button>
+          <button type="submit" class="sec-btn azul">Pagar cuota de {{ d.monto_cuota|money }}</button>
         </form>
-      {% endif %}
-      {% if d.cuotas_pagadas > 0 %}
-        <form method="post" action="{% url 'anular_cuota' d.pk %}" style="margin:0" data-confirm="¿Anular la última cuota pagada?">
-          {% csrf_token %}
-          <input type="hidden" name="next" value="{% url 'deudas' %}">
-          <button type="submit" class="btn btn-glass">Anular</button>
-        </form>
-      {% endif %}
-    </div>
-  </div>
-  </div>
-
-  {% empty %}
-  <div class="glass empty" style="grid-column:1/-1">
-    <i class="fas fa-circle-check" style="color:var(--green)"></i>
-    <div class="empty-title">
-      {% if saldadas %}No te queda nada por pagar{% else %}No tienes compras en cuotas{% endif %}
-    </div>
-    <div class="empty-text">
-      {% if saldadas %}Terminaste todas tus compras a plazo. Las anteriores están en el histórico.
-      {% else %}Cuando registres una, verás la cuota mensual, cuántas van y cuánto falta.{% endif %}
-    </div>
-    <button class="btn btn-purple" data-open="#modalDeuda">
-      {% if saldadas %}Registrar una nueva{% else %}Registrar la primera{% endif %}
-    </button>
-  </div>
-  {% endfor %}
-</div>
-
-{% if saldadas %}
-<details class="glass card" style="margin-top:18px;padding:0" data-spot>
-  <summary style="padding:16px 20px;cursor:pointer;display:flex;align-items:center;gap:13px">
-    <span class="icon-tile green" style="flex-shrink:0"><i class="fas fa-box-archive"></i></span>
-    <div class="row-main">
-      <div class="row-title">Compras que ya pagaste</div>
-      <div class="row-meta">
-        {{ saldadas|length }} compra{{ saldadas|length|pluralize:"s" }} · {{ total_saldado|money }} en total
-      </div>
-    </div>
-    <span style="font-size:11px;color:var(--text-muted)" class="hide-mobile">Ver histórico</span>
-    <i class="fas fa-chevron-down" style="font-size:10px;color:var(--text-muted)"></i>
-  </summary>
-
-  <div style="padding:0 20px 20px">
-    <div class="row-list">
-      {% for d in saldadas %}
-      <div class="row" data-searchable>
-        <span class="icon-tile green"><i class="fas fa-check"></i></span>
-        <div class="row-main">
-          <div class="row-title" style="color:var(--text-secondary)">{{ d.acreedor }}</div>
-          <div class="row-meta">
-            {{ d.cuotas_totales }} cuota{{ d.cuotas_totales|pluralize:"s" }} ·
-            terminada en {{ d.fecha_fin_estimada|date:"F Y" }}
-          </div>
+        {% endif %}
+        <span class="sec-mas-nota">Te queda {{ d.monto_restante|money }} de {{ d.monto_total|money }} · {{ d.get_categoria_display }}</span>
+        <div class="sec-mas-fila">
+          {% if d.cuotas_pagadas > 0 %}
+          <form method="post" action="{% url 'anular_cuota' d.pk %}" data-confirm="¿Anular la última cuota pagada?">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{% url 'deudas' %}">
+            <button type="submit" class="sec-chico"><i class="fas fa-rotate-left"></i>Anular la última</button>
+          </form>
+          {% endif %}
+          <a href="{% url 'editar_deuda' d.pk %}" class="sec-chico"><i class="fas fa-pen"></i>Editar</a>
+          <form method="post" action="{% url 'eliminar_deuda' d.pk %}"
+                data-confirm="¿Eliminar {{ d.acreedor }}? Se borran también sus {{ d.cuotas_pagadas }} pago{{ d.cuotas_pagadas|pluralize:'s' }} registrado{{ d.cuotas_pagadas|pluralize:'s' }}.">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{% url 'deudas' %}">
+            <button type="submit" class="sec-chico peligro"><i class="fas fa-trash-can"></i>Eliminar</button>
+          </form>
         </div>
-        <div class="mono" style="font-size:13px;color:var(--text-muted)">{{ d.monto_total|money }}</div>
-        <form method="post" action="{% url 'eliminar_deuda' d.pk %}" style="margin:0"
-              data-confirm="¿Borrar {{ d.acreedor }} del histórico? Se eliminan también sus pagos registrados.">
+      </div>
+    </article>
+    {% empty %}
+    <div class="sec-vacio">
+      <span class="sec-vacio-icono"><i class="fas fa-circle-check"></i></span>
+      <span class="sec-vacio-titulo">{% if saldadas %}No te queda nada por pagar{% else %}No tienes compras en cuotas{% endif %}</span>
+      <span class="sec-vacio-txt">{% if saldadas %}Terminaste todas tus compras a plazo.{% else %}Cuando registres una, verás la cuota del mes, cuántas van y cuánto falta.{% endif %}</span>
+      <button type="button" class="sec-btn azul" data-open="#modalDeuda">{% if saldadas %}Registrar una nueva{% else %}Registrar la primera{% endif %}</button>
+    </div>
+    {% endfor %}
+  </div>
+
+  {% if saldadas %}
+  <details class="sec-historial">
+    <summary>
+      <span class="sec-ficha verde"><i class="fas fa-box-archive"></i></span>
+      <span class="sec-txt">
+        <span class="sec-nombre">Compras que ya pagaste</span>
+        <span class="sec-meta">{{ saldadas|length }} compra{{ saldadas|length|pluralize:"s" }} · {{ total_saldado|money }} en total</span>
+      </span>
+      <i class="fas fa-chevron-down"></i>
+    </summary>
+    <div class="sec-historial-lista">
+      {% for d in saldadas %}
+      <div class="sec-fila" data-searchable>
+        <span class="sec-ficha verde"><i class="fas fa-check"></i></span>
+        <span class="sec-txt">
+          <span class="sec-nombre">{{ d.acreedor }}</span>
+          <span class="sec-meta">{{ d.cuotas_totales }} cuota{{ d.cuotas_totales|pluralize:"s" }} · terminada en {{ d.fecha_fin_estimada|date:"F Y" }}</span>
+        </span>
+        <span class="sec-cifra tenue">{{ d.monto_total|money }}</span>
+        <form method="post" action="{% url 'eliminar_deuda' d.pk %}" data-confirm="¿Borrar {{ d.acreedor }} del histórico? Se eliminan también sus pagos registrados.">
           {% csrf_token %}
           <input type="hidden" name="next" value="{% url 'deudas' %}">
-          <button type="submit" class="icon-btn" title="Borrar del histórico" aria-label="Borrar del histórico">
-            <i class="fas fa-trash-can" style="font-size:10px"></i>
-          </button>
+          <button type="submit" class="icon-btn" title="Borrar del histórico" aria-label="Borrar {{ d.acreedor }} del histórico"><i class="fas fa-trash-can"></i></button>
         </form>
       </div>
       {% endfor %}
     </div>
-  </div>
-</details>
-{% endif %}
+  </details>
+  {% endif %}
+</section>
 
 {% endblock %}
 

@@ -1701,3 +1701,16 @@ body:has(.fo-hoja.fo-ambar) { --luz: 255, 170, 44; }
   body:has(.fo-form) .fab-group { display: none !important; }
   .ob-vidrio .glass.card-lg { border-radius: 28px; }
 }
+
+.sec-btn { white-space: nowrap; }
+.md-card .sec-botones { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+.md-agregar {
+  display: flex; align-items: center; gap: 8px; width: 100%; padding: 12px 0 0; margin-top: -2px;
+  border: none; border-top: 1px solid rgba(255, 255, 255, .07); background: none; cursor: pointer;
+  color: #6ee873; font-family: 'Manrope', sans-serif; font-size: 13px; font-weight: 800; text-align: left;
+}
+.md-agregar i { font-size: 11px; }
+.md-agregar:hover { color: #8af08e; }
+.md-card .sec-mas-fila.siempre { flex-wrap: nowrap; justify-content: space-between; }
+.md-prestamo-nombre { flex: 1 1 auto; flex-wrap: nowrap; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.md-prestamo-nombre .sec-badge { flex-shrink: 0; }

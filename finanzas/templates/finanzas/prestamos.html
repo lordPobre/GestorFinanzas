@@ -6,192 +6,95 @@
 
 {% block content %}
 
-<section class="seccion-hero">
-  <div class="seccion-cab">
-    <h1 class="seccion-titulo">Me deben</h1>
-    <button class="btn btn-purple seccion-accion" data-open="#modalPersona" data-tour="prestamos" aria-label="Agregar persona"><i class="fas fa-user-plus" style="font-size:12px"></i><span>Agregar persona</span></button>
-  </div>
-  <p class="seccion-nota">Plata que prestaste y todavía no vuelve. Toca una persona para ver sus préstamos y abonar.</p>
-  <div class="seccion-cifra">
-    <span class="seccion-label">Te deben ahora</span>
-    <span class="seccion-monto">{{ total_por_cobrar|money }}</span>
-    <div class="inicio-chips">
-      <span class="chip-vidrio">{% if personas %}{{ personas|length }} persona{{ personas|length|pluralize:"s" }}{% else %}Nadie te debe{% endif %}</span>
-      {% if total_recuperado %}<span class="chip-vidrio">Te devolvieron {{ total_recuperado|money }}</span>{% endif %}
-      {% if total_prestado %}<span class="chip-vidrio">Prestado en total {{ total_prestado|money }}</span>{% endif %}
-    </div>
+<div class="sec-top">
+  <h1 class="sec-titulo">Me deben</h1>
+  <button type="button" class="sec-accion" data-open="#modalPersona" data-tour="prestamos" aria-label="Agregar persona"><i class="fas fa-user-plus"></i><span>Agregar persona</span></button>
+</div>
+
+<section class="sec-hero">
+  <span class="sec-label">Te deben ahora</span>
+  <span class="sec-monto">{{ total_por_cobrar|money }}</span>
+  <div class="sec-chips">
+    <span class="chip-vidrio">{% if personas %}{{ personas|length }} persona{{ personas|length|pluralize:"s" }}{% else %}Nadie te debe{% endif %}</span>
+    {% if total_recuperado %}<span class="chip-vidrio">Te devolvieron {{ total_recuperado|money }}</span>{% endif %}
   </div>
 </section>
 
-<div class="grid-detail">
-
-  <div class="glass" style="padding:16px" data-spot>
-    <div class="label" style="margin:4px 6px 11px">Personas</div>
-    <div class="row-list">
-      {% for p in personas %}
-            <div class="swipe swipe-fila" data-searchable>
-        <div class="swipe-acciones" aria-hidden="true">
-          <form method="post" action="{% url 'eliminar_persona' p.pk %}" style="margin:0;display:contents"
-                data-confirm="¿Eliminar a {{ p.nombre }}? Se borran sus {{ p.cantidad_prestamos }} préstamo{{ p.cantidad_prestamos|pluralize:'s' }} y el historial de abonos.">
-            {% csrf_token %}
-            <button type="submit" class="swipe-btn borrar" title="Eliminar a {{ p.nombre }}">
-              <i class="fas fa-trash-can"></i><span>Eliminar</span>
-            </button>
-          </form>
-        </div>
-      <a href="{% url 'detalle_persona' p.pk %}" class="row swipe-card {% if p.pk == persona.pk %}on{% endif %}">
-        <span class="avatar">{{ p.nombre|first|upper }}</span>
-        <span class="row-main">
-          <span class="row-title" style="display:block">{{ p.nombre }}</span>
-          <span class="row-meta" style="display:block">{{ p.resumen_meta }}</span>
+<section class="sec-hoja">
+  <div class="md-lista">
+    {% for p in personas %}
+    {% if persona and p.pk == persona.pk %}
+    <article class="md-card" data-searchable>
+      <div class="md-cab">
+        <span class="md-avatar on">{{ p.nombre|first|upper }}</span>
+        <span class="sec-txt">
+          <span class="sec-nombre md-nombre">{{ p.nombre }}</span>
+          <span class="sec-meta">{{ p.resumen_meta }}{% if persona.cobro_del_mes %} · a cobrar ahora {{ persona.cobro_del_mes|money }}{% endif %}</span>
         </span>
-        <span class="mono" style="font-size:12px;color:{% if p.total_pendiente %}var(--green){% else %}var(--amber){% endif %}">
-          {% if p.total_pendiente %}{{ p.total_pendiente|money }}{% else %}Al día{% endif %}
-        </span>
-      </a>
+        <span class="md-monto">{% if persona.total_pendiente %}{{ persona.total_pendiente|money }}{% else %}Al día{% endif %}</span>
       </div>
-      {% empty %}
-      <div class="empty" style="padding:32px 12px">
-        <i class="fas fa-users" style="font-size:26px"></i>
-        <div class="empty-title" style="font-size:14px">Nadie te debe</div>
-        <div class="empty-text" style="font-size:11.5px;margin-bottom:14px">Agrega una persona para empezar a registrar préstamos.</div>
-      </div>
-      {% endfor %}
-    </div>
-    <button class="btn btn-dashed btn-block" style="margin-top:10px;padding:11px;font-size:11.5px" data-open="#modalPersona">+ Agregar persona</button>
-  </div>
 
-  {% if persona %}
-  <div class="glass" style="padding:24px" data-spot>
-    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:20px">
-      <div style="display:flex;align-items:center;gap:13px">
-        <span class="avatar avatar-lg">{{ persona.nombre|first|upper }}</span>
-        <div>
-          <div class="modal-title">{{ persona.nombre }}</div>
-          <div class="modal-sub">{{ persona.contacto|default:"Sin contacto" }}</div>
-        </div>
-      </div>
-      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-        {% if persona.tiene_deuda %}
-          {% if persona.enlace_whatsapp %}
-            <a class="btn btn-green" href="{{ persona.enlace_whatsapp }}" target="_blank" rel="noopener"
-               title="Abre WhatsApp con el detalle de lo que te debe {{ persona.nombre }}">
-              <i class="fa-brands fa-whatsapp" style="font-size:14px"></i>Enviar por WhatsApp
-            </a>
-          {% else %}
-            <button class="btn btn-glass" data-open="#modalContacto">
-              <i class="fa-brands fa-whatsapp" style="font-size:14px"></i>Agregar WhatsApp
-            </button>
-          {% endif %}
-        {% endif %}
-        <button class="btn btn-soft" data-open="#modalPrestamo"><i class="fas fa-plus" style="font-size:10px"></i>Nuevo préstamo</button>
-        <button type="button" class="icon-btn" data-open="#modalContacto" title="Editar contacto" aria-label="Editar el contacto de {{ persona.nombre }}">
-          <i class="fas fa-pen" style="font-size:11px"></i>
+      {% if prestamos %}
+      <div class="md-prestamos">
+        {% for x in prestamos %}
+        <button type="button" class="md-prestamo{% if x.esta_pagado %} saldado{% endif %}" {% if not x.esta_pagado %}data-open="#abono{{ x.pk }}" aria-label="Registrar abono de {{ x.descripcion }}"{% endif %}>
+          <span class="md-prestamo-cab">
+            <span class="md-prestamo-nombre">{{ x.descripcion }}<span class="sec-badge chico {% if x.tipo == 'CUOTAS' %}azul{% else %}gris{% endif %}">{% if x.tipo == 'CUOTAS' %}En cuotas{% else %}Pago único{% endif %}</span></span>
+            <span class="md-prestamo-monto">{% if x.esta_pagado %}Saldado{% else %}{{ x.monto_pendiente|money }}{% endif %}</span>
+          </span>
+          <span class="md-barra"><span style="width:{{ x.porcentaje }}%"></span></span>
         </button>
-        <form method="post" action="{% url 'eliminar_persona' persona.pk %}" style="margin:0"
-              data-confirm="¿Eliminar a {{ persona.nombre }}? Se borran sus {{ persona.cantidad_prestamos }} préstamo{{ persona.cantidad_prestamos|pluralize:'s' }} y el historial de abonos.">
-          {% csrf_token %}
-          <button type="submit" class="icon-btn" title="Eliminar a {{ persona.nombre }}" aria-label="Eliminar a {{ persona.nombre }}">
-            <i class="fas fa-trash-can" style="font-size:11px"></i>
-          </button>
-        </form>
+        {% endfor %}
       </div>
-    </div>
-
-        <div class="mini-cards">
-      <div class="mini-card verde">
-        <span class="mini-icono"><i class="fas fa-hand-holding-dollar"></i></span>
-        <div>
-          <div class="label">Te debe en total</div>
-          <div class="mini-monto">{{ persona.total_pendiente|money }}</div>
-        </div>
-      </div>
-      <div class="mini-card ambar">
-        <span class="mini-icono"><i class="fas fa-calendar-days"></i></span>
-        <div>
-          <div class="label">Cuotas al mes</div>
-          <div class="mini-monto">{{ persona.cuotas_del_mes|money }}</div>
-        </div>
-      </div>
-      <div class="mini-card">
-        <span class="mini-icono"><i class="fas fa-receipt"></i></span>
-        <div>
-          <div class="label">Pagos únicos</div>
-          <div class="mini-monto">{{ persona.unicos_pendientes|money }}</div>
-        </div>
-      </div>
-
-            {% if persona.cobro_del_mes %}
-      <div class="mini-card destacada">
-        <span class="mini-icono"><i class="fas fa-equals"></i></span>
-        <div>
-          <div class="label">A cobrar ahora</div>
-          <div class="mini-monto">{{ persona.cobro_del_mes|money }}</div>
-          <div class="mini-nota">
-            {% if persona.cuotas_del_mes and persona.unicos_pendientes %}
-              cuota del mes + pagos únicos
-            {% elif persona.cuotas_del_mes %}
-              solo la cuota de este mes
-            {% else %}
-              solo pagos únicos
-            {% endif %}
-          </div>
-        </div>
+      {% else %}
+      <div class="sec-vacio chico">
+        <span class="sec-vacio-txt">{{ persona.nombre }} no tiene préstamos. Registra uno: puede ser un pago único o en cuotas mensuales.</span>
       </div>
       {% endif %}
-    </div>
 
-    <div class="label" style="margin-bottom:11px">Préstamos</div>
-    <div style="display:flex;flex-direction:column;gap:10px">
-      {% for x in prestamos %}
-            <div class="prestamo-card {% if x.esta_pagado %}saldado{% elif x.tipo == 'CUOTAS' %}cuotas{% else %}unico{% endif %}">
-        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:13px">
-          <div style="min-width:0">
-            <div style="display:flex;align-items:center;gap:9px;flex-wrap:wrap">
-              <span style="font-size:13px;font-weight:600">{{ x.descripcion }}</span>
-              {% if x.tipo == 'CUOTAS' %}
-                <span class="badge badge-purple">En cuotas</span>
-              {% else %}
-                <span class="badge badge-blue">Pago único</span>
-              {% endif %}
-            </div>
-            <div class="row-meta" style="margin-top:5px">
-              Prestado el {{ x.fecha|date:"j M" }} · {{ x.detalle_plan }}
-            </div>
-          </div>
-          <div style="text-align:right">
-            <div class="display" style="font-size:17px;{% if x.esta_pagado %}color:var(--green){% endif %}">
-              {% if x.esta_pagado %}Saldado{% else %}{{ x.monto_pendiente|money }}{% endif %}
-            </div>
-            <div class="row-meta">de {{ x.monto|money }}</div>
-          </div>
-        </div>
-
-        <div class="progress-bar" style="margin-bottom:9px">
-          <div class="progress-fill green" style="width:{{ x.porcentaje }}%"></div>
-        </div>
-
-        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
-          <div class="row-meta">{{ x.porcentaje }}% devuelto · {{ x.abonos.count }} abono{{ x.abonos.count|pluralize:"s" }}</div>
-          {% if x.esta_pagado %}
-            <span class="badge badge-green">Al día</span>
+      <div class="sec-botones">
+        {% if persona.tiene_deuda %}
+          {% if persona.enlace_whatsapp %}
+          <a class="sec-btn whatsapp" href="{{ persona.enlace_whatsapp }}" target="_blank" rel="noopener" title="Abre WhatsApp con el detalle de lo que te debe {{ persona.nombre }}"><i class="fab fa-whatsapp"></i>Cobrar</a>
           {% else %}
-            <button class="btn btn-green btn-sm" data-open="#abono{{ x.pk }}">Registrar abono</button>
+          <button type="button" class="sec-btn whatsapp" data-open="#modalContacto"><i class="fab fa-whatsapp"></i>Agregar WhatsApp</button>
           {% endif %}
-        </div>
+          <button type="button" class="sec-btn vidrio" data-open="#modalElegirAbono">Registrar abono</button>
+        {% else %}
+          <button type="button" class="sec-btn verde" data-open="#modalPrestamo"><i class="fas fa-plus"></i>Nuevo préstamo</button>
+        {% endif %}
       </div>
-      {% empty %}
-      <div class="empty">
-        <i class="fas fa-hand-holding-dollar"></i>
-        <div class="empty-title">{{ persona.nombre }} no tiene préstamos</div>
-        <div class="empty-text">Registra uno: puede ser un pago único o en cuotas mensuales.</div>
-        <button class="btn btn-purple" data-open="#modalPrestamo">Nuevo préstamo</button>
+
+      <div class="sec-mas-fila siempre">
+        {% if persona.tiene_deuda %}<button type="button" class="sec-chico" data-open="#modalPrestamo"><i class="fas fa-plus"></i>Nuevo préstamo</button>{% endif %}
+        <button type="button" class="sec-chico" data-open="#modalContacto"><i class="fas fa-pen"></i>Contacto</button>
+        <form method="post" action="{% url 'eliminar_persona' persona.pk %}"
+              data-confirm="¿Eliminar a {{ persona.nombre }}? Se borran sus {{ persona.cantidad_prestamos }} préstamo{{ persona.cantidad_prestamos|pluralize:'s' }} y el historial de abonos.">
+          {% csrf_token %}
+          <button type="submit" class="sec-chico peligro"><i class="fas fa-trash-can"></i>Eliminar</button>
+        </form>
       </div>
-      {% endfor %}
+    </article>
+    {% else %}
+    <a href="{% url 'detalle_persona' p.pk %}" class="md-fila" data-searchable>
+      <span class="md-avatar">{{ p.nombre|first|upper }}</span>
+      <span class="sec-txt">
+        <span class="sec-nombre">{{ p.nombre }}</span>
+        <span class="sec-meta">{{ p.resumen_meta }}</span>
+      </span>
+      <span class="md-monto{% if not p.total_pendiente %} tenue{% endif %}">{% if p.total_pendiente %}{{ p.total_pendiente|money }}{% else %}Al día{% endif %}</span>
+    </a>
+    {% endif %}
+    {% empty %}
+    <div class="sec-vacio">
+      <span class="sec-vacio-icono"><i class="fas fa-users"></i></span>
+      <span class="sec-vacio-titulo">Nadie te debe</span>
+      <span class="sec-vacio-txt">Agrega una persona para empezar a registrar préstamos.</span>
+      <button type="button" class="sec-btn verde" data-open="#modalPersona">Agregar persona</button>
     </div>
+    {% endfor %}
   </div>
-  {% endif %}
-</div>
+</section>
 
 {% endblock %}
 
@@ -211,30 +114,26 @@
       <div class="field">
         <label class="label" for="id_contacto_persona">Contacto (opcional)</label>
         <input type="text" name="contacto" id="id_contacto_persona" placeholder="+56 9 1234 5678" inputmode="tel" autocomplete="off">
-        <div class="hint" style="margin-top:6px;font-size:11.5px">Con un teléfono puedes enviarle el detalle de lo que te debe por WhatsApp.</div>
+        <div class="hint" style="margin-top:6px">Con un teléfono puedes enviarle el detalle de lo que te debe por WhatsApp.</div>
       </div>
 
-            <details style="margin-bottom:18px" id="detallePrestamo">
-        <summary style="display:flex;align-items:center;gap:9px;padding:12px 14px;border-radius:14px;
-                        background:rgba(255,255,255,.04);border:1px solid var(--glass-border);cursor:pointer">
-          <i class="fas fa-plus" style="font-size:10px;color:var(--purple)"></i>
-          <span style="font-size:12.5px;flex:1">Agregar el primer préstamo</span>
-          <i class="fas fa-chevron-down" style="font-size:9px;color:var(--text-muted)"></i>
+      <details class="md-primer" id="detallePrestamo">
+        <summary>
+          <i class="fas fa-plus"></i>
+          <span>Agregar el primer préstamo</span>
+          <i class="fas fa-chevron-down"></i>
         </summary>
-
-        <div style="padding:16px 2px 0">
+        <div class="md-primer-cuerpo">
           <div class="field">
             <label class="label" for="id_desc_persona">Para qué fue</label>
             <input type="text" name="descripcion" id="id_desc_persona" placeholder="Ej: Arriendo de mayo">
           </div>
-
           <div class="label" style="margin-bottom:9px">Cómo te lo va a devolver</div>
           <input type="hidden" name="tipo" id="id_tipo_persona" value="UNICO">
           <div class="seg" style="margin-bottom:16px" id="segTipoPersona">
             <button type="button" class="on" data-value="UNICO">Pago único</button>
             <button type="button" data-value="CUOTAS">En cuotas</button>
           </div>
-
           <div class="form-row" style="margin-bottom:16px">
             <div style="flex:1.5">
               <label class="label" for="id_monto_persona">Monto prestado</label>
@@ -245,10 +144,9 @@
               <input type="number" name="cuotas_totales" id="id_cuotas_persona" class="mono" min="1" value="3">
             </div>
           </div>
-
           <div class="preview-box" style="margin-bottom:0">
-            <div class="label" style="color:var(--green);margin-bottom:7px">Te devolvería</div>
-            <div class="display" style="font-size:17px;color:var(--green)" id="personaPreview">$0</div>
+            <div class="label" style="color:var(--green-texto);margin-bottom:7px">Te devolvería</div>
+            <div class="display" style="font-size:18px;color:var(--green-texto)" id="personaPreview">$0</div>
           </div>
         </div>
       </details>
@@ -274,10 +172,34 @@
         <label class="label" for="id_contacto_editar">Teléfono con WhatsApp</label>
         <input type="text" name="contacto" id="id_contacto_editar" value="{{ persona.contacto }}"
                placeholder="+56 9 1234 5678" inputmode="tel" autocomplete="off" maxlength="80">
-        <div class="hint" style="margin-top:6px;font-size:11.5px">Si escribes solo los 9 dígitos del celular, se asume que es de Chile.</div>
+        <div class="hint" style="margin-top:6px">Si escribes solo los 9 dígitos del celular, se asume que es de Chile.</div>
       </div>
       <button type="submit" class="btn btn-purple btn-block">Guardar</button>
     </form>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modalElegirAbono">
+  <div class="modal-box" style="max-width:420px">
+    <div class="modal-head">
+      <div>
+        <div class="modal-title">¿Qué te pagó {{ persona.nombre }}?</div>
+        <div class="modal-sub">Elige el préstamo</div>
+      </div>
+      <button class="modal-close" data-close aria-label="Cerrar"><i class="fas fa-xmark"></i></button>
+    </div>
+    <div class="md-elegir">
+      {% for x in prestamos %}{% if not x.esta_pagado %}
+      <button type="button" class="md-elegir-op" data-open="#abono{{ x.pk }}">
+        <span class="sec-txt">
+          <span class="sec-nombre">{{ x.descripcion }}</span>
+          <span class="sec-meta">{{ x.detalle_plan }}</span>
+        </span>
+        <span class="sec-cifra">{{ x.monto_pendiente|money }}</span>
+        <i class="fas fa-chevron-right"></i>
+      </button>
+      {% endif %}{% endfor %}
+    </div>
   </div>
 </div>
 
@@ -290,22 +212,18 @@
       </div>
       <button class="modal-close" data-close aria-label="Cerrar"><i class="fas fa-xmark"></i></button>
     </div>
-
     <form method="post" action="{% url 'crear_prestamo' persona.pk %}">
       {% csrf_token %}
-
       <div class="field">
         <label class="label" for="id_desc_prestamo">Para qué fue</label>
         <input type="text" name="descripcion" id="id_desc_prestamo" placeholder="Ej: Arriendo de mayo" required>
       </div>
-
       <div class="label" style="margin-bottom:9px">Cómo te lo va a devolver</div>
       <input type="hidden" name="tipo" id="id_tipo_prestamo" value="UNICO">
       <div class="seg" style="margin-bottom:16px" id="segTipoPrestamo">
         <button type="button" class="on" data-value="UNICO">Pago único</button>
         <button type="button" data-value="CUOTAS">En cuotas</button>
       </div>
-
       <div class="form-row" style="margin-bottom:18px">
         <div style="flex:1.5">
           <label class="label" for="id_monto_prestamo">Monto prestado</label>
@@ -316,12 +234,10 @@
           <input type="number" name="cuotas_totales" id="id_cuotas_prestamo" class="mono" min="1" value="3">
         </div>
       </div>
-
       <div class="preview-box" style="background:var(--green-tenue);border-color:var(--green-borde)">
-        <div class="label" style="color:var(--green);margin-bottom:8px">Te devolvería</div>
-        <div class="display" style="font-size:16px;font-weight:500;color:var(--green)" id="prestamoPreview">$0</div>
+        <div class="label" style="color:var(--green-texto);margin-bottom:8px">Te devolvería</div>
+        <div class="display" style="font-size:18px;color:var(--green-texto)" id="prestamoPreview">$0</div>
       </div>
-
       <button type="submit" class="btn btn-purple btn-block">Registrar préstamo</button>
     </form>
   </div>
@@ -338,27 +254,22 @@
       </div>
       <button class="modal-close" data-close aria-label="Cerrar"><i class="fas fa-xmark"></i></button>
     </div>
-
     <form method="post" action="{% url 'abonar_prestamo' x.pk %}">
       {% csrf_token %}
-
       <div class="chips" style="margin-bottom:16px">
         {% for op in x.montos_sugeridos %}
           <button type="button" class="chip {% if forloop.first %}on{% endif %}" data-monto="{{ op.monto }}">{{ op.label }} · {{ op.monto|money }}</button>
         {% endfor %}
       </div>
-
       <div class="field">
         <label class="label" for="id_monto_abono_{{ x.pk }}">Cuánto te pagó</label>
         <input type="number" name="monto" id="id_monto_abono_{{ x.pk }}" class="input-amount"
-               style="color:var(--green)" value="{{ x.monto_cuota|floatformat:0 }}" max="{{ x.monto_pendiente|floatformat:0 }}" required>
+               style="color:var(--green-texto)" value="{{ x.monto_cuota|floatformat:0 }}" max="{{ x.monto_pendiente|floatformat:0 }}" required>
       </div>
-
       <div class="field">
         <label class="label" for="id_nota_abono_{{ x.pk }}">Nota (opcional)</label>
         <input type="text" name="nota" id="id_nota_abono_{{ x.pk }}" placeholder="Ej: transferencia, adelantó una cuota">
       </div>
-
       <button type="submit" class="btn btn-block btn-abono">Guardar abono</button>
     </form>
   </div>
