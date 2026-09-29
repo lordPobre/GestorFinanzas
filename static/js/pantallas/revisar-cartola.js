@@ -3,6 +3,7 @@
   if (!form) return;
   var checks = form.querySelectorAll('.cartola-check');
   var cuenta = document.getElementById('cuenta');
+  var guardar = document.getElementById('btnGuardarCartola');
 
   function actualizar() {
     var n = 0;
@@ -15,7 +16,7 @@
     cuenta.textContent = n === 0
       ? 'No hay nada marcado.'
       : 'Se guardará' + (n === 1 ? ' 1 movimiento.' : 'n ' + n + ' movimientos.');
-    document.getElementById('btnGuardar').disabled = n === 0;
+    if (guardar) guardar.disabled = n === 0;
   }
 
   checks.forEach(function (c) { c.addEventListener('change', actualizar); });

@@ -3,22 +3,25 @@
 {% block title %}Verificación en dos pasos · FinApp{% endblock %}
 {% block topbar_sub %}Protege tu cuenta{% endblock %}
 
-{% block topbar_actions %}
-<a href="{% url 'perfil' %}#seguridad" class="btn btn-glass">
-  <i class="fas fa-arrow-left" style="font-size:11px"></i>Volver
-</a>
-{% endblock %}
 
 {% block content %}
-<div style="max-width:540px">
+<div class="sec-top centrado">
+  <a href="{% url 'perfil' %}#seguridad" class="sec-volver" aria-label="Volver"><i class="fas fa-chevron-left"></i></a>
+  <h1 class="sec-titulo">Dos pasos</h1>
+  <span class="sec-hueco" aria-hidden="true"></span>
+</div>
+
+<section class="sec-hero fo-hero">
+  <span class="fo-icono ambar"><i class="fas fa-shield-halved"></i></span>
+  <span class="fo-quien">Verificación en dos pasos</span>
+  <div class="sec-chips">{% if factor.activo %}<span class="chip-vidrio al-dia">Activa</span>{% else %}<span class="chip-vidrio">Recomendado</span>{% endif %}</div>
+</section>
+
+<section class="sec-hoja fo-hoja fo-form fo-ambar">
+<div class="fo-cuerpo">
 
   {% if factor.activo %}
-  <div style="display:flex;align-items:center;gap:12px;margin-bottom:18px">
-    <h1 style="font-family:'Manrope',sans-serif;font-size:21px;font-weight:800;letter-spacing:-.025em;margin:0">
-      Verificación en dos pasos
-    </h1>
-    <span class="badge badge-green"><i class="fas fa-check" style="font-size:9px"></i>Activa</span>
-  </div>
+  
 
   <div style="display:flex;align-items:flex-start;gap:15px;padding:22px;margin-bottom:14px;
               border-radius:26px;background:var(--surface);border:1px solid var(--green-borde)">
@@ -58,9 +61,7 @@
   </button>
 
   {% else %}
-  <h1 style="font-family:'Manrope',sans-serif;font-size:21px;font-weight:800;letter-spacing:-.025em;margin:0 0 6px">
-    Verificación en dos pasos
-  </h1>
+  
   <div style="font-size:12.5px;color:var(--text-secondary);line-height:1.55;margin-bottom:20px;max-width:460px">
     Una contraseña robada deja de bastar: al entrar pediremos también un código
     que solo existe en tu teléfono y cambia cada 30 segundos.
@@ -148,6 +149,7 @@
   </div>
   {% endif %}
 </div>
+</section>
 {% endblock %}
 
 {% block modals %}

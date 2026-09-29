@@ -3,12 +3,21 @@
 {% block title %}Face ID o huella · Fintora{% endblock %}
 {% block topbar_sub %}Face ID o huella{% endblock %}
 
-{% block topbar_actions %}
-<a href="{% url 'perfil' %}" class="btn btn-glass"><i class="fas fa-arrow-left" style="font-size:11px"></i>Volver al perfil</a>
-{% endblock %}
 
 {% block content %}
-<div style="max-width:680px">
+<div class="sec-top centrado">
+  <a href="{% url 'perfil' %}#seguridad" class="sec-volver" aria-label="Volver"><i class="fas fa-chevron-left"></i></a>
+  <h1 class="sec-titulo">Face ID o huella</h1>
+  <span class="sec-hueco" aria-hidden="true"></span>
+</div>
+
+<section class="sec-hero fo-hero">
+  <span class="fo-icono verde"><i class="fas fa-fingerprint"></i></span>
+  <div class="sec-chips">{% if passkeys %}<span class="chip-vidrio al-dia">{{ passkeys|length }} dispositivo{{ passkeys|length|pluralize:"s" }}</span>{% else %}<span class="chip-vidrio">Sin dispositivos</span>{% endif %}</div>
+</section>
+
+<section class="sec-hoja fo-hoja fo-form fo-verde">
+<div class="fo-cuerpo">
 
   <div class="glass card" style="margin-bottom:16px;display:flex;gap:13px;align-items:flex-start">
     <span class="icono-aviso ambar" style="font-size:14px">
@@ -95,6 +104,7 @@
   </form>
 
 </div>
+</section>
 {% endblock %}
 
 {% block extra_js %}

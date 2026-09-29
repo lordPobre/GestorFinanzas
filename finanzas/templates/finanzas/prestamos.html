@@ -6,53 +6,23 @@
 
 {% block content %}
 
-<div class="section-head" style="margin-top:0">
-  <div>
-    <h1 class="page-title">Me deben</h1>
-    <div class="hint" style="max-width:560px">
-      Plata que prestaste y todavía no vuelve. Toca una persona para ver sus préstamos y abonar.
+<section class="seccion-hero">
+  <div class="seccion-cab">
+    <h1 class="seccion-titulo">Me deben</h1>
+    <button class="btn btn-purple seccion-accion" data-open="#modalPersona" data-tour="prestamos" aria-label="Agregar persona"><i class="fas fa-user-plus" style="font-size:12px"></i><span>Agregar persona</span></button>
+  </div>
+  <p class="seccion-nota">Plata que prestaste y todavía no vuelve. Toca una persona para ver sus préstamos y abonar.</p>
+  <div class="seccion-cifra">
+    <span class="seccion-label">Te deben ahora</span>
+    <span class="seccion-monto">{{ total_por_cobrar|money }}</span>
+    <div class="inicio-chips">
+      <span class="chip-vidrio">{% if personas %}{{ personas|length }} persona{{ personas|length|pluralize:"s" }}{% else %}Nadie te debe{% endif %}</span>
+      {% if total_recuperado %}<span class="chip-vidrio">Te devolvieron {{ total_recuperado|money }}</span>{% endif %}
+      {% if total_prestado %}<span class="chip-vidrio">Prestado en total {{ total_prestado|money }}</span>{% endif %}
     </div>
   </div>
-  <button class="btn btn-purple" data-open="#modalPersona" data-tour="prestamos">
-    <i class="fas fa-user-plus" style="font-size:11px"></i>Agregar persona
-  </button>
-</div>
+</section>
 
-<div class="grid-metrics tarjetas-color" style="margin-bottom:20px">
-
-  <div class="tarjeta-color verde">
-    <div class="tc-cabecera">
-      <span class="tc-icono"><i class="fas fa-hand-holding-dollar"></i></span>
-      <span class="tc-label">Te deben ahora</span>
-    </div>
-    <div class="tc-monto">{{ total_por_cobrar|money }}</div>
-    <div class="tc-nota">
-      {% if personas %}de {{ personas|length }} persona{{ personas|length|pluralize:"s" }}
-      {% else %}Nadie te debe nada{% endif %}
-    </div>
-  </div>
-
-  <div class="tarjeta-color ambar">
-    <div class="tc-cabecera">
-      <span class="tc-icono"><i class="fas fa-arrow-rotate-left"></i></span>
-      <span class="tc-label">Ya te devolvieron</span>
-    </div>
-    <div class="tc-monto">{{ total_recuperado|money }}</div>
-    <div class="tc-nota">
-      {% if total_prestado %}{% widthratio total_recuperado total_prestado 100 %}% de lo que prestaste
-      {% else %}Sin préstamos registrados{% endif %}
-    </div>
-  </div>
-
-  <div class="tarjeta-color azul">
-    <div class="tc-cabecera">
-      <span class="tc-icono"><i class="fas fa-arrow-up-from-bracket"></i></span>
-      <span class="tc-label">Prestado en total</span>
-    </div>
-    <div class="tc-monto">{{ total_prestado|money }}</div>
-    <div class="tc-nota">Desde que usas la app</div>
-  </div>
-</div>
 <div class="grid-detail">
 
   <div class="glass" style="padding:16px" data-spot>
@@ -230,7 +200,7 @@
   <div class="modal-box" style="max-width:400px">
     <div class="modal-head">
       <div class="modal-title">Agregar persona</div>
-      <button class="modal-close" data-close>✕</button>
+      <button class="modal-close" data-close aria-label="Cerrar"><i class="fas fa-xmark"></i></button>
     </div>
     <form method="post" action="{% url 'crear_persona' %}">
       {% csrf_token %}
@@ -296,7 +266,7 @@
         <div class="modal-title">Contacto</div>
         <div class="modal-sub">{{ persona.nombre }}</div>
       </div>
-      <button class="modal-close" data-close>✕</button>
+      <button class="modal-close" data-close aria-label="Cerrar"><i class="fas fa-xmark"></i></button>
     </div>
     <form method="post" action="{% url 'editar_contacto' persona.pk %}">
       {% csrf_token %}
@@ -318,7 +288,7 @@
         <div class="modal-title">Nuevo préstamo</div>
         <div class="modal-sub">A {{ persona.nombre }}</div>
       </div>
-      <button class="modal-close" data-close>✕</button>
+      <button class="modal-close" data-close aria-label="Cerrar"><i class="fas fa-xmark"></i></button>
     </div>
 
     <form method="post" action="{% url 'crear_prestamo' persona.pk %}">
@@ -366,7 +336,7 @@
         <div class="modal-title">Registrar abono</div>
         <div class="modal-sub">{{ persona.nombre }} · {{ x.descripcion }}</div>
       </div>
-      <button class="modal-close" data-close>✕</button>
+      <button class="modal-close" data-close aria-label="Cerrar"><i class="fas fa-xmark"></i></button>
     </div>
 
     <form method="post" action="{% url 'abonar_prestamo' x.pk %}">

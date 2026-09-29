@@ -2,476 +2,347 @@
 {% load static %}
 {% load humanize %}
 {% block title %}Mi perfil · Fintora{% endblock %}
-
-{% block topbar_sub %}Tu cuenta{% endblock %}
-
-{% block topbar_actions %}
-<a href="{% url 'exportar_excel' %}" class="btn btn-glass"><i class="fas fa-file-excel" style="font-size:11px"></i>Exportar Excel</a>
-{% endblock %}
+{% block search_placeholder %}Filtrar ajustes{% endblock %}
 
 {% block content %}
-<div style="max-width:780px">
 
-{% if not profile.email and not request.user.email %}
-<div class="glass card borde-ambar" style="margin-bottom:16px;display:flex;gap:13px;align-items:flex-start">
-  <span class="icono-aviso ambar">
-    <i class="fas fa-envelope"></i>
-  </span>
-  <div style="flex:1;min-width:0">
-    <div style="font-size:13px;font-weight:700;margin-bottom:4px">Agrega tu email</div>
-    <div style="font-size:12px;color:var(--text-secondary);line-height:1.55">
-      Sin un correo guardado no podemos enviarte el enlace si olvidas tu
-      contraseña. Escríbelo abajo, en "Tus datos", y guarda los cambios.
-    </div>
-  </div>
-</div>
-{% endif %}
-
-<div class="glass card-lg perfil-cab" data-spot>
-
-  <div class="perfil-id">
-    <label class="avatar-foto" for="{{ perfil_form.foto.id_for_label }}"
-           title="{% if profile.foto_url %}Cambiar foto{% else %}Subir una foto{% endif %}">
-      <span class="avatar-inicial" id="vistaInicial">{{ profile.inicial }}</span>
-      <img id="vistaAvatar" alt=""
-           {% if profile.foto_url %}src="{{ profile.foto_url }}"{% else %}hidden{% endif %}>
-      <span class="avatar-lapiz"><i class="fas fa-camera"></i></span>
-    </label>
-
-    <div class="perfil-datos">
-      <h1 class="perfil-nombre">{{ profile.nombre_display }}</h1>
-
-      <div class="perfil-meta">
-        <span>
-          <i class="fas fa-envelope"></i>
-          {{ profile.email|default:request.user.email|default:"Sin email" }}
-        </span>
-        {% if profile.ubicacion %}
-        <span>
-          <i class="fas fa-location-dot"></i>{{ profile.ubicacion }}
-        </span>
-        {% endif %}
-      </div>
-
-      <div class="foto-nota" id="notaFoto" hidden>
-        <i class="fas fa-circle-info" style="font-size:10px"></i>Guarda los cambios para subir la foto
-      </div>
-    </div>
-  </div>
-
-  <div class="perfil-cifras">
-    <div class="perfil-cifra">
-      <span class="perfil-cifra-valor">{{ total_trans }}</span>
-      <span class="label">movimientos</span>
-    </div>
-    <div class="perfil-cifra">
-      <span class="perfil-cifra-valor">{{ total_deudas }}</span>
-      <span class="label">compras a plazo</span>
-    </div>
-    <div class="perfil-cifra">
-      <span class="perfil-cifra-valor">{{ miembro_desde }}</span>
-      <span class="label">miembro desde</span>
-    </div>
-  </div>
-</div>
-<div class="seg" style="margin-bottom:16px;max-width:340px" id="segPerfil">
-  <button type="button" class="on" data-panel="datos">Tus datos</button>
-  <button type="button" data-panel="seguridad" data-tour="seguridad">Seguridad</button>
+<div class="sec-top">
+  <h1 class="sec-titulo">Mi perfil</h1>
+  <a href="{% url 'exportar_excel' %}" class="sec-accion pf-exportar"><i class="fas fa-file-excel"></i><span>Exportar</span></a>
 </div>
 
-<div id="panelDatos">
-  <form method="post" enctype="multipart/form-data">
-    {% csrf_token %}
-    <input type="hidden" name="accion" value="perfil">
-
-    <div class="visually-hidden">{{ perfil_form.foto }}</div>
-    {% for e in perfil_form.foto.errors %}
-    <div class="glass card borde-coral" style="margin-bottom:14px">
-      <div style="display:flex;align-items:center;gap:10px;font-size:12.5px;color:var(--coral)">
-        <i class="fas fa-triangle-exclamation"></i>{{ e }}
-      </div>
+<section class="sec-hero pf-hero">
+  <label class="pf-avatar" for="{{ perfil_form.foto.id_for_label }}" title="{% if profile.foto_url %}Cambiar foto{% else %}Subir una foto{% endif %}">
+    <span id="vistaInicial">{{ profile.inicial }}</span>
+    <img id="vistaAvatar" alt=""{% if profile.foto_url %} src="{{ profile.foto_url }}"{% else %} hidden{% endif %}>
+    <span class="pf-camara"><i class="fas fa-camera"></i></span>
+  </label>
+  <div class="pf-id">
+    <h2 class="pf-nombre">{{ profile.nombre_display }}</h2>
+    <span class="pf-correo">{{ profile.email|default:request.user.email|default:"Sin email" }}{% if profile.ubicacion %} · {{ profile.ubicacion }}{% endif %}</span>
+    <div class="sec-chips">
+      <span class="chip-vidrio"><b>{{ total_trans }}</b> movimiento{{ total_trans|pluralize:"s" }}</span>
+      <span class="chip-vidrio"><b>{{ total_deudas }}</b> a plazo</span>
+      <span class="chip-vidrio">desde {{ miembro_desde|lower }}</span>
     </div>
-    {% endfor %}
+    <div class="pf-nota-foto" id="notaFoto" hidden><span>La foto se sube cuando guardas</span><button type="submit" form="formPerfil" class="sec-chico">Guardar foto</button></div>
+  </div>
+</section>
 
-    <div class="glass card" style="padding:24px;margin-bottom:16px" data-spot>
-      <div class="modal-title" style="font-size:15px;font-weight:500">Tus datos</div>
-      <div class="hint" style="font-size:11.5px;margin:3px 0 20px">
-        El nombre es lo único que se usa en la app. El resto es para tu registro.
-      </div>
-
-      <div class="form-row" style="margin-bottom:16px;flex-wrap:wrap">
-        <div style="flex:1;min-width:200px">
-          <label class="label" for="{{ perfil_form.nombre_completo.id_for_label }}">Nombre completo</label>
-          {{ perfil_form.nombre_completo }}
-        </div>
-        <div style="flex:1;min-width:200px">
-          <label class="label" for="{{ perfil_form.email.id_for_label }}">Email</label>
-          {{ perfil_form.email }}
-        </div>
-      </div>
-
-      <div class="form-row" style="margin-bottom:16px;flex-wrap:wrap">
-        <div style="flex:1;min-width:160px">
-          <label class="label" for="{{ perfil_form.telefono.id_for_label }}">Teléfono</label>
-          {{ perfil_form.telefono }}
-        </div>
-        <div style="flex:1;min-width:160px">
-          <label class="label" for="{{ perfil_form.ciudad.id_for_label }}">Ciudad</label>
-          {{ perfil_form.ciudad }}
-        </div>
-        <div style="flex:1;min-width:160px">
-          <label class="label" for="{{ perfil_form.pais.id_for_label }}">País</label>
-          {{ perfil_form.pais }}
-        </div>
-      </div>
-
-      <div class="field" style="margin-bottom:0">
-        <label class="label" for="{{ perfil_form.moneda.id_for_label }}">Moneda</label>
-        {{ perfil_form.moneda }}
-        <div class="hint" style="font-size:10.5px;margin-top:6px">
-          Cambia el símbolo en toda la app. No convierte los montos que ya registraste.
-        </div>
-      </div>
-    </div>
-
-    <div style="display:flex;gap:10px;margin-bottom:16px">
-      <button type="submit" class="btn btn-purple" style="padding:14px 22px;border-radius:15px;font-size:13.5px">Guardar cambios</button>
-      <a href="{% url 'dashboard' %}" class="btn btn-glass" style="padding:14px 20px;border-radius:15px">Cancelar</a>
-    </div>
-  </form>
-
-  <div class="glass card" style="padding:0;margin-bottom:16px;overflow:hidden" data-spot>
-    <div style="display:flex;align-items:center;gap:14px;padding:20px 22px" data-tour="aviso">
-      <span class="icon-tile {% if profile.aviso_mensual %}orange{% endif %}"
-            style="width:42px;height:42px;border-radius:15px;font-size:15px;flex-shrink:0">
-        <i class="fas fa-envelope-open-text"></i>
-      </span>
-      <div class="row-main">
-        <div class="row-title">Aviso mensual por correo</div>
-        <div class="row-meta">
-          {% if not profile.email and not request.user.email %}
-            <span style="color:var(--amber)">Falta tu email: agrégalo abajo para recibirlo</span>
-          {% elif profile.aviso_mensual %}
-            Cada día {{ profile.aviso_dia }} te llega a
-            {{ request.user.email|default:profile.email }}
-          {% else %}
-            Apagado. No te mandamos ningún recordatorio
-          {% endif %}
-        </div>
-      </div>
-      <form method="post" style="margin:0">
-        {% csrf_token %}
-        <input type="hidden" name="accion" value="aviso_mensual">
-        <input type="hidden" name="activar" value="{% if profile.aviso_mensual %}0{% else %}1{% endif %}">
-        <button type="submit" class="switch {% if profile.aviso_mensual %}on{% endif %}"
-                title="{% if profile.aviso_mensual %}Apagar{% else %}Encender{% endif %} el aviso mensual"
-                aria-label="{% if profile.aviso_mensual %}Apagar{% else %}Encender{% endif %} el aviso mensual">
-          <span class="knob"></span>
-        </button>
-      </form>
-    </div>
-
-    {% if profile.aviso_mensual %}
-    <div style="padding:18px 22px;border-top:1px solid rgba(255,255,255,.05)">
-      <div style="font-size:13px;font-weight:600;margin-bottom:10px">Día del envío</div>
-
-      <form method="post" style="margin:0;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
-        {% csrf_token %}
-        <input type="hidden" name="accion" value="aviso_dia">
-        <select name="aviso_dia" aria-label="Día del mes en que sale el aviso"
-                style="width:auto;min-width:104px;padding:12px 40px 12px 16px;font-size:13.5px;font-weight:600">
-          {% for d in dias_aviso %}
-          <option value="{{ d }}" {% if d == profile.aviso_dia %}selected{% endif %}>Día {{ d }}</option>
-          {% endfor %}
-        </select>
-        <button type="submit" class="btn btn-glass" style="padding:12px 20px;border-radius:14px;font-size:13px">Cambiar</button>
-      </form>
-
-      <div class="hint" style="font-size:11.5px;margin-top:12px;line-height:1.55;max-width:60ch">
-        Llegan las cuotas del mes, las suscripciones y las cuentas sin pagar,
-        con el total. En los meses que no alcanzan el día elegido —febrero con
-        el 30, por ejemplo— sale el último día del mes. Si no queda nada por
-        pagar, no te escribimos.
-      </div>
-    </div>
-    {% endif %}
+<section class="sec-hoja pf-hoja">
+  <div class="sec-pestanas pf-pestanas" id="segPerfil">
+    <button type="button" class="on" data-panel="datos">Tus datos</button>
+    <button type="button" data-panel="seguridad" data-tour="seguridad">Seguridad</button>
   </div>
 
-  <div class="glass" style="border-radius:24px;overflow:hidden" data-spot>
-    <div class="fila-lista"
-         data-tour="exportar">
-      <span class="icon-tile"><i class="fas fa-file-excel"></i></span>
-      <div class="row-main">
-        <div class="row-title">Exportar todo</div>
-        <div class="row-meta">Excel con tus movimientos mes por mes, con subtotales</div>
-      </div>
-      <div style="display:flex;gap:8px;align-items:center;flex-shrink:0">
-        <a href="{% url 'exportar_excel' %}" class="btn btn-glass btn-sm">Excel</a>
-        <a href="{% url 'exportar_csv' %}" class="btn btn-glass btn-sm" title="El mismo contenido en texto plano">CSV</a>
-      </div>
-    </div>
-
-    <div class="fila-lista">
-      <span class="icon-tile"><i class="fas fa-download"></i></span>
-      <div class="row-main">
-        <div class="row-title">Descargar todos mis datos</div>
-        <div class="row-meta">El expediente completo: perfil, personas, metas, suscripciones y movimientos</div>
-      </div>
-      <a href="{% url 'mis_datos' %}" class="btn btn-glass btn-sm">JSON</a>
-    </div>
-
-    <div class="fila-lista">
-      <span class="icon-tile {% if profile.analisis_ia %}orange{% endif %}"><i class="fas fa-brain"></i></span>
-      <div class="row-main">
-        <div class="row-title">Análisis con IA</div>
-        <div class="row-meta">
-          {% if profile.analisis_ia %}
-          Salen solo tus números agregados. Nunca descripciones ni nombres.
-          {% else %}
-          Apagado. El análisis usa solo el motor propio y nada sale del servidor.
-          {% endif %}
+  <div id="panelDatos">
+    <div class="pf-cols">
+      <div class="pf-col">
+        {% if not profile.email and not request.user.email %}
+        <div class="sec-tip ambar">
+          <span class="sec-tip-icono"><i class="fas fa-envelope"></i></span>
+          <span class="sec-tip-txt">
+            <b>Agrega tu email</b>
+            <span>Sin un correo guardado no podemos enviarte el enlace si olvidas tu contraseña. Escríbelo en «Nombre, email y teléfono» y guarda.</span>
+          </span>
         </div>
-      </div>
-      <form method="post" style="margin:0;flex-shrink:0">
-        {% csrf_token %}
-        <input type="hidden" name="accion" value="analisis_ia">
-        <input type="hidden" name="activar" value="{% if profile.analisis_ia %}0{% else %}1{% endif %}">
-        <button type="submit" class="btn btn-glass btn-sm">
-          {% if profile.analisis_ia %}Desactivar{% else %}Activar{% endif %}
-        </button>
-      </form>
-    </div>
-
-    <div class="fila-lista">
-      <span class="icon-tile {% if not profile.correo_verificado %}coral{% else %}green{% endif %}"><i class="fas fa-envelope-circle-check"></i></span>
-      <div class="row-main">
-        <div class="row-title">Correo de recuperación</div>
-        <div class="row-meta">
-          {% if profile.correo_verificado %}
-          {{ user.email|default:"Sin correo guardado" }} · confirmado
-          {% else %}
-          {{ user.email|default:"Sin correo guardado" }} · sin confirmar. Si lo
-          escribiste mal, no podrías recuperar tu contraseña.
-          {% endif %}
+        {% endif %}
+        {% for e in perfil_form.foto.errors %}
+        <div class="sec-tip rojo">
+          <span class="sec-tip-icono"><i class="fas fa-triangle-exclamation"></i></span>
+          <span class="sec-tip-txt"><span>{{ e }}</span></span>
         </div>
-      </div>
-      {% if not profile.correo_verificado and user.email %}
-      <form method="post" action="{% url 'reenviar_verificacion' %}" style="margin:0;flex-shrink:0">
-        {% csrf_token %}
-        <button type="submit" class="btn btn-purple btn-sm">Confirmar</button>
-      </form>
-      {% endif %}
-    </div>
+        {% endfor %}
 
-    <div class="fila-lista" style="flex-wrap:wrap">
-      <span class="icon-tile"><i class="fas fa-file-shield"></i></span>
-      <div class="row-main">
-        <div class="row-title">Privacidad y términos</div>
-        <div class="row-meta">
-          {% if politica_al_dia %}
-          Aceptaste la versión {{ profile.politica_version }} el {{ profile.politica_aceptada|date:"j \d\e F \d\e Y" }}
-          {% else %}
-          Hay una versión más reciente que la que aceptaste
+        <div class="pf-grupo">
+          <details class="pf-det"{% if perfil_form.errors %} open{% endif %}>
+            <summary class="pf-fila">
+              <span class="pf-icono"><i class="fas fa-user-pen"></i></span>
+              <span class="pf-txt">
+                <span class="pf-titulo">Nombre, email y teléfono</span>
+                <span class="pf-meta">Solo el nombre se muestra en la app</span>
+              </span>
+              <i class="fas fa-chevron-right pf-flecha"></i>
+            </summary>
+            <form method="post" enctype="multipart/form-data" id="formPerfil" class="pf-det-cuerpo">
+              {% csrf_token %}
+              <input type="hidden" name="accion" value="perfil">
+              <div class="visually-hidden">{{ perfil_form.foto }}</div>
+              <div class="pf-campos">
+                <div>
+                  <label class="label" for="{{ perfil_form.nombre_completo.id_for_label }}">Nombre completo</label>
+                  {{ perfil_form.nombre_completo }}
+                </div>
+                <div>
+                  <label class="label" for="{{ perfil_form.email.id_for_label }}">Email</label>
+                  {{ perfil_form.email }}
+                </div>
+                <div>
+                  <label class="label" for="{{ perfil_form.telefono.id_for_label }}">Teléfono</label>
+                  {{ perfil_form.telefono }}
+                </div>
+                <div>
+                  <label class="label" for="{{ perfil_form.ciudad.id_for_label }}">Ciudad</label>
+                  {{ perfil_form.ciudad }}
+                </div>
+                <div>
+                  <label class="label" for="{{ perfil_form.pais.id_for_label }}">País</label>
+                  {{ perfil_form.pais }}
+                </div>
+                <div>
+                  <label class="label" for="{{ perfil_form.moneda.id_for_label }}">Moneda</label>
+                  {{ perfil_form.moneda }}
+                </div>
+              </div>
+              <span class="pf-meta">La moneda cambia el símbolo en toda la app. No convierte los montos que ya registraste.</span>
+              <button type="submit" class="sec-btn ambar">Guardar cambios</button>
+            </form>
+          </details>
+
+          <div class="pf-fila" data-tour="aviso">
+            <span class="pf-icono{% if profile.aviso_mensual %} ambar{% endif %}"><i class="fas fa-envelope-open-text"></i></span>
+            <span class="pf-txt">
+              <span class="pf-titulo">Aviso mensual por correo</span>
+              {% if not profile.email and not request.user.email %}
+              <span class="pf-meta ambar">Falta tu email para recibirlo</span>
+              {% elif profile.aviso_mensual %}
+              <span class="pf-meta">Te llega el día {{ profile.aviso_dia }} de cada mes</span>
+              {% else %}
+              <span class="pf-meta">Apagado. No te mandamos recordatorios</span>
+              {% endif %}
+            </span>
+            <form method="post">
+              {% csrf_token %}
+              <input type="hidden" name="accion" value="aviso_mensual">
+              <input type="hidden" name="activar" value="{% if profile.aviso_mensual %}0{% else %}1{% endif %}">
+              <button type="submit" class="switch{% if profile.aviso_mensual %} on{% endif %}" aria-label="{% if profile.aviso_mensual %}Apagar{% else %}Encender{% endif %} el aviso mensual" title="{% if profile.aviso_mensual %}Apagar{% else %}Encender{% endif %} el aviso mensual"><span class="knob"></span></button>
+            </form>
+          </div>
+
+          {% if profile.aviso_mensual %}
+          <div class="pf-dia">
+            <form method="post" class="pf-dia-form">
+              {% csrf_token %}
+              <input type="hidden" name="accion" value="aviso_dia">
+              <label class="pf-meta" for="avisoDia">Día del envío</label>
+              <select name="aviso_dia" id="avisoDia">
+                {% for d in dias_aviso %}
+                <option value="{{ d }}"{% if d == profile.aviso_dia %} selected{% endif %}>Día {{ d }}</option>
+                {% endfor %}
+              </select>
+              <button type="submit" class="sec-chico">Cambiar</button>
+            </form>
+            <span class="pf-meta">Llegan las cuotas del mes, las suscripciones y las cuentas sin pagar, con el total. Si el mes no alcanza el día elegido, sale el último día. Si no queda nada por pagar, no te escribimos.</span>
+          </div>
           {% endif %}
-        </div>
-      </div>
-      <div style="display:flex;gap:8px;align-items:center;flex-shrink:0">
-        <a href="{% url 'privacidad' %}" class="btn btn-glass btn-sm">Privacidad</a>
-        <a href="{% url 'terminos' %}" class="btn btn-glass btn-sm">Términos</a>
-        {% if not politica_al_dia %}
-        <form method="post" style="margin:0">
-          {% csrf_token %}
-          <input type="hidden" name="accion" value="aceptar_politica">
-          <button type="submit" class="btn btn-purple btn-sm">Aceptar</button>
-        </form>
-        {% endif %}
-      </div>
-    </div>
 
-    <div class="fila-lista">
-      <span class="icon-tile orange"><i class="fas fa-route"></i></span>
-      <div class="row-main">
-        <div class="row-title">Cómo funciona la app</div>
-        <div class="row-meta">Un recorrido por cada pantalla</div>
-      </div>
-      <button type="button" class="btn btn-glass btn-sm" data-tour-iniciar>Ver el tour</button>
-    </div>
-
-    <div class="fila-lista">
-      <span class="icon-tile orange"><i class="fas fa-credit-card"></i></span>
-      <div class="row-main">
-        <div class="row-title">Compras en cuotas</div>
-        <div class="row-meta">{{ cuotas_activas }} activa{{ cuotas_activas|pluralize:"s" }} ahora mismo</div>
-      </div>
-      <a href="{% url 'deudas' %}" class="btn btn-glass btn-sm">Ver</a>
-    </div>
-
-    <div class="fila-lista">
-      <span class="icon-tile green"><i class="fas fa-hand-holding-dollar"></i></span>
-      <div class="row-main">
-        <div class="row-title">Préstamos por cobrar</div>
-        <div class="row-meta">{{ prestamos_activos }} pendiente{{ prestamos_activos|pluralize:"s" }}</div>
-      </div>
-      <a href="{% url 'prestamos' %}" class="btn btn-glass btn-sm">Ver</a>
-    </div>
-  </div>
-</div>
-
-<div id="panelSeguridad" style="display:none">
-
-  {% with n_passkeys=user.passkeys.count %}
-  <a href="{% url 'passkeys' %}" class="fila-ajuste" data-tour="face-id">
-    <span class="icon-tile fila-ajuste-icono {% if n_passkeys %}green{% else %}blue{% endif %}">
-      <i class="fas fa-fingerprint"></i>
-    </span>
-    <div class="fila-ajuste-texto">
-      <div class="fila-ajuste-titulo">
-        Face ID o huella
-      </div>
-      <div class="fila-ajuste-nota">
-        {% if n_passkeys %}
-          {{ n_passkeys }} dispositivo{{ n_passkeys|pluralize:"s" }} puede{{ n_passkeys|pluralize:"n" }} entrar sin contraseña
-        {% else %}
-          Entra sin escribir la contraseña
-        {% endif %}
-      </div>
-    </div>
-    {% if n_passkeys %}
-      <span class="badge badge-green" style="flex-shrink:0">Activo</span>
-    {% endif %}
-    <i class="fas fa-chevron-right fila-ajuste-flecha"></i>
-  </a>
-  {% endwith %}
-
-  <a href="{% url 'configurar_2fa' %}" class="fila-ajuste" data-tour="dos-pasos">
-    <span class="icon-tile fila-ajuste-icono {% if user.segundo_factor.activo %}green{% else %}orange{% endif %}">
-      <i class="fas fa-shield-halved"></i>
-    </span>
-
-    <div class="fila-ajuste-texto">
-      <div class="fila-ajuste-titulo">
-        Verificación en dos pasos
-      </div>
-      <div class="fila-ajuste-nota">
-        {% if user.segundo_factor.activo %}
-          Activa · te pedimos un código al entrar
-        {% else %}
-          Tu cuenta depende solo de la contraseña
-        {% endif %}
-      </div>
-    </div>
-
-    {% if user.segundo_factor.activo %}
-      <span class="badge badge-green" style="flex-shrink:0">Activa</span>
-    {% else %}
-      <span class="badge badge-orange" style="flex-shrink:0">Recomendado</span>
-    {% endif %}
-    <i class="fas fa-chevron-right fila-ajuste-flecha"></i>
-  </a>
-
-  <a href="{% url 'sesiones_activas' %}" class="fila-ajuste" data-tour="sesiones">
-    <span class="icon-tile fila-ajuste-icono blue">
-      <i class="fas fa-laptop"></i>
-    </span>
-    <div class="fila-ajuste-texto">
-      <div class="fila-ajuste-titulo">
-        Sesiones abiertas
-      </div>
-      <div class="fila-ajuste-nota">
-        {{ sesiones_abiertas }} aparato{{ sesiones_abiertas|pluralize:"s" }} con tu cuenta abierta ahora
-      </div>
-    </div>
-    <i class="fas fa-chevron-right fila-ajuste-flecha"></i>
-  </a>
-
-  <form method="post">
-    {% csrf_token %}
-    <input type="hidden" name="accion" value="password">
-
-    <div class="glass card" style="padding:24px;margin-bottom:16px" data-spot data-tour="contrasena">
-      <div class="modal-title" style="font-size:15px;font-weight:500">Cambiar contraseña</div>
-      <div class="hint" style="font-size:11.5px;margin:3px 0 20px">
-        Necesitas la actual. Al cambiarla no se cierra tu sesión.
-      </div>
-
-      {% if pw_form.errors %}
-      <div class="glass-coral" style="padding:13px 15px;border-radius:14px;margin-bottom:18px">
-        <div style="display:flex;gap:10px;align-items:flex-start">
-          <i class="fas fa-circle-exclamation" style="font-size:12px;color:var(--coral);margin-top:2px"></i>
-          <div style="font-size:12px;color:var(--text-secondary);line-height:1.55">
-            {% for campo, errores in pw_form.errors.items %}
-              {% for e in errores %}<div>{{ e }}</div>{% endfor %}
-            {% endfor %}
+          <div class="pf-fila">
+            <span class="pf-icono{% if profile.analisis_ia %} azul{% endif %}"><i class="fas fa-brain"></i></span>
+            <span class="pf-txt">
+              <span class="pf-titulo">Análisis con IA</span>
+              <span class="pf-meta">{% if profile.analisis_ia %}Solo números, nunca nombres ni descripciones{% else %}Apagado. Nada sale del servidor{% endif %}</span>
+            </span>
+            <form method="post">
+              {% csrf_token %}
+              <input type="hidden" name="accion" value="analisis_ia">
+              <input type="hidden" name="activar" value="{% if profile.analisis_ia %}0{% else %}1{% endif %}">
+              <button type="submit" class="switch{% if profile.analisis_ia %} on{% endif %}" aria-label="{% if profile.analisis_ia %}Desactivar{% else %}Activar{% endif %} el análisis con IA" title="{% if profile.analisis_ia %}Desactivar{% else %}Activar{% endif %} el análisis con IA"><span class="knob"></span></button>
+            </form>
           </div>
         </div>
       </div>
-      {% endif %}
 
-      <div class="field">
-        <label class="label" for="{{ pw_form.old_password.id_for_label }}">Contraseña actual</label>
-        <input type="password" name="old_password" id="{{ pw_form.old_password.id_for_label }}"
-               autocomplete="current-password" placeholder="••••••••">
-      </div>
+      <div class="pf-col">
+        <div class="pf-grupo">
+          <div class="pf-fila" data-tour="exportar">
+            <span class="pf-icono verde"><i class="fas fa-file-excel"></i></span>
+            <span class="pf-txt">
+              <span class="pf-titulo">Exportar movimientos</span>
+              <span class="pf-meta">Excel o CSV, mes por mes</span>
+            </span>
+            <span class="pf-botones">
+              <a href="{% url 'exportar_excel' %}" class="sec-chico">Excel</a>
+              <a href="{% url 'exportar_csv' %}" class="sec-chico" title="El mismo contenido en texto plano">CSV</a>
+            </span>
+          </div>
 
-      <div class="form-row" style="flex-wrap:wrap">
-        <div style="flex:1;min-width:200px;margin-bottom:16px">
-          <label class="label" for="{{ pw_form.new_password1.id_for_label }}">Nueva contraseña</label>
-          <input type="password" name="new_password1" id="{{ pw_form.new_password1.id_for_label }}"
-                 autocomplete="new-password" placeholder="al menos 8 caracteres">
+          <a href="{% url 'mis_datos' %}" class="pf-fila">
+            <span class="pf-icono"><i class="fas fa-download"></i></span>
+            <span class="pf-txt">
+              <span class="pf-titulo">Descargar todos mis datos</span>
+              <span class="pf-meta">Perfil, metas, personas y movimientos</span>
+            </span>
+            <i class="fas fa-chevron-right pf-flecha"></i>
+          </a>
+
+          <details class="pf-det"{% if not politica_al_dia %} open{% endif %}>
+            <summary class="pf-fila">
+              <span class="pf-icono{% if not politica_al_dia %} ambar{% endif %}"><i class="fas fa-file-shield"></i></span>
+              <span class="pf-txt">
+                <span class="pf-titulo">Privacidad y términos</span>
+                {% if politica_al_dia %}
+                <span class="pf-meta">Aceptaste la versión {{ profile.politica_version }} el {{ profile.politica_aceptada|date:"j b Y" }}</span>
+                {% else %}
+                <span class="pf-meta ambar">Hay una versión más reciente que la que aceptaste</span>
+                {% endif %}
+              </span>
+              <i class="fas fa-chevron-right pf-flecha"></i>
+            </summary>
+            <div class="pf-det-cuerpo fila">
+              <a href="{% url 'privacidad' %}" class="sec-chico">Privacidad</a>
+              <a href="{% url 'terminos' %}" class="sec-chico">Términos</a>
+              {% if not politica_al_dia %}
+              <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="accion" value="aceptar_politica">
+                <button type="submit" class="sec-chico ambar">Aceptar la nueva</button>
+              </form>
+              {% endif %}
+            </div>
+          </details>
+
+          <button type="button" class="pf-fila" data-tour-iniciar>
+            <span class="pf-icono ambar"><i class="fas fa-route"></i></span>
+            <span class="pf-txt">
+              <span class="pf-titulo">Cómo funciona la app</span>
+              <span class="pf-meta">Un recorrido por cada pantalla</span>
+            </span>
+            <i class="fas fa-chevron-right pf-flecha"></i>
+          </button>
         </div>
-        <div style="flex:1;min-width:200px;margin-bottom:16px">
-          <label class="label" for="{{ pw_form.new_password2.id_for_label }}">Repítela</label>
-          <input type="password" name="new_password2" id="{{ pw_form.new_password2.id_for_label }}"
-                 autocomplete="new-password" placeholder="••••••••">
-          <div class="hint" style="font-size:10.5px;margin-top:6px" id="coincide"></div>
-        </div>
       </div>
-
-      <button type="submit" class="btn btn-purple" style="padding:14px 22px;border-radius:15px;font-size:13.5px">Cambiar contraseña</button>
-    </div>
-  </form>
-
-  <div class="glass" style="border-radius:24px;overflow:hidden" data-spot>
-    <div class="fila-lista">
-      <span class="icon-tile"><i class="fas fa-user"></i></span>
-      <div class="row-main">
-        <div class="row-title">Usuario</div>
-        <div class="row-meta">Con el que entras. No se puede cambiar.</div>
-      </div>
-      <span class="mono" style="font-size:12px;color:var(--text-secondary)">{{ request.user.username }}</span>
-    </div>
-
-    <div class="fila-lista">
-      <span class="icon-tile coral"><i class="fas fa-right-from-bracket"></i></span>
-      <div class="row-main">
-        <div class="row-title">Cerrar sesión</div>
-        <div class="row-meta">Tus datos quedan guardados en tu cuenta</div>
-      </div>
-      <form method="post" action="{% url 'logout' %}" style="margin:0">
-        {% csrf_token %}
-        <button type="submit" class="btn btn-red btn-sm">Salir</button>
-      </form>
     </div>
   </div>
 
-  <div class="glass card borde-coral" style="margin-top:16px" data-tour="eliminar-cuenta">
-    <div style="display:flex;align-items:center;gap:14px">
-      <span class="icon-tile coral" style="flex-shrink:0"><i class="fas fa-trash-can"></i></span>
-      <div class="row-main">
-        <div class="row-title">Eliminar mi cuenta</div>
-        <div class="row-meta">Borra tu cuenta y todo tu historial. No se puede deshacer.</div>
+  <div id="panelSeguridad" style="display:none">
+    <div class="pf-cols">
+      <div class="pf-col">
+        <div class="pf-grupo">
+          {% with n_passkeys=user.passkeys.count %}
+          <a href="{% url 'passkeys' %}" class="pf-fila" data-tour="face-id">
+            <span class="pf-icono{% if n_passkeys %} verde{% else %} azul{% endif %}"><i class="fas fa-fingerprint"></i></span>
+            <span class="pf-txt">
+              <span class="pf-titulo">Face ID o huella</span>
+              <span class="pf-meta">{% if n_passkeys %}{{ n_passkeys }} dispositivo{{ n_passkeys|pluralize:"s" }} entra{{ n_passkeys|pluralize:"n" }} sin contraseña{% else %}Entra sin escribir la contraseña{% endif %}</span>
+            </span>
+            {% if n_passkeys %}<span class="sec-badge verde">Activo</span>{% else %}<i class="fas fa-chevron-right pf-flecha"></i>{% endif %}
+          </a>
+          {% endwith %}
+
+          <a href="{% url 'configurar_2fa' %}" class="pf-fila" data-tour="dos-pasos">
+            <span class="pf-icono{% if user.segundo_factor.activo %} verde{% else %} amarillo{% endif %}"><i class="fas fa-shield-halved"></i></span>
+            <span class="pf-txt">
+              <span class="pf-titulo">Verificación en dos pasos</span>
+              <span class="pf-meta">{% if user.segundo_factor.activo %}Te pedimos un código al entrar{% else %}Tu cuenta depende solo de la contraseña{% endif %}</span>
+            </span>
+            {% if user.segundo_factor.activo %}<span class="sec-badge verde">Activa</span>{% else %}<span class="sec-badge amarillo">Recomendado</span>{% endif %}
+          </a>
+
+          <a href="{% url 'sesiones_activas' %}" class="pf-fila" data-tour="sesiones">
+            <span class="pf-icono azul"><i class="fas fa-laptop"></i></span>
+            <span class="pf-txt">
+              <span class="pf-titulo">Sesiones abiertas</span>
+              <span class="pf-meta">{{ sesiones_abiertas }} aparato{{ sesiones_abiertas|pluralize:"s" }} con tu cuenta abierta</span>
+            </span>
+            <i class="fas fa-chevron-right pf-flecha"></i>
+          </a>
+
+          <div class="pf-fila">
+            <span class="pf-icono{% if profile.correo_verificado %} verde{% else %} rojo{% endif %}"><i class="fas fa-envelope-circle-check"></i></span>
+            <span class="pf-txt">
+              <span class="pf-titulo">Correo de recuperación</span>
+              <span class="pf-meta">{{ user.email|default:"Sin correo guardado" }}{% if user.email and not profile.correo_verificado %} · sin confirmar{% endif %}</span>
+            </span>
+            {% if profile.correo_verificado %}
+            <span class="sec-badge verde">Confirmado</span>
+            {% elif user.email %}
+            <form method="post" action="{% url 'reenviar_verificacion' %}">
+              {% csrf_token %}
+              <button type="submit" class="sec-chico ambar">Confirmar</button>
+            </form>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="pf-grupo">
+          <details class="pf-det" data-tour="contrasena"{% if pw_form.errors %} open{% endif %}>
+            <summary class="pf-fila">
+              <span class="pf-icono"><i class="fas fa-key"></i></span>
+              <span class="pf-txt">
+                <span class="pf-titulo">Cambiar contraseña</span>
+                <span class="pf-meta">Necesitas la actual. No se cierra tu sesión</span>
+              </span>
+              <i class="fas fa-chevron-right pf-flecha"></i>
+            </summary>
+            <form method="post" class="pf-det-cuerpo">
+              {% csrf_token %}
+              <input type="hidden" name="accion" value="password">
+              {% if pw_form.errors %}
+              <div class="sec-tip rojo">
+                <span class="sec-tip-icono"><i class="fas fa-circle-exclamation"></i></span>
+                <span class="sec-tip-txt">{% for campo, errores in pw_form.errors.items %}{% for e in errores %}<span>{{ e }}</span>{% endfor %}{% endfor %}</span>
+              </div>
+              {% endif %}
+              <div>
+                <label class="label" for="{{ pw_form.old_password.id_for_label }}">Contraseña actual</label>
+                <input type="password" name="old_password" id="{{ pw_form.old_password.id_for_label }}" autocomplete="current-password" placeholder="••••••••">
+              </div>
+              <div class="pf-campos">
+                <div>
+                  <label class="label" for="{{ pw_form.new_password1.id_for_label }}">Nueva contraseña</label>
+                  <input type="password" name="new_password1" id="{{ pw_form.new_password1.id_for_label }}" autocomplete="new-password" placeholder="al menos 8 caracteres">
+                </div>
+                <div>
+                  <label class="label" for="{{ pw_form.new_password2.id_for_label }}">Repítela</label>
+                  <input type="password" name="new_password2" id="{{ pw_form.new_password2.id_for_label }}" autocomplete="new-password" placeholder="••••••••">
+                  <div class="hint" style="margin-top:6px" id="coincide"></div>
+                </div>
+              </div>
+              <button type="submit" class="sec-btn ambar">Cambiar contraseña</button>
+            </form>
+          </details>
+
+          <div class="pf-fila">
+            <span class="pf-icono"><i class="fas fa-user"></i></span>
+            <span class="pf-txt">
+              <span class="pf-titulo">Usuario</span>
+              <span class="pf-meta">Con el que entras. No se puede cambiar</span>
+            </span>
+            <span class="pf-usuario">{{ request.user.username }}</span>
+          </div>
+        </div>
       </div>
-      <a href="{% url 'eliminar_cuenta' %}" class="btn btn-glass btn-sm"
-         style="border-color:rgba(226,92,92,.4);color:var(--coral);flex-shrink:0">Eliminar</a>
+
+      <div class="pf-col">
+        <div class="pf-grupo">
+          <form method="post" action="{% url 'logout' %}">
+            {% csrf_token %}
+            <button type="submit" class="pf-fila">
+              <span class="pf-icono"><i class="fas fa-right-from-bracket"></i></span>
+              <span class="pf-txt">
+                <span class="pf-titulo">Cerrar sesión</span>
+                <span class="pf-meta">Tus datos quedan guardados</span>
+              </span>
+              <i class="fas fa-chevron-right pf-flecha"></i>
+            </button>
+          </form>
+
+          <a href="{% url 'eliminar_cuenta' %}" class="pf-fila" data-tour="eliminar-cuenta">
+            <span class="pf-icono rojo"><i class="fas fa-trash-can"></i></span>
+            <span class="pf-txt">
+              <span class="pf-titulo rojo">Eliminar mi cuenta</span>
+              <span class="pf-meta">Borra todo tu historial. No se puede deshacer</span>
+            </span>
+            <i class="fas fa-chevron-right pf-flecha"></i>
+          </a>
+        </div>
+      </div>
     </div>
   </div>
-</div>
-
-</div>
+</section>
 {% endblock %}
 
 {% block extra_js %}
 <script src="{% static 'js/pantallas/perfil.js' %}" nonce="{{ csp_nonce }}" data-foto="{{ perfil_form.foto.id_for_label }}"></script>
-
 <script src="{% static 'js/pantallas/perfil-2.js' %}" nonce="{{ csp_nonce }}" {% if pw_form.errors %}data-pw-errores="1" {% endif %}data-p1="{{ pw_form.new_password1.id_for_label }}" data-p2="{{ pw_form.new_password2.id_for_label }}"></script>
 {% endblock %}

@@ -4,20 +4,21 @@
 {% block topbar_sub %}Guárdalos en un lugar seguro{% endblock %}
 
 {% block content %}
-<div style="max-width:480px">
+<div class="sec-top">
+  <h1 class="sec-titulo">Códigos de respaldo</h1>
+</div>
+
+<section class="sec-hero fo-hero">
+  <span class="fo-icono verde"><i class="fas fa-{% if recien_creados %}circle-check{% else %}key{% endif %}"></i></span>
+  <span class="fo-quien">{% if recien_creados %}Listo, tu cuenta está protegida{% else %}Códigos nuevos{% endif %}</span>
+  <span class="fo-nota">Guarda estos códigos. Son la única forma de entrar si pierdes el teléfono.</span>
+</section>
+
+<section class="sec-hoja fo-hoja fo-form fo-verde">
+<div class="fo-cuerpo">
   <div class="glass card-lg" data-spot>
 
-    <div style="text-align:center;margin-bottom:22px">
-      <span class="icon-tile green" style="width:48px;height:48px;border-radius:17px;font-size:18px;margin-bottom:12px">
-        <i class="fas fa-{% if recien_creados %}circle-check{% else %}key{% endif %}"></i>
-      </span>
-      <h1 style="font-family:'Manrope',sans-serif;font-size:20px;font-weight:800;letter-spacing:-.025em;margin:0 0 6px">
-        {% if recien_creados %}Listo, tu cuenta está protegida{% else %}Códigos nuevos{% endif %}
-      </h1>
-      <div class="hint" style="font-size:12.5px">
-        Guarda estos códigos. Son la única forma de entrar si pierdes el teléfono.
-      </div>
-    </div>
+    
 
         <div class="aviso-2fa">
       <i class="fas fa-triangle-exclamation" style="font-size:12px;flex-shrink:0;margin-top:2px"></i>
@@ -46,6 +47,7 @@
        style="margin-top:14px;pointer-events:none;opacity:.45">Continuar</a>
   </div>
 </div>
+</section>
 {% endblock %}
 
 {% block extra_js %}

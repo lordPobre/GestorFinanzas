@@ -3,24 +3,23 @@
 {% block title %}Agregar persona · FinApp{% endblock %}
 {% block topbar_sub %}Alguien que te debe dinero{% endblock %}
 
-{% block topbar_actions %}
-<a href="{% url 'prestamos' %}" class="btn btn-glass"><i class="fas fa-arrow-left" style="font-size:11px"></i>Volver</a>
-{% endblock %}
 
 {% block content %}
-<div style="max-width:440px">
-  <div class="glass card-lg" data-spot>
-    <div style="display:flex;align-items:center;gap:13px;margin-bottom:6px">
-      <span class="icon-tile orange" style="width:40px;height:40px;border-radius:14px">
-        <i class="fas fa-user-plus" style="font-size:15px"></i>
-      </span>
-      <div class="page-title" style="font-size:19px">Agregar persona</div>
-    </div>
-    <div class="hint" style="margin-bottom:22px">
-      Puedes registrar su primer préstamo ahora o dejarlo para después.
-    </div>
 
-    <form method="post" action="{% url 'crear_persona' %}">
+<div class="sec-top centrado">
+  <a href="{% url 'prestamos' %}" class="sec-volver" aria-label="Volver"><i class="fas fa-chevron-left"></i></a>
+  <h1 class="sec-titulo">Agregar persona</h1>
+  <span class="sec-hueco" aria-hidden="true"></span>
+</div>
+
+<section class="sec-hero fo-hero">
+  <span class="fo-icono verde"><i class="fas fa-user-plus"></i></span>
+  
+  <span class="fo-nota">Puedes registrar su primer préstamo ahora o dejarlo para después.</span>
+</section>
+
+<section class="sec-hoja fo-hoja fo-form fo-verde">
+  <form method="post" action="{% url 'crear_persona' %}">
       {% csrf_token %}
 
       <div class="field">
@@ -67,15 +66,14 @@
         </div>
       </details>
 
-      <div style="display:flex;gap:10px">
-        <button type="submit" class="btn btn-purple" style="flex:1;padding:15px;font-size:13.5px">
+      <div class="fo-acciones">
+        <button type="submit" class="sec-btn ambar">
           Agregar persona
         </button>
-        <a href="{% url 'prestamos' %}" class="btn btn-glass" style="padding:15px 18px">Cancelar</a>
+        <a href="{% url 'prestamos' %}" class="sec-btn vidrio">Cancelar</a>
       </div>
     </form>
-  </div>
-</div>
+</section>
 {% endblock %}
 
 {% block extra_js %}

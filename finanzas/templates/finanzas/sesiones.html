@@ -3,12 +3,22 @@
 {% block title %}Sesiones abiertas · Fintora{% endblock %}
 {% block topbar_sub %}Sesiones abiertas{% endblock %}
 
-{% block topbar_actions %}
-<a href="{% url 'perfil' %}" class="btn btn-glass"><i class="fas fa-arrow-left" style="font-size:11px"></i>Volver al perfil</a>
-{% endblock %}
 
 {% block content %}
-<div style="max-width:680px">
+<div class="sec-top centrado">
+  <a href="{% url 'perfil' %}#seguridad" class="sec-volver" aria-label="Volver"><i class="fas fa-chevron-left"></i></a>
+  <h1 class="sec-titulo">Sesiones abiertas</h1>
+  <span class="sec-hueco" aria-hidden="true"></span>
+</div>
+
+<section class="sec-hero">
+  <span class="sec-label">Tu cuenta está abierta en</span>
+  <span class="sec-monto">{{ sesiones|length }}</span>
+  <div class="sec-chips"><span class="chip-vidrio">aparato{{ sesiones|length|pluralize:"s" }}</span></div>
+</section>
+
+<section class="sec-hoja fo-hoja fo-form fo-azul">
+<div class="fo-cuerpo">
 
   <div class="glass card" style="margin-bottom:16px;display:flex;gap:13px;align-items:flex-start">
     <span class="icono-aviso ambar">
@@ -79,4 +89,5 @@
   </div>
 
 </div>
+</section>
 {% endblock %}

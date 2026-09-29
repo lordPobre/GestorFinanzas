@@ -3726,6 +3726,10 @@ html:not(.legal-js) .legal-indice, html:not(.legal-js) .legal-indice-movil { dis
 .lp-cierre-acciones span a { text-decoration: underline; }
 .lp-cierre-pie { display: flex; justify-content: space-between; align-items: center; gap: 16px; max-width: 1168px; margin: 88px auto 0; padding-top: 22px; border-top: 1.5px solid rgba(26, 18, 0, .2); font-size: 12.5px; font-weight: 700; }
 .lp-cierre-enlaces { display: flex; gap: 18px; }
+.lp-cierre-izq { display: flex; flex-direction: column; align-items: flex-start; gap: 14px; }
+.lp-cierre-redes { display: flex; gap: 10px; }
+.lp-cierre-redes a { display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; border-radius: 50%; background: rgba(26, 18, 0, .08); color: var(--tinta-ambar); font-size: 19px; transition: background .2s var(--ease-out); }
+.lp-cierre-redes a:hover { background: rgba(26, 18, 0, .16); }
 
 .lp-js [data-lp-revelar], .lp-js [data-lp-hijos] > * { opacity: 0; translate: 0 28px; transition: opacity .8s var(--ease-out), translate .8s var(--ease-out); }
 .lp-js .lp-visible[data-lp-revelar], .lp-js [data-lp-hijos] > .lp-visible { opacity: 1; translate: 0 0; }

@@ -6,20 +6,17 @@
 {% block search_placeholder %}Filtrar categorías{% endblock %}
 
 {% block content %}
-
-<div class="section-head" style="margin-top:0">
-  <div>
-    <h1 class="section-title" style="font-size:22px">Categorías</h1>
-    <div class="hint" style="margin-top:4px;max-width:520px">
-      Los montos son de {{ nombre_mes }}. Puedes crear las tuyas y cambiar el color
-      de cualquiera; las que vienen con la app no se borran.
-    </div>
-  </div>
-  <button class="btn btn-purple" data-open="#modalCat">
-    <i class="fas fa-plus" style="font-size:11px"></i>Nueva categoría
-  </button>
+<div class="sec-top">
+  <h1 class="sec-titulo">Categorías</h1>
+  <button type="button" class="sec-accion" data-open="#modalCat" aria-label="Nueva categoría"><i class="fas fa-plus"></i><span>Nueva categoría</span></button>
 </div>
 
+<section class="sec-hero fo-hero">
+  <span class="fo-icono ambar"><i class="fas fa-tags"></i></span>
+  <span class="fo-nota">Los montos son de {{ nombre_mes }}. Puedes crear las tuyas y cambiar el color de cualquiera; las que vienen con la app no se borran.</span>
+</section>
+
+<section class="sec-hoja fo-hoja fo-ambar">
 {% if sin_usar|length > 6 %}
 <div class="glass card borde-ambar" style="margin-bottom:16px;display:flex;align-items:flex-start;gap:12px">
   <span class="icon-tile orange" style="width:32px;height:32px"><i class="fas fa-broom" style="font-size:12px"></i></span>
@@ -117,7 +114,7 @@
     </div>
   </div>
 </div>
-
+</section>
 {% endblock %}
 
 {% block modals %}

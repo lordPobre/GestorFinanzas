@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#191919">
+  <meta name="theme-color" content="#151412">
   <title>{% block title %}Fintora{% endblock %}</title>
 
   <link rel="manifest" href="{% static 'site.webmanifest' %}">
@@ -21,6 +21,7 @@
   <link rel="stylesheet" href="{% static 'vendor/fonts/fuentes.css' %}">
   <link rel="stylesheet" href="{% static 'vendor/fontawesome/css/all.min.css' %}">
   <link rel="stylesheet" href="{% static 'css/finapp.css' %}">
+  <link rel="stylesheet" href="{% static 'css/tema-vidrio.css' %}">
   {% block extra_head %}{% endblock %}
   <script src="{% static 'js/pantallas/base.js' %}" nonce="{{ csp_nonce }}"></script>
 
@@ -54,11 +55,8 @@
           <i class="fas fa-house"></i><span>Inicio</span>
         </a>
         <a href="{% url 'deudas' %}" data-label="Cuotas" class="nav-item {% if request.resolver_match.url_name == 'deudas' %}active{% endif %}">
-          <i class="fas fa-credit-card"></i><span>Compras en cuotas</span>
+          <i class="fas fa-credit-card"></i><span>Cuotas</span>
           {% if cuotas_activas %}<span class="nav-count">{{ cuotas_activas }}</span>{% endif %}
-        </a>
-        <a href="{% url 'estadisticas' %}" data-label="Estadísticas" class="nav-item {% if request.resolver_match.url_name == 'estadisticas' %}active{% endif %}">
-          <i class="fas fa-chart-pie"></i><span>Estadísticas</span>
         </a>
         <a href="{% url 'prestamos' %}" data-label="Me deben" class="nav-item {% if request.resolver_match.url_name == 'prestamos' %}active{% endif %}">
           <i class="fas fa-hand-holding-dollar"></i><span>Me deben</span>
@@ -68,65 +66,48 @@
           <i class="fas fa-rotate"></i><span>Suscripciones</span>
           {% if subs_pendientes %}<span class="nav-count">{{ subs_pendientes }}</span>{% endif %}
         </a>
+      </div>
+
+      <div class="nav-group">
+        <div class="nav-title">Planificar</div>
+        <a href="{% url 'metas' %}" data-label="Metas" class="nav-item {% if request.resolver_match.url_name == 'metas' %}active{% endif %}">
+          <i class="fas fa-bullseye"></i><span>Metas</span>
+        </a>
+        <a href="{% url 'plan_plata' %}" data-label="Plan para tu plata" class="nav-item {% if request.resolver_match.url_name == 'plan_plata' %}active{% endif %}">
+          <i class="fas fa-route"></i><span>Plan para tu plata</span>
+        </a>
         <a href="{% url 'analisis_predictivo' %}" data-label="Análisis IA" class="nav-item {% if request.resolver_match.url_name == 'analisis_predictivo' %}active{% endif %}">
           <i class="fas fa-brain"></i><span>Análisis IA</span>
+        </a>
+        <a href="{% url 'estadisticas' %}" data-label="Estadísticas" class="nav-item {% if request.resolver_match.url_name == 'estadisticas' %}active{% endif %}">
+          <i class="fas fa-chart-pie"></i><span>Estadísticas</span>
         </a>
       </div>
 
       <div class="nav-group">
-        <div class="nav-title">Ajustes</div>
-        <a href="{% url 'metas' %}" data-label="Metas" class="nav-item {% if request.resolver_match.url_name == 'metas' %}active{% endif %}">
-          <i class="fas fa-bullseye"></i><span>Metas</span>
+        <div class="nav-title">Datos</div>
+        <a href="{% url 'importar_cartola' %}" data-label="Importar cartola" class="nav-item {% if request.resolver_match.url_name == 'importar_cartola' or request.resolver_match.url_name == 'revisar_cartola' %}active{% endif %}">
+          <i class="fas fa-file-import"></i><span>Importar cartola</span>
         </a>
         <a href="{% url 'categorias' %}" data-label="Categorías" class="nav-item {% if request.resolver_match.url_name == 'categorias' %}active{% endif %}">
           <i class="fas fa-tags"></i><span>Categorías</span>
         </a>
-        <a href="{% url 'importar_cartola' %}" data-label="Importar cartola" class="nav-item {% if request.resolver_match.url_name == 'importar_cartola' or request.resolver_match.url_name == 'revisar_cartola' %}active{% endif %}">
-          <i class="fas fa-file-import"></i><span>Importar cartola</span>
-        </a>
-      </div>
-
-      <div class="nav-group">
-        <div class="nav-title">Cuenta</div>
-        <a href="{% url 'perfil' %}" data-label="Mi perfil" class="nav-item {% if request.resolver_match.url_name == 'perfil' %}active{% endif %}">
-          <i class="fas fa-user"></i><span>Mi perfil</span>
-        </a>
-        <a href="{% url 'encuesta' %}" data-label="Danos tu opinión" class="nav-item {% if request.resolver_match.url_name == 'encuesta' %}active{% endif %}">
-          <i class="fas fa-comment-dots"></i><span>Danos tu opinión</span>
-        </a>
-        {% if user.is_staff %}
-        <a href="{% url 'encuesta_resultados' %}" data-label="Resultados encuesta" class="nav-item {% if request.resolver_match.url_name == 'encuesta_resultados' %}active{% endif %}">
-          <i class="fas fa-square-poll-vertical"></i><span>Resultados encuesta</span>
-        </a>
-        {% endif %}
-        <form method="post" action="{% url 'logout' %}" style="margin:0">
-          {% csrf_token %}
-          <button type="submit" class="nav-item" data-label="Salir" style="width:100%"><i class="fas fa-right-from-bracket"></i><span>Salir</span></button>
-        </form>
       </div>
     </nav>
 
     {% block sidebar_foot %}
-      {% if salud_score != None %}
-      <div class="sidebar-foot health" data-spot data-tour="salud" title="Salud del mes: {{ salud_score }}/100 · {{ salud_label }}">
-        <div class="label" style="color:var(--amber);margin-bottom:7px">Salud del mes</div>
-        <div class="health-cifra">
-          <span class="display" style="font-size:24px;line-height:1">{{ salud_score }}</span>
-          <span class="health-detalle" style="font-size:11px;color:var(--text-muted)">/ 100 · {{ salud_label }}</span>
+      <div class="sidebar-foot health" data-spot data-tour="salud" title="Salud del mes{% if salud_score != None %}: {{ salud_score }}/100 · {{ salud_label }}{% endif %}">
+        <div class="salud-cab">
+          <span class="salud-titulo">Salud del mes</span>
+          {% if salud_score != None %}<span class="salud-estado">{{ salud_label|capfirst }}</span>{% endif %}
         </div>
-        <div class="progress-bar" style="height:5px">
-          <div class="progress-fill" style="width:{{ salud_score }}%"></div>
-        </div>
-        {% if salud_nota %}<div class="health-nota" style="font-size:10.5px;color:var(--text-muted);margin-top:9px;line-height:1.45">{{ salud_nota }}</div>{% endif %}
+        {% if salud_score != None %}
+        <span class="salud-cifra">{{ salud_score }}<small> / 100</small></span>
+        <div class="salud-barra"><span style="width:{{ salud_score }}%"></span></div>
+        {% else %}
+        <span class="salud-nota">Registra un ingreso y aquí verás qué tan holgado va tu mes.</span>
+        {% endif %}
       </div>
-      {% else %}
-      <div class="sidebar-foot health" data-spot title="Salud del mes">
-        <div class="label" style="color:var(--amber);margin-bottom:6px">Salud del mes</div>
-        <div class="health-nota" style="font-size:11px;color:var(--text-muted);line-height:1.5">
-          Registra un ingreso y aquí verás qué tan holgado va tu mes.
-        </div>
-      </div>
-      {% endif %}
     {% endblock %}
   </aside>
 
@@ -134,42 +115,58 @@
 
     <header class="topbar">
       {% block topbar_left %}
-      <a href="{% url 'perfil' %}" class="saludo-pill" title="Mi perfil">
-        <span class="avatar">{% if profile.foto_url %}<img src="{{ profile.foto_url }}" alt="" data-quitar-si-falla>{% endif %}<span class="avatar-letra">{{ profile.inicial|default:"?" }}</span></span>
-        <span style="min-width:0">
-          <span class="saludo-nombre">Hola, {{ profile.nombre_display|default:user.username }}</span>
-          <span class="saludo-sub" style="display:block;font-size:11px;color:var(--text-muted)">{% block topbar_sub %}Tus finanzas al día{% endblock %}</span>
-        </span>
-      </a>
+      <div class="topbar-saludo">
+        <span class="topbar-saludo-hola" data-saludo>Buenos días</span>
+        <span class="topbar-saludo-nombre">{{ profile.nombre_display|default:user.username }}</span>
+      </div>
+      {% endblock %}
+
+      <div class="spacer"></div>
+
+      {% block topbar_mes %}{% endblock %}
 
       <div class="search">
         <label for="buscador" class="visually-hidden">Buscar en esta pantalla</label>
-        <i class="fas fa-magnifying-glass" style="font-size:11px;color:var(--text-muted)"></i>
+        <i class="fas fa-magnifying-glass"></i>
         <input type="search" id="buscador" data-search
                placeholder="{% block search_placeholder %}Filtrar lo que ves{% endblock %}">
         <span class="kbd hide-mobile">⌘K</span>
       </div>
-      {% endblock %}
-
-      {% block topbar_mes %}{% endblock %}
-
-      <div class="spacer"></div>
 
       {% block topbar_actions %}
       <button class="btn btn-green solo-ancho" data-open="#modalGasto" data-preset-tipo="INGRESO"
               title="Anotar ingreso" aria-label="Anotar ingreso">
-        <i class="fas fa-arrow-down" style="font-size:11px"></i><span>Anotar ingreso</span>
+        <i class="fas fa-arrow-down"></i><span>Anotar ingreso</span>
       </button>
       <button class="btn btn-purple solo-ancho" data-open="#modalGasto" data-preset-tipo="EGRESO"
               data-tour="registrar" title="Anotar gasto" aria-label="Anotar gasto">
-        <i class="fas fa-plus" style="font-size:11px"></i><span>Anotar gasto</span>
+        <i class="fas fa-plus"></i><span>Anotar gasto</span>
       </button>
-
       <button class="btn btn-purple solo-medio" data-open="#modalGasto" data-preset-tipo="EGRESO"
               title="Anotar un movimiento" aria-label="Anotar un movimiento">
-        <i class="fas fa-plus" style="font-size:11px"></i><span>Anotar</span>
+        <i class="fas fa-plus"></i><span>Anotar</span>
       </button>
       {% endblock %}
+
+      <button type="button" class="topbar-campana" data-open="#modalAvisos" aria-label="Avisos">
+        <i class="fas fa-bell"></i>{% if cuotas_atrasadas or pendientes_sin_pagar or insights or atrasado_arrastrado %}<span class="punto"></span>{% endif %}
+      </button>
+
+      <details class="topbar-cuenta">
+        <summary class="topbar-avatar" aria-label="Tu cuenta">
+          <span>{{ profile.inicial|default:"?" }}</span>
+          {% if profile.foto_url %}<img src="{{ profile.foto_url }}" alt="" data-quitar-si-falla>{% endif %}
+        </summary>
+        <div class="topbar-menu">
+          <a href="{% url 'perfil' %}"><i class="fas fa-user"></i>Mi perfil</a>
+          <a href="{% url 'encuesta' %}"><i class="fas fa-comment-dots"></i>Danos tu opinión</a>
+          {% if user.is_staff %}<a href="{% url 'encuesta_resultados' %}"><i class="fas fa-square-poll-vertical"></i>Resultados encuesta</a>{% endif %}
+          <form method="post" action="{% url 'logout' %}">
+            {% csrf_token %}
+            <button type="submit"><i class="fas fa-right-from-bracket"></i>Salir</button>
+          </form>
+        </div>
+      </details>
     </header>
 
     <main class="main">
@@ -197,16 +194,14 @@
   </a>
   <a href="{% url 'deudas' %}" data-label="Cuotas" class="nav-item {% if request.resolver_match.url_name == 'deudas' %}active{% endif %}">
     <i class="fas fa-credit-card"></i><span>Cuotas</span>
-    {% if cuotas_activas %}<span class="nav-count">{{ cuotas_activas }}</span>{% endif %}
   </a>
-
-  <span class="nav-hueco" aria-hidden="true"></span>
-
   <a href="{% url 'prestamos' %}" data-label="Me deben" class="nav-item {% if request.resolver_match.url_name == 'prestamos' %}active{% endif %}">
     <i class="fas fa-hand-holding-dollar"></i><span>Me deben</span>
-    {% if prestamos_activos %}<span class="nav-count">{{ prestamos_activos }}</span>{% endif %}
   </a>
-  <button class="nav-item" data-open="#modalMas" data-label="Más">
+  <a href="{% url 'estadisticas' %}" data-label="Estadísticas" class="nav-item {% if request.resolver_match.url_name == 'estadisticas' %}active{% endif %}">
+    <i class="fas fa-chart-pie"></i><span>Estadísticas</span>
+  </a>
+  <button type="button" class="nav-item {% if not request.resolver_match.url_name in 'dashboard deudas prestamos estadisticas' %}active{% endif %}" data-open="#modalMas" data-label="Más">
     <i class="fas fa-grip"></i><span>Más</span>
   </button>
 </nav>
@@ -217,8 +212,8 @@
           aria-label="Registrar un ingreso" title="Registrar un ingreso">
     <i class="fas fa-arrow-down" style="font-size:13px"></i>
   </button>
-  <button class="fab" data-open="#modalGasto" data-preset-tipo="EGRESO"
-          data-tour="registrar" aria-label="Registrar un gasto" title="Registrar un gasto">
+  <button class="fab" data-open="#modalAnotar"
+          data-tour="registrar" aria-label="Anotar" title="Anotar">
     <i class="fas fa-plus" style="font-size:18px"></i>
   </button>
   {% endblock %}
@@ -228,7 +223,7 @@
   <div class="modal-box hoja-box">
     <div class="modal-head">
       <div class="modal-title">Todo lo demás</div>
-      <button class="modal-close" data-close>✕</button>
+      <button class="modal-close" data-close aria-label="Cerrar"><i class="fas fa-xmark"></i></button>
     </div>
     <div class="hoja-grid">
       <a href="{% url 'metas' %}" class="hoja-item">
@@ -238,6 +233,8 @@
         {% if subs_pendientes %}<span class="nav-count">{{ subs_pendientes }}</span>{% endif %}</a>
       <a href="{% url 'estadisticas' %}" class="hoja-item">
         <span class="icon-tile blue"><i class="fas fa-chart-pie"></i></span><span>Estadísticas</span></a>
+      <a href="{% url 'plan_plata' %}" class="hoja-item">
+        <span class="icon-tile orange"><i class="fas fa-route"></i></span><span>Plan para tu plata</span></a>
       <a href="{% url 'analisis_predictivo' %}" class="hoja-item">
         <span class="icon-tile orange"><i class="fas fa-brain"></i></span><span>Análisis IA</span></a>
       <a href="{% url 'categorias' %}" class="hoja-item">
@@ -262,6 +259,26 @@
   </div>
 </div>
 
+<div class="modal-overlay hoja-overlay" id="modalAnotar">
+  <div class="modal-box hoja-box">
+    <div class="modal-head">
+      <div class="modal-title">¿Qué quieres anotar?</div>
+      <button class="modal-close" data-close aria-label="Cerrar"><i class="fas fa-xmark"></i></button>
+    </div>
+    <div class="anotar-opciones">
+      <button type="button" class="anotar-opcion principal" data-open="#modalGasto" data-preset-tipo="EGRESO">
+        <i class="fas fa-plus"></i><span>Un gasto</span>
+      </button>
+      <button type="button" class="anotar-opcion" data-open="#modalGasto" data-preset-tipo="INGRESO">
+        <i class="fas fa-arrow-down" style="color:var(--green-texto)"></i><span>Un ingreso</span>
+      </button>
+      <a href="{% url 'importar_cartola' %}" class="anotar-opcion">
+        <i class="fas fa-file-import" style="color:var(--teal-texto)"></i><span>Subir cartola del banco</span><small>PDF</small>
+      </a>
+    </div>
+  </div>
+</div>
+
 <div class="modal-overlay hoja-overlay" id="modalAvisos">
   <div class="modal-box hoja-box">
     <div class="modal-head">
@@ -269,8 +286,31 @@
         <div class="modal-title">Lo que necesita tu atención</div>
         <div class="modal-sub">{{ nombre_mes|default:"Este mes" }}</div>
       </div>
-      <button class="modal-close" data-close>✕</button>
+      <button class="modal-close" data-close aria-label="Cerrar"><i class="fas fa-xmark"></i></button>
     </div>
+
+    {% if atrasado_arrastrado %}
+    <a href="{% url 'deudas' %}" class="aviso-atraso">
+      <span class="aviso-atraso-icono"><i class="fas fa-triangle-exclamation"></i></span>
+      <span class="aviso-atraso-txt">
+        <b>{{ atrasado_arrastrado|money }} de cuotas que no pagaste</b>
+        <span>{% for c in cuotas_arrastradas|slice:":3" %}{{ c.deuda.acreedor }}, {{ c.etiqueta|lower }}{% if not forloop.last %} · {% endif %}{% endfor %}{% if n_cuotas_arrastradas > 3 %} · y {{ n_cuotas_arrastradas|add:"-3" }} más{% endif %}. Se sumaron a este mes y ya están descontadas de lo que puedes gastar.</span>
+      </span>
+      <i class="fas fa-chevron-right"></i>
+    </a>
+    {% endif %}
+
+    {% if insights %}
+    <div class="label avisos-label">Para tener en cuenta</div>
+    <div class="avisos-lista">
+      {% for i in insights %}
+      <div class="ini-aviso">
+        <span class="ini-aviso-icono" style="background:{{ i.tenue }};color:{{ i.color }}"><i class="fas {{ i.icono }}"></i></span>
+        <span class="ini-aviso-txt"><b style="color:{{ i.color }}">{{ i.etiqueta }}</b>{{ i.texto }}</span>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
 
     {% if pendientes_atrasados %}
     <div class="label" style="color:var(--coral);margin-bottom:9px">Atrasado</div>
@@ -315,8 +355,8 @@
 {% if messages %}
 <div class="toast-container">
   {% for m in messages %}
-    <div class="toast toast-{{ m.tags|default:'success' }}">
-      <i class="fas fa-circle-check"></i>{{ m }}
+    <div class="toast {{ m.tags|default:'success' }}">
+      <i class="fas {% if 'error' in m.tags or 'danger' in m.tags %}fa-circle-exclamation{% elif 'warning' in m.tags %}fa-triangle-exclamation{% elif 'info' in m.tags %}fa-circle-info{% else %}fa-circle-check{% endif %}"></i>{{ m }}
     </div>
   {% endfor %}
 </div>
@@ -324,67 +364,69 @@
 
 <div class="modal-overlay registro-overlay" id="modalGasto">
   <div class="registro-box">
-    <div class="modal-head">
-      <div>
-        <div class="modal-title">Registrar</div>
-        <div class="modal-sub">Sin salir del panel. Se guarda al toque.</div>
+    <div class="modal-head anotar-cab">
+      <div class="seg anotar-tipo" id="segTipo">
+        <button type="button" class="on-coral" data-tipo="EGRESO">Gasto</button>
+        <button type="button" data-tipo="INGRESO">Ingreso</button>
       </div>
-      <button class="modal-close" data-close>✕</button>
+      <button class="modal-close" data-close aria-label="Cerrar"><i class="fas fa-xmark"></i></button>
     </div>
 
     <form method="post" action="{% url 'registrar_transaccion' %}" id="formRegistro">
       {% csrf_token %}
       <input type="hidden" name="next" value="{{ request.get_full_path }}">
-
       <input type="hidden" name="tipo" id="campoTipo" value="EGRESO">
       <input type="hidden" name="monto" id="campoMonto" value="">
       <input type="hidden" name="categoria" id="campoCategoria" value="Comida">
 
-      <div class="seg" style="margin-bottom:18px" id="segTipo">
-        <button type="button" class="on-coral" data-tipo="EGRESO">Gasto</button>
-        <button type="button" data-tipo="INGRESO">Ingreso</button>
-      </div>
-
-      <div class="registro-grid">
-
-        <div class="registro-monto">
-          <div class="label" style="margin-bottom:6px;text-align:center">Monto</div>
+      <div class="anotar-grid">
+        <div class="anotar-cifra">
+          <span class="anotar-marca" id="anotarMarca" aria-hidden="true"><i class="fas fa-receipt"></i></span>
           <div class="amount-display" id="montoView" style="color:var(--coral)">$0</div>
+        </div>
 
-          <div id="avisoMonto" role="alert" aria-live="polite"
-               style="display:none;text-align:center;margin-top:8px;font-size:12.5px;font-weight:600;color:var(--coral)">
-            Escribe un monto para continuar
-          </div>
+        <div id="avisoMonto" class="anotar-aviso" role="alert" aria-live="polite" style="display:none">
+          Escribe un monto para continuar
+        </div>
 
-          <div class="keypad" data-keypad data-target="#campoMonto" data-display="#montoView">
-            <button type="button" data-key="1">1</button><button type="button" data-key="2">2</button><button type="button" data-key="3">3</button>
-            <button type="button" data-key="4">4</button><button type="button" data-key="5">5</button><button type="button" data-key="6">6</button>
-            <button type="button" data-key="7">7</button><button type="button" data-key="8">8</button><button type="button" data-key="9">9</button>
-            <button type="button" data-key="000">000</button><button type="button" data-key="0">0</button><button type="button" data-key="del">⌫</button>
+        <div class="anotar-grupo">
+          <label class="anotar-fila" for="campoDesc">
+            <i class="fas fa-pen" aria-hidden="true"></i>
+            <span class="visually-hidden">Descripción</span>
+            <input type="text" name="descripcion" id="campoDesc" placeholder="Dónde, ej: Líder, Copec, Spotify" autocomplete="off">
+          </label>
+          <div class="anotar-fila">
+            <i class="fas fa-calendar" aria-hidden="true"></i>
+            <label class="visually-hidden" for="campoFecha" id="labelFecha">Fecha del gasto</label>
+            <span class="anotar-fecha-texto" id="fechaTexto">Hoy</span>
+            <input type="date" name="fecha" id="campoFecha" class="anotar-fecha" value="{{ hoy_iso }}" required hidden>
+            <div class="seg anotar-fechas" id="segFecha" data-hoy="{{ hoy_iso }}">
+              <button type="button" class="on" data-fecha="hoy">Hoy</button>
+              <button type="button" data-fecha="ayer">Ayer</button>
+              <button type="button" data-fecha="otra">Otra</button>
+            </div>
           </div>
         </div>
 
-        <div class="registro-datos">
-          <div class="label" style="margin-bottom:9px" id="labelCat">Categoría</div>
-          <div class="chips" data-field="#campoCategoria" style="margin-bottom:18px" id="chipsGasto"
+        <div class="anotar-cats">
+          <div class="visually-hidden" id="labelCat">Categoría</div>
+          <div class="chips anotar-chips" data-field="#campoCategoria" id="chipsGasto"
                data-egreso="{{ cats_egreso_json|a_json }}"
                data-ingreso="{{ cats_ingreso_json|a_json }}">
             {% for value, label in cats_egreso %}
             <button type="button" class="chip {% if forloop.first %}on{% endif %}" data-value="{{ value }}">{{ label }}</button>
             {% endfor %}
           </div>
+        </div>
 
-          <div class="field">
-            <label class="label" for="campoDesc">Descripción</label>
-            <input type="text" name="descripcion" id="campoDesc" placeholder="Ej: Supermercado, sueldo de agosto">
+        <div class="keypad" data-keypad data-target="#campoMonto" data-display="#montoView">
+            <button type="button" data-key="1">1</button><button type="button" data-key="2">2</button><button type="button" data-key="3">3</button>
+            <button type="button" data-key="4">4</button><button type="button" data-key="5">5</button><button type="button" data-key="6">6</button>
+            <button type="button" data-key="7">7</button><button type="button" data-key="8">8</button><button type="button" data-key="9">9</button>
+            <button type="button" data-key="000">000</button><button type="button" data-key="0">0</button><button type="button" data-key="del" aria-label="Borrar"><i class="fas fa-delete-left"></i></button>
           </div>
 
-          <div class="field">
-            <label class="label" for="campoFecha" id="labelFecha">Fecha del gasto</label>
-            <input type="date" name="fecha" id="campoFecha" value="{{ hoy_iso }}" required>
-          </div>
-
-          <div id="bloquePago" style="margin-bottom:18px">
+        <div id="bloquePago">
             <div class="label" style="margin-bottom:9px">¿Ya la pagaste?</div>
             <input type="hidden" name="sin_pagar" id="campoSinPagar" value="">
             <div class="seg" id="segPago">
@@ -396,7 +438,7 @@
             </div>
           </div>
 
-          {% if dias_restantes %}
+        {% if dias_restantes %}
           <div class="preview-box" id="cajaImpacto" style="margin-bottom:0">
             <div class="label" style="color:var(--amber);margin-bottom:8px">Si guardas esto</div>
             <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:5px">
@@ -410,7 +452,6 @@
             </div>
           </div>
           {% endif %}
-        </div>
       </div>
       <button type="submit" class="btn btn-purple btn-block" id="btnGuardar">Guardar</button>
     </form>
@@ -420,6 +461,8 @@
 {% block modals %}{% endblock %}
 
 <script src="{% static 'js/finapp.js' %}"></script>
+<script src="{% static 'js/pantallas/anotar.js' %}" nonce="{{ csp_nonce }}"></script>
+<script src="{% static 'js/pantallas/cuenta.js' %}" nonce="{{ csp_nonce }}"></script>
 <script src="{% static 'js/pantallas/base-4.js' %}" nonce="{{ csp_nonce }}" {% if abrir_panel or request.GET.registrar %}data-abrir-panel="1"{% endif %}></script>
 <script src="{% static 'js/tour.js' %}"></script>
 <script src="{% static 'js/pantallas/base-5.js' %}" nonce="{{ csp_nonce }}" data-ruta-inicio="{% url 'dashboard' %}" data-ruta-cuotas="{% url 'deudas' %}" data-ruta-suscripciones="{% url 'suscripciones' %}" data-ruta-prestamos="{% url 'prestamos' %}" data-ruta-metas="{% url 'metas' %}" data-ruta-estadisticas="{% url 'estadisticas' %}" data-ruta-analisis="{% url 'analisis_predictivo' %}" data-ruta-importar="{% url 'importar_cartola' %}" data-ruta-perfil="{% url 'perfil' %}"></script>

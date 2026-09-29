@@ -2,161 +2,155 @@
 {% load static %}
 {% load moneda %}
 {% block title %}Revisar cartola · Fintora{% endblock %}
-{% block topbar_sub %}Nada se guarda hasta que confirmes{% endblock %}
+{% block search_placeholder %}Filtrar movimientos{% endblock %}
 
 {% block content %}
-<div class="section-head" style="margin-top:0">
-  <div>
-    <h1 class="section-title" style="font-size:22px">Revisa antes de guardar</h1>
-    <div class="hint" style="margin-top:4px">
-      {{ c.banco }}{% if c.periodo %} · {{ c.periodo }}{% endif %}{% if c.cuenta %} · cuenta {{ c.cuenta }}{% endif %}
+
+<div class="sec-top centrado">
+  <a href="{% url 'importar_cartola' %}" class="sec-volver" aria-label="Volver a subir el archivo"><i class="fas fa-chevron-left"></i></a>
+  <h1 class="sec-titulo">Revisar cartola</h1>
+  <a href="{% url 'descartar_cartola' %}" class="sec-accion" aria-label="Descartar la cartola" title="Descartar: no se guarda nada"><i class="fas fa-xmark"></i><span>Descartar</span></a>
+</div>
+
+<section class="sec-hero ca-hero">
+  <ol class="ca-pasos" aria-label="Pasos">
+    <li class="hecho"><span><i class="fas fa-check"></i></span><em>Subir</em></li>
+    <li class="on"><span>2</span><em>Revisar</em></li>
+    <li><span>3</span><em>Guardar</em></li>
+  </ol>
+  <span class="ca-titular">Revisa antes de guardar</span>
+  <span class="ca-nota">{{ c.banco }}{% if c.periodo %} · {{ c.periodo }}{% endif %}{% if c.cuenta %} · cuenta {{ c.cuenta }}{% endif %}</span>
+  <div class="sec-chips">
+    <span class="chip-vidrio"><b>{{ nuevas }}</b> nuevo{{ nuevas|pluralize:"s" }}</span>
+    <span class="chip-vidrio"><b>{{ repetidas }}</b> ya estaba{{ repetidas|pluralize:"n" }}</span>
+  </div>
+</section>
+
+<section class="sec-hoja rv-hoja">
+  {% if c.cuadra %}
+  <div class="sec-tip verde">
+    <span class="sec-tip-icono"><i class="fas fa-circle-check"></i></span>
+    <span class="sec-tip-txt">
+      <b>La cartola cuadra</b>
+      <span>{{ c.nota_cuadre }}</span>
+    </span>
+  </div>
+  {% else %}
+  <div class="sec-tip rojo">
+    <span class="sec-tip-icono"><i class="fas fa-triangle-exclamation"></i></span>
+    <span class="sec-tip-txt">
+      <b>No cuadra por {{ descuadre|money }}</b>
+      <span>{{ c.nota_cuadre }} Revisa fila por fila antes de guardar, o descarta e inténtalo con otro archivo.</span>
+    </span>
+  </div>
+  {% endif %}
+
+  <div class="rv-resumen">
+    <div><span>Entra</span><b class="verde">+{{ suma_ingresos|money }}</b></div>
+    <div><span>Sale</span><b class="rojo">−{{ suma_egresos|money }}</b></div>
+  </div>
+
+  <form method="post" action="{% url 'confirmar_cartola' %}" id="formConfirmar" class="rv-form">
+    {% csrf_token %}
+
+    <div class="rv-barra">
+      <span class="rv-barra-label">Marcar</span>
+      <button type="button" class="sec-chico" data-marcar="nuevos">Solo los nuevos</button>
+      <button type="button" class="sec-chico" data-marcar="todos">Todos</button>
+      <button type="button" class="sec-chico" data-marcar="ninguno">Ninguno</button>
     </div>
-  </div>
-  <a href="{% url 'descartar_cartola' %}" class="btn btn-glass btn-sm">Descartar</a>
-</div>
 
-{% if c.cuadra %}
-<div class="cartola-aviso ok">
-  <i class="fas fa-circle-check"></i>
-  <div>
-    <b>La cartola cuadra.</b>
-    {{ c.nota_cuadre }}
-  </div>
-</div>
-{% else %}
-<div class="cartola-aviso mal">
-  <i class="fas fa-triangle-exclamation"></i>
-  <div>
-    <b>No cuadra.</b>
-    {{ c.nota_cuadre }} La diferencia es de {{ descuadre|money }}. Revisa fila por
-    fila antes de guardar, o descarta e inténtalo con otro PDF.
-  </div>
-</div>
-{% endif %}
-
-<div class="cartola-resumen">
-  <div><span class="label">Movimientos nuevos</span><b class="mono">{{ nuevas }}</b></div>
-  <div><span class="label">Ya estaban</span><b class="mono">{{ repetidas }}</b></div>
-  <div><span class="label">Suman de ingreso</span><b class="mono" style="color:var(--green)">{{ suma_ingresos|money }}</b></div>
-  <div><span class="label">Suman de gasto</span><b class="mono" style="color:var(--coral)">{{ suma_egresos|money }}</b></div>
-</div>
-
-<form method="post" action="{% url 'confirmar_cartola' %}" id="formConfirmar">
-  {% csrf_token %}
-
-  <div class="cartola-barra">
-    <button type="button" class="btn btn-glass btn-sm" data-marcar="nuevos">Solo los nuevos</button>
-    <button type="button" class="btn btn-glass btn-sm" data-marcar="todos">Todos</button>
-    <button type="button" class="btn btn-glass btn-sm" data-marcar="ninguno">Ninguno</button>
-  </div>
-
-  <div class="glass card-lg cartola-tabla">
-    <div class="cartola-cabecera">
-      <span></span><span>Fecha</span><span>Descripción</span><span>Categoría</span><span style="text-align:right">Monto</span>
-    </div>
-
-    {% for f in filas %}
-    <div class="cartola-fila{% if f.ya_existe %} repetida{% endif %}">
-      <input type="checkbox" name="sel_{{ f.i }}" id="sel_{{ f.i }}" class="cartola-check"
-             {% if f.marcada %}checked{% endif %} aria-label="Importar este movimiento">
-
-            <div class="cartola-principal">
-        <div class="cartola-desc">
-                    <input type="text" name="desc_{{ f.i }}" value="{{ f.descripcion }}" maxlength="200"
-                 aria-label="Descripción del movimiento">
-        </div>
-
-        <div class="cartola-monto mono {% if f.tipo == 'INGRESO' %}entra{% else %}sale{% endif %}">
-          {% if f.tipo == 'INGRESO' %}+{% else %}−{% endif %}{{ f.monto_dec|money }}
-        </div>
+    <div class="cartola-tabla rv-lista">
+      <div class="cartola-cabecera">
+        <span></span><span>Fecha</span><span>Descripción</span><span>Categoría</span><span style="text-align:right">Monto</span>
       </div>
 
-      <div class="cartola-meta">
-        <label class="cartola-fecha mono" for="sel_{{ f.i }}">{{ f.fecha_obj|date:"d/m" }}</label>
-        <span class="cartola-sep" aria-hidden="true">·</span>
+      {% for f in filas %}
+      <div class="cartola-fila{% if f.ya_existe %} repetida{% endif %}" data-searchable>
+        <input type="checkbox" name="sel_{{ f.i }}" id="sel_{{ f.i }}" class="cartola-check"{% if f.marcada %} checked{% endif %} aria-label="Importar este movimiento">
 
-                <span class="cartola-cat-caja">
-          <span class="cartola-cat-txt" data-cat-txt>{% if f.tipo == 'INGRESO' %}{% for valor, etiqueta in cartola_cats_ingreso %}{% if valor == f.categoria %}{{ etiqueta }}{% endif %}{% endfor %}{% else %}{% for valor, etiqueta in cartola_cats_egreso %}{% if valor == f.categoria %}{{ etiqueta }}{% endif %}{% endfor %}{% endif %}</span>
-          <i class="fas fa-chevron-down" aria-hidden="true"></i>
-          <select name="cat_{{ f.i }}" class="cartola-cat" aria-label="Categoría del movimiento">
-            {% if f.tipo == 'INGRESO' %}
-              {% for valor, etiqueta in cartola_cats_ingreso %}
-              <option value="{{ valor }}" {% if valor == f.categoria %}selected{% endif %}>{{ etiqueta }}</option>
-              {% endfor %}
-            {% else %}
-              {% for valor, etiqueta in cartola_cats_egreso %}
-              <option value="{{ valor }}" {% if valor == f.categoria %}selected{% endif %}>{{ etiqueta }}</option>
-              {% endfor %}
-            {% endif %}
-          </select>
-        </span>
-      </div>
-
-            {% if f.ya_existe or f.es_cuota or f.es_suscripcion or f.aviso or f.tipo == 'EGRESO' %}
-      <div class="cartola-detalle">
-        <div class="cartola-marcas">
-          {% if f.ya_existe %}<span class="badge badge-mute">Ya está</span>{% endif %}
-          {% if f.es_cuota %}<span class="badge badge-orange">{{ f.texto_cuota }}</span>{% endif %}
-          {% if f.es_suscripcion %}<span class="badge badge-blue">Se repite cada mes</span>{% endif %}
-                    {% if f.aviso %}<span class="cartola-nota-fila{% if f.es_cuota %} suave{% endif %}">{{ f.aviso }}</span>{% endif %}
-        </div>
-
-        {% if f.es_cuota %}
-        <label class="cartola-extra">
-          <input type="checkbox" name="deuda_{{ f.i }}">
-          <span class="cartola-extra-txt">
-            <span class="hide-mobile">Crear también la compra en cuotas</span>
-            <span class="solo-movil">Compra en cuotas</span>
-          </span>
-          <span class="cartola-deben-cuanto">{{ f.cuotas_deben }} por pagar · {{ f.monto_deben|money }}</span>
-        </label>
-        {% elif f.es_suscripcion %}
-        <label class="cartola-extra">
-          <input type="checkbox" name="sub_{{ f.i }}">
-          <span class="cartola-extra-txt">
-            <span class="hide-mobile">Crear también la suscripción</span>
-            <span class="solo-movil">Crear suscripción</span>
-          </span>
-        </label>
-        {% endif %}
-
-        {% if f.tipo == 'EGRESO' %}
-                <div class="cartola-deben">
-          <label class="cartola-extra">
-            <input type="checkbox" name="deben_{{ f.i }}" data-deben>
-            <span class="cartola-extra-txt">
-              <span class="hide-mobile">Esta compra no es mía · agregar a Me deben</span>
-              <span class="solo-movil">No es mía · Me deben</span>
-            </span>
-            {% if f.cuotas_deben > 1 %}
-            <span class="cartola-deben-cuanto">{{ f.cuotas_deben }} cuotas · {{ f.monto_deben|money }}</span>
-            {% endif %}
-          </label>
-          <div class="cartola-deben-quien" hidden>
-                        <select name="deben_persona_{{ f.i }}" data-deben-persona disabled
-                    aria-label="Quién te debe esta compra">
-              <option value="">¿Quién te la debe?</option>
-              {% for p in personas %}
-              <option value="{{ p.pk }}">{{ p.nombre }}</option>
-              {% endfor %}
-              <option value="nueva">Otra persona…</option>
-            </select>
-            <input type="text" name="deben_nombre_{{ f.i }}" maxlength="80"
-                   placeholder="Nombre" data-deben-nombre disabled hidden>
+        <div class="cartola-principal">
+          <div class="cartola-desc">
+            <input type="text" name="desc_{{ f.i }}" value="{{ f.descripcion }}" maxlength="200" aria-label="Descripción del movimiento">
           </div>
+          <div class="cartola-monto {% if f.tipo == 'INGRESO' %}entra{% else %}sale{% endif %}">{% if f.tipo == 'INGRESO' %}+{% else %}−{% endif %}{{ f.monto_dec|money }}</div>
+        </div>
+
+        <div class="cartola-meta">
+          <label class="cartola-fecha" for="sel_{{ f.i }}">{{ f.fecha_obj|date:"d/m" }}</label>
+          <span class="cartola-sep" aria-hidden="true">·</span>
+          <span class="cartola-cat-caja">
+            <span class="cartola-cat-txt" data-cat-txt>{% if f.tipo == 'INGRESO' %}{% for valor, etiqueta in cartola_cats_ingreso %}{% if valor == f.categoria %}{{ etiqueta }}{% endif %}{% endfor %}{% else %}{% for valor, etiqueta in cartola_cats_egreso %}{% if valor == f.categoria %}{{ etiqueta }}{% endif %}{% endfor %}{% endif %}</span>
+            <i class="fas fa-chevron-down" aria-hidden="true"></i>
+            <select name="cat_{{ f.i }}" class="cartola-cat" aria-label="Categoría del movimiento">
+              {% if f.tipo == 'INGRESO' %}
+                {% for valor, etiqueta in cartola_cats_ingreso %}
+                <option value="{{ valor }}"{% if valor == f.categoria %} selected{% endif %}>{{ etiqueta }}</option>
+                {% endfor %}
+              {% else %}
+                {% for valor, etiqueta in cartola_cats_egreso %}
+                <option value="{{ valor }}"{% if valor == f.categoria %} selected{% endif %}>{{ etiqueta }}</option>
+                {% endfor %}
+              {% endif %}
+            </select>
+          </span>
+        </div>
+
+        {% if f.ya_existe or f.es_cuota or f.es_suscripcion or f.aviso or f.tipo == 'EGRESO' %}
+        <div class="cartola-detalle">
+          {% if f.ya_existe or f.es_cuota or f.es_suscripcion or f.aviso %}
+          <div class="cartola-marcas">
+            {% if f.ya_existe %}<span class="sec-badge gris chico">Ya está</span>{% endif %}
+            {% if f.es_cuota %}<span class="sec-badge ambar chico">{{ f.texto_cuota }}</span>{% endif %}
+            {% if f.es_suscripcion %}<span class="sec-badge azul chico">Se repite cada mes</span>{% endif %}
+            {% if f.aviso %}<span class="cartola-nota-fila{% if f.es_cuota %} suave{% endif %}">{{ f.aviso }}</span>{% endif %}
+          </div>
+          {% endif %}
+
+          {% if f.es_cuota %}
+          <label class="cartola-extra">
+            <input type="checkbox" name="deuda_{{ f.i }}">
+            <span class="cartola-extra-txt"><span class="hide-mobile">Crear también la compra en cuotas</span><span class="solo-movil">Compra en cuotas</span></span>
+            <span class="cartola-deben-cuanto">{{ f.cuotas_deben }} por pagar · {{ f.monto_deben|money }}</span>
+          </label>
+          {% elif f.es_suscripcion %}
+          <label class="cartola-extra">
+            <input type="checkbox" name="sub_{{ f.i }}">
+            <span class="cartola-extra-txt"><span class="hide-mobile">Crear también la suscripción</span><span class="solo-movil">Crear suscripción</span></span>
+          </label>
+          {% endif %}
+
+          {% if f.tipo == 'EGRESO' %}
+          <div class="cartola-deben">
+            <label class="cartola-extra">
+              <input type="checkbox" name="deben_{{ f.i }}" data-deben>
+              <span class="cartola-extra-txt"><span class="hide-mobile">Esta compra no es mía · agregar a Me deben</span><span class="solo-movil">No es mía · Me deben</span></span>
+              {% if f.cuotas_deben > 1 %}<span class="cartola-deben-cuanto">{{ f.cuotas_deben }} cuotas · {{ f.monto_deben|money }}</span>{% endif %}
+            </label>
+            <div class="cartola-deben-quien" hidden>
+              <select name="deben_persona_{{ f.i }}" data-deben-persona disabled aria-label="Quién te debe esta compra">
+                <option value="">¿Quién te la debe?</option>
+                {% for p in personas %}
+                <option value="{{ p.pk }}">{{ p.nombre }}</option>
+                {% endfor %}
+                <option value="nueva">Otra persona…</option>
+              </select>
+              <input type="text" name="deben_nombre_{{ f.i }}" maxlength="80" placeholder="Nombre" data-deben-nombre disabled hidden>
+            </div>
+          </div>
+          {% endif %}
         </div>
         {% endif %}
       </div>
-      {% endif %}
+      {% endfor %}
     </div>
-    {% endfor %}
-  </div>
 
-  <div class="cartola-pie">
-    <span class="hint" id="cuenta">Se guardarán {{ nuevas }} movimientos.</span>
-    <button type="submit" class="btn btn-green" id="btnGuardar">Guardar los marcados</button>
-  </div>
-</form>
+    <div class="rv-pie">
+      <span class="rv-cuenta" id="cuenta">Se guardarán {{ nuevas }} movimientos.</span>
+      <button type="submit" class="sec-btn agua" id="btnGuardarCartola">Guardar los marcados</button>
+    </div>
+  </form>
+</section>
 {% endblock %}
 
 {% block extra_js %}

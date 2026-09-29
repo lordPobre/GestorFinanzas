@@ -3,6 +3,7 @@
 {% block title %}Encuesta · Fintora{% endblock %}
 
 {% block content %}
+<section class="sec-hoja fo-hoja fo-form fo-ambar fo-sin-hero">
 <div class="encuesta">
   <div class="glass card-lg">
     <form method="post" action="{% url 'encuesta' %}" id="formEncuesta" novalidate>
@@ -126,6 +127,7 @@
     </form>
   </div>
 </div>
+</section>
 {% endblock %}
 
 {% block extra_js %}

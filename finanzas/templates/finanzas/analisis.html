@@ -11,29 +11,25 @@
 
 {% block content %}
 
-<div class="analisis-head">
-  <div style="min-width:0">
-    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-      <div class="page-title" data-tour="ia-alt">Análisis</div>
-      <span class="badge badge-purple">Calculado, no adivinado</span>
-    </div>
-    <div class="hint" style="margin-top:5px;max-width:640px">
-      Todo lo de esta página sale de matemática sobre tus datos: promedios de tres meses,
-      ratio deuda/ingreso y el calendario real de tus cuotas.
+<section class="seccion-hero">
+  <div class="seccion-cab">
+    <div class="seccion-titulo-fila">
+      <h1 class="seccion-titulo" data-tour="ia-alt">Análisis</h1>
+      <span class="chip-vidrio">Calculado, no adivinado</span>
     </div>
   </div>
-
+  <p class="seccion-nota">Todo lo de esta página sale de matemática sobre tus datos: promedios de tres meses, ratio deuda/ingreso y el calendario real de tus cuotas.</p>
   {% if analisis.tiene_datos %}
-  <div style="display:flex;gap:8px;flex-wrap:wrap">
-    <a href="{% url 'plan_plata' %}" class="btn btn-soft">
-      <i class="fas fa-layer-group" style="font-size:11px"></i>Plan para tu plata
+  <div class="seccion-botones">
+    <a href="{% url 'plan_plata' %}" class="btn btn-glass">
+      <i class="fas fa-route" style="font-size:12px"></i>Plan para tu plata
     </a>
-    <button class="btn btn-soft btn-ia" id="btnIA" data-tour="ia">
-      <i class="fas fa-wand-magic-sparkles" style="font-size:11px"></i>Explicarlo con IA
+    <button class="btn btn-purple btn-ia" id="btnIA" data-tour="ia">
+      <i class="fas fa-wand-magic-sparkles" style="font-size:12px"></i>Explicarlo con IA
     </button>
   </div>
   {% endif %}
-</div>
+</section>
 
 {% if not analisis.tiene_datos %}
 <div class="glass empty">

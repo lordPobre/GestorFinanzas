@@ -6,50 +6,24 @@
 
 {% block content %}
 
-<div class="subs-cabecera">
-  <div class="subs-titulo">
-    <div class="page-title">Suscripciones</div>
-    <div class="hint" style="margin-top:5px;max-width:600px">
-      Lo que se cobra solo cada mes. Apaga el interruptor para dejar de pagarla; el historial se mantiene.
-    </div>
+<section class="seccion-hero">
+  <div class="seccion-cab">
+    <h1 class="seccion-titulo">Suscripciones</h1>
+    <button class="btn btn-purple seccion-accion" data-open="#modalSub" data-tour="suscripciones" aria-label="Nueva suscripción"><i class="fas fa-plus" style="font-size:12px"></i><span>Nueva suscripción</span></button>
   </div>
-  <button class="btn btn-purple" data-open="#modalSub" data-tour="suscripciones" aria-label="Nueva suscripción"><i class="fas fa-plus" style="font-size:11px"></i><span class="hide-mobile">Nueva suscripción</span><span class="solo-movil">Nueva</span></button>
-</div>
-
-{% if suscripciones %}
-<div class="subs-cifras">
-  {% if monto_pendiente_mes %}
-  <div class="tarjeta-color coral tc-resumen">
-    <div class="tc-cabecera">
-      <span class="tc-icono"><i class="fas fa-hourglass-half" style="font-size:12px"></i></span>
-      <span class="tc-label">Falta pagar este mes</span>
+  <p class="seccion-nota">Lo que se cobra solo cada mes. Apaga el interruptor para dejar de pagarla; el historial se mantiene.</p>
+  {% if suscripciones %}
+  <div class="seccion-cifra">
+    <span class="seccion-label">Pagas al mes</span>
+    <span class="seccion-monto">{{ total_mensual|money }}</span>
+    <div class="inicio-chips">
+      <span class="chip-vidrio">{{ total_anual|money }} al año</span>
+      {% if monto_pendiente_mes %}<span class="chip-vidrio pendiente">Falta pagar {{ monto_pendiente_mes|money }}</span>
+      {% else %}<span class="chip-vidrio al-dia">Al día · {{ monto_pagado_mes|money }} pagados</span>{% endif %}
     </div>
-    <div class="tc-monto">{{ monto_pendiente_mes|money }}</div>
-    <div class="tc-nota">
-      {{ pendientes_mes }} de {{ cantidad_activas }} suscripción{{ pendientes_mes|pluralize:"es" }}
-    </div>
-  </div>
-  {% else %}
-  <div class="tarjeta-color verde tc-resumen">
-    <div class="tc-cabecera">
-      <span class="tc-icono"><i class="fas fa-circle-check" style="font-size:12px"></i></span>
-      <span class="tc-label">Este mes</span>
-    </div>
-    <div class="tc-monto">Al día</div>
-    <div class="tc-nota">{{ monto_pagado_mes|money }} pagados</div>
   </div>
   {% endif %}
-
-  <div class="tarjeta-color lila tc-resumen">
-    <div class="tc-cabecera">
-      <span class="tc-icono"><i class="fas fa-rotate" style="font-size:12px"></i></span>
-      <span class="tc-label">Total activo al mes</span>
-    </div>
-    <div class="tc-monto">{{ total_mensual|money }}</div>
-    <div class="tc-nota">{{ total_anual|money }} al año</div>
-  </div>
-</div>
-{% endif %}
+</section>
 
 {% if atrasadas %}
 <div class="glass-coral" style="margin-bottom:14px;padding:16px 20px;border-radius:18px;display:flex;align-items:center;gap:13px;flex-wrap:wrap">
@@ -60,6 +34,25 @@
     </div>
     <div class="hint" style="font-size:11.5px">Suman {{ monto_atrasado|money }} de cobros que ya pasaron.</div>
   </div>
+</div>
+{% endif %}
+
+{% if duplicadas %}
+<div class="tarjetas-color subs-ahorro">
+  {% for grupo in duplicadas %}
+  <div class="tarjeta-color agua">
+    <div class="tc-cabecera">
+      <span class="tc-icono"><i class="fas fa-lightbulb" style="font-size:12px"></i></span>
+      <span class="tc-label">Puedes ahorrar</span>
+    </div>
+    <div class="tc-monto">{{ grupo.ahorro_anual|money }}<span class="tc-unidad">al año</span></div>
+    <div class="tc-nota">
+      Pagas {{ grupo.items|length }} servicios de {{ grupo.categoria|lower }}:
+      {% for i in grupo.items %}{{ i.nombre }}{% if not forloop.last %} y {% endif %}{% endfor %}
+      se superponen. Deja uno.
+    </div>
+  </div>
+  {% endfor %}
 </div>
 {% endif %}
 
@@ -142,24 +135,7 @@
   {% endfor %}
 </div>
 
-{% if duplicadas %}
-<div class="tarjetas-color" style="margin-top:18px">
-  {% for grupo in duplicadas %}
-  <div class="tarjeta-color agua">
-    <div class="tc-cabecera">
-      <span class="tc-icono"><i class="fas fa-lightbulb" style="font-size:12px"></i></span>
-      <span class="tc-label">Puedes ahorrar</span>
-    </div>
-    <div class="tc-monto">{{ grupo.ahorro_anual|money }}<span class="tc-unidad">al año</span></div>
-    <div class="tc-nota">
-      Pagas {{ grupo.items|length }} servicios de {{ grupo.categoria|lower }}:
-      {% for i in grupo.items %}{{ i.nombre }}{% if not forloop.last %} y {% endif %}{% endfor %}
-      se superponen. Deja uno.
-    </div>
-  </div>
-  {% endfor %}
-</div>
-{% endif %}
+
 
 {% else %}
 <div class="glass empty">
@@ -183,7 +159,7 @@
         <div class="modal-title">Nueva suscripción</div>
         <div class="modal-sub">Se cobra sola cada mes hasta que la canceles.</div>
       </div>
-      <button class="modal-close" data-close>✕</button>
+      <button class="modal-close" data-close aria-label="Cerrar"><i class="fas fa-xmark"></i></button>
     </div>
 
     <form method="post" action="{% url 'crear_suscripcion' %}">

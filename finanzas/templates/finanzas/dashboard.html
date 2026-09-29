@@ -1,16 +1,19 @@
 {% extends 'finanzas/base.html' %}
 {% load static %}
 {% load humanize moneda %}
-{% block search_placeholder %}Filtrar movimientos y pagos{% endblock %}
+{% block title %}Inicio · Fintora{% endblock %}
+{% block search_placeholder %}Buscar movimientos{% endblock %}
 
 {% block topbar_mes %}
-{% include 'finanzas/_mes_nav.html' with variante="mes-nav-desktop" %}
+<div class="topbar-mes">
+  <a href="?year={{ prev_year }}&amp;month={{ prev_month }}" class="topbar-mes-flecha" title="Ver {{ prev_month_nombre }}" aria-label="Ver {{ prev_month_nombre }}"><i class="fas fa-chevron-left"></i></a>
+  <span class="topbar-mes-nombre">{{ nombre_mes }}</span>
+  {% if not es_mes_actual %}<a href="{% url 'dashboard' %}" class="topbar-mes-hoy">Hoy</a>{% endif %}
+  <a href="?year={{ next_year }}&amp;month={{ next_month }}" class="topbar-mes-flecha{% if es_mes_actual %} apagada{% endif %}" title="Ver {{ next_month_nombre }}" aria-label="Ver {{ next_month_nombre }}"><i class="fas fa-chevron-right"></i></a>
+</div>
 {% endblock %}
-{% block title %}Inicio · Fintora{% endblock %}
 
-{% block extra_head %}
-<script src="{% static 'vendor/chart/chart.umd.min.js' %}"></script>
-{% endblock %}
+{% block topbar_actions %}{% endblock %}
 
 {% block content %}
 
@@ -22,25 +25,17 @@
     <div>
       <div class="pasos-eyebrow">Primeros pasos</div>
       <div class="pasos-titulo">Deja tu mes armado</div>
-      <div class="hint" style="font-size:12px;margin-top:5px;max-width:430px">
-        Con esto la app ya puede decirte cuánto puedes gastar por día sin apretarte.
-      </div>
+      <div class="hint pasos-nota">Con esto la app ya puede decirte cuánto puedes gastar por día sin apretarte.</div>
     </div>
     <div class="pasos-acciones">
-      <button type="button" class="btn btn-purple btn-sm" data-tour-iniciar>
-        <i class="fas fa-route" style="font-size:10px"></i>Ver el tour
-      </button>
+      <button type="button" class="btn btn-purple btn-sm" data-tour-iniciar><i class="fas fa-route"></i>Ver el tour</button>
       <button type="button" class="btn btn-glass btn-sm" data-pasos-ocultar>Ocultar</button>
     </div>
   </div>
-
   <div class="pasos-progreso">
-    <div class="progress-bar" style="height:6px">
-      <div class="progress-fill" style="width:{{ pasos_pct }}%"></div>
-    </div>
+    <div class="progress-bar" style="height:6px"><div class="progress-fill" style="width:{{ pasos_pct }}%"></div></div>
     <span class="pasos-cuenta">{{ pasos_hechos }} de {{ pasos_total }}</span>
   </div>
-
   <div class="pasos-lista">
     {% for p in primeros_pasos %}
     <a class="paso-item {% if p.hecho %}hecho{% endif %}" href="{{ p.url }}"
@@ -58,473 +53,359 @@
 </div>
 {% endif %}
 
-{% include 'finanzas/_mes_nav.html' with variante="mes-nav-movil" %}
-{% if atrasado_arrastrado %}
-<a href="{% url 'deudas' %}" class="aviso-atraso">
-  <span class="aviso-atraso-icono"><i class="fas fa-triangle-exclamation"></i></span>
-  <span style="flex:1;min-width:0">
-    <span style="display:block;font-size:14px;font-weight:700;letter-spacing:-.01em">
-      {{ atrasado_arrastrado|money }} de cuotas que no pagaste
-    </span>
-    <span style="display:block;font-size:12px;line-height:1.45;margin-top:2px;color:var(--text-muted)">
-      {% for c in cuotas_arrastradas|slice:":3" %}{{ c.deuda.acreedor }}, {{ c.etiqueta|lower }}{% if not forloop.last %} · {% endif %}{% endfor %}{% if n_cuotas_arrastradas > 3 %} · y {{ n_cuotas_arrastradas|add:"-3" }} más{% endif %}.
-      Se sumaron a este mes y ya están descontadas de lo que puedes gastar.
-    </span>
-  </span>
-  <i class="fas fa-chevron-right" style="font-size:12px;color:var(--text-muted);flex-shrink:0"></i>
-</a>
-{% endif %}
-
-<div class="balance-carrusel" data-carrusel>
-
-  <a href="{% url 'estadisticas' %}" class="balance-card" data-tarjeta-link data-tour="saldo">
-    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px">
-      <div>
-        <div style="font-size:17px;font-weight:700;letter-spacing:-.02em">
-          {% if disponible >= 0 %}Puedes gastar{% else %}Te falta{% endif %}
-        </div>
-        <div class="label" style="margin-top:2px">{{ hoy_texto|default:nombre_mes }}</div>
-      </div>
-    </div>
-
-    <div class="display" style="font-size:32px;margin:18px 0 0">
-      {{ disponible|money }}
-    </div>
-
-    <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin-top:16px">
-      <div class="balance-pie" style="font-size:11.5px">
-        {{ por_dia|money }} por día · quedan {{ dias_restantes }} días
-      </div>
-    </div>
+<div class="ini-top">
+  <a href="{% url 'perfil' %}" class="ini-top-avatar" aria-label="Mi perfil">
+    <span>{{ profile.inicial|default:"?" }}</span>
+    {% if profile.foto_url %}<img src="{{ profile.foto_url }}" alt="" data-quitar-si-falla>{% endif %}
   </a>
-
-    <a href="{% url 'deudas' %}" class="balance-card deuda" data-spot data-tarjeta-link>
-    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px">
-      <div>
-        <div style="font-size:17px;font-weight:700;letter-spacing:-.02em">Debes en cuotas</div>
-        <div class="label" style="margin-top:2px">{{ mis_cuotas|length }} compra{{ mis_cuotas|length|pluralize:"s" }} a plazo</div>
-      </div>
-    </div>
-        <div class="display" style="font-size:32px;margin:18px 0 0">
-      {% if total_cuotas_mes %}{{ total_cuotas_mes|money }}{% else %}Sin cuotas{% endif %}
-    </div>
-    <div class="balance-pie" style="font-size:11.5px;margin-top:16px">
-      {% if total_cuotas_mes %}a pagar este mes · {% endif %}{{ deuda_total|money }} de deuda restante
-      {% if cuotas_atrasadas %} · {{ cuotas_atrasadas }} atrasada{{ cuotas_atrasadas|pluralize:"s" }}{% endif %}
-    </div>
-  </a>
-
-    <a href="{% url 'prestamos' %}" class="balance-card cobrar" data-spot data-tarjeta-link>
-    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px">
-      <div>
-        <div style="font-size:17px;font-weight:700;letter-spacing:-.02em">Te deben</div>
-        <div class="label" style="margin-top:2px">{{ prestamos_activos }} préstamo{{ prestamos_activos|pluralize:"s" }} activo{{ prestamos_activos|pluralize:"s" }}</div>
-      </div>
-    </div>
-        <div class="display" style="font-size:32px;margin:18px 0 0">
-      {{ total_por_cobrar|default:0|money }}
-    </div>
-    <div class="balance-pie" style="font-size:11.5px;margin-top:16px">
-      No cuenta en tu balance hasta que te paguen
-    </div>
-  </a>
+  <button type="button" class="ini-top-mes" data-open="#modalMes">{{ nombre_mes }}<i class="fas fa-chevron-down"></i></button>
+  <button type="button" class="ini-top-campana" data-open="#modalAvisos" aria-label="Avisos">
+    <i class="fas fa-bell"></i>{% if cuotas_atrasadas or pendientes_sin_pagar or insights or atrasado_arrastrado %}<span class="punto"></span>{% endif %}
+  </button>
 </div>
 
-<div class="balance-dots" data-dots>
-  <span class="on"></span><span></span><span></span>
-</div>
-
-<div class="section-head">
-  <h2 class="section-title">Tu mes</h2>
-  <span class="section-sub" style="cursor:default">{{ nombre_mes }}</span>
-</div>
-
-<div class="glass card-lg" style="margin-bottom:18px" data-spot>
-
-  <div class="mes-totales">
-    <div>
-      <span class="icon-tile green"><i class="fas fa-arrow-down"></i></span>
-      <div>
-        <div class="label">Entró</div>
-        <div class="display" style="font-size:21px;color:var(--green)">{{ total_ingresos|money }}</div>
-      </div>
+<section class="ini-hero">
+  <div class="ini-cifra" data-tour="saldo">
+    <span class="ini-label">{% if disponible >= 0 %}Puedes gastar{% else %}Te falta{% endif %}</span>
+    <span class="ini-monto{% if disponible < 0 %} negativo{% endif %}">{{ disponible|money }}</span>
+    <div class="ini-chips">
+      <span class="chip-vidrio">{{ por_dia|money }} por día</span>
+      <span class="chip-vidrio"><span class="solo-esc">quedan </span>{{ dias_restantes }} día{{ dias_restantes|pluralize:"s" }}</span>
     </div>
-    <span class="mes-divisor"></span>
-    <div>
-      <span class="icon-tile coral"><i class="fas fa-arrow-up"></i></span>
-      <div>
-        <div class="label">Comprometido</div>
-        <div class="display" style="font-size:21px;color:var(--coral)">{{ total_comprometido_mes|money }}</div>
-      </div>
+    <div class="ini-accesos">
+      <button type="button" class="ini-acceso principal" data-open="#modalGasto" data-preset-tipo="EGRESO">
+        <span class="ini-acceso-icono"><i class="fas fa-plus"></i></span><span><span class="solo-esc">Anotar gasto</span><span class="solo-tel">Gasto</span></span>
+      </button>
+      <button type="button" class="ini-acceso" data-open="#modalGasto" data-preset-tipo="INGRESO">
+        <span class="ini-acceso-icono verde"><i class="fas fa-arrow-down"></i></span><span>Ingreso</span>
+      </button>
+      <a href="{% url 'importar_cartola' %}" class="ini-acceso">
+        <span class="ini-acceso-icono agua"><i class="fas fa-file-import"></i></span><span><span class="solo-esc">Subir cartola</span><span class="solo-tel">Cartola</span></span>
+      </a>
+      <a href="{% url 'plan_plata' %}" class="ini-acceso">
+        <span class="ini-acceso-icono ambar"><i class="fas fa-route"></i></span><span>Plan</span>
+      </a>
     </div>
   </div>
 
-  <div class="split-bar" style="height:12px;margin-bottom:14px">
-    <span style="width:{{ pct_gastado }}%;background:var(--blue)" title="Ya gastado"></span>
-    <span style="width:{{ pct_por_pagar }}%;background:var(--amber)" title="Por pagar"></span>
-    <span style="width:{{ pct_disponible }}%;background:var(--green)" title="Disponible"></span>
+  <div class="ini-lado">
+    <div class="ini-tiles">
+      <a href="{% url 'deudas' %}" class="ini-tile" data-tarjeta-link>
+        <span class="ini-tile-icono azul"><i class="fas fa-credit-card"></i></span>
+        <span class="ini-tile-label">Cuotas del mes</span>
+        <span class="ini-tile-monto">{% if total_cuotas_mes %}{{ total_cuotas_mes|money }}{% else %}$0{% endif %}</span>
+      </a>
+      <a href="{% url 'prestamos' %}" class="ini-tile" data-tarjeta-link>
+        <span class="ini-tile-icono verde"><i class="fas fa-hand-holding-dollar"></i></span>
+        <span class="ini-tile-label">Te deben</span>
+        <span class="ini-tile-monto">{{ total_por_cobrar|default:0|money }}</span>
+      </a>
+    </div>
+    <a href="{% url 'estadisticas' %}" class="ini-mes">
+      <span class="ini-mes-cab"><span>Entraron {{ total_ingresos|money }}</span><span>{{ nombre_mes }}</span></span>
+      <span class="ini-barra">
+        <span class="gastado" style="width:{{ pct_gastado }}%"></span>
+        <span class="por-pagar" style="width:{{ pct_por_pagar }}%"></span>
+        <span class="queda" style="width:{{ pct_disponible }}%"></span>
+      </span>
+      <span class="ini-leyenda">
+        <span>Gastado {{ total_gastos|money }}</span>
+        <span class="por-pagar">Por pagar {{ por_pagar|money }}</span>
+        <span class="queda">Te queda</span>
+      </span>
+    </a>
+  </div>
+</section>
+
+<section class="ini-panel">
+  <div class="ini-pestanas" data-pestanas role="tablist">
+    <button type="button" class="on" data-pestana="pagar" role="tab">Por pagar</button>
+    <button type="button" data-pestana="movs" role="tab">Movimientos</button>
+    <button type="button" data-pestana="metas" role="tab">Metas</button>
   </div>
 
-    <div class="mes-tramos">
+  <div class="ini-linea" data-panel="pagar" data-linea data-hoy="{{ hoy_iso }}">
+    <div class="ini-cab">
+      <div class="ini-cab-txt">
+        <h2 class="ini-titulo">Próximos 14 días</h2>
+        <span class="ini-sub" data-linea-sub>{% if monto_sin_pagar %}{{ monto_sin_pagar|money }} por pagar este mes{% else %}Nada pendiente este mes{% endif %}</span>
+      </div>
+      <button type="button" class="ini-link" data-open="#modalCalendario">Ver calendario<i class="fas fa-chevron-right"></i></button>
+    </div>
 
-    <div class="mes-tramo">
-      <span class="mes-punto" style="background:var(--blue)"></span>
-      <div>
-        <div class="label">Ya gastaste</div>
-        <div class="mono" style="font-size:15px">{{ total_gastos|money }}</div>
-        {% if gastos_por_pagar %}
-        <div class="mes-nota">
-          <span style="color:var(--green)">{{ gastos_pagados|money }} pagados</span> ·
-          <span style="color:var(--amber)">{{ gastos_por_pagar|money }} sin pagar</span>
-        </div>
+    <div class="ini-regla" data-regla>
+      <div class="ini-regla-base"></div>
+      <div class="ini-regla-hecho" data-regla-hecho></div>
+      <div class="ini-regla-hoy" data-regla-hoy></div>
+      <div class="ini-regla-dias" data-regla-dias aria-hidden="true"></div>
+      <div class="ini-regla-vacia" data-regla-vacia hidden><i class="fas fa-circle-check"></i>No tienes pagos en estos días.</div>
+      {% for i in pendientes %}{% if not i.pagado %}
+      <div class="ini-pago{% if i.atrasado %} atrasado{% endif %}" data-fecha="{{ i.fecha|date:'Y-m-d' }}" data-monto="{{ i.monto|floatformat:'0u' }}">
+        {% if i.marca.reconocida %}
+        <span class="ini-ficha" style="color:{{ i.marca.color }};background:{{ i.marca.color }}24">{% if i.marca.usa_inicial %}<b>{{ i.inicial }}</b>{% else %}<i class="{{ i.marca.icono }}"></i>{% endif %}</span>
         {% else %}
-        <div class="mes-nota">Todo pagado</div>
+        <span class="ini-ficha t-{{ i.tipo }}"><i class="fas {{ i.icono }}"></i></span>
         {% endif %}
+        <span class="ini-pago-txt">
+          <span class="ini-pago-nombre">{{ i.nombre }}</span>
+          <span class="ini-pago-meta">{% if i.atrasado %}Atrasado{% else %}{{ i.fecha|date:"j b" }}{% endif %} · {{ i.monto|money }}</span>
+        </span>
+        <form method="post" action="{{ i.url_pagar }}">
+          {% csrf_token %}
+          <input type="hidden" name="next" value="?year={{ year }}&amp;month={{ month }}">
+          <input type="hidden" name="next_path" value="{% url 'dashboard' %}">
+          <input type="hidden" name="periodo" value="{{ i.periodo }}">
+          <button type="submit" class="ini-pago-ok" title="Marcar como pagado" aria-label="Marcar {{ i.nombre }} como pagado"><i class="fas fa-check"></i><span>Pagué</span></button>
+        </form>
       </div>
+      {% endif %}{% endfor %}
     </div>
 
-    <div class="mes-tramo">
-      <span class="mes-punto" style="background:var(--amber)"></span>
-      <div>
-        <div class="label">Falta pagar</div>
-        <div class="mono" style="font-size:15px;color:var(--amber)">{{ por_pagar|money }}</div>
-        <div class="mes-nota">
-          {% if mes_al_dia %}Nada pendiente
-          {% else %}{{ pendientes_sin_pagar|length }} pago{{ pendientes_sin_pagar|length|pluralize:"s" }} sin marcar{% endif %}
-          {% if fijo_mensual %} · {{ fijo_mensual|money }} es fijo{% endif %}
-        </div>
+    <div class="ini-lista-pagar" data-lista-pagar>
+      {% for i in pendientes %}{% if not i.pagado %}
+      <div class="ini-fila{% if i.atrasado %} atrasado{% endif %}" data-fecha="{{ i.fecha|date:'Y-m-d' }}">
+        {% if i.marca.reconocida %}
+        <span class="ini-ficha" style="color:{{ i.marca.color }};background:{{ i.marca.color }}24">{% if i.marca.usa_inicial %}<b>{{ i.inicial }}</b>{% else %}<i class="{{ i.marca.icono }}"></i>{% endif %}</span>
+        {% else %}
+        <span class="ini-ficha t-{{ i.tipo }}"><i class="fas {{ i.icono }}"></i></span>
+        {% endif %}
+        <span class="ini-fila-txt">
+          <span class="ini-fila-nombre">{{ i.nombre }}</span>
+          <span class="ini-fila-meta">{% if i.atrasado %}Atrasado · {{ i.fecha|date:"j b" }}{% elif i.tipo == 'cuota' %}{{ i.detalle }} · vence {{ i.fecha|date:"j b" }}{% else %}Vence {{ i.fecha|date:"j b" }}{% endif %}</span>
+        </span>
+        <form method="post" action="{{ i.url_pagar }}">
+          {% csrf_token %}
+          <input type="hidden" name="next" value="?year={{ year }}&amp;month={{ month }}">
+          <input type="hidden" name="next_path" value="{% url 'dashboard' %}">
+          <input type="hidden" name="periodo" value="{{ i.periodo }}">
+          <button type="submit" class="ini-fila-pagar" aria-label="Marcar {{ i.nombre }} como pagado">{{ i.monto|money }}<i class="fas fa-check"></i></button>
+        </form>
       </div>
-    </div>
-
-    <div class="mes-tramo">
-      <span class="mes-punto" style="background:var(--green)"></span>
-      <div>
-        <div class="label">Te queda</div>
-        <div class="mono" style="font-size:15px;color:var(--green)">{{ disponible|money }}</div>
-        <div class="mes-nota">{{ por_dia|money }} por día · {{ dias_restantes }} días</div>
-      </div>
+      {% endif %}{% endfor %}
+      <div class="ini-vacio" data-lista-pagar-vacia hidden><i class="fas fa-circle-check"></i>No tienes nada por pagar.</div>
+      <button type="button" class="ini-link ini-link-tel" data-open="#modalCalendario">Ver calendario y pagados<i class="fas fa-chevron-right"></i></button>
     </div>
   </div>
-</div>
-{% if mis_cuotas %}
-<div class="section-head">
-  <h2 class="section-title">Lo que debes en total</h2>
-  <a href="{% url 'deudas' %}" class="section-sub" style="text-decoration:none">Ver todas →</a>
-</div>
 
-<div class="glass card-lg deuda-panel" data-spot style="margin-bottom:18px">
-  <div class="deuda-cabecera">
-    <div>
-      <div class="label" style="margin-bottom:8px">Te falta pagar</div>
-      <div class="display" style="font-size:30px;line-height:1">{{ deuda_total|money }}</div>
-      <div class="hint" style="font-size:11.5px;margin-top:7px">
-        de {{ deuda_bruta_total|money }} en {{ mis_cuotas|length }} compra{{ mis_cuotas|length|pluralize:"s" }}
-        {% if se_libera %} · terminas en {{ se_libera.mes_fin }}{% endif %}
+  <div class="ini-grid">
+    <article class="ini-tarjeta ini-movs" data-panel="movs">
+      <div class="ini-cab">
+        <h2 class="ini-titulo">Movimientos</h2>
+        <button type="button" class="ini-link" data-open="#modalMovimientos">Ver todo</button>
       </div>
-    </div>
+      {% for t in ultimas|slice:":5" %}
+      <div class="ini-mov" data-searchable>
+        {% if t.marca_suscripcion %}
+        <span class="ini-mov-icono" style="background:{{ t.marca_suscripcion.color }}24;color:{{ t.marca_suscripcion.color }}">{% if t.marca_suscripcion.usa_inicial %}{{ t.marca_suscripcion.inicial }}{% else %}<i class="{{ t.marca_suscripcion.icono }}"></i>{% endif %}</span>
+        {% else %}
+        <span class="ini-mov-icono{% if t.es_ingreso %} ingreso{% elif t.por_pagar %} por-pagar{% endif %}"><i class="fas {{ t.icono }}"></i></span>
+        {% endif %}
+        <span class="ini-mov-txt">
+          <span class="ini-mov-nombre">{{ t.descripcion|default:t.get_categoria_display }}</span>
+          <span class="ini-mov-meta"><span class="solo-esc">· </span><span class="ini-mov-dia">{{ t.fecha|naturalday:"j b"|lower }}</span><span class="solo-tel"> · {% if t.por_pagar %}sin pagar{% else %}{{ t.get_categoria_display }}{% endif %}</span></span>
+        </span>
+        <span class="ini-mov-monto{% if t.es_ingreso %} ingreso{% endif %}">{% if t.es_ingreso %}+{% endif %}{{ t.monto|money }}</span>
+      </div>
+      {% empty %}
+      <div class="ini-vacio-grande">
+        <span>Todavía no anotas nada este mes.</span>
+        <button type="button" class="btn btn-purple btn-sm" data-open="#modalGasto" data-preset-tipo="EGRESO">Anotar el primero</button>
+      </div>
+      {% endfor %}
+    </article>
 
-    <div class="deuda-datos">
-      <div class="deuda-dato">
-        <div class="label" style="margin-bottom:5px">Al mes</div>
-        <div class="mono" style="font-size:16px">{{ cuota_mensual_total|money }}</div>
+    <article class="ini-tarjeta ini-flujo" data-panel="flujo">
+      <div class="ini-cab">
+        <h2 class="ini-titulo">Cómo vienes</h2>
+        <span class="ini-comparar" data-comparar></span>
       </div>
-      <div class="deuda-dato">
-        <div class="label" style="margin-bottom:5px">Ya pagaste</div>
-        <div class="mono" style="font-size:16px;color:var(--green)">{{ deuda_pagada_total|money }}</div>
+      <div class="ini-barras" data-barras data-om-raster
+           data-anterior="{{ mes_anterior_nombre }}"
+           data-meses="{{ meses_json|a_json }}"
+           data-gastos="{{ gastos_json|a_json }}"
+           data-cuotas="{{ cuotas_json|a_json }}"></div>
+    </article>
+
+    <article class="ini-tarjeta ini-metas-tarjeta" data-panel="metas">
+      <div class="ini-cab">
+        <h2 class="ini-titulo">Metas</h2>
+        <a href="{% url 'metas' %}" class="ini-link">Ver todo</a>
       </div>
-      {% if cuotas_atrasadas_total %}
-      <div class="deuda-dato" style="background:var(--coral-tenue);border-color:var(--coral-borde)">
-        <div class="label" style="color:var(--coral);margin-bottom:5px">Atrasadas</div>
-        <div class="mono" style="font-size:16px;color:var(--coral)">{{ cuotas_atrasadas_total }}</div>
+      {% if metas %}
+      <div class="ini-metas">
+        {% for m in metas|slice:":3" %}
+        <a href="{% url 'metas' %}#meta{{ m.pk }}" class="ini-meta" style="--pct:{{ m.porcentaje|floatformat:'0u' }};--color:{% if m.esta_completa %}#53d258{% else %}{{ m.color }}{% endif %}">
+          <span class="ini-anillo"><span>{{ m.porcentaje|floatformat:0 }}%</span></span>
+          <span class="ini-meta-txt">
+            <span class="ini-meta-cab">
+              <span class="ini-meta-nombre">{{ m.nombre }}</span>
+              <span class="ini-meta-pct">{{ m.porcentaje|floatformat:0 }}%</span>
+            </span>
+            <span class="ini-meta-barra"><span></span></span>
+            <span class="ini-meta-nota">{% if m.esta_completa %}Meta cumplida{% else %}<span class="solo-tel">{{ m.monto_actual|money }} de {{ m.monto_meta|money }} · faltan </span><span class="solo-esc">Faltan </span>{{ m.monto_faltante|money }}{% endif %}</span>
+          </span>
+        </a>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div class="ini-vacio-grande">
+        <span>Crea una meta para ver aquí cuánto te falta.</span>
+        <a href="{% url 'metas' %}" class="btn btn-glass btn-sm">Crear una meta</a>
       </div>
       {% endif %}
+    </article>
+  </div>
+</section>
+
+{% endblock %}
+
+{% block modals %}
+<div class="modal-overlay hoja-overlay" id="modalMes">
+  <div class="modal-box hoja-box">
+    <div class="modal-head">
+      <div class="modal-title">Elige el mes</div>
+      <button class="modal-close" data-close aria-label="Cerrar"><i class="fas fa-xmark"></i></button>
+    </div>
+    <div class="ini-meses">
+      <a href="?year={{ prev_year }}&amp;month={{ prev_month }}" class="ini-mes-opcion"><i class="fas fa-chevron-left"></i><span>{{ prev_month_nombre }}</span></a>
+      <span class="ini-mes-opcion on"><i class="fas fa-check"></i><span>{{ nombre_mes }}</span></span>
+      <a href="?year={{ next_year }}&amp;month={{ next_month }}" class="ini-mes-opcion"><i class="fas fa-chevron-right"></i><span>{{ next_month_nombre }}</span></a>
+      {% if not es_mes_actual %}<a href="{% url 'dashboard' %}" class="btn btn-purple btn-block">Volver a este mes</a>{% endif %}
     </div>
   </div>
+</div>
 
-  <div style="margin-top:20px">
-    <div class="progress-bar" style="height:10px">
-      <div class="progress-fill green shine" style="width:{{ deuda_pct_pagado }}%"></div>
+<div class="modal-overlay" id="modalAtrasados">
+  <div class="modal-box" style="max-width:460px">
+    <div class="modal-head">
+      <div>
+        <div class="modal-title">Pagos atrasados</div>
+        <div class="modal-sub">Marca los que ya pagaste</div>
+      </div>
+      <button class="modal-close" data-close aria-label="Cerrar"><i class="fas fa-xmark"></i></button>
     </div>
-    <div style="display:flex;justify-content:space-between;margin-top:7px;font-size:10.5px;color:var(--text-muted)">
-      <span>{{ deuda_pct_pagado }}% pagado</span>
-      <span>{{ deuda_total|money }} por delante</span>
-    </div>
-  </div>
-
-  <div class="deuda-lista">
-    {% for c in mis_cuotas %}
-    <details class="deuda-item" data-searchable>
-      <summary>
-        <span class="icon-tile" style="background:{{ c.color }}22;border-color:{{ c.color }}44;color:{{ c.color }}">
-          <i class="fas {{ c.icono }}"></i>
-        </span>
-        <span class="deuda-item-main">
-          <span class="deuda-item-nombre">{{ c.acreedor }}</span>
-          <span class="row-meta">
-            {{ c.cuotas_pagadas }} de {{ c.cuotas_totales }} cuotas
-            {% if c.atrasadas %} · <span style="color:var(--coral)">{{ c.texto_urgencia }}</span>
-            {% elif c.pagada_este_mes %} · <span style="color:var(--green)">al día</span>{% endif %}
-          </span>
-          <span class="deuda-item-barra">
-            <span style="width:{{ c.porcentaje }}%;background:{{ c.color }}"></span>
-          </span>
-        </span>
-        <span class="deuda-item-monto">
-          <span class="mono">{{ c.restante|money }}</span>
-          <span class="row-meta">por pagar</span>
-        </span>
-        <i class="fas fa-chevron-down deuda-item-flecha"></i>
-      </summary>
-
-      <div class="deuda-item-detalle">
-        <div class="deuda-item-nums">
-          <div><span class="label">Cuota</span><span class="mono">{{ c.cuota|money }}</span></div>
-          <div><span class="label">Pagado</span><span class="mono" style="color:var(--green)">{{ c.pagado|money }}</span></div>
-          <div><span class="label">Total</span><span class="mono">{{ c.monto_total|money }}</span></div>
-          <div><span class="label">Última</span><span class="mono">{{ c.fin|date:"M Y" }}</span></div>
-        </div>
-
-        <div class="pips" style="margin:14px 0">
-          {% for m in c.obj.rango_cuotas %}<span class="pip {{ m.clase }}"></span>{% endfor %}
-        </div>
-
-        {% if not c.pagada_este_mes and c.periodo_a_pagar %}
-        <form method="post" action="{% url 'pagar_cuota' c.obj.pk %}" style="margin:0">
-          {% csrf_token %}
-          <input type="hidden" name="next" value="?year={{ year }}&amp;month={{ month }}">
-            <input type="hidden" name="next_path" value="{% url 'dashboard' %}">
-          <input type="hidden" name="periodo" value="{{ c.periodo_a_pagar }}">
-          <button type="submit" class="btn btn-green btn-sm">
-            <i class="fas fa-check" style="font-size:9px"></i>{{ c.obj.texto_a_pagar }}
-          </button>
-        </form>
+    <div class="ini-lista-modal">
+      {% for i in pendientes %}{% if i.atrasado and not i.pagado %}
+      <div class="ini-fila atrasado">
+        {% if i.marca.reconocida %}
+        <span class="ini-ficha" style="color:{{ i.marca.color }};background:{{ i.marca.color }}24">{% if i.marca.usa_inicial %}<b>{{ i.inicial }}</b>{% else %}<i class="{{ i.marca.icono }}"></i>{% endif %}</span>
+        {% else %}
+        <span class="ini-ficha t-{{ i.tipo }}"><i class="fas {{ i.icono }}"></i></span>
         {% endif %}
-      </div>
-    </details>
-    {% endfor %}
-  </div>
-</div>
-{% endif %}
-{% if insights %}
-<div class="section-head">
-  <h2 class="section-title">Atención a esto</h2>
-</div>
-<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:10px;margin-bottom:18px">
-  {% for i in insights %}
-  <div style="display:flex;gap:12px;padding:15px 16px;border-radius:var(--r-md);background:var(--surface-2);border:1px solid {{ i.borde }}">
-    <span style="display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;flex-shrink:0;border-radius:11px;font-size:12px;background:{{ i.tenue }};color:{{ i.color }}">
-      <i class="fas {{ i.icono }}"></i>
-    </span>
-    <div style="flex:1;min-width:0">
-      <div style="font-size:10.5px;font-weight:700;letter-spacing:.03em;color:{{ i.color }};margin-bottom:4px">{{ i.etiqueta }}</div>
-      <div style="font-size:12.5px;line-height:1.5;text-wrap:pretty">{{ i.texto }}</div>
-    </div>
-  </div>
-  {% endfor %}
-</div>
-{% endif %}
-
-<div class="section-head">
-  <h2 class="section-title">Qué hay que pagar</h2>
-  {% if not mes_al_dia and monto_sin_pagar %}
-  <span class="section-sub" style="color:var(--orange)">{{ monto_sin_pagar|money }} pendiente</span>
-  {% endif %}
-</div>
-<div class="grid-pagos">
-<div>
-{% if mes_al_dia %}
-<details class="glass card" style="padding:0;margin-bottom:18px" data-spot>
-  <summary style="padding:16px 20px;cursor:pointer;display:flex;align-items:center;gap:13px">
-    <span class="icon-tile green" style="flex-shrink:0"><i class="fas fa-circle-check"></i></span>
-    <div class="row-main">
-      <div class="row-title">{{ nombre_mes }} está pagado</div>
-      <div class="row-meta">
-        {{ monto_ya_pagado|money }} en {{ pendientes|length }} pago{{ pendientes|length|pluralize:"s" }}
-      </div>
-    </div>
-    <span style="font-size:11px;color:var(--text-muted)" class="hide-mobile">Ver detalle</span>
-    <i class="fas fa-chevron-down" style="font-size:10px;color:var(--text-muted)"></i>
-  </summary>
-
-  <div style="padding:0 20px 20px">
-    <div class="row-list">
-      {% for i in pendientes %}
-      <div class="row" data-searchable style="opacity:.7">
-        <span class="icon-tile green"><i class="fas fa-check"></i></span>
-        <div class="row-main">
-          <div class="row-title" style="color:var(--text-secondary)">{{ i.nombre }}</div>
-          <div class="row-meta">
-            {{ i.detalle }} · pagado{% if i.fecha_pago %} el {{ i.fecha_pago|date:"j M" }}{% endif %}
-          </div>
-        </div>
-        <div class="mono" style="font-size:12.5px;color:var(--text-muted)">{{ i.monto|money }}</div>
-        <form method="post" action="{{ i.url_anular }}" style="margin:0"
-              data-confirm="¿Marcar {{ i.nombre }} como no pagado?">
+        <span class="ini-fila-txt">
+          <span class="ini-fila-nombre">{{ i.nombre }}</span>
+          <span class="ini-fila-meta">Atrasado · {{ i.fecha|date:"j b" }}</span>
+        </span>
+        <form method="post" action="{{ i.url_pagar }}">
           {% csrf_token %}
           <input type="hidden" name="next" value="?year={{ year }}&amp;month={{ month }}">
-            <input type="hidden" name="next_path" value="{% url 'dashboard' %}">
+          <input type="hidden" name="next_path" value="{% url 'dashboard' %}">
           <input type="hidden" name="periodo" value="{{ i.periodo }}">
-          <button type="submit" class="icon-btn" title="Deshacer" aria-label="Deshacer"><i class="fas fa-rotate-left" style="font-size:10px"></i></button>
+          <button type="submit" class="ini-fila-pagar" aria-label="Marcar {{ i.nombre }} como pagado">{{ i.monto|money }}<i class="fas fa-check"></i></button>
         </form>
+      </div>
+      {% endif %}{% endfor %}
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modalMovimientos">
+  <div class="modal-box" style="max-width:560px">
+    <div class="modal-head">
+      <div>
+        <div class="modal-title">Movimientos de {{ nombre_mes }}</div>
+        <div class="modal-sub">Desliza una fila para marcarla como pagada o borrarla</div>
+      </div>
+      <button class="modal-close" data-close aria-label="Cerrar"><i class="fas fa-xmark"></i></button>
+    </div>
+    <div class="row-list mov-list">
+      {% for t in ultimas %}
+      <div class="swipe swipe-fila swipe-mov tono-{{ t.clase_tono }}{% if t.por_pagar %} sin-pagar{% endif %}">
+        <div class="swipe-acciones">
+          {% if t.por_pagar %}
+          <form method="post" action="{% url 'pagar_gasto' t.pk %}" style="margin:0">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{% url 'dashboard' %}">
+            <button type="submit" class="swipe-btn editar" title="Marcar como pagado"><i class="fas fa-check"></i><span>Pagué</span></button>
+          </form>
+          {% elif t.es_gasto_unico %}
+          <form method="post" action="{% url 'anular_pago_gasto' t.pk %}" style="margin:0" data-confirm="¿Marcar este gasto como no pagado?">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{% url 'dashboard' %}">
+            <button type="submit" class="swipe-btn editar" title="{{ t.texto_estado_pago }}"><i class="fas fa-rotate-left"></i><span>Deshacer</span></button>
+          </form>
+          {% endif %}
+          <form method="post" action="{% url 'eliminar_transaccion' t.pk %}" style="margin:0" data-confirm="¿Eliminar {{ t.descripcion|default:t.get_categoria_display }}?">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{% url 'dashboard' %}">
+            <button type="submit" class="swipe-btn borrar" title="Eliminar"><i class="fas fa-trash-can"></i><span>Eliminar</span></button>
+          </form>
+        </div>
+        <div class="swipe-card row">
+          {% if t.marca_suscripcion %}
+          <span class="icon-tile marca-tile" style="background:{{ t.marca_suscripcion.color }}1f;color:{{ t.marca_suscripcion.color }}">{% if t.marca_suscripcion.usa_inicial %}{{ t.marca_suscripcion.inicial }}{% else %}<i class="{{ t.marca_suscripcion.icono }}"></i>{% endif %}</span>
+          {% else %}
+          <span class="icon-tile {% if t.es_ingreso %}green{% elif t.por_pagar %}orange{% endif %}"><i class="fas {{ t.icono }}"></i></span>
+          {% endif %}
+          <div class="row-main">
+            <div class="row-title">{{ t.descripcion|default:t.get_categoria_display }}</div>
+            <div class="row-meta">{{ t.fecha|date:"j b" }}{% if t.descripcion %} · {{ t.get_categoria_display }}{% endif %}{% if t.por_pagar %} · <span style="color:var(--amarillo)">sin pagar</span>{% endif %}</div>
+          </div>
+          <div class="mono mov-monto" style="{% if t.es_ingreso %}color:var(--green-texto){% endif %}">{% if t.es_ingreso %}+{% endif %}{{ t.monto|money }}</div>
+        </div>
+      </div>
+      {% empty %}
+      <div class="empty">
+        <i class="fas fa-receipt"></i>
+        <div class="empty-title">Todavía no registras nada</div>
       </div>
       {% endfor %}
     </div>
   </div>
-</details>
-
-{% else %}
-<div class="glass card" style="padding:22px;margin-bottom:18px" data-spot>
-    <div class="pagos-cabecera">
-    <div class="pagos-titulo">
-      <div>
-        <div class="modal-title" style="font-size:15px;font-weight:500">Pagos de {{ nombre_mes }}</div>
-        <div class="hint" style="font-size:11.5px;margin-top:3px">
-          Márcalas acá a medida que las pagas.
-        </div>
-      </div>
-
-      {% if pendientes_atrasados %}
-      <span class="badge badge-coral" style="flex-shrink:0">
-        <i class="fas fa-triangle-exclamation" style="font-size:9px"></i>
-        {{ pendientes_atrasados|length }} atrasado{{ pendientes_atrasados|length|pluralize:"s" }}
-      </span>
-      {% endif %}
-    </div>
-
-    {% if pendientes %}
-    <div class="pagos-cifra">
-      <div>
-        <div class="display pagos-monto">{{ monto_sin_pagar|money }}</div>
-        <div class="pagos-nota">
-          {% if pendientes_sin_pagar %}
-            por pagar en {{ pendientes_sin_pagar|length }} pago{{ pendientes_sin_pagar|length|pluralize:"s" }}
-          {% else %}
-            todo pagado este mes
-          {% endif %}
-        </div>
-      </div>
-
-      {% if monto_ya_pagado %}
-      <div class="pagos-hecho">
-        <div class="mono" style="font-size:14px;color:var(--green)">{{ monto_ya_pagado|money }}</div>
-        <div class="pagos-nota">ya pagado</div>
-      </div>
-      {% endif %}
-    </div>
-
-    <div class="split-bar" style="height:7px;margin-top:12px">
-      {% if monto_ya_pagado %}<span class="tramo-pagado" style="width:{% widthratio monto_ya_pagado total_comprometido_mes 100 %}%"></span>{% endif %}
-      {% if monto_sin_pagar %}<span class="tramo-pendiente" style="width:{% widthratio monto_sin_pagar total_comprometido_mes 100 %}%"></span>{% endif %}
-    </div>
-    {% endif %}
-  </div>
-
-  {% if pendientes %}
-  <div class="row-list">
-    {% for i in pendientes %}
-        <div class="pago-fila t-{{ i.tipo }}{% if i.atrasado %} atrasado{% elif i.pagado %} pagado{% endif %}" data-searchable>
-            {% if i.pagado %}
-      <span class="pago-ficha"><i class="fas fa-check"></i></span>
-      {% elif i.marca.reconocida %}
-      <span class="pago-ficha marca" style="color:{{ i.marca.color }};background:{{ i.marca.color }}1f;border-color:{{ i.marca.color }}3d">
-        {% if i.marca.usa_inicial %}<b>{{ i.inicial }}</b>{% else %}<i class="{{ i.marca.icono }}"></i>{% endif %}
-      </span>
-      {% else %}
-      <span class="pago-ficha"><i class="fas {{ i.icono }}"></i></span>
-      {% endif %}
-
-      <div class="row-main">
-        <div class="row-title" {% if i.pagado %}style="color:var(--text-secondary)"{% endif %}>{{ i.nombre }}</div>
-        <div class="row-meta">
-          {{ i.detalle }} ·
-          {% if i.pagado %}pagado{% if i.fecha_pago %} el {{ i.fecha_pago|date:"j M" }}{% endif %}
-          {% elif i.atrasado %}<span style="color:var(--coral)">venció el {{ i.fecha|date:"j M" }}</span>
-          {% else %}vence el {{ i.fecha|date:"j M" }}{% endif %}
-        </div>
-      </div>
-
-      <div class="mono pago-monto">{{ i.monto|money }}</div>
-
-      {% if i.pagado %}
-      <form method="post" action="{{ i.url_anular }}" style="margin:0"
-            data-confirm="¿Marcar {{ i.nombre }} como no pagado?">
-        {% csrf_token %}
-        <input type="hidden" name="next" value="?year={{ year }}&amp;month={{ month }}">
-            <input type="hidden" name="next_path" value="{% url 'dashboard' %}">
-        <input type="hidden" name="periodo" value="{{ i.periodo }}">
-        <button type="submit" class="icon-btn" title="Deshacer" aria-label="Deshacer"><i class="fas fa-rotate-left" style="font-size:10px"></i></button>
-      </form>
-      {% else %}
-      <form method="post" action="{{ i.url_pagar }}" style="margin:0">
-        {% csrf_token %}
-        <input type="hidden" name="next" value="?year={{ year }}&amp;month={{ month }}">
-            <input type="hidden" name="next_path" value="{% url 'dashboard' %}">
-        <input type="hidden" name="periodo" value="{{ i.periodo }}">
-        <button type="submit" class="btn {% if i.atrasado %}btn-orange{% else %}btn-green{% endif %} btn-sm">
-          <i class="fas fa-check" style="font-size:9px"></i>Pagué
-        </button>
-      </form>
-      {% endif %}
-    </div>
-    {% endfor %}
-  </div>
-
-  {% else %}
-  <div class="empty" style="padding:30px 12px">
-    <i class="fas fa-circle-check" style="font-size:24px"></i>
-    <div class="empty-title" style="font-size:14px">Nada que pagar este mes</div>
-    <div class="empty-text" style="font-size:11.5px">
-      No tienes cuotas, suscripciones ni cuentas con fecha en {{ nombre_mes }}.
-    </div>
-  </div>
-  {% endif %}
-</div>
-{% endif %}
 </div>
 
-  <div class="glass card" style="padding:22px" data-spot>
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;gap:10px">
-      <div class="modal-title" style="font-size:15px;font-weight:500">Calendario de pagos</div>
-      {% if dias_con_pago %}
-      <span class="badge badge-orange mono">{{ dias_con_pago|length }} día{{ dias_con_pago|length|pluralize:"s" }} con pagos</span>
-      {% endif %}
+<div class="modal-overlay" id="modalCalendario">
+  <div class="modal-box" style="max-width:520px">
+    <div class="modal-head">
+      <div>
+        <div class="modal-title">Pagos de {{ nombre_mes }}</div>
+        <div class="modal-sub">{% if monto_ya_pagado %}{{ monto_ya_pagado|money }} ya pagado{% endif %}{% if monto_ya_pagado and monto_sin_pagar %} · {% endif %}{% if monto_sin_pagar %}{{ monto_sin_pagar|money }} por pagar{% endif %}</div>
+      </div>
+      <button class="modal-close" data-close aria-label="Cerrar"><i class="fas fa-xmark"></i></button>
     </div>
-    <div class="hint" style="font-size:11.5px;margin-bottom:14px">Los días marcados tienen algo que pagar. Toca uno.</div>
-
-    <div class="cal-head" style="margin-bottom:5px">
-      {% for d in dias_semana %}<div>{{ d|slice:":1" }}</div>{% endfor %}
-    </div>
-    {% for semana in calendario %}
-    <div class="cal-week" style="margin-bottom:4px">
-      {% for dia in semana %}
-        {% if dia %}
+    <div class="ini-calendario">
+      <div class="cal-head" style="margin-bottom:5px">
+        {% for d in dias_semana %}<div>{{ d|slice:":1" }}</div>{% endfor %}
+      </div>
+      {% for semana in calendario %}
+      <div class="cal-week" style="margin-bottom:4px">
+        {% for dia in semana %}
+          {% if dia %}
           <button type="button" class="cal-day {% if dia.tiene_pagos %}has{% endif %} {% if dia.es_hoy %}on{% endif %}"
                   {% if dia.tiene_pagos %}data-open="#dia{{ dia.numero }}"{% endif %}
                   title="{% if dia.tiene_pagos %}{{ dia.total_dia|money }} este día{% endif %}">
             <span>{{ dia.numero }}</span>
             {% if dia.tiene_pagos %}<span class="dot {% if dia.todo_pagado %}paid{% endif %}"></span>{% endif %}
           </button>
-        {% else %}
+          {% else %}
           <span class="cal-day" style="border:none"></span>
-        {% endif %}
+          {% endif %}
+        {% endfor %}
+      </div>
       {% endfor %}
-    </div>
-    {% endfor %}
+      <div class="hint" style="margin-top:8px">Los días marcados tienen algo que pagar. Toca uno.</div>
 
-    {% if gastos_pendientes %}
-    <div style="margin-top:16px;padding-top:16px;border-top:1px solid rgba(255,255,255,.06)">
-      <div class="label" style="margin-bottom:10px">Cuentas de otros meses</div>
+      {% if gastos_pendientes %}
+      <div class="label" style="margin:18px 0 10px">Cuentas de otros meses</div>
       <div class="row-list">
         {% for g in gastos_pendientes %}
         <div class="row">
-          <span class="icon-tile {% if g.urgencia == 'vencido' %}coral{% elif g.urgencia == 'hoy' or g.urgencia == 'proximo' %}orange{% endif %}">
-            <i class="fas fa-file-invoice"></i>
-          </span>
+          <span class="icon-tile {% if g.urgencia == 'vencido' %}coral{% elif g.urgencia == 'hoy' or g.urgencia == 'proximo' %}orange{% endif %}"><i class="fas fa-file-invoice"></i></span>
           <div class="row-main">
             <div class="row-title">{{ g.nombre }}</div>
-            <div class="row-meta">{{ g.fecha_vencimiento|date:"j M" }} · {{ g.texto_urgencia }}</div>
+            <div class="row-meta">{{ g.fecha_vencimiento|date:"j b" }} · {{ g.texto_urgencia }}</div>
           </div>
-          <div class="mono" style="font-size:12.5px">{{ g.monto|money }}</div>
+          <div class="mono">{{ g.monto|money }}</div>
           <form method="post" action="{% url 'pagar_gasto_pendiente' g.pk %}" style="margin:0">
             {% csrf_token %}
             <input type="hidden" name="next" value="{% url 'dashboard' %}">
@@ -533,181 +414,34 @@
         </div>
         {% endfor %}
       </div>
+      {% endif %}
+    </div>
+
+    {% if monto_ya_pagado %}
+    <div class="label" style="margin:18px 0 8px">Ya pagados</div>
+    <div class="row-list">
+      {% for i in pendientes %}{% if i.pagado %}
+      <div class="row">
+        <span class="icon-tile green"><i class="fas fa-check"></i></span>
+        <div class="row-main">
+          <div class="row-title">{{ i.nombre }}</div>
+          <div class="row-meta">{{ i.detalle }}{% if i.fecha_pago %} · pagado el {{ i.fecha_pago|date:"j b" }}{% endif %}</div>
+        </div>
+        <div class="mono" style="color:var(--text-muted)">{{ i.monto|money }}</div>
+        <form method="post" action="{{ i.url_anular }}" style="margin:0" data-confirm="¿Marcar {{ i.nombre }} como no pagado?">
+          {% csrf_token %}
+          <input type="hidden" name="next" value="?year={{ year }}&amp;month={{ month }}">
+          <input type="hidden" name="next_path" value="{% url 'dashboard' %}">
+          <input type="hidden" name="periodo" value="{{ i.periodo }}">
+          <button type="submit" class="icon-btn" title="Deshacer" aria-label="Deshacer"><i class="fas fa-rotate-left"></i></button>
+        </form>
+      </div>
+      {% endif %}{% endfor %}
     </div>
     {% endif %}
-</div>
-
-</div>
-
-<div class="section-head">
-  <h2 class="section-title">Cómo vienes</h2>
-  <a href="{% url 'estadisticas' %}" class="section-sub">Ver estadísticas</a>
-</div>
-
-<div class="glass card-lg flujo-panel" data-spot style="margin-bottom:18px">
-
-  <div class="flujo-cabecera">
-    <div>
-      <div class="label" style="margin-bottom:6px">Este mes te queda</div>
-      <div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap">
-        <span class="display" style="font-size:30px;line-height:1;color:{% if disponible >= 0 %}var(--green){% else %}var(--coral){% endif %}">
-          {{ disponible|money }}
-        </span>
-        {% if variacion_saldo != None %}
-        <span class="flujo-delta {% if variacion_saldo >= 0 %}sube{% else %}baja{% endif %}">
-          <i class="fas fa-arrow-{% if variacion_saldo >= 0 %}up{% else %}down{% endif %}" style="font-size:9px"></i>
-          {{ variacion_saldo_abs }}% vs. {{ mes_anterior_nombre }}
-        </span>
-        {% endif %}
-      </div>
-    </div>
-
-    <div class="seg" style="padding:3px" id="segRango">
-      <button type="button" data-meses="3">3M</button>
-      <button type="button" class="on" data-meses="6">6M</button>
-      <button type="button" data-meses="12">1 año</button>
-    </div>
-  </div>
-
-  <div class="flujo-leyenda">
-    <span><i class="punto" style="background:var(--green)"></i>Entra</span>
-    <span><i class="punto" style="background:var(--coral)"></i>Sale</span>
-    <span class="flujo-pista">Desliza sobre el gráfico para ver cada mes</span>
-  </div>
-
-    <div class="flujo-lienzo">
-        <canvas id="chartFlujo" data-om-raster
-            data-meses="{{ meses_json|a_json }}"
-            data-ingresos="{{ ingresos_json|a_json }}"
-            data-gastos="{{ gastos_json|a_json }}"
-            data-cuotas="{{ cuotas_json|a_json }}"></canvas>
-  </div>
-
-    <div class="hint" style="font-size:11px;margin-top:12px;display:none" id="notaPocoHistorial">
-    Solo hay un mes con movimientos. La comparación se vuelve útil a partir del segundo.
   </div>
 </div>
-<div class="grid-registro">
-    <div>
-      <div class="section-head" style="margin-top:0">
-        <h2 class="section-title">Movimientos</h2>
-        <button class="section-sub" style="background:none;border:none;padding:0;font-family:inherit"
-                data-open="#modalGasto" data-preset-tipo="EGRESO">Agregar</button>
-      </div>
-            <div class="glass card mov-panel" style="padding:22px" data-spot data-plegable>
-      <div class="row-list mov-list">
-        {% for t in ultimas %}
-                <div class="swipe swipe-fila swipe-mov tono-{{ t.clase_tono }}{% if t.por_pagar %} sin-pagar{% endif %}" data-searchable>
 
-          <div class="swipe-acciones">
-            {% if t.por_pagar %}
-            <form method="post" action="{% url 'pagar_gasto' t.pk %}" style="margin:0">
-              {% csrf_token %}
-              <input type="hidden" name="next" value="{% url 'dashboard' %}">
-              <button type="submit" class="swipe-btn editar" title="Marcar como pagado">
-                <i class="fas fa-check"></i><span>Pagué</span>
-              </button>
-            </form>
-            {% elif t.es_gasto_unico %}
-            <form method="post" action="{% url 'anular_pago_gasto' t.pk %}" style="margin:0"
-                  data-confirm="¿Marcar este gasto como no pagado?">
-              {% csrf_token %}
-              <input type="hidden" name="next" value="{% url 'dashboard' %}">
-              <button type="submit" class="swipe-btn editar" title="{{ t.texto_estado_pago }} — deshacer">
-                <i class="fas fa-rotate-left"></i><span>Deshacer</span>
-              </button>
-            </form>
-            {% endif %}
-
-            <form method="post" action="{% url 'eliminar_transaccion' t.pk %}" style="margin:0"
-                  data-confirm="¿Eliminar {{ t.descripcion|default:t.get_categoria_display }}?">
-              {% csrf_token %}
-              <input type="hidden" name="next" value="{% url 'dashboard' %}">
-              <button type="submit" class="swipe-btn borrar" title="Eliminar">
-                <i class="fas fa-trash-can"></i><span>Eliminar</span>
-              </button>
-            </form>
-          </div>
-
-          <div class="swipe-card row">
-            {% if t.marca_suscripcion %}
-            <span class="icon-tile marca-tile" style="background:{{ t.marca_suscripcion.color }}1f;color:{{ t.marca_suscripcion.color }}">
-              {% if t.marca_suscripcion.usa_inicial %}{{ t.marca_suscripcion.inicial }}{% else %}<i class="{{ t.marca_suscripcion.icono }}"></i>{% endif %}
-            </span>
-            {% else %}
-            <span class="icon-tile {% if t.es_ingreso %}green{% elif t.por_pagar %}orange{% endif %}"><i class="fas {{ t.icono }}"></i></span>
-            {% endif %}
-
-            <div class="row-main">
-              <div class="row-title">{{ t.descripcion|default:t.get_categoria_display }}</div>
-                            <div class="row-meta">
-                {{ t.fecha|date:"j M" }}{% if t.descripcion %} · {{ t.get_categoria_display }}{% endif %}
-                {% if t.por_pagar %} · <span style="color:var(--amber)">sin pagar</span>{% endif %}
-              </div>
-            </div>
-
-            <div class="mono mov-monto" style="{% if t.es_ingreso %}color:var(--green){% endif %}">
-              {% if t.es_ingreso %}+{% endif %}{{ t.monto|money }}
-            </div>
-          </div>
-        </div>
-        {% empty %}
-        <div class="empty">
-          <i class="fas fa-receipt"></i>
-          <div class="empty-title">Todavía no registras nada</div>
-          <div class="empty-text">Anota tu primer gasto y el resto de la pantalla empieza a tener sentido.</div>
-          <button class="btn btn-purple" data-open="#modalGasto" data-preset-tipo="EGRESO">Registrar el primero</button>
-        </div>
-        {% endfor %}
-      </div>
-
-      {% if ultimas|length > 5 %}
-      <button type="button" class="mov-toggle" data-toggle-plegable aria-expanded="false">
-        <span class="mov-toggle-txt">Ver los {{ ultimas|length }} movimientos</span>
-        <i class="fas fa-chevron-down"></i>
-      </button>
-      {% endif %}
-      </div>
-    </div>
-
-    {% if metas %}
-    <div>
-      <div class="section-head" style="margin-top:0">
-        <h2 class="section-title">Metas de ahorro</h2>
-        <a href="{% url 'metas' %}" class="section-sub">Ver mas</a>
-      </div>
-                  <div class="metas-lista">
-        {% for m in metas %}
-        <a href="{% url 'metas' %}#meta{{ m.pk }}" class="meta-fila">
-          <span class="meta-icono" style="background:{{ m.color }}22;color:{{ m.color }}">
-            <i class="fas {{ m.icono }}"></i>
-          </span>
-
-          <span class="meta-cuerpo">
-            <span class="meta-linea">
-              <span class="meta-nombre">{{ m.nombre }}</span>
-              <span class="meta-monto">{{ m.monto_actual|money }}</span>
-            </span>
-            <span class="progress-bar" style="height:6px">
-              <span class="progress-fill" style="display:block;height:100%;border-radius:100px;
-                    width:{{ m.porcentaje|floatformat:0 }}%;background:{{ m.color }}"></span>
-            </span>
-            <span class="meta-pie">
-              {% if m.esta_completa %}Meta cumplida
-              {% else %}{{ m.porcentaje|floatformat:0 }}% de {{ m.monto_meta|money }} · faltan {{ m.monto_faltante|money }}{% endif %}
-            </span>
-          </span>
-
-          <i class="fas fa-chevron-right meta-flecha"></i>
-        </a>
-        {% endfor %}
-      </div>
-    </div>    {% endif %}
-</div>
-
-{% endblock %}
-
-{% block modals %}
 {% for d in dias_con_pago %}
 <div class="modal-overlay" id="dia{{ d.numero }}">
   <div class="modal-box" style="max-width:420px">
@@ -716,30 +450,26 @@
         <div class="modal-title">{{ d.numero }} de {{ nombre_mes }}</div>
         <div class="modal-sub">{{ d.eventos|length }} pago{{ d.eventos|length|pluralize:"s" }} · {{ d.total_dia|money }}</div>
       </div>
-      <button class="modal-close" data-close>✕</button>
+      <button class="modal-close" data-close aria-label="Cerrar"><i class="fas fa-xmark"></i></button>
     </div>
     <div class="row-list">
       {% for e in d.eventos %}
       <div class="row">
         <div class="row-main">
           <div class="row-title">{{ e.deuda.acreedor }}</div>
-          <div class="row-meta">
-            {{ e.deuda.get_categoria_display }}
-            {% if e.atrasado %} · <span style="color:var(--coral)">atrasada</span>
-            {% elif e.pago %} · pagada el {{ e.pago.fecha_pago|date:"j M" }}{% endif %}
-          </div>
+          <div class="row-meta">{{ e.deuda.get_categoria_display }}{% if e.atrasado %} · <span style="color:var(--coral-texto)">atrasada</span>{% elif e.pago %} · pagada el {{ e.pago.fecha_pago|date:"j b" }}{% endif %}</div>
         </div>
-        <div class="mono" style="font-size:12.5px">{{ e.monto|money }}</div>
+        <div class="mono">{{ e.monto|money }}</div>
         {% if e.estado == 'pagado' %}
-          <span class="badge badge-green">Pagada</span>
+        <span class="badge badge-green">Pagada</span>
         {% else %}
-          <form method="post" action="{% url 'pagar_cuota' e.deuda.pk %}" style="margin:0">
-            {% csrf_token %}
-            <input type="hidden" name="next" value="?year={{ year }}&amp;month={{ month }}">
-            <input type="hidden" name="next_path" value="{% url 'dashboard' %}">
-            <input type="hidden" name="periodo" value="{{ e.periodo }}">
-            <button type="submit" class="btn btn-purple btn-sm">Pagar</button>
-          </form>
+        <form method="post" action="{% url 'pagar_cuota' e.deuda.pk %}" style="margin:0">
+          {% csrf_token %}
+          <input type="hidden" name="next" value="?year={{ year }}&amp;month={{ month }}">
+          <input type="hidden" name="next_path" value="{% url 'dashboard' %}">
+          <input type="hidden" name="periodo" value="{{ e.periodo }}">
+          <button type="submit" class="btn btn-purple btn-sm">Pagar</button>
+        </form>
         {% endif %}
       </div>
       {% endfor %}
@@ -757,15 +487,14 @@
         <div class="modal-title">Aportar a {{ m.nombre }}</div>
         <div class="modal-sub">Te faltan {{ m.monto_faltante|money }}</div>
       </div>
-      <button class="modal-close" data-close>✕</button>
+      <button class="modal-close" data-close aria-label="Cerrar"><i class="fas fa-xmark"></i></button>
     </div>
     <form method="post" action="{% url 'aportar_meta' m.pk %}">
       {% csrf_token %}
       <input type="hidden" name="next" value="{% url 'dashboard' %}">
       <div class="field">
         <label class="label" for="id_aporte_{{ m.pk }}">Cuánto aportas</label>
-        <input type="number" name="monto" id="id_aporte_{{ m.pk }}" class="input-amount"
-               style="color:var(--green)" min="1" required>
+        <input type="number" name="monto" id="id_aporte_{{ m.pk }}" class="input-amount" style="color:var(--green-texto)" min="1" required>
       </div>
       <div class="field">
         <label class="label" for="id_nota_meta_{{ m.pk }}">Nota (opcional)</label>

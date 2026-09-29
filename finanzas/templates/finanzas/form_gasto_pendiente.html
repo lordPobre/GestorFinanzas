@@ -2,24 +2,23 @@
 {% block title %}Nueva cuenta por pagar · FinApp{% endblock %}
 {% block topbar_sub %}Una cuenta con fecha de vencimiento{% endblock %}
 
-{% block topbar_actions %}
-<a href="{% url 'dashboard' %}" class="btn btn-glass"><i class="fas fa-arrow-left" style="font-size:11px"></i>Volver</a>
-{% endblock %}
 
 {% block content %}
-<div style="max-width:420px">
-  <div class="glass card-lg" data-spot>
-    <div style="display:flex;align-items:center;gap:13px;margin-bottom:6px">
-      <span class="icon-tile orange" style="width:40px;height:40px;border-radius:14px">
-        <i class="fas fa-file-invoice" style="font-size:15px"></i>
-      </span>
-      <div class="page-title" style="font-size:19px">Cuenta por pagar</div>
-    </div>
-    <div class="hint" style="margin-bottom:22px">
-      Cuenta como gasto del mes en que vence, aunque la pagues después.
-    </div>
 
-    <form method="post">
+<div class="sec-top centrado">
+  <a href="{% url 'dashboard' %}" class="sec-volver" aria-label="Volver"><i class="fas fa-chevron-left"></i></a>
+  <h1 class="sec-titulo">Cuenta por pagar</h1>
+  <span class="sec-hueco" aria-hidden="true"></span>
+</div>
+
+<section class="sec-hero fo-hero">
+  <span class="fo-icono ambar"><i class="fas fa-file-invoice"></i></span>
+  
+  <span class="fo-nota">Cuenta como gasto del mes en que vence, aunque la pagues después.</span>
+</section>
+
+<section class="sec-hoja fo-hoja fo-form fo-ambar">
+  <form method="post">
       {% csrf_token %}
       <input type="hidden" name="next" value="{% url 'dashboard' %}">
 
@@ -48,13 +47,12 @@
         <button type="button" class="chip" data-value="Otros">Otros</button>
       </div>
 
-      <div style="display:flex;gap:10px">
-        <button type="submit" class="btn btn-purple" style="flex:1;padding:15px;font-size:13.5px">
+      <div class="fo-acciones">
+        <button type="submit" class="sec-btn ambar">
           <i class="fas fa-plus" style="font-size:11px"></i>Agregar cuenta
         </button>
-        <a href="{% url 'dashboard' %}" class="btn btn-glass" style="padding:15px 18px">Cancelar</a>
+        <a href="{% url 'dashboard' %}" class="sec-btn vidrio">Cancelar</a>
       </div>
     </form>
-  </div>
-</div>
+</section>
 {% endblock %}

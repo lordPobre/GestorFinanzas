@@ -4,27 +4,23 @@
 {% block title %}Nuevo préstamo · FinApp{% endblock %}
 {% block topbar_sub %}Un préstamo a {{ persona.nombre }}{% endblock %}
 
-{% block topbar_actions %}
-<a href="{% url 'detalle_persona' persona.pk %}" class="btn btn-glass">
-  <i class="fas fa-arrow-left" style="font-size:11px"></i>Volver
-</a>
-{% endblock %}
 
 {% block content %}
-<div style="max-width:440px">
-  <div class="glass card-lg" data-spot>
-    <div style="display:flex;align-items:center;gap:13px;margin-bottom:6px">
-      <span class="avatar">{{ persona.inicial }}</span>
-      <div>
-        <div class="page-title" style="font-size:19px">Nuevo préstamo</div>
-        <div class="hint" style="font-size:12px">a {{ persona.nombre }}</div>
-      </div>
-    </div>
-    <div class="hint" style="margin: 14px 0 22px">
-      Esto no toca tu balance: es plata que sale y vuelve.
-    </div>
 
-    <form method="post" action="{% url 'crear_prestamo' persona.pk %}">
+<div class="sec-top centrado">
+  <a href="{% url 'detalle_persona' persona.pk %}" class="sec-volver" aria-label="Volver"><i class="fas fa-chevron-left"></i></a>
+  <h1 class="sec-titulo">Nuevo préstamo</h1>
+  <span class="sec-hueco" aria-hidden="true"></span>
+</div>
+
+<section class="sec-hero fo-hero">
+  <span class="fo-icono verde"><b>{{ persona.inicial }}</b></span>
+  <span class="fo-quien">A {{ persona.nombre }}</span>
+  <span class="fo-nota">Esto no toca tu balance: es plata que sale y vuelve.</span>
+</section>
+
+<section class="sec-hoja fo-hoja fo-form fo-verde">
+  <form method="post" action="{% url 'crear_prestamo' persona.pk %}">
       {% csrf_token %}
 
       <div class="field">
@@ -58,15 +54,14 @@
         </div>
       </div>
 
-      <div style="display:flex;gap:10px">
-        <button type="submit" class="btn btn-purple" style="flex:1;padding:15px;font-size:13.5px">
+      <div class="fo-acciones">
+        <button type="submit" class="sec-btn ambar">
           Registrar préstamo
         </button>
-        <a href="{% url 'detalle_persona' persona.pk %}" class="btn btn-glass" style="padding:15px 18px">Cancelar</a>
+        <a href="{% url 'detalle_persona' persona.pk %}" class="sec-btn vidrio">Cancelar</a>
       </div>
     </form>
-  </div>
-</div>
+</section>
 {% endblock %}
 
 {% block extra_js %}

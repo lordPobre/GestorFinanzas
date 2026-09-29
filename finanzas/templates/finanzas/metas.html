@@ -7,79 +7,47 @@
 
 {% block content %}
 
-<div class="section-head" style="margin-top:0">
-  <div>
-    <h1 class="section-title" style="font-size:22px">Metas de ahorro</h1>
-    <div class="hint" style="margin-top:4px">
-      Las barras muestran lo que aportaste cada mes, no solo cuánto falta.
+<section class="seccion-hero">
+  <div class="seccion-cab">
+    <h1 class="seccion-titulo">Metas de ahorro</h1>
+    <button class="btn btn-purple seccion-accion" data-open="#modalMeta" data-tour="metas" aria-label="Nueva meta"><i class="fas fa-plus" style="font-size:12px"></i><span>Nueva meta</span></button>
+  </div>
+  <p class="seccion-nota">Las barras muestran lo que aportaste cada mes, no solo cuánto falta.</p>
+  {% if metas_datos %}
+  <div class="seccion-cifra">
+    <span class="seccion-label">Llevas ahorrado</span>
+    <span class="seccion-monto">{{ total_ahorrado|money }}</span>
+    <div class="inicio-chips">
+      <span class="chip-vidrio">de {{ total_meta|money }}</span>
+      <span class="chip-vidrio">Te faltan {{ total_faltante|money }}</span>
+      {% if completas %}<span class="chip-vidrio al-dia">{{ completas }} cumplida{{ completas|pluralize:"s" }}</span>{% endif %}
     </div>
   </div>
-  <button class="btn btn-purple" data-open="#modalMeta" data-tour="metas">
-    <i class="fas fa-plus" style="font-size:11px"></i>Nueva meta
-  </button>
-</div>
-
+  {% endif %}
+</section>
 {% if metas_datos %}
-<div class="balance-card" style="margin-bottom:18px">
-  <div class="label" style="margin-bottom:6px">Llevas ahorrado</div>
-  <div class="display" style="font-size:32px">{{ total_ahorrado|money }}</div>
-  <div style="display:flex;gap:20px;margin-top:16px;flex-wrap:wrap">
-    <div>
-      <div class="label" style="margin-bottom:2px">De un total de</div>
-      <div class="mono" style="font-size:14px;font-weight:600">{{ total_meta|money }}</div>
-    </div>
-    <div>
-      <div class="label" style="margin-bottom:2px">Te falta</div>
-      <div class="mono" style="font-size:14px;font-weight:600">{{ total_faltante|money }}</div>
-    </div>
-    {% if completas %}
-    <div>
-      <div class="label" style="margin-bottom:2px">Cumplidas</div>
-      <div class="mono" style="font-size:14px;font-weight:600">{{ completas }}</div>
-    </div>
-    {% endif %}
-  </div>
-</div>
 
 <div class="grid-cards">
   {% for d in metas_datos %}
     <div class="glass card-lg glass-lift meta-card{% if d.meta.esta_completa %} borde-verde{% endif %}" id="meta{{ d.meta.pk }}" data-spot data-searchable>
 
-    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:16px">
-      <div style="min-width:0">
-        <div class="row-title" style="font-size:15px;font-weight:700">{{ d.meta.nombre }}</div>
-        <div class="row-meta">
-          {% if d.meta.esta_completa %}
-            Meta cumplida
-          {% elif d.meta.fecha_limite %}
-            Para el {{ d.meta.fecha_limite|date:"j M Y" }}
-          {% else %}
-            Sin fecha límite
-          {% endif %}
-        </div>
+    <div class="mc-cab">
+      <div class="mc-anillo" style="--pct:{{ d.meta.porcentaje|floatformat:0 }};--color:{% if d.meta.esta_completa %}var(--green){% else %}{{ d.meta.color }}{% endif %}">
+        <span>{{ d.meta.porcentaje|floatformat:0 }}%</span>
+      </div>
+      <div class="mc-txt">
+        <span class="mc-nombre">{{ d.meta.nombre }}</span>
+        <span class="mc-monto">{{ d.meta.monto_actual|money }} <small>de {{ d.meta.monto_meta|money }}</small></span>
+        <span class="mc-meta">{% if d.meta.esta_completa %}Meta cumplida{% elif d.meta.fecha_limite %}Para el {{ d.meta.fecha_limite|date:"j M Y" }} · faltan {{ d.meta.monto_faltante|money }}{% else %}Faltan {{ d.meta.monto_faltante|money }}{% endif %}</span>
       </div>
       {% if d.meta.esta_completa %}
         <span class="badge badge-green"><i class="fas fa-check" style="font-size:9px"></i>Lista</span>
       {% elif d.meses_quieta and d.meses_quieta >= 2 %}
-                <span class="badge badge-orange">Quieta {{ d.meses_quieta }} meses</span>
+        <span class="badge badge-orange">Quieta {{ d.meses_quieta }} meses</span>
       {% endif %}
     </div>
 
-    <div style="display:flex;align-items:baseline;gap:7px;margin-bottom:10px">
-      <span class="display" style="font-size:24px">{{ d.meta.monto_actual|money }}</span>
-      <span style="font-size:12px;color:var(--text-muted)">de {{ d.meta.monto_meta|money }}</span>
-    </div>
-
-        <div class="progress-bar" style="height:9px">
-      <div class="progress-fill viva {% if d.meta.esta_completa %}green{% endif %}"
-           style="width:{{ d.meta.porcentaje|floatformat:0 }}%{% if not d.meta.esta_completa %};background:{{ d.meta.color }}{% endif %}"></div>
-    </div>
-    <div style="display:flex;justify-content:space-between;margin-top:7px;font-size:10.5px;color:var(--text-muted)">
-      <span>{{ d.meta.porcentaje|floatformat:0 }}% logrado</span>
-      {% if not d.meta.esta_completa %}<span>faltan {{ d.meta.monto_faltante|money }}</span>{% endif %}
-    </div>
-
-    <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--line)">
+    <div class="mc-aportes">
       <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:12px">
         <span class="label">Aportes por mes</span>
         <span class="mono" style="font-size:11px;color:var(--text-secondary)">
@@ -160,7 +128,7 @@
         <div class="modal-title">Nueva meta</div>
         <div class="modal-sub">Con fecha calculamos cuánto aportar al mes.</div>
       </div>
-      <button class="modal-close" data-close>✕</button>
+      <button class="modal-close" data-close aria-label="Cerrar"><i class="fas fa-xmark"></i></button>
     </div>
 
     <form method="post" action="{% url 'crear_meta' %}">
@@ -202,7 +170,7 @@
         <div class="modal-title">Aportar a {{ d.meta.nombre }}</div>
         <div class="modal-sub">Faltan {{ d.meta.monto_faltante|money }} para llegar.</div>
       </div>
-      <button class="modal-close" data-close>✕</button>
+      <button class="modal-close" data-close aria-label="Cerrar"><i class="fas fa-xmark"></i></button>
     </div>
 
     <form method="post" action="{% url 'aportar_meta' d.meta.pk %}">

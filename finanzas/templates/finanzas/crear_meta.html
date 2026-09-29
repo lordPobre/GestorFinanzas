@@ -3,26 +3,23 @@
 {% block title %}{% if editar %}Editar meta{% else %}Nueva meta{% endif %} · FinApp{% endblock %}
 {% block topbar_sub %}{% if editar %}Ajustar una meta{% else %}Ponle nombre a tu ahorro{% endif %}{% endblock %}
 
-{% block topbar_actions %}
-<a href="{% url 'metas' %}" class="btn btn-glass"><i class="fas fa-arrow-left" style="font-size:11px"></i>Volver</a>
-{% endblock %}
 
 {% block content %}
-<div style="max-width:440px">
-  <div class="glass card-lg" data-spot>
-    <div style="display:flex;align-items:center;gap:13px;margin-bottom:6px">
-      <span class="icon-tile orange" style="width:40px;height:40px;border-radius:14px">
-        <i class="fas fa-bullseye" style="font-size:15px"></i>
-      </span>
-      <div class="page-title" style="font-size:19px">
-        {% if editar %}Editar meta{% else %}Nueva meta{% endif %}
-      </div>
-    </div>
-    <div class="hint" style="margin-bottom:22px">
-      Con una fecha calculamos cuánto tienes que aportar al mes para llegar.
-    </div>
 
-    <form method="post">
+<div class="sec-top centrado">
+  <a href="{% url 'metas' %}" class="sec-volver" aria-label="Volver"><i class="fas fa-chevron-left"></i></a>
+  <h1 class="sec-titulo">{% if editar %}Editar meta{% else %}Nueva meta{% endif %}</h1>
+  <span class="sec-hueco" aria-hidden="true"></span>
+</div>
+
+<section class="sec-hero fo-hero">
+  <span class="fo-icono agua"><i class="fas fa-bullseye"></i></span>
+  
+  <span class="fo-nota">Con una fecha calculamos cuánto tienes que aportar al mes para llegar.</span>
+</section>
+
+<section class="sec-hoja fo-hoja fo-form fo-agua">
+  <form method="post">
       {% csrf_token %}
       <input type="hidden" name="next" value="{% url 'metas' %}">
 
@@ -61,15 +58,14 @@
         <div style="font-size:11.5px;color:var(--text-muted);margin-top:6px" id="planNota"></div>
       </div>
 
-      <div style="display:flex;gap:10px">
-        <button type="submit" class="btn btn-purple" style="flex:1;padding:15px;font-size:13.5px">
+      <div class="fo-acciones">
+        <button type="submit" class="sec-btn ambar">
           {% if editar %}Guardar cambios{% else %}Crear meta{% endif %}
         </button>
-        <a href="{% url 'metas' %}" class="btn btn-glass" style="padding:15px 18px">Cancelar</a>
+        <a href="{% url 'metas' %}" class="sec-btn vidrio">Cancelar</a>
       </div>
     </form>
-  </div>
-</div>
+</section>
 {% endblock %}
 
 {% block extra_js %}

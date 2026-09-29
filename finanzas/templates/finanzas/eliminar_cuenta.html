@@ -2,12 +2,20 @@
 {% block title %}Eliminar mi cuenta · Fintora{% endblock %}
 {% block topbar_sub %}Eliminar mi cuenta{% endblock %}
 
-{% block topbar_actions %}
-<a href="{% url 'perfil' %}" class="btn btn-glass"><i class="fas fa-arrow-left" style="font-size:11px"></i>Volver al perfil</a>
-{% endblock %}
 
 {% block content %}
-<div style="max-width:620px">
+<div class="sec-top centrado">
+  <a href="{% url 'perfil' %}#seguridad" class="sec-volver" aria-label="Volver"><i class="fas fa-chevron-left"></i></a>
+  <h1 class="sec-titulo">Eliminar mi cuenta</h1>
+  <span class="sec-hueco" aria-hidden="true"></span>
+</div>
+
+<section class="sec-hero fo-hero">
+  <span class="fo-icono rojo"><i class="fas fa-trash-can"></i></span>
+</section>
+
+<section class="sec-hoja fo-hoja fo-form fo-rojo">
+<div class="fo-cuerpo">
 
   <div class="glass card-lg borde-coral" style="margin-bottom:16px">
     <div style="display:flex;gap:14px;align-items:flex-start;margin-bottom:18px">
@@ -100,4 +108,5 @@
   </form>
 
 </div>
+</section>
 {% endblock %}

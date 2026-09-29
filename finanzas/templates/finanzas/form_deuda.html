@@ -4,26 +4,23 @@
 {% block title %}{% if editar %}Editar compra{% else %}Nueva compra en cuotas{% endif %} · FinApp{% endblock %}
 {% block topbar_sub %}{% if editar %}Ajustar una compra a plazo{% else %}Registrar una compra a plazo{% endif %}{% endblock %}
 
-{% block topbar_actions %}
-<a href="{% url 'deudas' %}" class="btn btn-glass"><i class="fas fa-arrow-left" style="font-size:11px"></i>Volver</a>
-{% endblock %}
 
 {% block content %}
-<div style="max-width:460px">
-  <div class="glass card-lg" data-spot>
-    <div style="display:flex;align-items:center;gap:13px;margin-bottom:6px">
-      <span class="icon-tile orange" style="width:40px;height:40px;border-radius:14px">
-        <i class="fas fa-credit-card" style="font-size:15px"></i>
-      </span>
-      <div class="page-title" style="font-size:19px">
-        {% if editar %}Editar compra{% else %}Nueva compra en cuotas{% endif %}
-      </div>
-    </div>
-    <div class="hint" style="margin-bottom:22px">
-      Pon el valor de la cuota y en cuántas quedó. Nosotros sumamos el total.
-    </div>
 
-    <form method="post">
+<div class="sec-top centrado">
+  <a href="{% url 'deudas' %}" class="sec-volver" aria-label="Volver"><i class="fas fa-chevron-left"></i></a>
+  <h1 class="sec-titulo">{% if editar %}Editar compra{% else %}Nueva compra en cuotas{% endif %}</h1>
+  <span class="sec-hueco" aria-hidden="true"></span>
+</div>
+
+<section class="sec-hero fo-hero">
+  <span class="fo-icono azul"><i class="fas fa-credit-card"></i></span>
+  
+  <span class="fo-nota">Pon el valor de la cuota y en cuántas quedó. Nosotros sumamos el total.</span>
+</section>
+
+<section class="sec-hoja fo-hoja fo-form fo-azul">
+  <form method="post">
       {% csrf_token %}
       <input type="hidden" name="next" value="{% url 'deudas' %}">
 
@@ -68,11 +65,11 @@
         <div class="preview-nota" id="cuotaFin"></div>
       </div>
 
-      <div style="display:flex;gap:10px">
-        <button type="submit" class="btn btn-purple" style="flex:1;padding:15px;font-size:13.5px">
+      <div class="fo-acciones">
+        <button type="submit" class="sec-btn ambar">
           {% if editar %}Guardar cambios{% else %}Agregar compra{% endif %}
         </button>
-        <a href="{% url 'deudas' %}" class="btn btn-glass" style="padding:15px 18px">Cancelar</a>
+        <a href="{% url 'deudas' %}" class="sec-btn vidrio">Cancelar</a>
       </div>
     </form>
 
@@ -85,8 +82,7 @@
       </button>
     </form>
     {% endif %}
-  </div>
-</div>
+</section>
 {% endblock %}
 
 {% block extra_js %}

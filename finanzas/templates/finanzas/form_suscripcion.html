@@ -3,23 +3,23 @@
 {% load humanize %}
 {% block title %}Nueva suscripción · FinApp{% endblock %}
 
-{% block topbar_actions %}
-<a href="{% url 'suscripciones' %}" class="btn btn-glass"><i class="fas fa-arrow-left" style="font-size:11px"></i>Volver</a>
-{% endblock %}
 
 {% block content %}
-<div style="max-width:440px">
 
-  <div class="glass card-lg" data-spot>
-    <div style="display:flex;align-items:center;gap:13px;margin-bottom:6px">
-      <span class="icon-tile" style="width:38px;height:38px;border-radius:13px"><i class="fas fa-rotate" style="font-size:14px"></i></span>
-      <div class="page-title" style="font-size:19px">Nueva suscripción</div>
-    </div>
-    <div class="hint" style="margin-bottom:22px">
-      Un servicio recurrente. Cada mes se registra el cobro como gasto, sin que tengas que anotarlo.
-    </div>
+<div class="sec-top centrado">
+  <a href="{% url 'suscripciones' %}" class="sec-volver" aria-label="Volver"><i class="fas fa-chevron-left"></i></a>
+  <h1 class="sec-titulo">Nueva suscripción</h1>
+  <span class="sec-hueco" aria-hidden="true"></span>
+</div>
 
-    <form method="post" action="{% url 'crear_suscripcion' %}">
+<section class="sec-hero fo-hero">
+  <span class="fo-icono rojo"><i class="fas fa-rotate"></i></span>
+  
+  <span class="fo-nota">Un servicio recurrente. Cada mes se registra el cobro como gasto, sin que tengas que anotarlo.</span>
+</section>
+
+<section class="sec-hoja fo-hoja fo-form fo-rojo">
+  <form method="post" action="{% url 'crear_suscripcion' %}">
       {% csrf_token %}
 
       <div class="field">
@@ -56,15 +56,14 @@
         </div>
       </div>
 
-      <div style="display:flex;gap:10px">
-        <button type="submit" class="btn btn-purple" style="flex:1;padding:15px;border-radius:15px;font-size:13.5px">
+      <div class="fo-acciones">
+        <button type="submit" class="sec-btn ambar">
           <i class="fas fa-plus" style="font-size:11px"></i>Agregar suscripción
         </button>
-        <a href="{% url 'suscripciones' %}" class="btn btn-glass" style="padding:15px 18px;border-radius:15px">Cancelar</a>
+        <a href="{% url 'suscripciones' %}" class="sec-btn vidrio">Cancelar</a>
       </div>
     </form>
-  </div>
-</div>
+</section>
 {% endblock %}
 
 {% block extra_js %}

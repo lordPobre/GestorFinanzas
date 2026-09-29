@@ -6,56 +6,25 @@
 
 {% block content %}
 
-<div style="display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap;margin-bottom:18px">
-  <div>
-    <div class="page-title">Compras en cuotas</div>
-    <div class="hint" style="margin-top:5px;max-width:600px">
-      Lo que compraste a plazo. Cada cuota que marcas como pagada se registra como gasto
-      del mes; si te equivocas, la puedes anular.
+<section class="seccion-hero">
+  <div class="seccion-cab">
+    <h1 class="seccion-titulo">Compras en cuotas</h1>
+    <button class="btn btn-purple seccion-accion" data-open="#modalDeuda" data-tour="cuotas" aria-label="Nueva compra en cuotas"><i class="fas fa-plus" style="font-size:12px"></i><span>Nueva compra en cuotas</span></button>
+  </div>
+  <p class="seccion-nota">Lo que compraste a plazo. Cada cuota que marcas como pagada se registra como gasto del mes; si te equivocas, la puedes anular.</p>
+  <div class="seccion-cifra">
+    <span class="seccion-label">Este mes pagas</span>
+    <span class="seccion-monto">{{ total_cuotas_mes|money }}</span>
+    <div class="inicio-chips">
+      {% if deudas_activas %}<span class="chip-vidrio">{{ deudas_activas }} compra{{ deudas_activas|pluralize:"s" }}</span>{% endif %}
+      <span class="chip-vidrio">Te faltan {{ total_restante|money }}</span>
+      {% if se_libera %}<span class="chip-vidrio">Terminas {{ se_libera.fecha_fin_estimada|date:"M Y" }}</span>{% endif %}
+      {% if total_pagado %}<span class="chip-vidrio">Ya pagaste {{ total_pagado|money }}</span>{% endif %}
+      {% if cuotas_atrasadas %}<span class="chip-vidrio atraso">{{ cuotas_atrasadas }} atrasada{{ cuotas_atrasadas|pluralize:"s" }}</span>{% endif %}
     </div>
   </div>
-  <button class="btn btn-purple" data-open="#modalDeuda" data-tour="cuotas"><i class="fas fa-plus" style="font-size:11px"></i>Nueva compra en cuotas</button>
-</div>
+</section>
 
-<div class="grid-metrics tarjetas-color" style="margin-bottom:20px">
-
-  <div class="tarjeta-color ambar">
-    <div class="tc-cabecera">
-      <span class="tc-icono"><i class="fas fa-calendar-day"></i></span>
-      <span class="tc-label">Este mes pagas</span>
-    </div>
-    <div class="tc-monto">{{ total_cuotas_mes|money }}</div>
-    <div class="tc-nota">
-      {% if deudas_activas %}en {{ deudas_activas }} compra{{ deudas_activas|pluralize:"s" }}
-      {% else %}Sin cuotas pendientes{% endif %}
-      {% if cuotas_atrasadas %} · <b>{{ cuotas_atrasadas }} atrasada{{ cuotas_atrasadas|pluralize:"s" }}</b>{% endif %}
-    </div>
-  </div>
-
-  <div class="tarjeta-color coral">
-    <div class="tc-cabecera">
-      <span class="tc-icono"><i class="fas fa-hourglass-half"></i></span>
-      <span class="tc-label">Te falta pagar</span>
-    </div>
-    <div class="tc-monto">{{ total_restante|money }}</div>
-    <div class="tc-nota">
-      {% if se_libera %}Terminas en {{ se_libera.fecha_fin_estimada|date:"F Y" }}
-      {% else %}Nada pendiente{% endif %}
-    </div>
-  </div>
-
-  <div class="tarjeta-color verde">
-    <div class="tc-cabecera">
-      <span class="tc-icono"><i class="fas fa-circle-check"></i></span>
-      <span class="tc-label">Ya pagaste</span>
-    </div>
-    <div class="tc-monto">{{ total_pagado|money }}</div>
-    <div class="tc-nota">
-      {% if total_deuda %}{% widthratio total_pagado total_deuda 100 %}% del total
-      {% else %}Sin compras registradas{% endif %}
-    </div>
-  </div>
-</div>
 <div class="grid-cards">
   {% for d in deudas %}
   <div class="swipe" data-searchable{% if forloop.first %} data-tour="gesto"{% endif %}>
@@ -75,41 +44,26 @@
       </form>
     </div>
 
-  <div class="glass glass-lift card swipe-card deuda-card urg-{{ d.urgencia }}" data-spot>
-
-    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:16px">
-      <div style="min-width:0">
-        <div class="row-title" style="font-size:14px;font-weight:600">{{ d.acreedor }}</div>
-        <div class="row-meta">{{ d.get_categoria_display }}</div>
+  <div class="glass card swipe-card deuda-card dc urg-{{ d.urgencia }}" data-spot>
+    <div class="dc-cab">
+      <span class="dc-icono"><i class="fas {% if d.esta_saldada %}fa-circle-check{% elif d.urgencia == 'critica' %}fa-triangle-exclamation{% else %}fa-credit-card{% endif %}"></i></span>
+      <div class="dc-txt">
+        <span class="dc-nombre">{{ d.acreedor }}</span>
+        <span class="dc-meta">{% if d.esta_saldada %}Pagada completa{% else %}Cuota {{ d.cuota_actual }} de {{ d.cuotas_totales }} · {{ d.monto_cuota|money }}{% endif %}</span>
       </div>
       <span class="urg urg-{{ d.urgencia }}">{{ d.texto_urgencia }}</span>
     </div>
 
-    <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin-bottom:13px">
-      <div>
-        <div class="label" style="margin-bottom:5px">Cuota mensual</div>
-        <div class="display" style="font-size:22px">{{ d.monto_cuota|money }}</div>
-      </div>
-      <div style="text-align:right">
-        <div style="font-size:11.5px;color:var(--purple);font-weight:500">
-          {% if d.esta_saldada %}Pagada completa{% else %}Cuota {{ d.cuota_actual }} de {{ d.cuotas_totales }}{% endif %}
-        </div>
-        <div class="row-meta">{{ d.cuotas_pagadas }} de {{ d.cuotas_totales }} pagadas</div>
-      </div>
+    <div class="pips dc-pips">
+      {% for m in d.rango_cuotas %}<span class="pip {{ m.clase }}" title="Cuota {{ m.indice }}"></span>{% endfor %}
     </div>
 
-    <div class="pips" style="margin-bottom:12px">
-      {% for m in d.rango_cuotas %}
-        <span class="pip {{ m.clase }}" title="Cuota {{ m.indice }}"></span>
-      {% endfor %}
+    <div class="dc-pie">
+      <span>Te queda <b>{{ d.monto_restante|money }}</b> de {{ d.monto_total|money }}</span>
+      <span>{{ d.get_categoria_display }}</span>
     </div>
 
-    <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-muted);margin-bottom:16px">
-      <span>Te queda <span class="mono" style="color:var(--text-primary)">{{ d.monto_restante|money }}</span></span>
-      <span>de {{ d.monto_total|money }}</span>
-    </div>
-
-    <div style="display:flex;gap:8px">
+    <div class="dc-acciones">
       {% if d.esta_saldada %}
         <span class="btn btn-green" style="flex:1;cursor:default">Sin cuotas pendientes</span>
       {% else %}
@@ -117,7 +71,7 @@
           {% csrf_token %}
           <input type="hidden" name="next" value="{% url 'deudas' %}">
           <input type="hidden" name="periodo" value="{{ d.periodo_a_pagar }}">
-          <button type="submit" class="btn btn-purple" style="width:100%">Pagar cuota de {{ d.monto_cuota|money }}</button>
+          <button type="submit" class="btn {% if d.urgencia == 'critica' %}btn-red{% else %}btn-purple{% endif %}" style="width:100%">Pagar cuota de {{ d.monto_cuota|money }}</button>
         </form>
       {% endif %}
       {% if d.cuotas_pagadas > 0 %}
@@ -203,7 +157,7 @@
           <div class="modal-sub">Pon el valor de la cuota y cuántas son. Calculamos el total.</div>
         </div>
       </div>
-      <button class="modal-close" data-close>✕</button>
+      <button class="modal-close" data-close aria-label="Cerrar"><i class="fas fa-xmark"></i></button>
     </div>
 
     <form method="post" action="{% url 'crear_deuda' %}">
