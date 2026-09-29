@@ -29,7 +29,7 @@
         <span class="md-avatar on">{{ p.nombre|first|upper }}</span>
         <span class="sec-txt">
           <span class="sec-nombre md-nombre">{{ p.nombre }}</span>
-          <span class="sec-meta">{{ p.resumen_meta }}{% if persona.cobro_del_mes %} · a cobrar ahora {{ persona.cobro_del_mes|money }}{% endif %}</span>
+          <span class="sec-meta">{{ p.resumen_meta }}{% if persona.cobro_del_mes and persona.cobro_del_mes != persona.total_pendiente %} · este mes {{ persona.cobro_del_mes|money }}{% endif %}</span>
         </span>
         <span class="md-monto">{% if persona.total_pendiente %}{{ persona.total_pendiente|money }}{% else %}Al día{% endif %}</span>
       </div>
@@ -45,6 +45,7 @@
           <span class="md-barra"><span style="width:{{ x.porcentaje }}%"></span></span>
         </button>
         {% endfor %}
+        {% if persona.tiene_deuda %}<button type="button" class="md-agregar" data-open="#modalPrestamo"><i class="fas fa-plus"></i>Nuevo préstamo</button>{% endif %}
       </div>
       {% else %}
       <div class="sec-vacio chico">
@@ -66,7 +67,6 @@
       </div>
 
       <div class="sec-mas-fila siempre">
-        {% if persona.tiene_deuda %}<button type="button" class="sec-chico" data-open="#modalPrestamo"><i class="fas fa-plus"></i>Nuevo préstamo</button>{% endif %}
         <button type="button" class="sec-chico" data-open="#modalContacto"><i class="fas fa-pen"></i>Contacto</button>
         <form method="post" action="{% url 'eliminar_persona' persona.pk %}"
               data-confirm="¿Eliminar a {{ persona.nombre }}? Se borran sus {{ persona.cantidad_prestamos }} préstamo{{ persona.cantidad_prestamos|pluralize:'s' }} y el historial de abonos.">
