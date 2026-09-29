@@ -63,7 +63,7 @@ class EnlaceWhatsapp(TestCase):
         self.client.force_login(self.ana)
         respuesta = self.client.get(reverse('detalle_persona', args=[self.persona.pk]))
         self.assertContains(respuesta, 'https://wa.me/56912345678?text=')
-        self.assertContains(respuesta, 'Enviar por WhatsApp')
+        self.assertContains(respuesta, 'Cobrar')
 
     def test_editar_el_contacto(self):
         self.client.force_login(self.ana)
