@@ -46,6 +46,7 @@ body:has(.nav-item.active[data-label="Suscripciones"]) { --luz: 242, 110, 110; }
 body:has(.nav-item.active[data-label="Metas"])         { --luz: 47, 216, 200; }
 body:has(.nav-item.active[data-label="Importar cartola"]) { --luz: 47, 216, 200; }
 body:has(.rv-hoja) { --luz: 47, 216, 200; }
+body:has(.md-lista) { --luz: 83, 210, 88; }
 
 body::before {
   content: ''; position: fixed; z-index: -1; pointer-events: none;
