@@ -39,11 +39,9 @@
         {% endif %}
       </button>
 
-      {% if d.urgencia != 'normal' %}
       <div class="cu-pips" style="grid-template-columns:repeat({{ d.cuotas_totales }},minmax(0,1fr))">
         {% for m in d.rango_cuotas %}<span class="{{ m.clase }}" title="Cuota {{ m.indice }}"></span>{% endfor %}
       </div>
-      {% endif %}
 
       {% if d.urgencia == 'vencida' %}
       <form method="post" action="{% url 'pagar_cuota' d.pk %}" class="sec-form">

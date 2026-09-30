@@ -1217,10 +1217,11 @@ body:has(.sidebar .nav-item.active[data-label="Me deben"]) .bottomnav .nav-item.
 .urg-vencida .cu-icono { background: rgba(255, 138, 138, .16); color: #ff8a8a; }
 .urg-critica .cu-meta, .urg-proxima .cu-meta { color: var(--amarillo); font-weight: 600; }
 .cu-pips { display: grid; gap: 3px; }
-.cu-pips > span { height: 6px; border-radius: 3px; background: rgba(255, 255, 255, .12); }
+.cu-pips > span { height: 6px; border-radius: 3px; background: rgba(255, 255, 255, .22); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .06); }
 .cu-pips > .paid { background: #6ee873; }
 .cu-pips > .next { background: var(--amarillo); }
 .cu-pips > .late { background: #ff8a8a; }
+.urg-vencida .cu-pips > .next { background: #ff8a8a; }
 
 .md-lista { display: flex; flex-direction: column; gap: 12px; }
 .md-card { display: flex; flex-direction: column; gap: 12px; padding: 16px; border-radius: 22px; background: rgba(255, 255, 255, .06); border: 1px solid rgba(255, 255, 255, .1); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .1); }
@@ -1939,4 +1940,13 @@ body:has(.fo-hoja.fo-ambar) { --luz: 255, 170, 44; }
   .auth-otras-botones.dos { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
   .auth-largo { display: none; }
   .auth-corto { display: inline; }
+}
+
+@media (max-width: 720px) {
+  body:not(:has(.auth))::after {
+    content: ''; position: fixed; left: 0; right: 0; top: 0; z-index: 90; pointer-events: none;
+    height: env(safe-area-inset-top);
+    background: rgba(21, 20, 18, .72);
+    -webkit-backdrop-filter: blur(20px) saturate(160%); backdrop-filter: blur(20px) saturate(160%);
+  }
 }
