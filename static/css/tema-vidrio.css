@@ -1944,13 +1944,18 @@ body:has(.fo-hoja.fo-ambar) { --luz: 255, 170, 44; }
 
 @media (max-width: 720px) {
   body:not(:has(.auth))::after {
-    content: ''; position: fixed; left: 0; right: 0; top: 0; z-index: 90; pointer-events: none;
-    height: env(safe-area-inset-top);
+    position: fixed; top: 0; height: env(safe-area-inset-top);
     background: rgba(21, 20, 18, .72);
-    -webkit-backdrop-filter: blur(20px) saturate(160%); backdrop-filter: blur(20px) saturate(160%);
+    backdrop-filter: blur(20px) saturate(160%);
   }
 }
 
 @media (max-width: 560px) {
   .modal-box form > .btn-block:last-child { bottom: 0; }
 }
+
+.su-borrar { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 18px; padding: 14px 16px; border-radius: 18px; background: rgba(0, 0, 0, .22); border: 1px solid rgba(255, 255, 255, .1); cursor: pointer; }
+.su-borrar input[type=checkbox] { flex: 0 0 auto; width: 20px; height: 20px; margin: 1px 0 0; accent-color: #ffaa2c; }
+.su-borrar-txt { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.su-borrar-txt b { font-size: 14px; font-weight: 700; color: var(--text-primary); }
+.su-borrar-txt span { font-size: 13px; line-height: 1.45; color: var(--text-secondary); text-wrap: pretty; }

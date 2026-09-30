@@ -77,10 +77,7 @@
             <button type="submit" class="sec-chico"><i class="fas fa-pause"></i>Pausar</button>
           </form>
           {% endif %}
-          <form method="post" action="{% url 'eliminar_suscripcion' s.pk %}" data-confirm="¿Eliminar {{ s.nombre }} por completo? El historial de gastos se mantiene.">
-            {% csrf_token %}
-            <button type="submit" class="sec-chico peligro"><i class="fas fa-trash-can"></i>Eliminar</button>
-          </form>
+          <button type="button" class="sec-chico peligro" data-open="#eliminarSub{{ s.pk }}"><i class="fas fa-trash-can"></i>Eliminar</button>
         </div>
       </div>
     </div>
@@ -161,6 +158,33 @@
     </form>
   </div>
 </div>
+
+{% for s in suscripciones %}
+<div class="modal-overlay" id="eliminarSub{{ s.pk }}">
+  <div class="modal-box" style="max-width:400px">
+    <div class="modal-head">
+      <div>
+        <div class="modal-title">Eliminar {{ s.nombre }}</div>
+        <div class="modal-sub">Se borra por completo y no se puede deshacer.</div>
+      </div>
+      <button class="modal-close" data-close aria-label="Cerrar"><i class="fas fa-xmark"></i></button>
+    </div>
+    <form method="post" action="{% url 'eliminar_suscripcion' s.pk %}">
+      {% csrf_token %}
+      {% if s.cobros_cantidad %}
+      <label class="su-borrar">
+        <input type="checkbox" name="borrar_gastos" value="1"{% if s.borrar_cobros_sugerido %} checked{% endif %}>
+        <span class="su-borrar-txt">
+          <b>Borrar también {{ s.cobros_cantidad }} gasto{{ s.cobros_cantidad|pluralize }} de {{ s.cobros_total|money }}</b>
+          <span>Márcalo si fue una prueba o un error. Si la pagaste de verdad, déjalo sin marcar para no cambiar tus meses anteriores.</span>
+        </span>
+      </label>
+      {% endif %}
+      <button type="submit" class="btn btn-red btn-block">Eliminar suscripción</button>
+    </form>
+  </div>
+</div>
+{% endfor %}
 {% endblock %}
 
 {% block extra_js %}

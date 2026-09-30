@@ -4,6 +4,7 @@ from dateutil.relativedelta import relativedelta
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db import transaction as db_transaction
+from django.db.models import Count, Q, Sum
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
@@ -16,7 +17,19 @@ from .comun import contadores, monto_post, redirigir
 
 @login_required(login_url='/login/')
 def suscripciones(request):
-    subs = list(Suscripcion.objects.filter(usuario=request.user).prefetch_related('pagos'))
+    subs = list(
+        Suscripcion.objects.filter(usuario=request.user)
+        .annotate(
+            cobros_cantidad=Count('cobros'),
+            cobros_total=Sum('cobros__monto'),
+            cobros_pagados=Count('cobros', filter=Q(cobros__pagado=True)),
+        )
+        .prefetch_related('pagos')
+    )
+    hoy = timezone.localdate()
+    for s in subs:
+        es_nueva = (s.fecha_inicio.year, s.fecha_inicio.month) == (hoy.year, hoy.month)
+        s.borrar_cobros_sugerido = s.cobros_pagados == 0 or (es_nueva and s.cobros_cantidad <= 1)
     activas = [s for s in subs if s.activa]
     total_mensual = sum(float(s.monto) for s in activas)
 
@@ -224,6 +237,17 @@ def editar_suscripcion(request, sub_id):
 def eliminar_suscripcion(request, sub_id):
     sub = get_object_or_404(Suscripcion, id=sub_id, usuario=request.user)
     if request.method == 'POST':
-        sub.delete()
-        messages.success(request, 'Suscripción eliminada.')
+        borrar = request.POST.get('borrar_gastos') == '1'
+        with db_transaction.atomic():
+            cantidad = sub.cobros.count()
+            if borrar and cantidad:
+                sub.cobros.all().delete()
+            sub.delete()
+        invalidar(request.user.pk)
+        if borrar and cantidad:
+            messages.success(request, f'Suscripción eliminada junto con {cantidad} gasto{"s" if cantidad != 1 else ""}.')
+        elif cantidad:
+            messages.success(request, 'Suscripción eliminada. Sus gastos siguen en tus movimientos.')
+        else:
+            messages.success(request, 'Suscripción eliminada.')
     return redirect('suscripciones')
