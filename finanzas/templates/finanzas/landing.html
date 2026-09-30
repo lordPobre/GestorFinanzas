@@ -18,6 +18,7 @@
   <link rel="stylesheet" href="{% static 'vendor/fonts/fuentes.css' %}">
   <link rel="stylesheet" href="{% static 'vendor/fontawesome/css/all.min.css' %}">
   <link rel="stylesheet" href="{% static 'css/finapp.css' %}">
+  <link rel="stylesheet" href="{% static 'css/landing-telefono.css' %}">
   <script src="{% static 'js/pantallas/landing.js' %}" nonce="{{ csp_nonce }}"></script>
 </head>
 <body class="lp">
@@ -37,40 +38,42 @@
       </div>
     </div>
     <div class="lp-telefono" aria-hidden="true">
-      <div class="lp-pantalla" data-lp-telefono title="Repetir">
+      <div class="lp-pantalla lt-pantalla" data-lp-telefono title="Repetir">
         <div class="lp-tel-barra"><span>9:41</span><span><i class="fas fa-signal"></i><i class="fas fa-wifi"></i><i class="fas fa-battery-full"></i></span></div>
-        <div class="lp-tel-saludo" data-lp-fase="1">
-          <span class="lp-tel-avatar">C</span>
-          <div><div class="lp-tel-hola">Buenos días</div><div class="lp-tel-nombre">Camila</div></div>
-          <span class="lp-tel-campana"><i class="fas fa-bell"></i></span>
+        <div class="lt-top" data-lp-fase="1">
+          <span class="lt-avatar">C</span>
+          <span class="lt-mes">Septiembre<i class="fas fa-chevron-down"></i></span>
+          <span class="lt-campana"><i class="fas fa-bell"></i><b></b></span>
         </div>
-        <div class="lp-tel-saldo" data-lp-fase="2">
-          <div class="lp-tel-saldo-etq">Puedes gastar este mes</div>
-          <div class="lp-tel-cifra" data-lp-cifra data-meta="412300">$412.300</div>
-          <div class="lp-tel-progreso"><div data-lp-barra data-ancho="58%"></div></div>
-          <div class="lp-tel-saldo-pie"><span>Quedan 11 días</span><span>58% usado</span></div>
+        <div class="lt-cifra" data-lp-fase="2">
+          <span class="lt-label">Puedes gastar</span>
+          <span class="lt-monto-grande" data-lp-cifra data-meta="412300">$412.300</span>
+          <span class="lt-chips"><span>Gastos</span><span>Ingresos</span><span class="on">Puedes gastar</span></span>
         </div>
-        <div class="lp-tel-duo" data-lp-fase="3">
-          <div><div>Debes</div><div style="color:var(--coral)">$186.900</div></div>
-          <div><div>Te deben</div><div style="color:var(--green)">$45.000</div></div>
+        <div class="lt-accesos" data-lp-fase="3">
+          <span class="lt-acceso"><span class="lt-acceso-icono principal"><i class="fas fa-plus"></i></span>Gasto</span>
+          <span class="lt-acceso"><span class="lt-acceso-icono verde"><i class="fas fa-arrow-down"></i></span>Ingreso</span>
+          <span class="lt-acceso"><span class="lt-acceso-icono agua"><i class="fas fa-file-import"></i></span>Cartola</span>
+          <span class="lt-acceso"><span class="lt-acceso-icono ambar"><i class="fas fa-route"></i></span>Plan</span>
         </div>
-        <div class="lp-tel-titulo" data-lp-fase="4">Por pagar este mes</div>
-        <div class="lp-tel-lista">
-          <div class="lp-tel-fila" data-lp-fase="4">
-                <span class="lp-tel-icono" style="background:color-mix(in srgb, var(--amber) 14%, transparent);color:var(--amber)"><i class="fas fa-credit-card"></i></span>
-                <div class="lp-tel-fila-txt"><div>Notebook</div><div>Cuota 3 de 12</div></div>
-                <span class="lp-mono">$54.990</span><span class="lp-tel-pagada" data-lp-pagada><i class="fas fa-check"></i>Pagada</span>
-              </div>
-          <div class="lp-tel-fila" data-lp-fase="5">
-                <span class="lp-tel-icono" style="background:color-mix(in srgb, var(--green) 14%, transparent);color:var(--green)"><i class="fas fa-rotate"></i></span>
-                <div class="lp-tel-fila-txt"><div>Plan celular</div><div>Se cobra el 15</div></div>
-                <span class="lp-mono">$12.990</span>
-              </div>
-          <div class="lp-tel-fila" data-lp-fase="6">
-                <span class="lp-tel-icono" style="background:color-mix(in srgb, var(--blue) 14%, transparent);color:var(--blue)"><i class="fas fa-file-invoice"></i></span>
-                <div class="lp-tel-fila-txt"><div>Cuenta de la luz</div><div>Vence el 22</div></div>
-                <span class="lp-mono">$31.400</span>
-              </div>
+        <div class="lt-hoja" data-lp-fase="4">
+          <span class="lt-asa"></span>
+          <div class="lt-hoja-cab"><span>Por pagar</span><span>Próximos 14 días</span></div>
+          <div class="lt-fila" data-lp-fase="4">
+            <span class="lt-ficha azul"><i class="fas fa-credit-card"></i></span>
+            <span class="lt-fila-txt"><span>Notebook</span><span>Cuota 3 de 12 · vence 18 sep</span></span>
+            <span class="lt-monto">$54.990</span><span class="lt-pagada" data-lp-pagada><i class="fas fa-check"></i>Pagada</span>
+          </div>
+          <div class="lt-fila" data-lp-fase="5">
+            <span class="lt-ficha ambar"><i class="fas fa-rotate"></i></span>
+            <span class="lt-fila-txt"><span>Plan celular</span><span>Suscripción · 20 sep</span></span>
+            <span class="lt-monto">$12.990</span>
+          </div>
+          <div class="lt-fila" data-lp-fase="6">
+            <span class="lt-ficha lila"><i class="fas fa-bolt"></i></span>
+            <span class="lt-fila-txt"><span>Cuenta de la luz</span><span>Vence 22 sep</span></span>
+            <span class="lt-monto">$31.400</span>
+          </div>
         </div>
       </div>
     </div>

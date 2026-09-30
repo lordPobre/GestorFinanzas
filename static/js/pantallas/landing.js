@@ -32,16 +32,18 @@
     fases.forEach(function (el) { el.classList.remove('lp-ok'); });
     if (pagada) pagada.classList.remove('lp-ok');
     cifra.textContent = formatear(0);
-    barra.style.transition = 'none';
-    barra.style.width = '0%';
-    void barra.offsetWidth;
-    barra.style.transition = '';
+    if (barra) {
+      barra.style.transition = 'none';
+      barra.style.width = '0%';
+      void barra.offsetWidth;
+      barra.style.transition = '';
+    }
 
     var tiempos = { 1: 250, 2: 550, 3: 1350, 4: 1650, 5: 1850, 6: 2050 };
     fases.forEach(function (el) {
       timers.push(setTimeout(function () { el.classList.add('lp-ok'); }, tiempos[el.dataset.lpFase] || 0));
     });
-    timers.push(setTimeout(function () { barra.style.width = barra.dataset.ancho; }, 650));
+    if (barra) timers.push(setTimeout(function () { barra.style.width = barra.dataset.ancho; }, 650));
     timers.push(setTimeout(function () {
       var inicio = performance.now();
       var duracion = 1300;
