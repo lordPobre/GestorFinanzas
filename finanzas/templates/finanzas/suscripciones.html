@@ -33,6 +33,39 @@
   {% endif %}
 
 
+  {% if sugerencias %}
+  <div class="su-sugeridas">
+    <div class="su-consejo-cab">
+      <span class="sec-tip-icono"><i class="fas fa-magnifying-glass-dollar"></i></span>
+      <span class="sec-txt">
+        <span class="sec-nombre">¿Estas son suscripciones?</span>
+        <span class="sec-meta">Cobros que se repiten cada mes en tus movimientos y cartolas</span>
+      </span>
+    </div>
+    {% for g in sugerencias %}
+    <div class="su-sugerida">
+      {% marca_de g.nombre as m %}{% if m %}{% include 'finanzas/_marca.html' with clase="sec-ficha su-marca" %}{% else %}<span class="sec-ficha su-marca" style="background:#ffaa2c24;color:#ffaa2c"><i class="fas fa-rotate"></i></span>{% endif %}
+      <span class="sec-txt">
+        <span class="sec-nombre">{{ g.nombre }}</span>
+        <span class="sec-meta">{{ g.monto|money }} · {{ g.meses }} meses seguidos · {{ g.anual|money }} al año</span>
+      </span>
+      <div class="su-sugerida-acciones">
+        <form method="post" action="{% url 'agregar_sugerencia' %}">
+          {% csrf_token %}
+          <input type="hidden" name="clave" value="{{ g.clave }}">
+          <button type="submit" class="sec-chico ambar"><i class="fas fa-plus"></i>Agregar</button>
+        </form>
+        <form method="post" action="{% url 'descartar_sugerencia' %}">
+          {% csrf_token %}
+          <input type="hidden" name="clave" value="{{ g.clave }}">
+          <button type="submit" class="sec-chico" aria-label="{{ g.nombre }} no es una suscripción">No es</button>
+        </form>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
   {% if suscripciones %}
   <div class="su-lista">
     {% for s in suscripciones %}

@@ -41,32 +41,68 @@
 
 {% else %}
 <section class="sec-hero pl-hero">
-  <div class="pl-cab">
-    <span class="sec-label">Ahorra al mes</span>
-    <span class="pl-fondo" id="planFondoResultado"></span>
-  </div>
-  <span class="sec-monto" data-plan="ahorro"></span>
-  <label class="visually-hidden" for="planAhorro">Apartar al mes</label>
-  <input id="planAhorro" class="pl-slider" type="range" min="0" max="{{ plan.sobra }}" step="5000" value="{{ plan.datos.ahorro }}">
-  <div class="pl-escala"><span>$0</span><span>Te sobran {{ plan.sobra|money }}</span></div>
+  <span class="sec-label">Te sobran al mes</span>
+  <span class="sec-monto">{{ plan.sobra|money }}</span>
+  <span class="pl-hero-nota">Lo que entra menos tus gastos y cuotas. Abajo decides cómo repartirlo.</span>
 </section>
 
-<section class="sec-hoja">
-  {% if plan.deudas %}
-  <h2 class="sec-subtitulo">En qué orden pagar tus deudas</h2>
-  <div class="sec-pestanas pl-estrategia" role="group" aria-label="Orden de pago">
-    <button type="button" data-estrategia="saldo" aria-pressed="true">Menor saldo primero</button>
-    <button type="button" data-estrategia="cuota" aria-pressed="false">Mayor cuota primero</button>
+<section class="sec-hoja pl-hoja">
+
+  <div class="pl-bloque">
+    <div class="sec-cab estatica">
+      <span class="sec-ficha verde"><i class="fas fa-piggy-bank"></i></span>
+      <span class="sec-txt">
+        <span class="sec-nombre">Ahorro para imprevistos</span>
+        <span class="sec-meta">La meta son 3 meses de tus gastos y cuotas: {{ plan.meta|money }}</span>
+      </span>
+    </div>
+    <div class="pl-control">
+      <label for="planAhorro" class="pl-extra-cab">
+        <span>Apartar al mes</span>
+        <b data-plan="ahorro"></b>
+      </label>
+      <input id="planAhorro" class="pl-slider chico" type="range" min="0" max="{{ plan.sobra }}" step="5000" value="{{ plan.datos.ahorro }}">
+      <div class="pl-escala"><span>$0</span><span>{{ plan.sobra|money }}</span></div>
+    </div>
+    {% if plan.tiene_fondo %}
+    <div class="pl-fondo-avance">
+      <div><b>{{ plan.llevas|money }}</b><span id="planFondoPct"></span></div>
+      <span class="md-barra"><span id="planFondoBar"></span></span>
+    </div>
+    {% endif %}
+    <div class="pl-resultado" id="planFondoResultado"></div>
+    {% if not plan.tiene_fondo %}
+    <span class="sec-mas-nota">Para seguir tu avance, crea una meta llamada «Fondo para imprevistos» en <a href="{% url 'metas' %}">Metas</a>.</span>
+    {% endif %}
   </div>
-  <div class="pl-nota" id="planEstrategiaNota"></div>
-  <div id="planDeudas" class="pl-deudas"></div>
-  <div class="pl-extra">
-    <label for="planExtra" class="pl-extra-cab">
-      <span>Extra al mes para deudas</span>
-      <b data-plan="extra"></b>
-    </label>
-    <input id="planExtra" class="pl-slider chico" type="range" min="0" max="{{ plan.sobra }}" step="5000" value="{{ plan.datos.extra }}">
-    <div class="pl-nota" id="planDeudaResultado"></div>
+
+  {% if plan.deudas %}
+  <div class="pl-bloque">
+    <div class="sec-cab estatica">
+      <span class="sec-ficha ambar"><i class="fas fa-credit-card"></i></span>
+      <span class="sec-txt">
+        <span class="sec-nombre">Salir antes de tus cuotas</span>
+        <span class="sec-meta">Un extra al mes adelanta el fin de tus compras a plazo</span>
+      </span>
+    </div>
+    <div class="pl-control">
+      <label for="planExtra" class="pl-extra-cab">
+        <span>Extra al mes para deudas</span>
+        <b data-plan="extra"></b>
+      </label>
+      <input id="planExtra" class="pl-slider chico" type="range" min="0" max="{{ plan.sobra }}" step="5000" value="{{ plan.datos.extra }}">
+      <div class="pl-escala"><span>$0</span><span>{{ plan.sobra|money }}</span></div>
+    </div>
+    <div class="pl-control">
+      <span class="pl-extra-cab"><span>En qué orden pagar</span></span>
+      <div class="sec-pestanas pl-estrategia" role="group" aria-label="Orden de pago">
+        <button type="button" data-estrategia="saldo" aria-pressed="true">Menor saldo primero</button>
+        <button type="button" data-estrategia="cuota" aria-pressed="false">Mayor cuota primero</button>
+      </div>
+      <div class="pl-nota" id="planEstrategiaNota"></div>
+    </div>
+    <div id="planDeudas" class="pl-deudas"></div>
+    <div class="pl-resultado" id="planDeudaResultado"></div>
   </div>
   {% else %}
   <div class="sec-tip agua">
@@ -75,10 +111,8 @@
   </div>
   {% endif %}
 
-  {% include 'finanzas/_plan_ia.html' %}
-
   <div class="pl-reparto">
-    <span class="pl-reparto-titulo">Así repartes lo que te sobra</span>
+    <span class="pl-reparto-titulo">Así queda lo que te sobra</span>
     <div class="pl-reparto-barra">
       <span id="planBarAhorro"></span>
       <span id="planBarExtra"></span>
@@ -94,23 +128,34 @@
     </div>
   </div>
 
-  <div class="pl-bloque">
+  <div class="pl-bloque" data-simulador>
     <div class="sec-cab estatica">
-      <span class="sec-ficha verde"><i class="fas fa-piggy-bank"></i></span>
+      <span class="sec-ficha azul"><i class="fas fa-cart-shopping"></i></span>
       <span class="sec-txt">
-        <span class="sec-nombre">Fondo para imprevistos</span>
-        <span class="sec-meta">3 meses de tus gastos y cuotas: {{ plan.meta|money }}</span>
+        <span class="sec-nombre">¿Y si compro en cuotas?</span>
+        <span class="sec-meta">Mira cómo quedarían tus próximos 12 meses antes de comprar</span>
       </span>
     </div>
-    {% if plan.tiene_fondo %}
-    <div class="pl-fondo-avance">
-      <div><b>{{ plan.llevas|money }}</b><span id="planFondoPct"></span></div>
-      <span class="md-barra"><span id="planFondoBar"></span></span>
+    <div class="pl-sim-campos">
+      <div class="pl-sim-campo">
+        <label class="pl-extra-cab" for="simCuota"><span>Valor de la cuota</span></label>
+        <input id="simCuota" type="number" inputmode="numeric" min="1" step="1" placeholder="45000">
+      </div>
+      <div class="pl-sim-campo">
+        <label class="pl-extra-cab" for="simCuotas"><span>Cuántas cuotas</span></label>
+        <input id="simCuotas" type="number" inputmode="numeric" min="1" max="48" step="1" value="12">
+      </div>
     </div>
-    {% else %}
-    <span class="sec-mas-nota">Para seguir tu avance, crea una meta llamada «Fondo para imprevistos» en <a href="{% url 'metas' %}">Metas</a>.</span>
-    {% endif %}
+    <div class="pl-sim-grafico" id="simGrafico" aria-hidden="true"></div>
+    <div class="pl-sim-leyenda" id="simLeyenda" hidden>
+      <span><i class="con"></i>Libre con la compra</span>
+      <span><i class="sin"></i>Sin la compra</span>
+    </div>
+    <div class="pl-resultado" id="simResultado"></div>
+    <span class="sec-mas-nota">Parte de lo que te sobra hoy y suma cada cuota que termina. No cuenta el extra a deudas.</span>
   </div>
+
+  {% include 'finanzas/_plan_ia.html' %}
 
   {% if plan.suscripciones %}
   <div class="pl-bloque">
@@ -132,21 +177,24 @@
   </div>
   {% endif %}
 
-  <div class="pl-bloque">
-    <div class="sec-cab estatica">
+  <details class="sec-historial pl-aprender-caja">
+    <summary>
       <span class="sec-ficha azul"><i class="fas fa-book-open"></i></span>
       <span class="sec-txt">
         <span class="sec-nombre">Para aprender antes de invertir</span>
         <span class="sec-meta">Cuando completes tu fondo. Fintora no recomienda instrumentos ni instituciones.</span>
       </span>
+      <i class="fas fa-chevron-down"></i>
+    </summary>
+    <div class="sec-historial-lista pl-aprender-cuerpo">
+      <div class="pl-aprender">
+        <div><b>Depósito a plazo</b><span>Dejas una suma por un plazo fijo y recibes el interés pactado al inicio. Si lo sacas antes, normalmente pierdes ese interés.</span></div>
+        <div><b>Fondo mutuo</b><span>Tu plata se junta con la de otras personas y una administradora la invierte. Su valor sube y baja, y cobra una comisión.</span></div>
+        <div><b>APV</b><span>Ahorro para la jubilación con beneficio tributario. Tiene dos regímenes, A y B, con reglas distintas para retirar.</span></div>
+      </div>
+      <a href="https://www.cmfchile.cl/educa" target="_blank" rel="noopener" class="ini-link">Más en CMF Educa<i class="fas fa-arrow-up-right-from-square"></i></a>
     </div>
-    <div class="pl-aprender">
-      <div><b>Depósito a plazo</b><span>Dejas una suma por un plazo fijo y recibes el interés pactado al inicio. Si lo sacas antes, normalmente pierdes ese interés.</span></div>
-      <div><b>Fondo mutuo</b><span>Tu plata se junta con la de otras personas y una administradora la invierte. Su valor sube y baja, y cobra una comisión.</span></div>
-      <div><b>APV</b><span>Ahorro para la jubilación con beneficio tributario. Tiene dos regímenes, A y B, con reglas distintas para retirar.</span></div>
-    </div>
-    <a href="https://www.cmfchile.cl/educa" target="_blank" rel="noopener" class="ini-link">Más en CMF Educa<i class="fas fa-arrow-up-right-from-square"></i></a>
-  </div>
+  </details>
 
   <p class="pl-legal"><i class="fas fa-circle-info"></i>Esto es orientación general hecha con tus propios números. No es asesoría financiera, de inversión ni crediticia, y no reemplaza a un profesional registrado en la CMF.</p>
 </section>
@@ -157,5 +205,6 @@
 {% if plan.tiene_datos and plan.sobra > 0 %}
 {{ plan_json|json_script:"d-plan" }}
 <script src="{% static 'js/pantallas/plan.js' %}" nonce="{{ csp_nonce }}" data-url-ia="{% url 'plan_ia' %}"></script>
+<script src="{% static 'js/pantallas/plan-simulador.js' %}" nonce="{{ csp_nonce }}"></script>
 {% endif %}
 {% endblock %}

@@ -94,7 +94,7 @@
       pestana: '#segPerfil [data-panel="seguridad"]',
       sel: '[data-tour="face-id"]',
       titulo: 'Entrar con Face ID o huella',
-      texto: 'Registra este teléfono o computador y la próxima vez entras con la cara o el dedo, sin escribir la contraseña. Puedes registrar varios aparatos y quitar cualquiera desde aquí.'
+      texto: 'Registra este teléfono o tablet y la próxima vez entras con la cara o el dedo, sin escribir la contraseña. Puedes registrar varios aparatos y quitar cualquiera desde aquí.'
     },
     {
       ruta: 'perfil', icono: 'fa-shield-halved', desde: 3,

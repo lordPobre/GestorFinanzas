@@ -26,7 +26,7 @@
 </div>
 {% endif %}
 
-<div id="bloquePasskey" hidden>
+<div id="bloquePasskey" data-solo-movil hidden>
   <button type="button" id="btnPasskey" class="auth-btn vidrio"{% if bloqueado %} disabled{% endif %}>
     <i class="fas fa-fingerprint"></i>Entrar con Face ID o huella
   </button>
@@ -122,6 +122,7 @@
 {% endblock %}
 
 {% block extra_js %}
+<script src="{% static 'js/dispositivo.js' %}" nonce="{{ csp_nonce }}"></script>
 <script src="{% static 'js/passkeys.js' %}" nonce="{{ csp_nonce }}"></script>
 <script src="{% static 'js/pantallas/login.js' %}" nonce="{{ csp_nonce }}" data-url-opciones="{% url 'passkey_entrar_opciones' %}" data-url-verificar="{% url 'passkey_entrar_verificar' %}"></script>
 <script src="{% static 'js/pantallas/login-2.js' %}" nonce="{{ csp_nonce }}"></script>

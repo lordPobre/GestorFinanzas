@@ -219,7 +219,7 @@
       <div class="pf-col">
         <div class="pf-grupo">
           {% with n_passkeys=user.passkeys.count %}
-          <a href="{% url 'passkeys' %}" class="pf-fila" data-tour="face-id">
+          <a href="{% url 'passkeys' %}" class="pf-fila" data-tour="face-id" data-solo-movil>
             <span class="pf-icono{% if n_passkeys %} verde{% else %} azul{% endif %}"><i class="fas fa-fingerprint"></i></span>
             <span class="pf-txt">
               <span class="pf-titulo">Face ID o huella</span>
@@ -343,6 +343,7 @@
 {% endblock %}
 
 {% block extra_js %}
+<script src="{% static 'js/dispositivo.js' %}" nonce="{{ csp_nonce }}"></script>
 <script src="{% static 'js/pantallas/perfil.js' %}" nonce="{{ csp_nonce }}" data-foto="{{ perfil_form.foto.id_for_label }}"></script>
 <script src="{% static 'js/pantallas/perfil-2.js' %}" nonce="{{ csp_nonce }}" {% if pw_form.errors %}data-pw-errores="1" {% endif %}data-p1="{{ pw_form.new_password1.id_for_label }}" data-p2="{{ pw_form.new_password2.id_for_label }}"></script>
 {% endblock %}

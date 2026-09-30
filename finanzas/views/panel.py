@@ -1,3 +1,4 @@
+import re
 from datetime import date
 
 from dateutil.relativedelta import relativedelta
@@ -12,8 +13,31 @@ from ..servicios.cuotas import mis_cuotas_detalle, proyecciones_deuda_activas
 from ..servicios.mes import MESES_LARGOS, nombre_mes_es, numeros_mes, resumen_mes
 from ..servicios.panel import desglose_categorias, insights_panel, primeros_pasos, serie_seis_meses
 from ..servicios.pendientes import calendario_del_mes, pendientes_del_mes
+from ..servicios.ritmo import ritmo_del_mes
 from ..servicios.suscripciones import generar_cobros_suscripciones
-from .comun import contadores
+from .comun import contadores, simbolo_de
+
+
+PREFIJOS = (('Suscripción: ', 'Suscripción'), ('Pendiente: ', 'Cuenta por pagar'))
+PATRON_CUOTA = re.compile(r'^Cuota (\d+)/(\d+)\s*[—-]\s*(.+)$')
+
+
+def textos_movimiento(t):
+    desc = (t.descripcion or '').strip()
+    cat = t.get_categoria_display()
+    if t.es_cuota:
+        m = PATRON_CUOTA.match(desc)
+        if m:
+            return m.group(3), f'Cuota {m.group(1)} de {m.group(2)}'
+        return desc or cat, 'Cuota'
+    for prefijo, etiqueta in PREFIJOS:
+        if desc.startswith(prefijo):
+            return desc[len(prefijo):].strip() or cat, etiqueta
+    if t.suscripcion_id:
+        return desc or cat, 'Suscripción'
+    if not desc:
+        return cat, 'Ingreso' if t.es_ingreso else 'Gasto'
+    return desc, cat
 
 
 @login_required(login_url='/login/')
@@ -55,6 +79,13 @@ def dashboard(request):
     movimientos_mes = Transaccion.objects.filter(
         usuario=request.user, fecha__gte=r['fecha_inicio'], fecha__lte=r['fecha_fin'],
     ).order_by('-fecha', '-id')
+    movimientos_mes = list(movimientos_mes)
+    for t in movimientos_mes:
+        t.nombre_lista, t.meta_lista = textos_movimiento(t)
+    mov_entro = round(sum(float(t.monto) for t in movimientos_mes if t.es_ingreso))
+    mov_salio = round(sum(float(t.monto) for t in movimientos_mes if not t.es_ingreso))
+    mov_cuotas = round(sum(float(t.monto) for t in movimientos_mes if t.es_cuota))
+    mov_tope = max(mov_entro, mov_salio, 1)
     deuda_total = sum(float(d.monto_restante) for d in todas_las_deudas if not d.esta_saldada)
     metas = MetaAhorro.objects.filter(usuario=request.user)
     es_nuevo = (r['ingresos'] == 0 and r['gastos'] == 0 and not todas_las_deudas.exists())
@@ -64,6 +95,8 @@ def dashboard(request):
     insights, presupuesto_pct = insights_panel(
         r, datos_gastos, pendientes, proyecciones_deuda, presupuesto)
     se_libera = proyecciones_deuda[0] if proyecciones_deuda else None
+    if (year, month) == (hoy.year, hoy.month):
+        insights = ritmo_del_mes(request.user, hoy, simbolo_de(request.user)) + insights
 
     context = {
         'nombre_mes': nombre_mes,
@@ -137,6 +170,14 @@ def dashboard(request):
         'gastos_pendientes': GastoPendiente.objects.filter(usuario=request.user, pagado=False),
         'ultimas': ultimas,
         'movimientos_mes': movimientos_mes,
+        'mov_entro': mov_entro,
+        'mov_salio': mov_salio,
+        'mov_pct_unicos': round((mov_salio - mov_cuotas) / mov_tope * 100),
+        'mov_pct_cuotas': round(mov_cuotas / mov_tope * 100),
+        'mov_pct_salio': round(mov_salio / mov_entro * 100) if mov_entro else None,
+        'mov_n_unicos': sum(1 for t in movimientos_mes if not t.es_ingreso and not t.es_cuota),
+        'mov_n_cuotas': sum(1 for t in movimientos_mes if t.es_cuota),
+        'mov_n_ingresos': sum(1 for t in movimientos_mes if t.es_ingreso),
         'metas': metas,
         'calendario': calendario_datos,
 

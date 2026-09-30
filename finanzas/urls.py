@@ -85,6 +85,8 @@ urlpatterns = [
 
     path('suscripciones/', suscripciones.suscripciones, name='suscripciones'),
     path('suscripciones/nueva/', suscripciones.crear_suscripcion, name='crear_suscripcion'),
+    path('suscripciones/sugerencia/agregar/', suscripciones.agregar_sugerencia, name='agregar_sugerencia'),
+    path('suscripciones/sugerencia/descartar/', suscripciones.descartar_sugerencia, name='descartar_sugerencia'),
     path('suscripciones/<int:sub_id>/pagar/', suscripciones.pagar_servicio, name='pagar_servicio'),
     path('suscripciones/<int:sub_id>/anular-pago/', suscripciones.anular_pago_servicio, name='anular_pago_servicio'),
     path('suscripciones/<int:sub_id>/editar/', suscripciones.editar_suscripcion, name='editar_suscripcion'),

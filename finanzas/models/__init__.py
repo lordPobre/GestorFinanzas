@@ -7,6 +7,7 @@ from ..almacenamiento import SEGUNDOS_URL_FIRMADA
 from .prestamos import Persona, Prestamo, AbonoPrestamo
 from .seguridad import SegundoFactor, CodigoRespaldo, SesionActiva, Passkey, EventoSeguridad
 from .suscripciones import Suscripcion, PagoServicio
+from .sugerencias import SugerenciaDescartada
 
 __all__ = [
     'Transaccion',
@@ -19,6 +20,7 @@ __all__ = [
     'AporteMeta',
     'Suscripcion',
     'PagoServicio',
+    'SugerenciaDescartada',
     'Persona',
     'Prestamo',
     'AbonoPrestamo',

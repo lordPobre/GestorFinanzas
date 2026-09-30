@@ -326,26 +326,37 @@
 </div>
 
 <div class="modal-overlay" id="modalMovimientos">
-  <div class="modal-box" style="max-width:560px">
+  <div class="modal-box mv-box" style="max-width:560px">
     <div class="modal-head">
       <div>
-        <div class="modal-title">Movimientos de {{ nombre_mes }}</div>
+        <div class="modal-title">{{ nombre_mes }}</div>
         <div class="modal-sub">Toca uno para editarlo. Deslízalo para borrarlo.</div>
       </div>
       <button class="modal-close" data-close aria-label="Cerrar"><i class="fas fa-xmark"></i></button>
     </div>
     {% if movimientos_mes %}
-    <div class="seg mov-filtros" data-mov-filtros role="group" aria-label="Qué movimientos ver">
-      <button type="button" class="on" data-mov-filtro="todo" aria-pressed="true">Todo</button>
-      <button type="button" data-mov-filtro="unico" aria-pressed="false">Únicos</button>
-      <button type="button" data-mov-filtro="cuota" aria-pressed="false">Cuotas</button>
-      <button type="button" data-mov-filtro="ingreso" aria-pressed="false">Ingresos</button>
+    <div class="mv-resumen">
+      <div class="mv-cifra"><span>Entró</span><b class="verde">{{ mov_entro|money }}</b></div>
+      <div class="mv-cifra"><span>Salió</span><b>{{ mov_salio|money }}</b></div>
+      <div class="mv-barra" aria-hidden="true"><span class="unicos" style="width:{{ mov_pct_unicos }}%"></span><span class="cuotas" style="width:{{ mov_pct_cuotas }}%"></span></div>
+      <div class="mv-leyenda">
+        <span><i class="unicos"></i>Únicos</span>
+        <span><i class="cuotas"></i>Cuotas</span>
+        {% if mov_pct_salio is not None %}<span class="mv-leyenda-nota">Salió el {{ mov_pct_salio }}% de lo que entró</span>{% endif %}
+      </div>
     </div>
-    <div class="mov-resumen" data-mov-resumen><span>{{ movimientos_mes|length }} movimientos</span><b></b></div>
+    <div class="mv-filtros" data-mov-filtros role="group" aria-label="Qué movimientos ver">
+      <button type="button" class="on" data-mov-filtro="todo" aria-pressed="true">Todo <b>{{ movimientos_mes|length }}</b></button>
+      <button type="button" data-mov-filtro="unico" aria-pressed="false">Únicos <b>{{ mov_n_unicos }}</b></button>
+      <button type="button" data-mov-filtro="cuota" aria-pressed="false">Cuotas <b>{{ mov_n_cuotas }}</b></button>
+      <button type="button" data-mov-filtro="ingreso" aria-pressed="false">Ingresos <b>{{ mov_n_ingresos }}</b></button>
+    </div>
+    <div class="mov-resumen mv-suma" data-mov-resumen><span>{{ movimientos_mes|length }} movimientos</span><b></b></div>
     {% endif %}
-    <div class="row-list mov-list">
+    <div class="mov-list mv-lista">
       {% for t in movimientos_mes %}
-      <div class="swipe swipe-fila swipe-mov tono-{{ t.clase_tono }}{% if t.por_pagar %} sin-pagar{% endif %}" data-mov-tipo="{% if t.es_ingreso %}ingreso{% elif t.es_cuota %}cuota{% else %}unico{% endif %}" data-monto="{{ t.monto|floatformat:'0u' }}">
+      {% ifchanged t.fecha %}<div class="mv-dia" data-mov-dia>{{ t.fecha|naturalday:"l j"|capfirst }}</div>{% endifchanged %}
+      <div class="swipe swipe-fila swipe-mov mv-fila{% if t.por_pagar %} sin-pagar{% endif %}" data-mov-tipo="{% if t.es_ingreso %}ingreso{% elif t.es_cuota %}cuota{% else %}unico{% endif %}" data-monto="{{ t.monto|floatformat:'0u' }}">
         <div class="swipe-acciones">
           {% if t.por_pagar %}
           <form method="post" action="{% url 'pagar_gasto' t.pk %}" style="margin:0">
@@ -366,17 +377,17 @@
             <button type="submit" class="swipe-btn borrar" title="Eliminar"><i class="fas fa-trash-can"></i><span>Eliminar</span></button>
           </form>
         </div>
-        <a href="{% if t.es_cuota %}{% url 'deudas' %}{% else %}{% url 'editar_transaccion' t.pk %}{% endif %}" class="swipe-card row">
+        <a href="{% if t.es_cuota %}{% url 'deudas' %}{% else %}{% url 'editar_transaccion' t.pk %}{% endif %}" class="swipe-card mv-card">
           {% marca_de t.descripcion as m %}{% if m %}
-          {% include 'finanzas/_marca.html' with clase="icon-tile marca-tile" %}
+          {% include 'finanzas/_marca.html' with clase="mv-icono" %}
           {% else %}
-          <span class="icon-tile {% if t.es_ingreso %}green{% elif t.por_pagar %}orange{% endif %}"><i class="fas {{ t.icono }}"></i></span>
+          <span class="mv-icono{% if t.por_pagar %} sin-pagar{% endif %}" style="background:{{ t.color_categoria }}29;color:{{ t.color_categoria }}"><i class="fas {{ t.icono }}"></i></span>
           {% endif %}
-          <div class="row-main">
-            <div class="row-title">{{ t.descripcion|default:t.get_categoria_display }}</div>
-            <div class="row-meta">{{ t.fecha|date:"j b" }}{% if t.descripcion %} · {{ t.get_categoria_display }}{% endif %}{% if t.por_pagar %} · <span style="color:var(--amarillo)">sin pagar</span>{% endif %}</div>
-          </div>
-          <div class="mono mov-monto" style="{% if t.es_ingreso %}color:var(--green-texto){% endif %}">{% if t.es_ingreso %}+{% endif %}{{ t.monto|money }}</div>
+          <span class="mv-txt">
+            <span class="mv-nombre">{{ t.nombre_lista }}</span>
+            <span class="mv-meta{% if t.por_pagar %} sin-pagar{% endif %}">{% if t.por_pagar %}Sin pagar · {% endif %}{{ t.meta_lista }}</span>
+          </span>
+          <span class="mv-monto{% if t.es_ingreso %} ingreso{% endif %}">{% if t.es_ingreso %}+{% else %}−{% endif %}{{ t.monto|money }}</span>
         </a>
       </div>
       {% empty %}

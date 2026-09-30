@@ -9,7 +9,8 @@ from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
-from ..models import PagoServicio, Suscripcion
+from ..models import PagoServicio, SugerenciaDescartada, Suscripcion, Transaccion
+from ..servicios.detectar_suscripciones import sugerencias
 from ..servicios.mes import invalidar
 from ..servicios.suscripciones import generar_cobros_suscripciones
 from .comun import contadores, monto_post, redirigir
@@ -57,6 +58,7 @@ def suscripciones(request):
         'monto_pagado_mes': round(sum(float(s.monto) for s in activas if s.pagada_este_mes)),
         'atrasadas': len(atrasadas),
         'monto_atrasado': round(sum(float(s.monto_atrasado) for s in atrasadas)),
+        'sugerencias': sugerencias(request.user, hoy),
     }
     context.update(contadores(request.user))
     return render(request, 'finanzas/suscripciones.html', context)
@@ -250,4 +252,44 @@ def eliminar_suscripcion(request, sub_id):
             messages.success(request, 'Suscripción eliminada. Sus gastos siguen en tus movimientos.')
         else:
             messages.success(request, 'Suscripción eliminada.')
+    return redirect('suscripciones')
+
+@login_required(login_url='/login/')
+def agregar_sugerencia(request):
+    if request.method != 'POST':
+        return redirect('suscripciones')
+    clave = request.POST.get('clave', '')
+    hoy = timezone.localdate()
+    s = next((x for x in sugerencias(request.user, hoy) if x['clave'] == clave), None)
+    if not s:
+        messages.warning(request, 'Esa sugerencia ya no está disponible.')
+        return redirect('suscripciones')
+
+    periodo = hoy.year * 100 + hoy.month
+    with db_transaction.atomic():
+        sub = Suscripcion.objects.create(
+            usuario=request.user, nombre=s['nombre'], monto=s['monto'], dia_cobro=s['dia'],
+            categoria=s['categoria'], fecha_inicio=hoy,
+        )
+        Transaccion.objects.filter(usuario=request.user, pk__in=s['ids']).update(suscripcion=sub)
+        if s['cobrada_este_mes']:
+            sub.ultimo_mes_generado = periodo
+            sub.save(update_fields=['ultimo_mes_generado'])
+            PagoServicio.objects.get_or_create(
+                suscripcion=sub, periodo=periodo,
+                defaults={'monto': s['monto'], 'fecha_pago': hoy},
+            )
+    generar_cobros_suscripciones(request.user)
+    invalidar(request.user.pk)
+    anual = f"{int(s['anual']):,}".replace(',', '.')
+    messages.success(request, f'{sub.nombre} agregada: $' + anual + ' al año.')
+    return redirect('suscripciones')
+
+@login_required(login_url='/login/')
+def descartar_sugerencia(request):
+    if request.method == 'POST':
+        clave = request.POST.get('clave', '')[:80]
+        if clave:
+            SugerenciaDescartada.objects.get_or_create(usuario=request.user, clave=clave)
+            messages.success(request, 'Listo, no te la volvemos a sugerir.')
     return redirect('suscripciones')

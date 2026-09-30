@@ -26,7 +26,7 @@
     <div>
       <div class="row-title" style="margin-bottom:3px">Entra sin escribir la contraseña</div>
       <div class="row-meta">
-        Tu teléfono o computador revisa tu cara o tu huella y le confirma a Fintora que eres tú.
+        Tu teléfono o tablet revisa tu cara o tu huella y le confirma a Fintora que eres tú.
         Tu cara y tu huella nunca salen del dispositivo. Si no te reconoce, entras con
         contraseña{% if tiene_2fa %} y el código de verificación{% endif %}.
       </div>
@@ -69,17 +69,27 @@
   </div>
   {% endif %}
 
-  <form id="formPasskey" class="glass card" style="margin-bottom:16px" data-spot>
+  <div class="glass card" data-solo-pc style="margin-bottom:16px;display:flex;gap:13px;align-items:flex-start">
+    <span class="icono-aviso ambar" style="font-size:14px">
+      <i class="fas fa-mobile-screen"></i>
+    </span>
+    <div>
+      <div class="row-title" style="margin-bottom:3px">Se activa desde tu celular o tablet</div>
+      <div class="row-meta">Abre Fintora en el teléfono o la tablet, entra a Mi perfil, pestaña Seguridad, y vincúlalo ahí. En el computador entras con tu contraseña{% if tiene_2fa %} y el código{% endif %}.{% if passkeys %} Desde aquí puedes quitar los que ya vinculaste.{% endif %}</div>
+    </div>
+  </div>
+
+  <form id="formPasskey" class="glass card" style="margin-bottom:16px" data-spot data-solo-movil>
     {% csrf_token %}
     <div class="modal-title" style="font-size:15px;font-weight:500">
       {% if passkeys %}Vincular otro dispositivo{% else %}Vincular este dispositivo{% endif %}
     </div>
     <div class="hint" style="font-size:11.5px;margin:3px 0 20px">
-      Hazlo desde el teléfono o computador con el que quieres entrar. Te pedirá tu cara o tu huella para confirmar.
+      Hazlo desde el teléfono o la tablet con que quieres entrar. Te pedirá tu cara o tu huella para confirmar.
     </div>
 
     <div id="sinSoporte" class="row-meta" style="margin-bottom:16px" hidden>
-      Este navegador no permite entrar con Face ID o huella. Prueba desde Safari en iPhone, Chrome en Android o un computador actualizado.
+      Este navegador no permite entrar con Face ID o huella. Prueba desde Safari en iPhone o iPad, o Chrome en Android.
     </div>
 
     <div class="form-row" style="flex-wrap:wrap">
@@ -108,6 +118,7 @@
 {% endblock %}
 
 {% block extra_js %}
+<script src="{% static 'js/dispositivo.js' %}" nonce="{{ csp_nonce }}"></script>
 <script src="{% static 'js/passkeys.js' %}" nonce="{{ csp_nonce }}"></script>
 <script src="{% static 'js/pantallas/passkeys.js' %}" nonce="{{ csp_nonce }}" data-url-opciones="{% url 'passkey_registro_opciones' %}" data-url-verificar="{% url 'passkey_registro_verificar' %}"></script>
 {% endblock %}

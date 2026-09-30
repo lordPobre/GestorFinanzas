@@ -1,6 +1,7 @@
 (function () {
   var script = document.currentScript;
   if (!script || !window.FintoraPasskeys || !FintoraPasskeys.soportado()) return;
+  if (!window.FintoraDispositivo || !FintoraDispositivo.movil) return;
   var rutas = { opciones: script.dataset.urlOpciones, verificar: script.dataset.urlVerificar };
   var bloque = document.getElementById('bloquePasskey');
   var boton = document.getElementById('btnPasskey');

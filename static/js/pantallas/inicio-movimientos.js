@@ -27,11 +27,21 @@
       b.classList.toggle('on', on);
       b.setAttribute('aria-pressed', on ? 'true' : 'false');
     });
+    lista.querySelectorAll('[data-mov-dia]').forEach((d) => {
+      let s = d.nextElementSibling;
+      let alguno = false;
+      while (s && !s.hasAttribute('data-mov-dia')) {
+        if (s.hasAttribute('data-mov-tipo') && !s.hidden) { alguno = true; break; }
+        s = s.nextElementSibling;
+      }
+      d.hidden = !alguno;
+    });
     if (vacio) vacio.hidden = n > 0;
     if (resumen) {
       const [uno, varios] = nombres[filtro];
       resumen.querySelector('span').textContent = n + ' ' + (n === 1 ? uno : varios);
       resumen.querySelector('b').textContent = filtro === 'todo' || !n ? '' : plata(suma);
+      resumen.hidden = filtro === 'todo';
     }
   }
 
