@@ -106,7 +106,7 @@ Detalle completo en [docs/DESPLIEGUE-RAILWAY.md](docs/DESPLIEGUE-RAILWAY.md).
 core/              settings, urls, wsgi
 finanzas/
   models/          un archivo por tema: movimientos, cuotas, metas, suscripciones,
-                   prestamos, perfil, seguridad, encuesta
+                   prestamos, perfil, seguridad, encuesta, sugerencias
   forms.py
   urls.py
   views/           una pantalla o grupo de pantallas por archivo
@@ -118,6 +118,7 @@ finanzas/
     cartola.py  encuesta.py  passkeys.py
   servicios/       cálculos sin request: reciben usuario y fechas, devuelven datos
     mes.py  cuotas.py  pendientes.py  suscripciones.py  panel.py
+    ritmo.py  detectar_suscripciones.py
   cartolas/        un lector por banco, más uno genérico
   analisis.py      motor determinístico del diagnóstico
   ia.py            interpretación con Claude, opcional

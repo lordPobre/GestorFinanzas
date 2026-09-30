@@ -63,8 +63,9 @@ Todas las rutas están en `finanzas/urls.py`, salvo el panel de administración,
 | `/suscripciones/<id>/anular-pago/` | `anular_pago_servicio` | L · P · J |
 | `/suscripciones/<id>/cancelar/` | `cancelar_suscripcion` | L · P. Alterna entre pausar y reactivar |
 | `/suscripciones/<id>/eliminar/` | `eliminar_suscripcion` | L · P |
+| `/suscripciones/sugerencia/agregar/` | `agregar_sugerencia` | L · P. Crea la suscripción desde una sugerencia y le une los cobros detectados |
+| `/suscripciones/sugerencia/descartar/` | `descartar_sugerencia` | L · P. Guarda la clave para no volver a sugerirla |
 
-No hay ruta para editar una suscripción.
 
 ### Metas (`views/metas.py`)
 

@@ -39,10 +39,10 @@ Inventario de qué dato personal trata la aplicación, con qué finalidad, dónd
 
 | | |
 | --- | --- |
-| Datos | Acreedor o nombre, montos, calendario de cobros y pagos, nombre de la meta y aportes, límite mensual |
+| Datos | Acreedor o nombre, montos, calendario de cobros y pagos, nombre de la meta y aportes, límite mensual. Comercios que la persona marcó como «no es una suscripción» (un texto corto derivado de la descripción, sin montos ni fechas) |
 | Finalidad | Proyectar los compromisos del mes |
 | Base de licitud | Ejecución del servicio |
-| Dónde | Postgres (`finanzas_deuda`, `finanzas_pagocuota`, `finanzas_suscripcion`, `finanzas_pagoservicio`, `finanzas_metaahorro`, `finanzas_aportemeta`, `finanzas_presupuesto`, `finanzas_gastopendiente`) |
+| Dónde | Postgres (`finanzas_deuda`, `finanzas_pagocuota`, `finanzas_suscripcion`, `finanzas_pagoservicio`, `finanzas_metaahorro`, `finanzas_aportemeta`, `finanzas_presupuesto`, `finanzas_gastopendiente`, `finanzas_sugerenciadescartada`) |
 | Conservación | Mientras la cuenta exista |
 
 ## 4. Datos de terceros: personas que deben dinero

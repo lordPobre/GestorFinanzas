@@ -16,6 +16,7 @@ Las decisiones de diseño que explican por qué el código es como es, en orden 
 | 25 sep. 2026 | Revisión de código y **lotes 1 a 12**: `views.py` y `models.py` pasan a paquetes, `servicios/`, pruebas por tema, URLs con un solo estilo y redirecciones 308, scripts a `static/js/pantallas/`, estilos a clases y colores a variables, sin comentarios en el código, Python 3.13, acceso corto en el teléfono |
 | Sep. 2026 | Django 5.2 LTS y `STORAGES` (los estáticos vuelven a servirse con hash y comprimidos) |
 | 27 sep. 2026 | Landing pública, preguntas frecuentes, chat de ayuda con IA, rediseño de privacidad y términos. Cambio de nombre a **Fintora** |
+| 29–30 sep. 2026 | Rediseño en vidrio (lotes 13 a 27). Inicio con botones Gastos, Ingresos y Puedes gastar; editar y borrar movimientos; Plan ordenado por pasos con **simulador de cuotas**; aviso de **ritmo de gasto**; **suscripciones sugeridas**; Face ID solo en celular y tablet; nueva lista de movimientos |
 
 ## Decisiones vigentes
 

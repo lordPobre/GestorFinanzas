@@ -33,7 +33,9 @@ finanzas/
     cuotas.py         series y proyecciones de cuotas
     pendientes.py     lista de pagos del mes y calendario
     panel.py          series, desglose, avisos y primeros pasos del inicio
+    ritmo.py          aviso de ritmo de gasto por categoría
     suscripciones.py  generación de cobros mensuales
+    detectar_suscripciones.py  cobros repetidos que parecen suscripciones
     senales.py        invalidación de caché al cambiar datos
   cartolas/           lectores de extractos bancarios (ver 05)
   management/commands/  tareas programadas (ver 10)
@@ -131,6 +133,27 @@ La IA (`ia.py`) solo recibe esos agregados y los redacta en lenguaje natural. Ve
 ## Suscripciones: cómo aparecen solas cada mes
 
 `servicios/suscripciones.generar_cobros_suscripciones(usuario)` recorre las suscripciones activas y crea un egreso `Suscripción: {nombre}` por cada mes que falte, desde `ultimo_mes_generado` hasta el mes en curso. El del mes en curso queda por pagar y los anteriores, pagados. Se llama al abrir el inicio, al crear o reactivar una suscripción y antes de mandar el aviso mensual. No hay un proceso de fondo: los cobros se generan cuando el usuario vuelve.
+
+## Ritmo de gasto
+
+`servicios/ritmo.ritmo_del_mes(usuario, hoy)` arma los avisos «A este ritmo» de la campana. Solo mira el gasto del día a día: excluye cuotas, cobros de suscripciones y cuentas por pagar, porque son fijos.
+
+- Por cada categoría suma lo que se lleva este mes y lo que en promedio se gastó **desde este mismo día hasta fin de mes** en los 3 meses anteriores.
+- Avisa si esa proyección queda **20% o más** sobre el promedio mensual y la diferencia es de al menos **$10.000**. Muestra hasta 3, las que más se pasan, con cuánto queda por día para volver al promedio.
+- No avisa antes del **día 7** ni con menos de **2 meses** de historial. Si nada se pasa y el total va 15% o más bajo el promedio, felicita.
+- Solo corre al mirar el mes en curso. Las constantes están al inicio del archivo.
+
+## Suscripciones sugeridas
+
+`servicios/detectar_suscripciones.sugerencias(usuario, hoy)` revisa los egresos de los últimos 6 meses que no son cuota ni ya están unidos a una suscripción. Agrupa por una clave: la marca si `buscar_marca` la reconoce, o las tres primeras palabras de la descripción sin números ni palabras de relleno («PAC», «PAGO», «COMPRA»…).
+
+- Sugiere un grupo si tiene **un solo cobro por mes**, en **3 meses seguidos** o más, con montos a menos de **10%** de la mediana y el último cobro hace 45 días o menos.
+- Descarta lo que ya se parece a una suscripción registrada y lo que la persona marcó con «No es» (`SugerenciaDescartada`). Muestra hasta 5, las más caras primero.
+- Al agregar, crea la `Suscripcion`, une a ella los cobros detectados y, si ya se cobró este mes, crea el `PagoServicio` y marca el mes como generado para no duplicarlo.
+
+## Simulador de cuotas
+
+`static/js/pantallas/plan-simulador.js` corre entero en el navegador con los datos que `plan.armar_plan` ya entrega. Parte de lo que sobra al mes y, mes a mes, suma la cuota de cada compra activa que ya terminó y resta la cuota nueva mientras dure. Verde si alcanza y sigue el plan, ámbar si alcanza pero no para lo apartado en ahorro y deudas, rojo si falta plata.
 
 ## Configuración por entorno
 

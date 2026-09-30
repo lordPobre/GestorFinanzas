@@ -18,16 +18,18 @@ Personas que pagan en cuotas (lo habitual en Chile con tarjetas de *retail*), ti
 Libre = Entró − Gastos − Cuotas del mes − Cuotas atrasadas
 ```
 
-Se muestra en el inicio con cuánto queda **por día** hasta fin de mes y una lectura de la **salud del mes** (*muy buena*, *buena*, *justa* o *apretada*), con la razón. El detalle del cálculo está en [02 · Arquitectura](02-ARQUITECTURA.md#el-cálculo-del-mes).
+Se muestra en grande en el inicio. Tres botones cambian lo que dice: **Gastos** (gastos únicos más cuotas del mes, con el desglose de cada parte), **Ingresos** y **Puedes gastar**, que pasa a «Te falta» cuando queda en negativo. Siempre abre en Puedes gastar. Al lado va una lectura de la **salud del mes** (*muy buena*, *buena*, *justa* o *apretada*), con la razón. El detalle del cálculo está en [02 · Arquitectura](02-ARQUITECTURA.md#el-cálculo-del-mes).
 
 ## Funciones
 
 | Pantalla | Qué permite |
 | --- | --- |
-| **Inicio** | La cifra del mes, calendario de cobros, pagos pendientes (cuotas, suscripciones, gastos y cuentas por pagar) con botón de pagar, gráfico de 6 meses, gasto por categoría, avisos (presupuesto, gasto contra el mes anterior, cuotas por vencer, cuándo termina una compra), metas, últimos movimientos y primeros pasos para cuentas nuevas. Navegación entre meses |
+| **Inicio** | La cifra del mes, calendario de cobros, pagos pendientes (cuotas, suscripciones, gastos y cuentas por pagar) con botón de pagar, gráfico de 6 meses, gasto por categoría, avisos (presupuesto, gasto contra el mes anterior, cuotas por vencer, cuándo termina una compra), metas, últimos movimientos y primeros pasos para cuentas nuevas. Navegación entre meses. Desde el día 7, la campana avisa qué categorías van más rápido que tu promedio |
+| **Movimientos** | «Ver todo» muestra el mes completo con lo que entró y salió, agrupado por día. Filtros Todo, Únicos, Cuotas e Ingresos con su cantidad y suma. Tocar abre la edición de ingresos y gastos; deslizar paga o borra. Borrar una cuota anula ese pago |
 | **Registrar** | Botón central siempre a mano: gasto o ingreso en dos toques, con teclado de monto y categoría. Un gasto puede quedar “por pagar” |
 | **Compras en cuotas** | Se escribe la cuota y la cantidad, no el total. La app deja una cuota en cada mes, marca las atrasadas, paga la más antigua y muestra cuánto falta y cuándo termina |
-| **Suscripciones** | Se anotan una vez y se generan solas cada mes. Reconoce unas 40 marcas (Netflix, Spotify, ChatGPT, gimnasio…), detecta suscripciones duplicadas en la misma categoría y muestra lo que se ahorraría al año cancelando una |
+| **Suscripciones** | Se anotan una vez y se generan solas cada mes. Reconoce unas 40 marcas (Netflix, Spotify, ChatGPT, gimnasio…), detecta suscripciones duplicadas en la misma categoría y muestra lo que se ahorraría al año cancelando una. Sugiere como suscripción los cobros que se repiten cada mes en movimientos y cartolas |
+| **¿Y si compro en cuotas?** | En el Plan: con el valor de la cuota y cuántas son, muestra 12 barras con lo que quedaría libre cada mes con y sin la compra, y marca el mes más justo. No guarda nada |
 | **Me deben** | Préstamos a personas, de pago único o en cuotas, con abonos parciales, montos sugeridos y cuánto falta |
 | **Metas de ahorro** | Monto, fecha y aportes. Calcula cuánto aportar al mes y avisa si una meta lleva meses sin aportes |
 | **Categorías** | 12 de gasto y 7 de ingreso fijas, más las propias con color e ícono |
@@ -48,7 +50,7 @@ Fuera de la cuenta:
 
 ## Accesos
 
-Usuario y contraseña, **Google**, y **Face ID o huella** (passkeys). Opcionalmente, **verificación en dos pasos** con una app de autenticación y códigos de respaldo.
+Usuario y contraseña, **Google**, y **Face ID o huella** (passkeys), que solo se ofrece en celular y tablet. Opcionalmente, **verificación en dos pasos** con una app de autenticación y códigos de respaldo.
 
 ## Correos que envía
 
@@ -60,12 +62,14 @@ Confirmación del correo al registrarse, recuperación de contraseña, **aviso m
 2. **Sin conexión bancaria**, y aun así sin tipear todo: la cartola en PDF resuelve la carga inicial.
 3. **Privacidad demostrable**: nada de terceros en el navegador, la IA recibe números y no textos, y se borra todo con un botón. Ver [07 · Privacidad](07-PRIVACIDAD-Y-CUMPLIMIENTO.md).
 4. **Hecha para el teléfono** sin pasar por la tienda de apps.
+5. **Decidir antes de comprar en cuotas**: el simulador muestra en qué mes no alcanzaría la plata antes de hacer la compra.
+6. **Encuentra lo que se olvidó anotar**: detecta suscripciones en los cobros repetidos y avisa cuando una categoría va más rápido que lo normal.
 
 ## Estado
 
 - En producción en Railway, abierta al público, con cuentas reales. El simulacro de restauración del 24 de septiembre de 2026 contó **9 usuarios y 64 movimientos**.
 - Un solo desarrollador y responsable.
-- 211 pruebas automáticas, CI en cada cambio, monitoreo de errores y de disponibilidad, respaldos diarios verificados.
+- 283 pruebas automáticas, CI en cada cambio, monitoreo de errores y de disponibilidad, respaldos diarios verificados.
 - Lo que falta corregir está en [13 · Deuda técnica](13-DEUDA-TECNICA-Y-HOJA-DE-RUTA.md).
 
 ## Costos de operación

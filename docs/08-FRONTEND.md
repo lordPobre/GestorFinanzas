@@ -71,7 +71,7 @@ Se carga en `base.html`. Marca `window.__finappJsCargado`, para no inicializar d
 
 ### Por pantalla: `static/js/pantallas/*.js`
 
-Hay 39 archivos, uno o más por plantilla, con el nombre de la plantilla (`dashboard.js`, `deudas.js`, `revisar-cartola.js`…). Los que terminan en `-2`, `-3`, etc. son bloques distintos de la misma plantilla que se separaron al sacar los `<script>` en línea (lote 4). Casos destacados:
+Hay 47 archivos, uno o más por plantilla, con el nombre de la plantilla (`dashboard.js`, `deudas.js`, `revisar-cartola.js`…). Los que terminan en `-2`, `-3`, etc. son bloques distintos de la misma plantilla que se separaron al sacar los `<script>` en línea (lote 4). Casos destacados:
 
 - `dashboard.js` y `estadisticas.js`: gráficos con Chart.js, con formato chileno y cifras cortas en pantallas angostas.
 - `analisis-2.js`: pide la interpretación a `/analisis/ia/` y la pinta con `textContent`.
@@ -79,10 +79,17 @@ Hay 39 archivos, uno o más por plantilla, con el nombre de la plantilla (`dashb
 - `verificar.js`: seis casillas para el código, con pegado y avance automático.
 - `landing.js`: teléfono animado, pestañas, aparición al bajar y chat de ayuda.
 - `legal.js`: índice construido desde las secciones y marca de la sección actual.
+- `inicio-cifra.js`: los botones Gastos, Ingresos y Puedes gastar del Inicio.
+- `inicio-movimientos.js`: filtros, sumas y títulos de día de la lista de movimientos.
+- `plan-simulador.js`: el simulador de cuotas del Plan.
 
 ### Face ID: `static/js/passkeys.js`
 
 Expone `window.FintoraPasskeys = { soportado, registrar, entrar, mensaje }`. Convierte entre base64url y `ArrayBuffer`, llama a `navigator.credentials.create/get` con las opciones del servidor y envía la credencial con el token CSRF. `mensaje()` traduce los errores del navegador (cancelado, no permitido, sin soporte) a texto en español.
+
+### Celular o computador: `static/js/dispositivo.js`
+
+Expone `window.FintoraDispositivo.movil` y agrega la clase `es-movil` a `<html>` en iPhone, iPad, Android o pantallas táctiles sin mouse. El CSS oculta `[data-solo-movil]` en el computador y `[data-solo-pc]` en el celular. Se usa para que Face ID solo aparezca en celular y tablet; `login.js` además no muestra el botón si `movil` es falso.
 
 ### Recorrido guiado: `static/js/tour.js`
 

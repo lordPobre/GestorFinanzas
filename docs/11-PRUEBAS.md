@@ -30,7 +30,7 @@ En el CI, el usuario y la base de Postgres se llaman `fintora` y `ALLOWED_HOSTS`
 
 ## Qué cubre cada archivo
 
-Son 17 archivos en `finanzas/tests/` con 211 pruebas.
+Son 24 archivos en `finanzas/tests/` con 283 pruebas.
 
 | Archivo | Pruebas | Qué asegura |
 | --- | --- | --- |
@@ -50,6 +50,8 @@ Son 17 archivos en `finanzas/tests/` con 211 pruebas.
 | `test_rutas.py` | 5 | Cada ruta antigua lleva a la nueva con 308: conserva el método POST y la consulta. Las rutas nuevas siguen un solo estilo. El atajo de ingreso abre el formulario con el tipo |
 | `test_terceros_fotos_cache.py` | 11 | Ninguna página (acceso, legales, inicio con gráficos) pide recursos a terceros, ni en el HTML ni en la CSP. La política declara Face ID, encuesta, registro de seguridad y respaldos. Las fotos se sirven con URL firmada. Caché de meses cerrados: no recalcula, se invalida con movimientos o cuotas nuevas, el mes en curso nunca sale de caché y cada usuario tiene la suya |
 | `test_vistas.py` | 8 | Aislamiento: un usuario no alcanza ni modifica objetos de otro, y las listas solo muestran lo propio. Las pantallas privadas piden sesión. Con `prefetch_related` no hay consultas extra por fila |
+| `test_ritmo.py` | 7 | Avisa cuando una categoría se pasa del promedio, da el monto por día si aún hay margen, no avisa antes del día 7 ni con un solo mes de historial, ignora suscripciones y pendientes, felicita si se gasta menos |
+| `test_detectar_suscripciones.py` | 11 | La clave ignora números y palabras de relleno, pide 3 meses seguidos y montos parecidos, descarta dos cobros en un mes y lo que dejó de cobrarse, ignora lo ya registrado y lo descartado, agregar no duplica el cobro del mes |
 
 ## Qué no tiene pruebas hoy
 

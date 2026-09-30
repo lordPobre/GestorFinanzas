@@ -24,6 +24,7 @@ User ─┬─ 1:1 ─ UserProfile
       ├─ 1:N ─ SesionActiva
       ├─ 1:N ─ Passkey
       ├─ 1:N ─ RespuestaEncuesta
+      ├─ 1:N ─ SugerenciaDescartada
       └─ 0:N ─ EventoSeguridad (SET_NULL: sobrevive al borrado de la cuenta)
 ```
 
@@ -161,6 +162,10 @@ La lógica de periodos es la misma que en `Deuda`, pero sin fin: los periodos pr
 
 `suscripcion` (FK, `related_name='pagos'`), `periodo`, `monto` y `fecha_pago`. La restricción `pago_servicio_unico_por_mes` hace único `(suscripcion, periodo)`.
 
+### `SugerenciaDescartada`
+
+En `models/sugerencias.py`. `usuario` (FK, `related_name='sugerencias_descartadas'`), `clave` y `creada`. La restricción `sugerencia_descartada_unica` hace único `(usuario, clave)`. Guarda las sugerencias de suscripción que la persona marcó con «No es».
+
 ## Metas (`models/metas.py`)
 
 ### `MetaAhorro`
@@ -270,7 +275,7 @@ Se conserva 12 meses (ver [10 · Operación](10-OPERACION.md)).
 
 ## Migraciones
 
-33 migraciones en `finanzas/migrations/`. La numeración salta de `0016` a `0100` a propósito: la `0100_pagocuota` inició el modelo de pagos por periodo y marca un corte con el esquema original. Desde ahí se agrega una por cambio:
+35 migraciones en `finanzas/migrations/`. La numeración salta de `0016` a `0100` a propósito: la `0100_pagocuota` inició el modelo de pagos por periodo y marca un corte con el esquema original. Desde ahí se agrega una por cambio:
 
 | Migración | Qué agrega |
 | --- | --- |
@@ -290,5 +295,6 @@ Se conserva 12 meses (ver [10 · Operación](10-OPERACION.md)).
 | 0115 | `EventoSeguridad` |
 | 0116 | `Transaccion.suscripcion` y vínculo de los cobros existentes por su descripción |
 | 0117 | Crea los `PagoCuota` que faltaban en deudas importadas desde cartolas y recalcula `cuotas_pagadas` |
+| 0118 | `SugerenciaDescartada` |
 
 El CI corre `makemigrations --check`: un cambio de modelo sin su migración deja el build en rojo.
