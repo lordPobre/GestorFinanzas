@@ -14,8 +14,6 @@
 
 <section class="sec-hero fo-hero">
   <span class="fo-icono ambar"><i class="fas fa-pen"></i></span>
-  
-  
 </section>
 
 <section class="sec-hoja fo-hoja fo-form fo-ambar">
@@ -57,13 +55,13 @@
 
       <div id="bloquePagoForm" style="margin-bottom:20px">
         <div class="label" style="margin-bottom:9px">¿Ya la pagaste?</div>
-        <input type="hidden" name="es_pendiente" id="id_es_pendiente" value="">
+        <input type="hidden" name="es_pendiente" id="id_es_pendiente" value="{% if pendiente_inicial %}1{% endif %}">
         <div class="seg" id="segPagoForm">
-          <button type="button" class="on-green" data-pendiente="0">Sí, ya salió</button>
-          <button type="button" data-pendiente="1">Aún la debo</button>
+          <button type="button" class="{% if not pendiente_inicial %}on-green{% endif %}" data-pendiente="0">Sí, ya salió</button>
+          <button type="button" class="{% if pendiente_inicial %}on-coral{% endif %}" data-pendiente="1">Aún la debo</button>
         </div>
         <div class="hint" style="font-size:10.5px;margin-top:8px" id="notaPagoForm">
-          Cuenta como gasto del mes en los dos casos. La diferencia es si la plata ya se fue.
+          {% if pendiente_inicial %}Queda en la lista de pagos del mes para marcarlo cuando lo pagues.{% else %}Cuenta como gasto del mes en los dos casos. La diferencia es si la plata ya se fue.{% endif %}
         </div>
       </div>
 
@@ -74,6 +72,15 @@
         <a href="{% url 'dashboard' %}" class="sec-btn vidrio">Cancelar</a>
       </div>
     </form>
+
+  {% if editar and transaccion %}
+  <form method="post" action="{% url 'eliminar_transaccion' transaccion.pk %}" class="fo-borrar"
+        data-confirm="¿Eliminar {{ transaccion.descripcion|default:transaccion.get_categoria_display }}? No se puede deshacer.">
+    {% csrf_token %}
+    <input type="hidden" name="next" value="{% url 'dashboard' %}">
+    <button type="submit" class="sec-chico peligro"><i class="fas fa-trash-can"></i>Eliminar {% if transaccion.es_ingreso %}ingreso{% else %}gasto{% endif %}</button>
+  </form>
+  {% endif %}
 </section>
 {% endblock %}
 

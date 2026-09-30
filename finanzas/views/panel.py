@@ -52,6 +52,9 @@ def dashboard(request):
     mis_cuotas, deuda_pagada_total, deuda_bruta_total = mis_cuotas_detalle(request.user, hoy)
 
     ultimas = Transaccion.objects.filter(usuario=request.user).order_by('-fecha', '-id')[:10]
+    movimientos_mes = Transaccion.objects.filter(
+        usuario=request.user, fecha__gte=r['fecha_inicio'], fecha__lte=r['fecha_fin'],
+    ).order_by('-fecha', '-id')
     deuda_total = sum(float(d.monto_restante) for d in todas_las_deudas if not d.esta_saldada)
     metas = MetaAhorro.objects.filter(usuario=request.user)
     es_nuevo = (r['ingresos'] == 0 and r['gastos'] == 0 and not todas_las_deudas.exists())
@@ -75,6 +78,7 @@ def dashboard(request):
 
         'total_ingresos': round(r['ingresos']),
         'total_gastos': round(r['gastos']),
+        'total_gastos_mes': round(r['gastos']) + round(r['total_cuotas_mes']),
         'total_cuotas_mes': round(r['total_cuotas_mes']),
         'cuotas_pagadas_mes': round(r['cuotas_pagadas_mes']),
         'cuotas_pendientes_mes': round(r['cuotas_pendientes_mes']),
@@ -132,6 +136,7 @@ def dashboard(request):
         'deudas': [e['deuda'] for dia in r['eventos'].values() for e in dia],
         'gastos_pendientes': GastoPendiente.objects.filter(usuario=request.user, pagado=False),
         'ultimas': ultimas,
+        'movimientos_mes': movimientos_mes,
         'metas': metas,
         'calendario': calendario_datos,
 

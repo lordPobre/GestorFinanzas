@@ -8,7 +8,7 @@ from django.urls import reverse
 from django.utils import timezone
 
 from ..forms import TransaccionForm
-from ..models import GastoPendiente, Transaccion
+from ..models import GastoPendiente, PagoCuota, Transaccion
 from .comun import contadores, monto_post, redirigir
 
 
@@ -51,15 +51,37 @@ def registrar_transaccion(request):
 @login_required(login_url='/login/')
 def editar_transaccion(request, transaccion_id):
     t = get_object_or_404(Transaccion, id=transaccion_id, usuario=request.user)
+    if t.es_cuota:
+        messages.info(request, 'Las cuotas se cambian desde Cuotas.')
+        return redirect('deudas')
+
     if request.method == 'POST':
         form = TransaccionForm(request.POST, instance=t, usuario=request.user)
         if form.is_valid():
-            form.save()
-            messages.success(request, 'Movimiento actualizado.')
+            t = form.save(commit=False)
+            if t.tipo == 'EGRESO' and request.POST.get('es_pendiente'):
+                t.pagado = False
+                t.fecha_pago = None
+            else:
+                if not t.pagado or not t.fecha_pago:
+                    t.fecha_pago = t.fecha
+                t.pagado = True
+            t.save()
+            gasto = GastoPendiente.objects.filter(transaccion=t).first()
+            if gasto:
+                gasto.monto = t.monto
+                gasto.pagado = t.pagado
+                gasto.fecha_pago = t.fecha_pago
+                gasto.save(update_fields=['monto', 'pagado', 'fecha_pago'])
+            messages.success(request, f'{"Ingreso" if t.es_ingreso else "Gasto"} actualizado.')
             return redirigir(request)
     else:
         form = TransaccionForm(instance=t, usuario=request.user)
-    context = {'form': form, 'editar': True, 'tipo_inicial': t.tipo}
+
+    context = {
+        'form': form, 'editar': True, 'tipo_inicial': t.tipo, 'transaccion': t,
+        'pendiente_inicial': t.tipo == 'EGRESO' and not t.pagado,
+    }
     context.update(contadores(request.user))
     return render(request, 'finanzas/form_transaccion.html', context)
 
@@ -67,6 +89,12 @@ def editar_transaccion(request, transaccion_id):
 def eliminar_transaccion(request, transaccion_id):
     t = get_object_or_404(Transaccion, id=transaccion_id, usuario=request.user)
     if request.method == 'POST':
+        if t.es_cuota:
+            PagoCuota.objects.filter(transaccion=t).delete()
+            t.delete()
+            messages.success(request, 'Pago de la cuota anulado. Vuelve a quedar por pagar.')
+            return redirigir(request)
+        GastoPendiente.objects.filter(transaccion=t).delete()
         t.delete()
         messages.success(request, 'Movimiento eliminado.')
     return redirigir(request)

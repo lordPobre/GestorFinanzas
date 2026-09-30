@@ -1944,9 +1944,10 @@ body:has(.fo-hoja.fo-ambar) { --luz: 255, 170, 44; }
 
 @media (max-width: 720px) {
   body:not(:has(.auth))::after {
-    position: fixed; top: 0; height: env(safe-area-inset-top);
+    content: ''; position: fixed; left: 0; right: 0; top: 0; z-index: 90; pointer-events: none;
+    height: env(safe-area-inset-top);
     background: rgba(21, 20, 18, .72);
-    backdrop-filter: blur(20px) saturate(160%);
+    -webkit-backdrop-filter: blur(20px) saturate(160%); backdrop-filter: blur(20px) saturate(160%);
   }
 }
 
@@ -1959,3 +1960,41 @@ body:has(.fo-hoja.fo-ambar) { --luz: 255, 170, 44; }
 .su-borrar-txt { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
 .su-borrar-txt b { font-size: 14px; font-weight: 700; color: var(--text-primary); }
 .su-borrar-txt span { font-size: 13px; line-height: 1.45; color: var(--text-secondary); text-wrap: pretty; }
+
+.ini-valor { display: flex; flex-direction: column; gap: 8px; align-items: inherit; min-width: 0; }
+.ini-valor[hidden] { display: none; }
+.ini-vista {
+  position: relative; cursor: pointer; font-family: inherit; color: var(--text-primary);
+  transition: background .15s, color .15s, transform .15s var(--ease-out);
+}
+.ini-vista::after { content: ''; position: absolute; inset: -6px -2px; }
+.ini-vista:hover { background: rgba(255, 255, 255, .2); }
+.ini-vista:active { transform: scale(.96); }
+.ini-vista.activo { background: rgba(255, 255, 255, .92); border-color: transparent; color: #1a1200; }
+.ini-vista:focus-visible { outline: 2px solid #ffbb56; outline-offset: 2px; }
+
+.ini-desglose { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 8px; margin-top: 2px; }
+.ini-desglose-btn {
+  display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 14px; border-radius: 100px; cursor: pointer;
+  background: rgba(255, 255, 255, .1); border: 1px solid rgba(255, 255, 255, .16); color: rgba(255, 245, 230, .86);
+  font-family: inherit; font-size: 14px; font-weight: 700; white-space: nowrap;
+  transition: background .15s, transform .15s var(--ease-out);
+}
+.ini-desglose-btn b { color: #fff; font-weight: 800; font-variant-numeric: tabular-nums; }
+.ini-desglose-btn:hover { background: rgba(255, 255, 255, .18); }
+.ini-desglose-btn:active { transform: scale(.96); }
+.ini-desglose-btn:focus-visible { outline: 2px solid #ffbb56; outline-offset: 2px; }
+.ini-desglose-mas { font-weight: 700; color: rgba(255, 245, 230, .6); }
+a.ini-mov, a.ini-mov:hover, a.swipe-card, a.swipe-card:hover { color: inherit; text-decoration: none; }
+a.ini-mov { cursor: pointer; }
+a.ini-mov:hover .ini-mov-nombre { text-decoration: underline; text-underline-offset: 3px; text-decoration-color: rgba(255, 255, 255, .35); }
+.mov-filtros { margin-bottom: 10px; }
+.mov-resumen { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin: 0 2px 12px; font-size: 13px; font-weight: 600; color: var(--text-secondary); }
+.mov-resumen b { font-size: 15px; font-weight: 800; color: var(--text-primary); font-variant-numeric: tabular-nums; }
+.mov-list > .empty[hidden] { display: none; }
+.fo-borrar { display: flex; justify-content: center; margin: 16px 0 0; }
+
+@media (max-width: 720px) {
+  .ini-desglose { justify-content: center; }
+  .ini-desglose-btn { font-size: 13px; padding: 0 12px; }
+}

@@ -66,11 +66,27 @@
 
 <section class="ini-hero">
   <div class="ini-cifra" data-tour="saldo">
-    <span class="ini-label">{% if disponible >= 0 %}Puedes gastar{% else %}Te falta{% endif %}</span>
-    <span class="ini-monto{% if disponible < 0 %} negativo{% endif %}">{{ disponible|money }}</span>
-    <div class="ini-chips">
-      <span class="chip-vidrio">{{ por_dia|money }} por día</span>
-      <span class="chip-vidrio"><span class="solo-esc">quedan </span>{{ dias_restantes }} día{{ dias_restantes|pluralize:"s" }}</span>
+    <div class="ini-valor" data-cifra-vista="gastos" hidden>
+      <span class="ini-label">Gastos del mes</span>
+      <span class="ini-monto">{{ total_gastos_mes|money }}</span>
+      <div class="ini-desglose">
+        <button type="button" class="ini-desglose-btn" data-open="#modalMovimientos" data-mov-abrir="unico">Únicos <b>{{ total_gastos|money }}</b></button>
+        <span class="ini-desglose-mas" aria-hidden="true">+</span>
+        <button type="button" class="ini-desglose-btn" data-open="#modalMovimientos" data-mov-abrir="cuota">Cuotas <b>{{ total_cuotas_mes|money }}</b></button>
+      </div>
+    </div>
+    <div class="ini-valor" data-cifra-vista="ingresos" hidden>
+      <span class="ini-label">Entraron</span>
+      <span class="ini-monto">{{ total_ingresos|money }}</span>
+    </div>
+    <div class="ini-valor" data-cifra-vista="disponible">
+      <span class="ini-label">{% if disponible >= 0 %}Puedes gastar{% else %}Te falta{% endif %}</span>
+      <span class="ini-monto{% if disponible < 0 %} negativo{% endif %}">{{ disponible|money }}</span>
+    </div>
+    <div class="ini-chips ini-vistas" role="group" aria-label="Qué cifra ver">
+      <button type="button" class="chip-vidrio ini-vista" data-cifra-btn="gastos" aria-pressed="false">Gastos</button>
+      <button type="button" class="chip-vidrio ini-vista" data-cifra-btn="ingresos" aria-pressed="false">Ingresos</button>
+      <button type="button" class="chip-vidrio ini-vista activo" data-cifra-btn="disponible" aria-pressed="true">Puedes gastar</button>
     </div>
     <div class="ini-accesos">
       <button type="button" class="ini-acceso principal" data-open="#modalGasto" data-preset-tipo="EGRESO">
@@ -191,10 +207,10 @@
     <article class="ini-tarjeta ini-movs" data-panel="movs">
       <div class="ini-cab">
         <h2 class="ini-titulo">Movimientos</h2>
-        <button type="button" class="ini-link" data-open="#modalMovimientos">Ver todo</button>
+        <button type="button" class="ini-link" data-open="#modalMovimientos" data-mov-abrir="todo">Ver todo</button>
       </div>
       {% for t in ultimas|slice:":5" %}
-      <div class="ini-mov" data-searchable>
+      <a href="{% if t.es_cuota %}{% url 'deudas' %}{% else %}{% url 'editar_transaccion' t.pk %}{% endif %}" class="ini-mov" data-searchable>
         {% marca_de t.descripcion as m %}{% if m %}
         {% include 'finanzas/_marca.html' with clase="ini-mov-icono" %}
         {% else %}
@@ -205,7 +221,7 @@
           <span class="ini-mov-meta"><span class="solo-esc">· </span><span class="ini-mov-dia">{{ t.fecha|naturalday:"j b"|lower }}</span><span class="solo-tel"> · {% if t.por_pagar %}sin pagar{% else %}{{ t.get_categoria_display }}{% endif %}</span></span>
         </span>
         <span class="ini-mov-monto{% if t.es_ingreso %} ingreso{% endif %}">{% if t.es_ingreso %}+{% endif %}{{ t.monto|money }}</span>
-      </div>
+      </a>
       {% empty %}
       <div class="ini-vacio-grande">
         <span>Todavía no anotas nada este mes.</span>
@@ -314,13 +330,22 @@
     <div class="modal-head">
       <div>
         <div class="modal-title">Movimientos de {{ nombre_mes }}</div>
-        <div class="modal-sub">Desliza una fila para marcarla como pagada o borrarla</div>
+        <div class="modal-sub">Toca uno para editarlo. Deslízalo para borrarlo.</div>
       </div>
       <button class="modal-close" data-close aria-label="Cerrar"><i class="fas fa-xmark"></i></button>
     </div>
+    {% if movimientos_mes %}
+    <div class="seg mov-filtros" data-mov-filtros role="group" aria-label="Qué movimientos ver">
+      <button type="button" class="on" data-mov-filtro="todo" aria-pressed="true">Todo</button>
+      <button type="button" data-mov-filtro="unico" aria-pressed="false">Únicos</button>
+      <button type="button" data-mov-filtro="cuota" aria-pressed="false">Cuotas</button>
+      <button type="button" data-mov-filtro="ingreso" aria-pressed="false">Ingresos</button>
+    </div>
+    <div class="mov-resumen" data-mov-resumen><span>{{ movimientos_mes|length }} movimientos</span><b></b></div>
+    {% endif %}
     <div class="row-list mov-list">
-      {% for t in ultimas %}
-      <div class="swipe swipe-fila swipe-mov tono-{{ t.clase_tono }}{% if t.por_pagar %} sin-pagar{% endif %}">
+      {% for t in movimientos_mes %}
+      <div class="swipe swipe-fila swipe-mov tono-{{ t.clase_tono }}{% if t.por_pagar %} sin-pagar{% endif %}" data-mov-tipo="{% if t.es_ingreso %}ingreso{% elif t.es_cuota %}cuota{% else %}unico{% endif %}" data-monto="{{ t.monto|floatformat:'0u' }}">
         <div class="swipe-acciones">
           {% if t.por_pagar %}
           <form method="post" action="{% url 'pagar_gasto' t.pk %}" style="margin:0">
@@ -335,13 +360,13 @@
             <button type="submit" class="swipe-btn editar" title="{{ t.texto_estado_pago }}"><i class="fas fa-rotate-left"></i><span>Deshacer</span></button>
           </form>
           {% endif %}
-          <form method="post" action="{% url 'eliminar_transaccion' t.pk %}" style="margin:0" data-confirm="¿Eliminar {{ t.descripcion|default:t.get_categoria_display }}?">
+          <form method="post" action="{% url 'eliminar_transaccion' t.pk %}" style="margin:0" data-confirm="{% if t.es_cuota %}¿Anular el pago de {{ t.descripcion }}? La cuota vuelve a quedar por pagar.{% else %}¿Eliminar {{ t.descripcion|default:t.get_categoria_display }}?{% endif %}">
             {% csrf_token %}
             <input type="hidden" name="next" value="{% url 'dashboard' %}">
             <button type="submit" class="swipe-btn borrar" title="Eliminar"><i class="fas fa-trash-can"></i><span>Eliminar</span></button>
           </form>
         </div>
-        <div class="swipe-card row">
+        <a href="{% if t.es_cuota %}{% url 'deudas' %}{% else %}{% url 'editar_transaccion' t.pk %}{% endif %}" class="swipe-card row">
           {% marca_de t.descripcion as m %}{% if m %}
           {% include 'finanzas/_marca.html' with clase="icon-tile marca-tile" %}
           {% else %}
@@ -352,14 +377,18 @@
             <div class="row-meta">{{ t.fecha|date:"j b" }}{% if t.descripcion %} · {{ t.get_categoria_display }}{% endif %}{% if t.por_pagar %} · <span style="color:var(--amarillo)">sin pagar</span>{% endif %}</div>
           </div>
           <div class="mono mov-monto" style="{% if t.es_ingreso %}color:var(--green-texto){% endif %}">{% if t.es_ingreso %}+{% endif %}{{ t.monto|money }}</div>
-        </div>
+        </a>
       </div>
       {% empty %}
       <div class="empty">
         <i class="fas fa-receipt"></i>
-        <div class="empty-title">Todavía no registras nada</div>
+        <div class="empty-title">Todavía no registras nada este mes</div>
       </div>
       {% endfor %}
+      <div class="empty" data-mov-vacio hidden>
+        <i class="fas fa-filter"></i>
+        <div class="empty-title">No hay movimientos de este tipo</div>
+      </div>
     </div>
   </div>
 </div>
@@ -510,4 +539,6 @@
 
 {% block extra_js %}
 <script src="{% static 'js/pantallas/dashboard.js' %}" nonce="{{ csp_nonce }}"></script>
+<script src="{% static 'js/pantallas/inicio-cifra.js' %}" nonce="{{ csp_nonce }}"></script>
+<script src="{% static 'js/pantallas/inicio-movimientos.js' %}" nonce="{{ csp_nonce }}"></script>
 {% endblock %}
