@@ -1944,9 +1944,8 @@ body:has(.fo-hoja.fo-ambar) { --luz: 255, 170, 44; }
 
 @media (max-width: 720px) {
   body:not(:has(.auth))::after {
-    content: ''; position: fixed; left: 0; right: 0; top: 0; z-index: 90; pointer-events: none;
-    height: env(safe-area-inset-top);
+    position: fixed; top: 0; height: env(safe-area-inset-top);
     background: rgba(21, 20, 18, .72);
-    -webkit-backdrop-filter: blur(20px) saturate(160%); backdrop-filter: blur(20px) saturate(160%);
+    backdrop-filter: blur(20px) saturate(160%);
   }
 }
