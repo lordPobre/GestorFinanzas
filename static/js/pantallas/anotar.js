@@ -9,30 +9,13 @@
   var form = document.getElementById('formRegistro');
   if (!form) return;
 
-  var MARCAS = [
-    [/spotify/i, { fondo: '#121212', color: '#1ed760', icono: 'fab fa-spotify' }],
-    [/netflix/i, { fondo: '#0b0b0b', color: '#e50914', letra: 'N' }],
-    [/uber/i, { fondo: '#000000', color: '#ffffff', icono: 'fab fa-uber' }],
-    [/l[ií]der|walmart/i, { fondo: '#0071ce', color: '#ffc220', letra: 'L' }],
-    [/jumbo/i, { fondo: '#1f9a3a', color: '#ffffff', letra: 'J' }],
-    [/santa isabel/i, { fondo: '#d71920', color: '#ffffff', letra: 'S' }],
-    [/tottus/i, { fondo: '#6cb33f', color: '#ffffff', letra: 'T' }],
-    [/unimarc/i, { fondo: '#e30613', color: '#ffffff', letra: 'U' }],
-    [/copec/i, { fondo: '#d52b1e', color: '#ffffff', letra: 'C' }],
-    [/shell/i, { fondo: '#f7d117', color: '#dd1d21', letra: 'S' }],
-    [/rappi/i, { fondo: '#ff441f', color: '#ffffff', letra: 'R' }],
-    [/pedidos ?ya/i, { fondo: '#fa0050', color: '#ffffff', letra: 'P' }],
-    [/ripley/i, { fondo: '#4b2a7b', color: '#ffffff', letra: 'R' }],
-    [/falabella/i, { fondo: '#aad500', color: '#1a2b00', letra: 'F' }],
-    [/paris/i, { fondo: '#0a5ea8', color: '#ffffff', letra: 'P' }],
-    [/mercado ?libre/i, { fondo: '#ffe600', color: '#2d3277', letra: 'M' }],
-    [/amazon|prime video/i, { fondo: '#131a22', color: '#ff9900', icono: 'fab fa-amazon' }],
-    [/apple|icloud/i, { fondo: '#1c1c1e', color: '#ffffff', icono: 'fab fa-apple' }],
-    [/disney/i, { fondo: '#0f1a4a', color: '#9fc0ff', letra: 'D' }],
-    [/youtube/i, { fondo: '#0f0f0f', color: '#ff0033', icono: 'fab fa-youtube' }],
-    [/steam/i, { fondo: '#171a21', color: '#c7d5e0', icono: 'fab fa-steam' }],
-    [/playstation/i, { fondo: '#003791', color: '#ffffff', icono: 'fab fa-playstation' }]
-  ];
+  var MARCAS = [];
+  var GLIFOS = {};
+  var urlMarcas = document.currentScript && document.currentScript.dataset.marcas;
+  function normalizar(t) {
+    return (t || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  }
+  function escapar(t) { return t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
 
   var campoDesc = document.getElementById('campoDesc');
   var campoTipo = document.getElementById('campoTipo');
@@ -42,16 +25,35 @@
 
   function pintarMarca() {
     if (!marca) return;
-    var texto = campoDesc ? campoDesc.value : '';
+    var texto = normalizar(campoDesc ? campoDesc.value : '');
     var m = null;
-    for (var i = 0; i < MARCAS.length; i++) {
+    for (var i = 0; texto && i < MARCAS.length; i++) {
       if (MARCAS[i][0].test(texto)) { m = MARCAS[i][1]; break; }
     }
     var esGasto = !campoTipo || campoTipo.value !== 'INGRESO';
     if (m) {
       marca.style.background = m.fondo;
-      marca.style.color = m.color;
-      marca.innerHTML = m.icono ? '<i class="' + m.icono + '"></i>' : m.letra;
+      marca.style.color = m.tinta;
+      marca.innerHTML = '';
+      if (m.glifo && GLIFOS[m.glifo]) {
+        var ns = 'http://www.w3.org/2000/svg';
+        var svg = document.createElementNS(ns, 'svg');
+        svg.setAttribute('viewBox', '0 0 24 24');
+        svg.setAttribute('class', 'marca-glifo');
+        var path = document.createElementNS(ns, 'path');
+        path.setAttribute('d', GLIFOS[m.glifo]);
+        path.setAttribute('fill', 'currentColor');
+        svg.appendChild(path);
+        marca.appendChild(svg);
+      } else if (m.fa) {
+        var ic = document.createElement('i');
+        ic.className = m.fa;
+        marca.appendChild(ic);
+      } else {
+        var letra = document.createElement('b');
+        letra.textContent = m.letra || m.nombre.charAt(0).toUpperCase();
+        marca.appendChild(letra);
+      }
       marca.classList.add('reconocida');
     } else {
       marca.style.background = '';
@@ -113,4 +115,16 @@
   }
 
   pintarMarca();
+
+  if (urlMarcas && window.fetch) {
+    fetch(urlMarcas).then(function (r) { return r.ok ? r.json() : null; }).then(function (datos) {
+      if (!datos) return;
+      GLIFOS = datos.glifos || {};
+      MARCAS = (datos.marcas || []).map(function (m) {
+        var claves = m.claves.map(escapar).join('|');
+        return [new RegExp('(^|[^a-z0-9])(' + claves + ')(?=[^a-z0-9]|$)'), m];
+      });
+      pintarMarca();
+    }).catch(function () {});
+  }
 })();

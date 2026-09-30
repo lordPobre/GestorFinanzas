@@ -1,6 +1,6 @@
 {% extends 'finanzas/base.html' %}
 {% load static %}
-{% load moneda %}
+{% load moneda marcas %}
 {% block title %}Revisar cartola · Fintora{% endblock %}
 {% block search_placeholder %}Filtrar movimientos{% endblock %}
 
@@ -19,7 +19,7 @@
     <li><span>3</span><em>Guardar</em></li>
   </ol>
   <span class="ca-titular">Revisa antes de guardar</span>
-  <span class="ca-nota">{{ c.banco }}{% if c.periodo %} · {{ c.periodo }}{% endif %}{% if c.cuenta %} · cuenta {{ c.cuenta }}{% endif %}</span>
+  <span class="ca-nota ca-banco">{% marca_de c.banco as mb %}{% if mb %}{% include 'finanzas/_marca.html' with m=mb clase="ca-banco-logo" %}{% endif %}<span>{{ c.banco }}{% if c.periodo %} · {{ c.periodo }}{% endif %}{% if c.cuenta %} · cuenta {{ c.cuenta }}{% endif %}</span></span>
   <div class="sec-chips">
     <span class="chip-vidrio"><b>{{ nuevas }}</b> nuevo{{ nuevas|pluralize:"s" }}</span>
     <span class="chip-vidrio"><b>{{ repetidas }}</b> ya estaba{{ repetidas|pluralize:"n" }}</span>
@@ -71,6 +71,7 @@
 
         <div class="cartola-principal">
           <div class="cartola-desc">
+            {% marca_de f.descripcion as m %}{% if m %}{% include 'finanzas/_marca.html' with clase="rv-marca" %}{% else %}<span class="rv-marca neutra" aria-hidden="true">{{ f.descripcion|slice:":1"|upper }}</span>{% endif %}
             <input type="text" name="desc_{{ f.i }}" value="{{ f.descripcion }}" maxlength="200" aria-label="Descripción del movimiento">
           </div>
           <div class="cartola-monto {% if f.tipo == 'INGRESO' %}entra{% else %}sale{% endif %}">{% if f.tipo == 'INGRESO' %}+{% else %}−{% endif %}{{ f.monto_dec|money }}</div>

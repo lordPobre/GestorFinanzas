@@ -1,6 +1,6 @@
 {% extends 'finanzas/base.html' %}
 {% load static %}
-{% load humanize moneda %}
+{% load humanize moneda marcas %}
 {% block search_placeholder %}Filtrar suscripciones{% endblock %}
 {% block title %}Suscripciones · Fintora{% endblock %}
 
@@ -32,15 +32,6 @@
   </div>
   {% endif %}
 
-  {% for grupo in duplicadas %}
-  <div class="sec-tip agua">
-    <span class="sec-tip-icono"><i class="fas fa-lightbulb"></i></span>
-    <span class="sec-tip-txt">
-      <b>Puedes ahorrar {{ grupo.ahorro_anual|money }} al año</b>
-      <span>{% for i in grupo.items %}{{ i.nombre }}{% if not forloop.last %}{% if forloop.revcounter == 2 %} y {% else %}, {% endif %}{% endif %}{% endfor %} se superponen. Deja uno.</span>
-    </span>
-  </div>
-  {% endfor %}
 
   {% if suscripciones %}
   <div class="su-lista">
@@ -48,7 +39,7 @@
     <div class="su-fila{% if not s.activa %} pausada{% endif %}{% if s.estado_mes == 'atrasada' %} atrasada{% endif %}" data-desplegable data-searchable>
       <div class="su-linea">
         <button type="button" class="sec-cab" data-desplegar aria-expanded="false">
-          <span class="sec-ficha su-marca" style="background:{{ s.marca.color }}24;color:{{ s.marca.color }}">{% if s.marca.usa_inicial %}<b>{{ s.inicial }}</b>{% else %}<i class="{{ s.marca.icono }}"></i>{% endif %}</span>
+          {% marca_de s.nombre as m %}{% if m %}{% include 'finanzas/_marca.html' with clase="sec-ficha su-marca" %}{% else %}<span class="sec-ficha su-marca" style="background:#ffaa2c24;color:#ffaa2c"><i class="fas fa-rotate"></i></span>{% endif %}
           <span class="sec-txt">
             <span class="sec-nombre su-nombre">{{ s.nombre }}</span>
             <span class="sec-meta{% if s.activa and s.periodo_a_pagar %} pendiente{% endif %}">{% if not s.activa %}Pausada · ahorras {{ s.monto_anual|money }} al año{% elif s.estado_mes == 'atrasada' %}{{ s.monto|money }} · atrasada{% else %}{{ s.monto|money }} · se cobra el {{ s.dia_cobro }}{% endif %}</span>
@@ -95,6 +86,23 @@
     </div>
     {% endfor %}
   </div>
+  {% if duplicadas %}
+  <div class="su-consejo">
+    <div class="su-consejo-cab">
+      <span class="sec-tip-icono"><i class="fas fa-lightbulb"></i></span>
+      <span class="sec-txt">
+        <span class="sec-nombre">Consejo para ahorrar</span>
+        <span class="sec-meta">Tienes servicios que hacen lo mismo</span>
+      </span>
+    </div>
+    {% for grupo in duplicadas %}
+    <div class="su-consejo-fila">
+      <span>{% for i in grupo.items %}{{ i.nombre }}{% if not forloop.last %}{% if forloop.revcounter == 2 %} y {% else %}, {% endif %}{% endif %}{% endfor %} se superponen. Deja uno.</span>
+      <b>{{ grupo.ahorro_anual|money }} al año</b>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
   {% else %}
   <div class="sec-vacio">
     <span class="sec-vacio-icono"><i class="fas fa-rotate"></i></span>

@@ -1,6 +1,6 @@
 {% extends 'finanzas/base.html' %}
 {% load static %}
-{% load humanize moneda %}
+{% load humanize moneda marcas %}
 {% block title %}Inicio · Fintora{% endblock %}
 {% block search_placeholder %}Buscar movimientos{% endblock %}
 
@@ -141,8 +141,8 @@
       <div class="ini-regla-vacia" data-regla-vacia hidden><i class="fas fa-circle-check"></i>No tienes pagos en estos días.</div>
       {% for i in pendientes %}{% if not i.pagado %}
       <div class="ini-pago{% if i.atrasado %} atrasado{% endif %}" data-fecha="{{ i.fecha|date:'Y-m-d' }}" data-monto="{{ i.monto|floatformat:'0u' }}">
-        {% if i.marca.reconocida %}
-        <span class="ini-ficha" style="color:{{ i.marca.color }};background:{{ i.marca.color }}24">{% if i.marca.usa_inicial %}<b>{{ i.inicial }}</b>{% else %}<i class="{{ i.marca.icono }}"></i>{% endif %}</span>
+        {% marca_de i.nombre as m %}{% if m %}
+        {% include 'finanzas/_marca.html' with clase="ini-ficha" %}
         {% else %}
         <span class="ini-ficha t-{{ i.tipo }}"><i class="fas {{ i.icono }}"></i></span>
         {% endif %}
@@ -164,8 +164,8 @@
     <div class="ini-lista-pagar" data-lista-pagar>
       {% for i in pendientes %}{% if not i.pagado %}
       <div class="ini-fila{% if i.atrasado %} atrasado{% endif %}" data-fecha="{{ i.fecha|date:'Y-m-d' }}">
-        {% if i.marca.reconocida %}
-        <span class="ini-ficha" style="color:{{ i.marca.color }};background:{{ i.marca.color }}24">{% if i.marca.usa_inicial %}<b>{{ i.inicial }}</b>{% else %}<i class="{{ i.marca.icono }}"></i>{% endif %}</span>
+        {% marca_de i.nombre as m %}{% if m %}
+        {% include 'finanzas/_marca.html' with clase="ini-ficha" %}
         {% else %}
         <span class="ini-ficha t-{{ i.tipo }}"><i class="fas {{ i.icono }}"></i></span>
         {% endif %}
@@ -195,8 +195,8 @@
       </div>
       {% for t in ultimas|slice:":5" %}
       <div class="ini-mov" data-searchable>
-        {% if t.marca_suscripcion %}
-        <span class="ini-mov-icono" style="background:{{ t.marca_suscripcion.color }}24;color:{{ t.marca_suscripcion.color }}">{% if t.marca_suscripcion.usa_inicial %}{{ t.marca_suscripcion.inicial }}{% else %}<i class="{{ t.marca_suscripcion.icono }}"></i>{% endif %}</span>
+        {% marca_de t.descripcion as m %}{% if m %}
+        {% include 'finanzas/_marca.html' with clase="ini-mov-icono" %}
         {% else %}
         <span class="ini-mov-icono{% if t.es_ingreso %} ingreso{% elif t.por_pagar %} por-pagar{% endif %}"><i class="fas {{ t.icono }}"></i></span>
         {% endif %}
@@ -287,8 +287,8 @@
     <div class="ini-lista-modal">
       {% for i in pendientes %}{% if i.atrasado and not i.pagado %}
       <div class="ini-fila atrasado">
-        {% if i.marca.reconocida %}
-        <span class="ini-ficha" style="color:{{ i.marca.color }};background:{{ i.marca.color }}24">{% if i.marca.usa_inicial %}<b>{{ i.inicial }}</b>{% else %}<i class="{{ i.marca.icono }}"></i>{% endif %}</span>
+        {% marca_de i.nombre as m %}{% if m %}
+        {% include 'finanzas/_marca.html' with clase="ini-ficha" %}
         {% else %}
         <span class="ini-ficha t-{{ i.tipo }}"><i class="fas {{ i.icono }}"></i></span>
         {% endif %}
@@ -342,8 +342,8 @@
           </form>
         </div>
         <div class="swipe-card row">
-          {% if t.marca_suscripcion %}
-          <span class="icon-tile marca-tile" style="background:{{ t.marca_suscripcion.color }}1f;color:{{ t.marca_suscripcion.color }}">{% if t.marca_suscripcion.usa_inicial %}{{ t.marca_suscripcion.inicial }}{% else %}<i class="{{ t.marca_suscripcion.icono }}"></i>{% endif %}</span>
+          {% marca_de t.descripcion as m %}{% if m %}
+          {% include 'finanzas/_marca.html' with clase="icon-tile marca-tile" %}
           {% else %}
           <span class="icon-tile {% if t.es_ingreso %}green{% elif t.por_pagar %}orange{% endif %}"><i class="fas {{ t.icono }}"></i></span>
           {% endif %}

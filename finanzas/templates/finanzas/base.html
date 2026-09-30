@@ -461,7 +461,7 @@
 {% block modals %}{% endblock %}
 
 <script src="{% static 'js/finapp.js' %}"></script>
-<script src="{% static 'js/pantallas/anotar.js' %}" nonce="{{ csp_nonce }}"></script>
+<script src="{% static 'js/pantallas/anotar.js' %}" nonce="{{ csp_nonce }}" data-marcas="{% static 'data/marcas.json' %}"></script>
 <script src="{% static 'js/pantallas/cuenta.js' %}" nonce="{{ csp_nonce }}"></script>
 <script src="{% static 'js/pantallas/secciones.js' %}" nonce="{{ csp_nonce }}"></script>
 <script src="{% static 'js/pantallas/base-4.js' %}" nonce="{{ csp_nonce }}" {% if abrir_panel or request.GET.registrar %}data-abrir-panel="1"{% endif %}></script>
