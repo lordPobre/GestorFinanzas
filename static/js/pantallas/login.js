@@ -6,13 +6,8 @@
   var boton = document.getElementById('btnPasskey');
   var aviso = document.getElementById('avisoPasskey');
   var texto = document.getElementById('avisoPasskeyTexto');
-  var entrar = document.getElementById('btnEntrar');
   if (!bloque || !boton) return;
   bloque.hidden = false;
-  if (entrar) {
-    entrar.classList.remove('btn-amber');
-    entrar.classList.add('btn-glass');
-  }
 
   boton.addEventListener('click', function () {
     aviso.hidden = true;

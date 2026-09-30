@@ -1765,3 +1765,178 @@ body:has(.fo-hoja.fo-ambar) { --luz: 255, 170, 44; }
 @media (max-width: 720px) {
   .su-consejo-fila { flex-direction: column; gap: 2px; }
 }
+
+.auth { background: transparent; }
+.auth-marca {
+  flex: 1 1 auto; min-width: 0; overflow: hidden;
+  justify-content: flex-start; gap: 28px; padding: 44px 40px 96px 56px;
+  background: none; color: var(--text-primary);
+}
+.auth-marca:has(.av) { padding-bottom: 0; }
+.auth-marca::after { display: none; }
+.auth-marca::before {
+  content: ''; position: absolute; left: -200px; top: -260px; width: 1100px; height: 760px; pointer-events: none;
+  background: radial-gradient(50% 50% at 45% 45%, rgba(255, 170, 44, .42), rgba(255, 120, 40, .1) 55%, transparent 75%);
+}
+.auth-marca-link { display: flex; align-items: center; gap: 14px; align-self: flex-start; color: inherit; text-decoration: none; }
+.auth-marca-link:hover { color: inherit; }
+.auth-logo {
+  width: 52px; height: 52px; border-radius: 16px; color: #1a1200;
+  background: linear-gradient(150deg, #ffbb56, #f09000);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .45), 0 10px 24px -8px rgba(255, 170, 44, .6);
+}
+.auth-logo .marca-svg { width: 70%; height: 70%; }
+.auth-nombre { font-size: 26px; font-weight: 800; letter-spacing: -.025em; }
+.auth-intro { display: flex; flex-direction: column; gap: 14px; max-width: 620px; }
+.auth-titular { max-width: 620px; font-size: 40px; line-height: 1.08; letter-spacing: -.04em; text-wrap: balance; color: var(--text-primary); }
+.auth-marca .auth-bajada { max-width: 540px; margin: 14px 0 0; font-size: 16px; line-height: 1.6; color: rgba(255, 245, 230, .8); }
+.auth-intro .auth-bajada { margin: 0; }
+.auth-marca > .auth-pie { position: absolute; left: 56px; bottom: 32px; z-index: 2; gap: 10px; font-size: 13px; color: rgba(245, 245, 245, .6); }
+.auth-marca > .auth-pie > i { font-size: 12px; }
+.auth-marca .auth-ventajas { gap: 10px; margin-top: 28px; }
+.auth-marca .auth-ventaja { padding: 12px 16px; border-radius: 18px; background: rgba(255, 255, 255, .06); border: 1px solid rgba(255, 255, 255, .1); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .08); }
+.auth-marca .auth-ventaja-icono { background: rgba(255, 170, 44, .18); color: #ffbb56; }
+.auth-marca .auth-ventaja-texto { font-size: 15px; font-weight: 700; }
+
+.av { position: relative; flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 34px; }
+.av-lista { display: flex; flex-direction: column; gap: 8px; padding-top: 6px; }
+.av-paso {
+  display: flex; flex-direction: column; gap: 12px; width: 100%; padding: 16px 18px; box-sizing: border-box;
+  border: 1px solid transparent; border-radius: 20px; background: transparent; cursor: pointer;
+  color: var(--text-primary); font-family: 'Manrope', sans-serif; text-align: left;
+  transition: background .3s, border-color .3s, box-shadow .3s;
+}
+.av-paso:hover { background: rgba(255, 255, 255, .04); }
+.av-paso.on { background: rgba(255, 255, 255, .07); border-color: rgba(255, 255, 255, .12); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .1), 0 20px 40px -24px rgba(0, 0, 0, .8); }
+.av-paso:focus-visible { outline: 2px solid var(--c); outline-offset: 2px; }
+.av-paso-cab { display: flex; align-items: baseline; gap: 14px; }
+.av-num { flex-shrink: 0; font: 800 12px ui-monospace, Menlo, monospace; letter-spacing: .04em; color: var(--c); opacity: .45; transition: opacity .3s; }
+.av-txt { font-size: 17px; font-weight: 700; line-height: 1.35; letter-spacing: -.01em; opacity: .55; transition: opacity .3s; }
+.av-paso.on .av-num, .av-paso.on .av-txt { opacity: 1; }
+.av-linea { display: block; height: 2px; margin-left: 36px; border-radius: 2px; background: rgba(255, 255, 255, .08); overflow: hidden; }
+.av-linea > span { display: block; width: 0; height: 100%; background: var(--c); box-shadow: 0 0 8px var(--c); }
+.av-paso.on .av-linea > span { animation: av-linea var(--dur, 4.2s) linear forwards; }
+.av-quieto .av-paso.on .av-linea > span { animation: none; width: 100%; }
+@keyframes av-linea { to { width: 100%; } }
+.av-tel { position: relative; }
+.av-luz { position: absolute; left: -60px; right: -60px; top: 40px; height: 420px; border-radius: 50%; opacity: 0; pointer-events: none; transition: opacity .8s; }
+.av-luz.on { opacity: 1; }
+.av-marco {
+  position: absolute; left: 4px; top: 6px; width: 292px; height: 600px; overflow: hidden;
+  border-radius: 46px; background: #151412; color: #f5f5f5; font-family: 'Manrope', sans-serif;
+  box-shadow: 0 0 0 8px #0a0908, 0 0 0 9px #34302b, 0 50px 90px -20px rgba(0, 0, 0, .8);
+  animation: av-flota 8s ease-in-out infinite;
+}
+@keyframes av-flota { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+.av-escala { position: absolute; left: 0; top: 0; width: 390px; height: 802px; overflow: hidden; transform: scale(.7487); transform-origin: 0 0; }
+.av-pantalla { position: absolute; inset: 0; opacity: 0; transform: translateY(26px) scale(.98); transition: opacity .6s var(--ease-out), transform .6s var(--ease-out); }
+.av-pantalla.on { opacity: 1; transform: none; }
+.av-pantalla.sale { opacity: 0; transform: translateY(-18px); }
+.av-isla { position: absolute; left: 50%; top: 10px; width: 84px; height: 24px; margin-left: -42px; border-radius: 100px; background: #000; }
+@media (max-width: 1180px), (max-height: 680px) {
+  .av { grid-template-columns: minmax(0, 1fr); }
+  .auth-marca:has(.av) { padding-bottom: 96px; }
+  .av-tel, .av-linea { display: none; }
+  .av-paso, .av-paso.on { cursor: default; background: rgba(255, 255, 255, .06); border-color: rgba(255, 255, 255, .1); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .08); }
+  .av-num, .av-txt { opacity: 1; }
+  .av-txt { font-size: 15px; }
+}
+@media (min-width: 901px) and (max-width: 1180px) {
+  .auth-panel { flex-basis: 460px; padding-right: 32px; }
+  .auth-marca { padding-left: 40px; padding-right: 32px; }
+  .auth-marca > .auth-pie { left: 40px; }
+  .auth-titular { font-size: 32px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .av-marco { animation: none; }
+  .av-pantalla, .av-luz { transition: none; }
+}
+
+.auth-panel { flex: 0 0 520px; padding: 24px 48px 24px 0; }
+.auth-panel > .auth-tarjeta {
+  width: 100%; max-width: none; box-sizing: border-box; padding: 26px 28px 20px; border-radius: 30px;
+  background: rgba(30, 28, 25, .7); border: 1px solid rgba(255, 255, 255, .12);
+  -webkit-backdrop-filter: blur(34px) saturate(180%); backdrop-filter: blur(34px) saturate(180%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .12), 0 30px 60px -20px rgba(0, 0, 0, .6);
+}
+.auth-h { font-size: 26px; }
+.auth-cab { margin-bottom: 20px; }
+.auth-cab .auth-sub { margin: 6px 0 0; font-size: 14px; color: rgba(245, 245, 245, .7); }
+.auth-aviso { margin-bottom: 16px; }
+.auth-aviso-passkey { margin-top: 12px; }
+.auth .aviso-error { gap: 12px; padding: 12px 14px; border-radius: 18px; background: rgba(255, 138, 138, .08); border-color: rgba(255, 138, 138, .24); }
+.auth .aviso-error > i { color: #ff8a8a; font-size: 13px; }
+.auth .aviso-error-texto { font-size: 13px; color: rgba(245, 245, 245, .84); }
+.auth-label { margin-bottom: 6px; font-size: 13px; letter-spacing: 0; color: rgba(245, 245, 245, .74); }
+.auth-campos { display: flex; flex-direction: column; gap: 14px; }
+.auth-campo-caja { position: relative; display: flex; align-items: center; }
+.auth-fila-label { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-bottom: 6px; }
+.auth-fila-label .auth-label { margin: 0; }
+.auth-olvido { font-size: 13px; font-weight: 700; color: #ffbb56; }
+.auth-icono { font-size: 13px; color: rgba(245, 245, 245, .45); }
+.auth input.auth-campo:not([type=checkbox]):not([type=radio]),
+.auth input.auth-digito:not([type=checkbox]):not([type=radio]) {
+  border: 1px solid rgba(255, 255, 255, .1); background: rgba(0, 0, 0, .24); color: var(--text-primary);
+}
+.auth input.auth-campo:not([type=checkbox]):not([type=radio]) { min-height: 48px; padding-top: 12px; padding-bottom: 12px; font-size: 15px; font-weight: 600; }
+.auth input.auth-campo.con-ojo { padding-right: 52px; }
+.auth input.auth-campo:focus, .auth input.auth-digito:focus { border-color: rgba(255, 187, 86, .6); background: rgba(0, 0, 0, .3); box-shadow: 0 0 0 3px rgba(255, 170, 44, .14); }
+.auth-ojo {
+  position: absolute; right: 6px; width: 38px; height: 38px; border: none; border-radius: 50%; cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: rgba(255, 255, 255, .08); color: rgba(245, 245, 245, .72); font-size: 13px;
+}
+.auth-ojo:hover { background: rgba(255, 255, 255, .14); color: var(--text-primary); }
+.auth-btn {
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  width: 100%; min-height: 50px; padding: 0 18px; box-sizing: border-box;
+  border-radius: 100px; cursor: pointer; text-decoration: none; white-space: nowrap;
+  font-family: 'Manrope', sans-serif; font-size: 15px; font-weight: 800;
+  transition: background .18s, filter .18s, transform .16s;
+}
+.auth-btn:active { transform: scale(.98); }
+.auth-btn:disabled { opacity: .5; cursor: not-allowed; }
+.auth-btn.ambar { border: none; background: linear-gradient(180deg, #ffbb56, #ffaa2c); color: #1a1200; box-shadow: inset 0 1px 0 rgba(255, 255, 255, .45), 0 10px 24px -8px rgba(255, 170, 44, .6); }
+.auth-btn.ambar:hover { color: #1a1200; filter: brightness(1.05); }
+.auth-btn.vidrio { border: 1px solid rgba(255, 255, 255, .16); background: rgba(255, 255, 255, .1); color: var(--text-primary); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .14); }
+.auth-btn.vidrio:hover { background: rgba(255, 255, 255, .15); }
+.auth-btn.vidrio i { font-size: 18px; color: #ffbb56; }
+.auth-btn.borde { min-height: 46px; border: 1px solid rgba(255, 255, 255, .14); background: rgba(255, 255, 255, .04); color: var(--text-primary); font-size: 14px; font-weight: 700; }
+.auth-btn.borde:hover { background: rgba(255, 255, 255, .09); color: var(--text-primary); }
+.auth-btn.borde i { font-size: 12px; color: #ffbb56; }
+.auth-btn svg { flex-shrink: 0; }
+.auth-entrar { margin-top: 18px; }
+.auth-separador { display: flex; align-items: center; gap: 12px; margin: 16px 0; font-size: 12px; font-weight: 700; color: rgba(245, 245, 245, .56); }
+.auth-separador::before, .auth-separador::after { content: ''; flex: 1; height: 1px; background: rgba(255, 255, 255, .1); }
+.auth-otras { display: flex; flex-direction: column; gap: 12px; }
+.auth-otras-botones { display: grid; gap: 10px; }
+.auth-check { display: flex; gap: 10px; align-items: flex-start; cursor: pointer; font-size: 12.5px; line-height: 1.5; color: rgba(245, 245, 245, .72); }
+.auth-check input { width: 18px; height: 18px; margin: 1px 0 0; flex-shrink: 0; accent-color: #ffaa2c; }
+.auth-aviso-google { font-size: 12px; line-height: 1.5; text-align: center; color: var(--coral-texto); }
+.auth-corto { display: none; }
+.auth-legal { display: flex; justify-content: center; gap: 10px; margin-top: 18px; font-size: 12px; color: rgba(245, 245, 245, .5); }
+.auth-legal a { color: rgba(245, 245, 245, .66); text-decoration: underline; }
+.auth-legal a:hover { color: var(--text-primary); }
+.auth-salida:hover { background: rgba(255, 255, 255, .06); }
+
+@media (max-width: 900px) {
+  .auth { flex-direction: column; }
+  .auth-marca, .auth-marca:has(.av) { flex: 0 0 auto; align-items: center; gap: 0; padding: calc(22px + env(safe-area-inset-top)) 22px 26px; }
+  .auth-marca > :not(.auth-marca-link) { display: none; }
+  .auth-marca-link { align-self: center; gap: 10px; }
+  .auth-logo { width: 40px; height: 40px; border-radius: 12px; }
+  .auth-nombre { font-size: 20px; }
+  .auth-panel { flex: 1 0 auto; display: flex; flex-direction: column; padding: 0; }
+  .auth-panel > .auth-tarjeta {
+    flex: 1; padding: 22px 20px calc(28px + env(safe-area-inset-bottom));
+    border: none; border-top: 1px solid rgba(255, 255, 255, .14); border-radius: 34px 34px 0 0;
+    background: rgba(30, 28, 25, .74); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .12), 0 -20px 40px rgba(0, 0, 0, .35);
+  }
+  .auth-cab { text-align: center; }
+  .auth-h { font-size: 24px; }
+  .auth-cab { margin-bottom: 18px; }
+  .auth-marca::before { left: -30%; right: -30%; width: auto; top: -170px; height: 420px; background: radial-gradient(60% 55% at 50% 40%, rgba(255, 170, 44, .5), rgba(255, 120, 40, .12) 55%, transparent 75%); }
+  .auth-otras-botones.dos { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .auth-largo { display: none; }
+  .auth-corto { display: inline; }
+}

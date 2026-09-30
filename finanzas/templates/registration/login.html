@@ -3,11 +3,13 @@
 {% block title %}Entrar · Fintora{% endblock %}
 
 {% block card %}
-<h2 class="auth-h">Entra a tu cuenta</h2>
-<p style="margin:8px 0 30px;font-size:13.5px;color:var(--text-secondary)">Sigue donde lo dejaste.</p>
+<div class="auth-cab">
+  <h2 class="auth-h">Entra a tu cuenta</h2>
+  <p class="auth-sub">Sigue donde lo dejaste.</p>
+</div>
 
 {% if form.errors and not bloqueado %}
-<div class="aviso-error" style="margin-bottom:20px">
+<div class="aviso-error auth-aviso">
   <i class="fas fa-circle-exclamation"></i>
   <div class="aviso-error-texto">
     Usuario o contraseña incorrectos. Revisa las mayúsculas.
@@ -16,7 +18,7 @@
 {% endif %}
 
 {% if bloqueado %}
-<div class="aviso-error" style="margin-bottom:20px">
+<div class="aviso-error auth-aviso">
   <i class="fas fa-clock"></i>
   <div class="aviso-error-texto">
     Demasiados intentos fallidos. Espera unos minutos antes de volver a probar.
@@ -25,33 +27,27 @@
 {% endif %}
 
 <div id="bloquePasskey" hidden>
-  <button type="button" id="btnPasskey" class="btn btn-amber btn-block"
-          style="padding:16px;font-size:14.5px;font-weight:800;display:flex;align-items:center;justify-content:center;gap:10px"
-          {% if bloqueado %}disabled{% endif %}>
-    <i class="fas fa-fingerprint" style="font-size:16px"></i>Entrar con Face ID o huella
+  <button type="button" id="btnPasskey" class="auth-btn vidrio"{% if bloqueado %} disabled{% endif %}>
+    <i class="fas fa-fingerprint"></i>Entrar con Face ID o huella
   </button>
 
-  <div id="avisoPasskey" role="status" hidden style="margin-top:14px">
+  <div id="avisoPasskey" role="status" hidden class="auth-aviso-passkey">
     <div class="aviso-error">
       <i class="fas fa-circle-exclamation"></i>
       <div id="avisoPasskeyTexto" class="aviso-error-texto"></div>
     </div>
   </div>
 
-  <div style="display:flex;align-items:center;gap:14px;margin:26px 0 22px">
-    <span style="flex:1;height:1px;background:var(--line)"></span>
-    <span style="font-size:11px;font-weight:700;color:var(--text-muted)">O CON TU CONTRASEÑA</span>
-    <span style="flex:1;height:1px;background:var(--line)"></span>
-  </div>
+  <div class="auth-separador">o con tu contraseña</div>
 </div>
 
-<form method="post">
+<form method="post" class="auth-form">
   {% csrf_token %}
 
-  <div style="display:flex;flex-direction:column;gap:18px">
+  <div class="auth-campos">
     <div>
       <label class="auth-label" for="{{ form.username.id_for_label }}">Usuario</label>
-      <div style="position:relative;display:flex;align-items:center">
+      <div class="auth-campo-caja">
         <i class="fas fa-user auth-icono"></i>
         <input type="text" name="username" id="{{ form.username.id_for_label }}"
                class="auth-campo" placeholder="Usuario"
@@ -61,20 +57,18 @@
     </div>
 
     <div>
-      <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:9px">
-        <label class="auth-label" style="margin:0" for="{{ form.password.id_for_label }}">Contraseña</label>
-        <a href="{% url 'recuperar' %}" style="font-size:11.5px;font-weight:700;color:var(--text-muted);text-decoration:none">¿La olvidaste?</a>
+      <div class="auth-fila-label">
+        <label class="auth-label" for="{{ form.password.id_for_label }}">Contraseña</label>
+        <a href="{% url 'recuperar' %}" class="auth-olvido">¿La olvidaste?</a>
       </div>
-      <div style="position:relative;display:flex;align-items:center">
+      <div class="auth-campo-caja">
         <i class="fas fa-lock auth-icono"></i>
         <input type="password" name="password" id="{{ form.password.id_for_label }}"
-               class="auth-campo" style="padding-right:52px" placeholder="••••••••"
+               class="auth-campo con-ojo" placeholder="••••••••"
                autocomplete="current-password" required
                {% if bloqueado %}disabled{% endif %}>
-        <button type="button" id="btnVerPass"
-                data-ver-pass="{{ form.password.id_for_label }}"
-                style="position:absolute;right:9px;display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border:none;border-radius:50%;background:var(--surface-2);color:var(--text-secondary);cursor:pointer;font-size:12px"
-                aria-label="Ver contraseña">
+        <button type="button" id="btnVerPass" class="auth-ojo"
+                data-ver-pass="{{ form.password.id_for_label }}" aria-label="Ver contraseña">
           <i class="fas fa-eye"></i>
         </button>
       </div>
@@ -83,58 +77,47 @@
 
   {% if next %}<input type="hidden" name="next" value="{{ next }}">{% endif %}
 
-  <button type="submit" id="btnEntrar" class="btn btn-amber btn-block"
-          style="margin-top:26px;padding:16px;font-size:14.5px;font-weight:800"
-          {% if bloqueado %}disabled{% endif %}>
-    Entrar
-  </button>
+  <button type="submit" id="btnEntrar" class="auth-btn ambar auth-entrar"{% if bloqueado %} disabled{% endif %}>Entrar</button>
 </form>
 
-<div style="display:flex;align-items:center;gap:14px;margin:26px 0 22px">
-  <span style="flex:1;height:1px;background:var(--line)"></span>
-  <span style="font-size:11px;font-weight:700;color:var(--text-muted)">O</span>
-  <span style="flex:1;height:1px;background:var(--line)"></span>
-</div>
+<div class="auth-separador">o</div>
 
-<div style="display:flex;flex-direction:column;gap:26px">
-
+<div class="auth-otras">
   {% if google_activo %}
-  <div style="display:flex;flex-direction:column;gap:16px">
-
-  <label for="aceptaGoogle" style="display:flex;gap:11px;align-items:flex-start;cursor:pointer">
-    <input type="checkbox" id="aceptaGoogle" data-acepta-google
-           style="width:18px;height:18px;margin:1px 0 0;flex-shrink:0;accent-color:var(--amber)">
-    <span style="font-size:12.5px;line-height:1.55;color:var(--text-secondary)">
+  <label for="aceptaGoogle" class="auth-check">
+    <input type="checkbox" id="aceptaGoogle" data-acepta-google>
+    <span>
       He leído y acepto la
       <a href="{% url 'privacidad' %}" target="_blank" rel="noopener">política de privacidad</a>
       y los
       <a href="{% url 'terminos' %}" target="_blank" rel="noopener">términos de uso</a>.
     </span>
   </label>
+  {% endif %}
 
-  <a href="{% url 'google_entrar' %}{% if next %}?next={{ next|urlencode }}{% endif %}"
-     id="btnGoogle" aria-disabled="true"
-     style="display:flex;align-items:center;justify-content:center;gap:11px;padding:15px;border:1.5px solid var(--line-fuerte);border-radius:100px;color:var(--text-primary);text-decoration:none;font-size:13.5px;font-weight:700;opacity:.45;cursor:not-allowed">
-    <svg width="17" height="17" viewBox="0 0 48 48" aria-hidden="true" focusable="false" style="flex-shrink:0">
+  <div class="auth-otras-botones{% if google_activo %} dos{% endif %}">
+    {% if google_activo %}
+    <a href="{% url 'google_entrar' %}{% if next %}?next={{ next|urlencode }}{% endif %}"
+       id="btnGoogle" class="auth-btn borde" aria-disabled="true">
+      <svg width="17" height="17" viewBox="0 0 48 48" aria-hidden="true" focusable="false">
       <path fill="#4285F4" d="M45.12 24.5c0-1.56-.14-3.06-.4-4.5H24v8.51h11.84c-.51 2.75-2.06 5.08-4.39 6.64v5.52h7.11c4.16-3.83 6.56-9.47 6.56-16.17z"/>
       <path fill="#34A853" d="M24 46c5.94 0 10.92-1.97 14.56-5.33l-7.11-5.52c-1.97 1.32-4.49 2.1-7.45 2.1-5.73 0-10.58-3.87-12.31-9.07H4.34v5.7C7.96 41.07 15.4 46 24 46z"/>
       <path fill="#FBBC05" d="M11.69 28.18C11.25 26.86 11 25.45 11 24s.25-2.86.69-4.18v-5.7H4.34C2.85 17.09 2 20.45 2 24s.85 6.91 2.34 9.88l7.35-5.7z"/>
       <path fill="#EA4335" d="M24 10.75c3.23 0 6.13 1.11 8.41 3.29l6.31-6.31C34.91 4.18 29.93 2 24 2 15.4 2 7.96 6.93 4.34 14.12l7.35 5.7c1.73-5.2 6.58-9.07 12.31-9.07z"/>
     </svg>
-    Continuar con Google
-  </a>
+      <span class="auth-largo">Continuar con Google</span><span class="auth-corto">Google</span>
+    </a>
+    {% endif %}
+    <a href="{% url 'registro' %}" class="auth-btn borde">
+      <i class="fas fa-user-plus"></i><span class="auth-largo">Crear una cuenta nueva</span><span class="auth-corto">Crear cuenta</span>
+    </a>
+  </div>
 
-  <div id="avisoGoogle" role="status" hidden
-       style="font-size:11.5px;color:var(--coral);text-align:center;line-height:1.5">
+  {% if google_activo %}
+  <div id="avisoGoogle" role="status" hidden class="auth-aviso-google">
     Marca la casilla para continuar con Google.
   </div>
-  </div>
   {% endif %}
-
-  <a href="{% url 'registro' %}"
-     style="display:flex;align-items:center;justify-content:center;gap:9px;padding:15px;border:1.5px solid var(--line-fuerte);border-radius:100px;color:var(--text-primary);text-decoration:none;font-size:13.5px;font-weight:700">
-    <i class="fas fa-user-plus" style="font-size:12px;color:var(--amber)"></i>Crear una cuenta nueva
-  </a>
 </div>
 {% endblock %}
 
