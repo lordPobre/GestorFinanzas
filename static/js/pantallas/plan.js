@@ -77,9 +77,8 @@
     var libre = d.sobra - total;
     var elLibre = $('planLibre');
     elLibre.textContent = plata(libre);
-    elLibre.style.color = libre < 0 ? 'var(--coral)' : '';
+    elLibre.classList.toggle('rojo', libre < 0);
     $('planExcede').hidden = libre >= 0;
-    $('planExcede').style.display = libre >= 0 ? 'none' : 'flex';
     texto('ahorro', plata(estado.ahorro));
     texto('extra', plata(estado.extra));
   }
@@ -106,30 +105,28 @@
     var filas = simular(d.deudas, estado.extra, estado.estrategia);
     caja.innerHTML = '';
     filas.forEach(function (f, i) {
-      var destacada = i === 0 && estado.extra > 0;
       var antes = sinExtra(f) - f.fin;
       var fila = document.createElement('div');
-      fila.style.cssText = 'display:flex;align-items:center;gap:12px;padding:13px 14px;border-radius:var(--r-md);background:var(--surface-2);border:1px solid ' + (destacada ? 'rgba(255,170,44,.4)' : 'transparent');
+      fila.className = 'pl-deuda' + (i === 0 ? ' on' : '');
       var pos = document.createElement('span');
+      pos.className = 'pl-pos';
       pos.textContent = i + 1;
-      pos.style.cssText = 'display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:9px;font-size:12px;font-weight:800;flex-shrink:0;background:' + (destacada ? 'var(--amber)' : 'var(--surface-3)') + ';color:' + (destacada ? 'var(--tinta-ambar)' : 'var(--text-primary)');
-      var medio = document.createElement('div');
-      medio.style.cssText = 'flex:1;min-width:0';
-      var nom = document.createElement('div');
-      nom.style.cssText = 'font-size:13.5px;font-weight:700;overflow-wrap:anywhere';
+      var medio = document.createElement('span');
+      medio.className = 'sec-txt';
+      var nom = document.createElement('span');
+      nom.className = 'sec-nombre';
       nom.textContent = f.nombre;
-      var det = document.createElement('div');
-      det.style.cssText = 'font-size:11.5px;color:var(--text-muted);margin-top:2px';
+      var det = document.createElement('span');
+      det.className = 'sec-meta';
       det.textContent = 'Debes ' + plata(f.saldo) + ' · cuota ' + plata(f.cuota);
       medio.appendChild(nom);
       medio.appendChild(det);
-      var fin = document.createElement('div');
-      fin.style.cssText = 'text-align:right;flex-shrink:0';
-      var cuando = document.createElement('div');
-      cuando.style.cssText = 'font-size:12.5px;font-weight:700';
+      var fin = document.createElement('span');
+      fin.className = 'pl-fin';
+      var cuando = document.createElement('b');
       cuando.textContent = mayus(mes(f.fin));
-      var dif = document.createElement('div');
-      dif.style.cssText = 'font-size:11px;margin-top:2px;color:' + (antes > 0 ? 'var(--green)' : 'var(--text-muted)');
+      var dif = document.createElement('span');
+      if (antes > 0) dif.className = 'antes';
       dif.textContent = antes > 0 ? meses(antes) + ' antes' : 'sin cambio';
       fin.appendChild(cuando);
       fin.appendChild(dif);
@@ -152,8 +149,6 @@
     document.querySelectorAll('[data-estrategia]').forEach(function (b) {
       var activo = b.dataset.estrategia === estado.estrategia;
       b.setAttribute('aria-pressed', activo ? 'true' : 'false');
-      b.style.background = activo ? 'var(--amber)' : 'transparent';
-      b.style.color = activo ? 'var(--tinta-ambar)' : 'var(--text-secondary)';
     });
   }
 
@@ -172,7 +167,6 @@
 
   function avisoIA(msg) {
     parrafos.hidden = true;
-    parrafos.style.display = 'none';
     estadoIA.hidden = false;
     estadoIA.textContent = msg;
   }
@@ -193,16 +187,13 @@
         parrafos.innerHTML = '';
         res.parrafos.forEach(function (t) {
           var p = document.createElement('p');
-          p.style.cssText = 'margin:0;font-size:14px;line-height:1.65;text-wrap:pretty';
           p.textContent = t;
           parrafos.appendChild(p);
         });
         estadoIA.hidden = true;
         parrafos.hidden = false;
-        parrafos.style.display = 'flex';
         btnTexto.textContent = 'Volver a explicar';
-        btn.style.background = 'var(--surface-2)';
-        btn.style.color = 'var(--text-primary)';
+        btn.classList.add('vidrio');
       })
       .catch(function () { avisoIA('No se pudo conectar. Los números del plan no dependen de la IA.'); })
       .finally(function () {

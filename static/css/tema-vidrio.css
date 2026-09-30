@@ -1401,9 +1401,6 @@ body:has(.sidebar .nav-item.active[data-label="Me deben"]) .bottomnav .nav-item.
 .pl-estrategia { margin-top: 2px; }
 .pl-nota { font-size: 13px; line-height: 1.5; color: rgba(245, 245, 245, .68); }
 .pl-deudas { display: flex; flex-direction: column; }
-.pl-deudas > div { padding: 9px 0 !important; border: none !important; border-radius: 0 !important; background: none !important; }
-.pl-deudas > div > span:first-child { width: 30px !important; height: 30px !important; border-radius: 50% !important; font-size: 14px !important; background: rgba(255, 255, 255, .12) !important; color: var(--text-primary) !important; }
-.pl-deudas > div:first-child > span:first-child { background: #ffaa2c !important; color: #1a1200 !important; }
 .pl-extra { display: flex; flex-direction: column; gap: 8px; padding: 14px 16px; border-radius: 18px; background: rgba(255, 255, 255, .05); border: 1px solid rgba(255, 255, 255, .08); }
 .pl-extra-cab { display: flex; justify-content: space-between; gap: 10px; font-size: 13px; font-weight: 700; color: rgba(245, 245, 245, .74); }
 .pl-extra-cab b { color: var(--amber-claro); font-size: 15px; }
@@ -1714,3 +1711,36 @@ body:has(.fo-hoja.fo-ambar) { --luz: 255, 170, 44; }
 .md-card .sec-mas-fila.siempre { flex-wrap: nowrap; justify-content: space-between; }
 .md-prestamo-nombre { flex: 1 1 auto; flex-wrap: nowrap; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 .md-prestamo-nombre .sec-badge { flex-shrink: 0; }
+.pl-deuda { display: flex; align-items: center; gap: 12px; padding: 9px 0; }
+.pl-pos { width: 30px; height: 30px; flex-shrink: 0; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 800; background: rgba(255, 255, 255, .12); color: var(--text-primary); }
+.pl-deuda.on .pl-pos { background: #ffaa2c; color: #1a1200; }
+.pl-fin { flex-shrink: 0; display: flex; flex-direction: column; align-items: flex-end; gap: 2px; text-align: right; }
+.pl-fin b { font-size: 14px; font-weight: 800; }
+.pl-fin span { font-size: 12px; font-weight: 700; color: rgba(245, 245, 245, .6); }
+.pl-fin span.antes { color: #6ee873; }
+.pl-estrategia > button[aria-pressed="true"] { color: var(--amber-claro); }
+#planLibre.rojo { color: var(--coral-texto); }
+.pl-ia { display: flex; flex-direction: column; gap: 12px; padding: 14px 16px; border-radius: 20px; background: rgba(255, 255, 255, .06); border: 1px solid rgba(255, 255, 255, .1); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .1); }
+.pl-ia-cab { display: flex; align-items: center; gap: 12px; }
+.pl-ia-icono { width: 36px; height: 32px; flex-shrink: 0; box-sizing: border-box; padding-bottom: 8px; border-radius: 12px 12px 12px 4px; background: rgba(255, 170, 44, .18); display: flex; align-items: flex-end; justify-content: center; gap: 3px; }
+.pl-ia-icono i { width: 4px; border-radius: 2px; background: #6ee873; }
+.pl-ia-icono i:nth-child(1) { height: 8px; }
+.pl-ia-icono i:nth-child(2) { height: 13px; background: #ffbb56; }
+.pl-ia-icono i:nth-child(3) { height: 10px; }
+.pl-ia-titulo { font-size: 14px; font-weight: 800; }
+.pl-ia-estado { font-size: 13px; line-height: 1.5; color: rgba(245, 245, 245, .76); text-wrap: pretty; }
+.pl-ia-estado[hidden], .pl-ia-parrafos[hidden] { display: none; }
+.pl-ia-parrafos { display: flex; flex-direction: column; gap: 10px; }
+.pl-ia-parrafos p { margin: 0; font-size: 14px; line-height: 1.6; color: rgba(245, 245, 245, .86); text-wrap: pretty; }
+.pl-ia-btn { align-self: flex-start; width: auto; padding: 0 22px; }
+.pl-ia-barras { display: inline-flex; align-items: flex-end; gap: 2px; height: 12px; }
+.pl-ia-barras i { width: 3px; border-radius: 1.5px; background: currentColor; }
+.pl-ia-barras i:nth-child(1) { height: 5px; }
+.pl-ia-barras i:nth-child(2) { height: 8px; }
+.pl-ia-barras i:nth-child(3) { height: 12px; }
+.pl-ia-btn.vidrio { background: rgba(255, 255, 255, .1); border: 1px solid rgba(255, 255, 255, .14); color: var(--text-primary); box-shadow: none; }
+@media (max-width: 720px) {
+  .pl-hero { align-items: stretch; text-align: left; }
+  .pl-hero .sec-monto { font-size: 48px; line-height: 1; }
+  .pl-escala { max-width: none; }
+}
