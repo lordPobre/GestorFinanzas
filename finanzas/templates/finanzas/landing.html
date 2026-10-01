@@ -19,6 +19,7 @@
   <link rel="stylesheet" href="{% static 'vendor/fontawesome/css/all.min.css' %}">
   <link rel="stylesheet" href="{% static 'css/finapp.css' %}">
   <link rel="stylesheet" href="{% static 'css/landing-telefono.css' %}">
+  <link rel="stylesheet" href="{% static 'css/landing-esfera.css' %}">
   <script src="{% static 'js/pantallas/landing.js' %}" nonce="{{ csp_nonce }}"></script>
 </head>
 <body class="lp">
@@ -75,6 +76,39 @@
                 <span class="lt-ficha lila"><i class="fas fa-bolt"></i></span>
                 <span class="lt-fila-txt"><span>Cuenta de la luz</span><span>Vence 22 sep</span></span>
                 <span class="lt-monto">$31.400</span>
+              </div>
+            </div>
+          </div>
+          <div class="lt-escena" data-lp-escena data-lp-dura="8000">
+            <div class="lt-top" data-lp-fase="1">
+              <span class="lt-avatar">C</span>
+              <span class="lt-mes">Septiembre<i class="fas fa-chevron-down"></i></span>
+              <span class="lt-campana"><i class="fas fa-bell"></i><b></b></span>
+            </div>
+            <div class="lt-cifra" data-lp-fase="2">
+              <span class="lt-label">Puedes gastar</span>
+              <span class="lt-monto-grande">$412.300</span>
+              <span class="lt-chips"><span>Gastos</span><span>Ingresos</span><span class="on">Puedes gastar</span></span>
+            </div>
+            <div class="lt-ezona">
+              <div class="lt-esfera" data-lp-t="1500">
+                <span class="lt-orbe-caja"><span class="lpo verde" data-lp-t="3300"><span class="lpo-brillo"></span><span class="lpo-nucleo"><i class="b1"></i><i class="b2"></i><i class="b3"></i><i class="b4"></i><span class="lpo-luz"></span><span class="lpo-reflejo"></span><span class="lpo-borde"></span></span></span><span class="lt-toque" data-lp-t="3000"></span></span>
+                <span class="lt-etq"><b></b>Vas bien</span>
+                <span class="lt-voz" data-lp-t="3400"><i class="fas fa-volume-high"></i><span>«Este mes llevas el 48% de tu presupuesto. Vas bien.»</span></span>
+              </div>
+              <div class="lt-hoja lt-hoja-movil" data-lp-t="1100">
+                <span class="lt-asa"></span>
+                <div class="lt-pest"><span class="on">Por pagar</span><span>Movimientos</span><span>Metas</span></div>
+                <div class="lt-fila">
+                  <span class="lt-ficha azul"><i class="fas fa-credit-card"></i></span>
+                  <span class="lt-fila-txt"><span>Notebook</span><span>Cuota 3 de 12 · vence 18 sep</span></span>
+                  <span class="lt-monto">$54.990</span>
+                </div>
+                <div class="lt-fila">
+                  <span class="lt-ficha ambar"><i class="fas fa-rotate"></i></span>
+                  <span class="lt-fila-txt"><span>Plan celular</span><span>Suscripción · 20 sep</span></span>
+                  <span class="lt-monto">$12.990</span>
+                </div>
               </div>
             </div>
           </div>
@@ -146,6 +180,34 @@
     <div class="lp-ecuacion" data-lp-hijos>
       <div class="lp-chip"><span class="lp-op-in"></span><div class="lp-chip-etq">Entró</div><div class="lp-mono lp-chip-monto" style="color:var(--green)">$1.250.000</div></div><span class="lp-op">−</span><div class="lp-chip"><span class="lp-op-in">−</span><div class="lp-chip-etq">Gastos</div><div class="lp-mono lp-chip-monto" style="color:var(--text-primary)">$512.800</div></div><span class="lp-op">−</span><div class="lp-chip"><span class="lp-op-in">−</span><div class="lp-chip-etq">Cuotas</div><div class="lp-mono lp-chip-monto" style="color:var(--amber)">$186.900</div></div><span class="lp-op">−</span><div class="lp-chip"><span class="lp-op-in">−</span><div class="lp-chip-etq">Por pagar</div><div class="lp-mono lp-chip-monto" style="color:var(--coral)">$138.000</div></div><span class="lp-op">=</span>
       <div class="lp-chip lp-chip-total"><span class="lp-op-in">=</span><div class="lp-chip-etq">Libre</div><div class="lp-mono lp-chip-monto">$412.300</div></div>
+    </div>
+  </div>
+</section>
+
+<section class="lp-esfera">
+  <div class="lp-esfera-grid">
+    <div class="lp-esfera-texto" data-lp-revelar>
+      <div class="lp-eyebrow">La esfera</div>
+      <h2>Baja la hoja y la app te dice cómo vas.</h2>
+      <p>En el teléfono, detrás de tus pagos hay una esfera con el color de tu mes. Tócala y te dice en voz alta cuánto llevas gastado. En Cuotas te lee lo que debes y en Me deben, quién te debe y cuánto.</p>
+      <p class="lp-esfera-ayuda" data-lp-esfera-ayuda><i class="fas fa-volume-high"></i><span>Toca una esfera para escucharla.</span></p>
+    </div>
+    <div class="lp-esfera-estados" data-lp-hijos>
+      <button type="button" class="lp-esfera-op" data-lp-esfera data-frase="Este mes llevas el 48 por ciento de tu presupuesto. Vas bien: te quedan 412.300 pesos para el mes." aria-label="Escuchar el ejemplo verde">
+        <span class="lpo verde"><span class="lpo-brillo"></span><span class="lpo-nucleo"><i class="b1"></i><i class="b2"></i><i class="b3"></i><i class="b4"></i><span class="lpo-luz"></span><span class="lpo-reflejo"></span><span class="lpo-borde"></span></span></span>
+        <span class="lp-esfera-etq verde"><b></b>Vas bien</span>
+        <span class="lp-esfera-nota">Menos del 80% del presupuesto</span>
+      </button>
+      <button type="button" class="lp-esfera-op" data-lp-esfera data-frase="Este mes llevas el 86 por ciento de tu presupuesto. Estás cerca del límite: te quedan 112.000 pesos hasta fin de mes." aria-label="Escuchar el ejemplo amarillo">
+        <span class="lpo amarillo"><span class="lpo-brillo"></span><span class="lpo-nucleo"><i class="b1"></i><i class="b2"></i><i class="b3"></i><i class="b4"></i><span class="lpo-luz"></span><span class="lpo-reflejo"></span><span class="lpo-borde"></span></span></span>
+        <span class="lp-esfera-etq amarillo"><b></b>Cerca del límite</span>
+        <span class="lp-esfera-nota">Entre 80% y 99%</span>
+      </button>
+      <button type="button" class="lp-esfera-op" data-lp-esfera data-frase="Este mes llevas el 112 por ciento de tu presupuesto. Te pasaste por 96.000 pesos. Revisa qué gastos puedes mover al próximo mes." aria-label="Escuchar el ejemplo rojo">
+        <span class="lpo rojo"><span class="lpo-brillo"></span><span class="lpo-nucleo"><i class="b1"></i><i class="b2"></i><i class="b3"></i><i class="b4"></i><span class="lpo-luz"></span><span class="lpo-reflejo"></span><span class="lpo-borde"></span></span></span>
+        <span class="lp-esfera-etq rojo"><b></b>Pasaste el límite</span>
+        <span class="lp-esfera-nota">100% o más</span>
+      </button>
     </div>
   </div>
 </section>

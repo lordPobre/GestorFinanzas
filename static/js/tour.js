@@ -1,7 +1,7 @@
 (function () {
   'use strict';
 
-  var VERSION = 3;
+  var VERSION = 4;
 
   var LS_PASO = 'finapp.tour.paso';
   var LS_LISTO = 'finapp.tour.listo';
@@ -27,6 +27,12 @@
       sel: '[data-tour="registrar"]',
       titulo: 'Anotar un gasto o un ingreso',
       texto: 'Desde acá se anota todo, en cualquier pantalla. Se abre un panel con teclado de montos: eliges categoría, dices si ya lo pagaste y se guarda al toque.'
+    },
+    {
+      ruta: 'inicio', icono: 'fa-volume-high', desde: 4, esfera: true,
+      sel: '[data-tour="esfera"]',
+      titulo: 'La esfera de tu mes',
+      texto: 'Baja la hoja de tus pagos y aparece esta esfera. Se pone verde si vas bien, amarilla si te acercas al límite del presupuesto y roja si te pasaste. Tócala y te dice en voz alta cuánto llevas gastado. En Cuotas te lee lo que debes y en Me deben, quién te debe y cuánto.'
     },
     {
       ruta: 'importar', icono: 'fa-file-import', desde: 2,
@@ -153,6 +159,15 @@
   var modo = '';
   var invitacion = false;
   var capa = null, hueco = null, globo = null, pildora = null, objetivo = null;
+  var esperasEsfera = 0;
+
+  function esferaLista() {
+    return window.finappEsfera && window.finappEsfera.disponible();
+  }
+
+  function cerrarEsfera() {
+    if (window.finappEsfera && window.finappEsfera.abierta()) window.finappEsfera.cerrar();
+  }
 
   function fijarModo(m) {
     modo = m;
@@ -331,6 +346,22 @@
       if (pestana && !pestana.classList.contains('on')) pestana.click();
     }
 
+    if (paso.esfera) {
+      if (!window.finappEsfera && document.querySelector('[data-esfera]') && esperasEsfera < 20) {
+        esperasEsfera++;
+        setTimeout(function () { mostrar(n, saltos); }, 100);
+        return;
+      }
+      if (!esferaLista()) { mostrar(n + 1, saltos + 1); return; }
+      if (!window.finappEsfera.abierta()) {
+        window.finappEsfera.abrir();
+        setTimeout(function () { mostrar(n, saltos); }, 600);
+        return;
+      }
+    } else {
+      cerrarEsfera();
+    }
+
     var el = elementoDe(paso);
     if (!el) {
       if (saltos > secuencia.length) { cerrar(true); return; }
@@ -351,6 +382,7 @@
   }
 
   function avanzar(delta) {
+    cerrarEsfera();
     var n = indice + delta;
     if (n >= secuencia.length) { cerrar(true); return; }
     if (n < 0) n = 0;
@@ -363,6 +395,7 @@
   function ocultarCapa() { if (capa) capa.classList.remove('on'); }
 
   function cerrar(definitivo) {
+    cerrarEsfera();
     ocultarCapa();
     limpiarGesto();
     objetivo = null;

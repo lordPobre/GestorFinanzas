@@ -175,6 +175,13 @@
     });
   }
 
+  window.finappEsfera = {
+    disponible: () => mq.matches,
+    abierta: () => p > 0.5,
+    abrir: () => { if (mq.matches) abrir(); },
+    cerrar: () => fijar(0),
+  };
+
   medir();
   fijar(0);
 })();

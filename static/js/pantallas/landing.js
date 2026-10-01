@@ -301,11 +301,57 @@
     }
   }
 
+  function prepararEsfera() {
+    var botones = document.querySelectorAll('[data-lp-esfera]');
+    if (!botones.length) return;
+    var ayuda = document.querySelector('[data-lp-esfera-ayuda]');
+    var sintesis = window.speechSynthesis && window.SpeechSynthesisUtterance ? window.speechSynthesis : null;
+    if (!sintesis) {
+      if (ayuda) ayuda.hidden = true;
+      return;
+    }
+    sintesis.getVoices();
+    var activo = null;
+
+    function vozEspanol() {
+      var voces = sintesis.getVoices();
+      var porLang = function (f) { for (var i = 0; i < voces.length; i++) { if (f(voces[i].lang || '')) return voces[i]; } return null; };
+      return porLang(function (l) { return l === 'es-CL'; })
+        || porLang(function (l) { return l === 'es-US'; })
+        || porLang(function (l) { return l.toLowerCase().indexOf('es') === 0; });
+    }
+
+    function soltar() {
+      if (activo) activo.classList.remove('hablando');
+      activo = null;
+    }
+
+    botones.forEach(function (b) {
+      b.addEventListener('click', function () {
+        var era = activo === b;
+        sintesis.cancel();
+        soltar();
+        if (era) return;
+        var u = new SpeechSynthesisUtterance(b.dataset.frase || '');
+        var v = vozEspanol();
+        u.lang = v ? v.lang : 'es-CL';
+        if (v) u.voice = v;
+        u.onend = function () { if (activo === b) soltar(); };
+        u.onerror = function () { if (activo === b) soltar(); };
+        activo = b;
+        b.classList.add('hablando');
+        sintesis.speak(u);
+      });
+    });
+    window.addEventListener('pagehide', function () { sintesis.cancel(); });
+  }
+
   document.addEventListener('DOMContentLoaded', function () {
     var pantalla = document.querySelector('[data-lp-telefono]');
     if (pantalla) prepararTelefono(pantalla);
     prepararPestanas();
     prepararRevelado();
     prepararChat();
+    prepararEsfera();
   });
 })();
