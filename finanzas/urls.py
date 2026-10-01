@@ -122,6 +122,8 @@ urlpatterns = [
 
     path('sw.js', sistema.service_worker, name='service_worker'),
     path('salud/', sistema.salud, name='salud'),
+    path('.well-known/security.txt', sistema.security_txt, name='security_txt'),
+    path('security.txt', sistema.security_txt),
 ]
 
 RUTAS_ANTIGUAS = [

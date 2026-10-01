@@ -1,10 +1,25 @@
 import logging
+import os
 import secrets
+from urllib.parse import urlparse
 
 from django.conf import settings
 from django.utils import timezone
 
 log = logging.getLogger('finanzas')
+
+
+def _origenes_imagenes():
+    origenes = ["'self'", 'data:', 'blob:']
+    host = urlparse(os.environ.get('R2_ENDPOINT_URL', '').strip()).netloc
+    if host:
+        origenes += [f'https://{host}', f'https://*.{host}']
+    extra = os.environ.get('CSP_IMG_EXTRA', '').split()
+    origenes += [o for o in extra if o.startswith('https://')]
+    return ' '.join(origenes)
+
+
+IMG_SRC = _origenes_imagenes()
 
 
 class PoliticaContenidoMiddleware:
@@ -32,13 +47,14 @@ class PoliticaContenidoMiddleware:
             f"script-src 'self' 'nonce-{request.csp_nonce}'",
             "style-src 'self' 'unsafe-inline'",
             "font-src 'self'",
-            "img-src 'self' data: blob: https:",
+            f"img-src {IMG_SRC}",
             "connect-src 'self'",
             "frame-src 'none'",
             "object-src 'none'",
             "form-action 'self'",
             "frame-ancestors 'none'",
             "base-uri 'self'",
+            "upgrade-insecure-requests",
         ])
         respuesta['Permissions-Policy'] = (
             'camera=(), microphone=(), geolocation=(), payment=(), usb=()'

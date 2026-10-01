@@ -1,6 +1,8 @@
 import logging
+from datetime import timedelta
 
 from django.contrib.staticfiles import finders
+from django.utils import timezone
 from django.http import Http404, HttpResponse, JsonResponse
 from django.views.decorators.cache import cache_control
 
@@ -47,3 +49,20 @@ def salud(request):
 
     return JsonResponse({'estado': 'ok' if ok else 'degradado', 'partes': partes},
                         status=200 if ok else 503)
+
+
+@cache_control(max_age=86400, public=True)
+def security_txt(request):
+    from .. import legal
+
+    vence = (timezone.now() + timedelta(days=180)).replace(microsecond=0)
+    canonica = request.build_absolute_uri('/.well-known/security.txt')
+    texto = '\n'.join([
+        f'Contact: mailto:{legal.CORREO_CONTACTO}',
+        f'Expires: {vence.strftime("%Y-%m-%dT%H:%M:%SZ")}',
+        'Preferred-Languages: es, en',
+        f'Canonical: {canonica}',
+        f'Policy: {request.build_absolute_uri("/privacidad/")}',
+        '',
+    ])
+    return HttpResponse(texto, content_type='text/plain; charset=utf-8')
