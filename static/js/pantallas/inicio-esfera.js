@@ -1,6 +1,6 @@
 (() => {
-  const panel = document.querySelector('.ini-panel');
-  const hero = document.querySelector('.ini-hero');
+  const panel = document.querySelector('[data-esfera-hoja]');
+  const hero = document.querySelector('.ini-hero, .sec-hero');
   const esfera = document.querySelector('[data-esfera]');
   const asa = document.querySelector('[data-esfera-asa]');
   if (!panel || !hero || !esfera || !asa) return;
@@ -26,7 +26,8 @@
     const topeArriba = r.top - p * d + window.scrollY;
     const nav = document.querySelector('.bottomnav');
     const navTop = nav ? nav.getBoundingClientRect().top : window.innerHeight - 100;
-    const cab = pestanas ? pestanas.getBoundingClientRect().bottom - r.top + 12 : 80;
+    const tope = pestanas || asa;
+    const cab = tope.getBoundingClientRect().bottom - r.top + (pestanas ? 12 : 4);
     d = Math.max(0, Math.round(navTop - 12 - cab - topeArriba));
     if (accesos) {
       const ra = accesos.getBoundingClientRect();
@@ -60,7 +61,7 @@
     esfera.setAttribute('aria-hidden', abierta ? 'false' : 'true');
     if (bola) bola.tabIndex = abierta ? 0 : -1;
     asa.setAttribute('aria-expanded', abierta ? 'false' : 'true');
-    asa.setAttribute('aria-label', abierta ? 'Subir la hoja' : 'Bajar la hoja para ver cómo vas');
+    asa.setAttribute('aria-label', abierta ? 'Subir la hoja' : 'Bajar la hoja para ver el resumen');
     if (!abierta) callar();
   }
 

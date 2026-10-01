@@ -106,17 +106,7 @@
     </div>
   </div>
 
-  <div class="ini-esfera" data-esfera data-estado="{{ esfera.estado }}" data-frase="{{ esfera.frase }}" aria-hidden="true">
-    <button type="button" class="ini-esfera-bola" data-esfera-hablar tabindex="-1" aria-label="Escuchar cómo vas este mes">
-      <span class="eb-brillo"></span>
-      <span class="eb-nucleo"><i class="b1"></i><i class="b2"></i><i class="b3"></i><i class="b4"></i><span class="eb-luz"></span><span class="eb-reflejo"></span><span class="eb-borde"></span></span>
-    </button>
-    <div class="ini-esfera-txt">
-      <span class="ini-esfera-etq"><b></b>{{ esfera.etiqueta }}</span>
-      <span class="ini-esfera-nota">{{ esfera.texto }}</span>
-      <span class="ini-esfera-ayuda" data-esfera-ayuda><i class="fas fa-hand-pointer"></i><span>Toca la esfera para escucharlo</span></span>
-    </div>
-  </div>
+  {% include 'finanzas/_esfera.html' %}
 
   <div class="ini-lado">
     <div class="ini-tiles">
@@ -147,7 +137,7 @@
   </div>
 </section>
 
-<section class="ini-panel">
+<section class="ini-panel" data-esfera-hoja>
   <button type="button" class="ini-asa" data-esfera-asa aria-label="Bajar la hoja para ver cómo vas" aria-expanded="true"></button>
   <div class="ini-pestanas" data-pestanas role="tablist">
     <button type="button" class="on" data-pestana="pagar" role="tab">Por pagar</button>

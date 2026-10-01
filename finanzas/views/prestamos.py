@@ -6,7 +6,8 @@ from django.utils import timezone
 from django.views.decorators.http import require_POST
 
 from ..models import AbonoPrestamo, Persona, Prestamo
-from .comun import contadores, monto_post, redirigir
+from ..servicios.esfera import esfera_me_deben
+from .comun import contadores, monto_post, redirigir, simbolo_de
 
 
 def _totales_prestamos(personas):
@@ -34,6 +35,7 @@ def prestamos(request):
         'prestamos': list(seleccionada.prestamos.all()) if seleccionada else [],
     }
     context.update(_totales_prestamos(personas))
+    context['esfera'] = esfera_me_deben(request.user, personas, simbolo_de(request.user))
     context.update(contadores(request.user))
     return render(request, 'finanzas/prestamos.html', context)
 
@@ -52,6 +54,7 @@ def detalle_persona(request, persona_id):
         'prestamos': list(persona.prestamos.all()),
     }
     context.update(_totales_prestamos(personas))
+    context['esfera'] = esfera_me_deben(request.user, personas, simbolo_de(request.user))
     context.update(contadores(request.user))
     return render(request, 'finanzas/prestamos.html', context)
 

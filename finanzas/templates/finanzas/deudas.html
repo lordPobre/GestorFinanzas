@@ -4,6 +4,8 @@
 {% block search_placeholder %}Filtrar compras en cuotas{% endblock %}
 {% block title %}Cuotas · Fintora{% endblock %}
 
+{% block extra_head %}<link rel="stylesheet" href="{% static 'css/inicio-esfera.css' %}">{% endblock %}
+
 {% block content %}
 
 <div class="sec-top">
@@ -18,9 +20,11 @@
     <span class="chip-vidrio">Te faltan {{ total_restante|money }}</span>
     {% if se_libera %}<span class="chip-vidrio">Terminas {{ se_libera.fecha_fin_estimada|date:"b Y" }}</span>{% endif %}
   </div>
+  {% include 'finanzas/_esfera.html' %}
 </section>
 
-<section class="sec-hoja">
+<section class="sec-hoja" data-esfera-hoja>
+  <button type="button" class="ini-asa" data-esfera-asa aria-label="Bajar la hoja para ver el resumen" aria-expanded="true"></button>
   <div class="cu-lista">
     {% for d in deudas %}
     <article class="cu-card urg-{{ d.urgencia }}" data-desplegable data-searchable{% if forloop.first %} data-tour="gesto"{% endif %}>
@@ -185,5 +189,6 @@
 {% endblock %}
 
 {% block extra_js %}
+<script src="{% static 'js/pantallas/inicio-esfera.js' %}" nonce="{{ csp_nonce }}"></script>
 <script src="{% static 'js/pantallas/deudas.js' %}" nonce="{{ csp_nonce }}" data-cuota="{{ form.valor_cuota.id_for_label }}" data-cuotas="{{ form.cuotas_totales.id_for_label }}" data-inicio="{{ form.fecha_inicio.id_for_label }}"></script>
 {% endblock %}

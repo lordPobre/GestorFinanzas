@@ -4,6 +4,8 @@
 {% block search_placeholder %}Buscar persona o préstamo{% endblock %}
 {% block title %}Me deben · Fintora{% endblock %}
 
+{% block extra_head %}<link rel="stylesheet" href="{% static 'css/inicio-esfera.css' %}">{% endblock %}
+
 {% block content %}
 
 <div class="sec-top">
@@ -18,9 +20,11 @@
     <span class="chip-vidrio">{% if personas %}{{ personas|length }} persona{{ personas|length|pluralize:"s" }}{% else %}Nadie te debe{% endif %}</span>
     {% if total_recuperado %}<span class="chip-vidrio">Te devolvieron {{ total_recuperado|money }}</span>{% endif %}
   </div>
+  {% include 'finanzas/_esfera.html' %}
 </section>
 
-<section class="sec-hoja">
+<section class="sec-hoja" data-esfera-hoja>
+  <button type="button" class="ini-asa" data-esfera-asa aria-label="Bajar la hoja para ver el resumen" aria-expanded="true"></button>
   <div class="md-lista">
     {% for p in personas %}
     {% if persona and p.pk == persona.pk %}
@@ -280,5 +284,6 @@
 {% endblock %}
 
 {% block extra_js %}
+<script src="{% static 'js/pantallas/inicio-esfera.js' %}" nonce="{{ csp_nonce }}"></script>
 <script src="{% static 'js/pantallas/prestamos.js' %}" nonce="{{ csp_nonce }}"></script>
 {% endblock %}

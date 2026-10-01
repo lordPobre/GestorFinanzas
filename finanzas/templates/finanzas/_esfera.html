@@ -1,0 +1,11 @@
+<div class="ini-esfera" data-esfera data-estado="{{ esfera.estado }}" data-frase="{{ esfera.frase }}" aria-hidden="true">
+  <button type="button" class="ini-esfera-bola" data-esfera-hablar tabindex="-1" aria-label="Escuchar el resumen">
+    <span class="eb-brillo"></span>
+    <span class="eb-nucleo"><i class="b1"></i><i class="b2"></i><i class="b3"></i><i class="b4"></i><span class="eb-luz"></span><span class="eb-reflejo"></span><span class="eb-borde"></span></span>
+  </button>
+  <div class="ini-esfera-txt">
+    <span class="ini-esfera-etq"><b></b>{{ esfera.etiqueta }}</span>
+    <span class="ini-esfera-nota">{{ esfera.texto }}</span>
+    <span class="ini-esfera-ayuda" data-esfera-ayuda><i class="fas fa-hand-pointer"></i><span>Toca la esfera para escucharlo</span></span>
+  </div>
+</div>

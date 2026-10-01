@@ -6,7 +6,8 @@ from django.utils import timezone
 
 from ..forms import DeudaForm
 from ..models import Deuda, PagoCuota, Transaccion
-from .comun import contadores, redirigir
+from ..servicios.esfera import esfera_cuotas
+from .comun import contadores, redirigir, simbolo_de
 
 
 @login_required(login_url='/login/')
@@ -37,6 +38,7 @@ def deudas(request):
         'se_libera': proximas[0] if proximas else None,
         'form': DeudaForm(),
     }
+    context['esfera'] = esfera_cuotas(request.user, activas, simbolo_de(request.user))
     context.update(contadores(request.user))
     return render(request, 'finanzas/deudas.html', context)
 
