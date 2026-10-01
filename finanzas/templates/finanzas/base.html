@@ -457,12 +457,12 @@
 
 {% block modals %}{% endblock %}
 
-<script src="{% static 'js/finapp.js' %}"></script>
+<script src="{% static 'js/finapp.js' %}" nonce="{{ request.csp_nonce }}"></script>
 <script src="{% static 'js/pantallas/anotar.js' %}" nonce="{{ csp_nonce }}" data-marcas="{% static 'data/marcas.json' %}"></script>
 <script src="{% static 'js/pantallas/cuenta.js' %}" nonce="{{ csp_nonce }}"></script>
 <script src="{% static 'js/pantallas/secciones.js' %}" nonce="{{ csp_nonce }}"></script>
 <script src="{% static 'js/pantallas/base-4.js' %}" nonce="{{ csp_nonce }}" {% if abrir_panel or request.GET.registrar %}data-abrir-panel="1"{% endif %}></script>
-<script src="{% static 'js/tour.js' %}"></script>
+<script src="{% static 'js/tour.js' %}" nonce="{{ request.csp_nonce }}"></script>
 <script src="{% static 'js/pantallas/base-5.js' %}" nonce="{{ csp_nonce }}" data-ruta-inicio="{% url 'dashboard' %}" data-ruta-cuotas="{% url 'deudas' %}" data-ruta-suscripciones="{% url 'suscripciones' %}" data-ruta-prestamos="{% url 'prestamos' %}" data-ruta-metas="{% url 'metas' %}" data-ruta-estadisticas="{% url 'estadisticas' %}" data-ruta-analisis="{% url 'analisis_predictivo' %}" data-ruta-importar="{% url 'importar_cartola' %}" data-ruta-perfil="{% url 'perfil' %}"></script>
 {% block extra_js %}{% endblock %}
 </body>
