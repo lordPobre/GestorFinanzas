@@ -106,7 +106,7 @@ Detalle completo en [docs/DESPLIEGUE-RAILWAY.md](docs/DESPLIEGUE-RAILWAY.md).
 core/              settings, urls, wsgi
 finanzas/
   models/          un archivo por tema: movimientos, cuotas, metas, suscripciones,
-                   prestamos, perfil, seguridad, encuesta, sugerencias
+                   prestamos, perfil, seguridad, encuesta
   forms.py
   urls.py
   views/           una pantalla o grupo de pantallas por archivo
@@ -118,7 +118,6 @@ finanzas/
     cartola.py  encuesta.py  passkeys.py
   servicios/       cálculos sin request: reciben usuario y fechas, devuelven datos
     mes.py  cuotas.py  pendientes.py  suscripciones.py  panel.py
-    ritmo.py  detectar_suscripciones.py
   cartolas/        un lector por banco, más uno genérico
   analisis.py      motor determinístico del diagnóstico
   ia.py            interpretación con Claude, opcional
@@ -151,6 +150,30 @@ python manage.py limpiar_avatares_huerfanos
 `limpiar_inactivas` corre a diario y no hace nada la mayoría de los días:
 avisa a los 12 meses sin uso y borra 30 días después de ese aviso. Con
 `--seco` dice qué haría sin enviar ni borrar nada.
+
+## Seguridad
+
+| Revisión | Nota | Resultado |
+| --- | --- | --- |
+| SSL Labs | A+ | [informe](https://www.ssllabs.com/ssltest/analyze.html?d=fintora.cl) |
+| Mozilla Observatory | A | [informe](https://developer.mozilla.org/es/observatory/analyze?host=fintora.cl) |
+| internet.nl | | [prueba](https://internet.nl/site/fintora.cl/) |
+
+Última revisión: octubre de 2026. La fecha y los enlaces viven en
+`finanzas/legal.py` (`REVISION_SEGURIDAD`, `INFORME_*`); al volver a pasar las
+pruebas, se cambia ahí y en esta tabla.
+
+- `/seguridad/`: página pública que explica las protecciones en lenguaje simple.
+- `/.well-known/security.txt`: contacto para reportar fallas. Lo arma
+  `views/sistema.py` con el correo de `legal.py`, y el vencimiento se renueva
+  solo, 180 días adelante. Su campo `Policy` apunta a `/seguridad/`.
+- En el código: `seguridad.py` (bloqueos y límites de peticiones),
+  `middleware.py` (CSP con nonce), `core/settings.py` (HSTS, cookies, cabeceras).
+- En Cloudflare: TLS 1.2 como mínimo, TLS 1.3 activo y registros CAA para
+  Let's Encrypt. Se configuran en el panel de Cloudflare, no en el repositorio.
+
+Fallas de seguridad: escribir a soporte@perseustechnology.dev, no abrir un
+issue público.
 
 ## Documentación
 

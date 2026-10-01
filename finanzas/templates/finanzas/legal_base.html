@@ -22,22 +22,23 @@
     <div class="legal-nav-acciones">
       <div class="legal-tabs">
         <a href="{% url 'privacidad' %}"{% block actual_privacidad %}{% endblock %}>Privacidad</a>
-        <a href="{% url 'terminos' %}"{% block actual_terminos %}{% endblock %}>Términos de uso</a>
+        <a href="{% url 'terminos' %}"{% block actual_terminos %}{% endblock %}>Términos</a>
+        <a href="{% url 'seguridad' %}"{% block actual_seguridad %}{% endblock %}>Seguridad</a>
       </div>
       <a href="{% url 'dashboard' %}" class="legal-volver"><span>Volver a Fintora</span><i class="fas fa-arrow-right legal-volver-flecha" aria-hidden="true"></i><i class="fas fa-xmark legal-volver-cerrar" aria-hidden="true"></i></a>
     </div>
   </nav>
   <div class="legal-hero">
     <div>
-      <div class="legal-eyebrow">Documento legal</div>
+      <div class="legal-eyebrow">{% block eyebrow %}Documento legal{% endblock %}</div>
       <h1>{% block encabezado %}{% endblock %}</h1>
       <div class="legal-intro">{% block intro %}{% endblock %}</div>
     </div>
-    <dl class="legal-version">
+    {% block ficha %}<dl class="legal-version">
       <div><dt>Versión</dt><dd class="legal-mono">{{ version }}</dd></div>
       <div><dt>Vigente desde</dt><dd>{{ vigente_desde }}</dd></div>
       {% block normativa %}<div><dt>Normativa</dt><dd>Ley 21.719, Chile</dd></div>{% endblock %}
-    </dl>
+    </dl>{% endblock %}
   </div>
 </header>
 
@@ -65,7 +66,7 @@
       <a href="mailto:{{ correo_contacto }}"><span>{{ correo_contacto }}</span><i class="fas fa-arrow-right"></i></a>
     </div>
     <div class="legal-pie">
-      <span>Versión {{ version }}, vigente desde {{ vigente_desde }}.</span>
+      <span>{% block pie_version %}Versión {{ version }}, vigente desde {{ vigente_desde }}.{% endblock %}</span>
       <span>{% block ver_tambien %}{% endblock %}</span>
     </div>
   </div>

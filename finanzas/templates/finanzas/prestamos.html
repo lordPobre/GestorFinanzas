@@ -46,6 +46,7 @@
             <span class="md-prestamo-nombre">{{ x.descripcion }}<span class="sec-badge chico {% if x.tipo == 'CUOTAS' %}azul{% else %}gris{% endif %}">{% if x.tipo == 'CUOTAS' %}En cuotas{% else %}Pago único{% endif %}</span></span>
             <span class="md-prestamo-monto">{% if x.esta_pagado %}Saldado{% else %}{{ x.monto_pendiente|money }}{% endif %}</span>
           </span>
+          {% if x.tipo == 'CUOTAS' %}<span class="sec-meta" style="margin-top:-4px">{% if x.esta_pagado %}{{ x.cuotas_totales }} de {{ x.cuotas_totales }} cuotas pagadas{% else %}Cuota {{ x.cuotas_abonadas|add:1 }} de {{ x.cuotas_totales }} · {{ x.monto_cuota|money }}{% endif %}</span>{% endif %}
           <span class="md-barra"><span style="width:{{ x.porcentaje }}%"></span></span>
         </button>
         {% endfor %}

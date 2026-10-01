@@ -1,0 +1,87 @@
+{% extends 'finanzas/base.html' %}
+{% load humanize %}
+{% block title %}Actividad de la cuenta · Fintora{% endblock %}
+{% block topbar_sub %}Actividad de la cuenta{% endblock %}
+
+
+{% block content %}
+<div class="sec-top centrado">
+  <a href="{% url 'perfil' %}#seguridad" class="sec-volver" aria-label="Volver"><i class="fas fa-chevron-left"></i></a>
+  <h1 class="sec-titulo">Actividad</h1>
+  <span class="sec-hueco" aria-hidden="true"></span>
+</div>
+
+<section class="sec-hero">
+  <span class="sec-label">Entradas a tu cuenta</span>
+  <span class="sec-monto">{{ accesos }}</span>
+  <div class="sec-chips">
+    <span class="chip-vidrio">últimos {{ dias_mostrados }} días</span>
+    {% if fallidos %}<span class="chip-vidrio"><b>{{ fallidos }}</b> intento{{ fallidos|pluralize:"s" }} fallido{{ fallidos|pluralize:"s" }}</span>{% endif %}
+  </div>
+</section>
+
+<section class="sec-hoja fo-hoja fo-form fo-azul">
+<div class="fo-cuerpo">
+
+  <div class="glass card" style="margin-bottom:16px;display:flex;gap:13px;align-items:flex-start">
+    <span class="icono-aviso {% if fallidos %}coral{% else %}ambar{% endif %}">
+      <i class="fas {% if fallidos %}fa-triangle-exclamation{% else %}fa-shield-halved{% endif %}"></i>
+    </span>
+    <div>
+      {% if fallidos %}
+      <div class="row-title" style="margin-bottom:3px">¿Fuiste tú en todos los intentos fallidos?</div>
+      <div class="row-meta">
+        Si no reconoces alguno, cambia la contraseña, cierra las otras sesiones
+        y activa la verificación en dos pasos.
+      </div>
+      {% else %}
+      <div class="row-title" style="margin-bottom:3px">Cada entrada y cada cambio de seguridad</div>
+      <div class="row-meta">
+        Si ves algo que no reconoces, cambia la contraseña y cierra las otras
+        sesiones.
+      </div>
+      {% endif %}
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">
+        <a href="{% url 'perfil' %}#seguridad" class="btn btn-glass btn-sm">Cambiar contraseña</a>
+        <a href="{% url 'sesiones_activas' %}" class="btn btn-glass btn-sm">Sesiones abiertas</a>
+        {% if not user.segundo_factor.activo %}<a href="{% url 'configurar_2fa' %}" class="btn btn-glass btn-sm">Activar dos pasos</a>{% endif %}
+      </div>
+    </div>
+  </div>
+
+  {% for dia in dias %}
+  <div class="hint" style="margin:20px 4px 8px;font-size:12px;font-weight:800;letter-spacing:.04em;text-transform:uppercase">
+    {% if dia.hoy %}Hoy{% elif dia.ayer %}Ayer{% else %}{{ dia.fecha|date:"l j \d\e F" }}{% endif %}
+  </div>
+  <div class="glass" style="border-radius:24px;overflow:hidden">
+    {% for f in dia.filas %}
+    <div class="fila-lista">
+      <span class="icon-tile {{ f.color }}"><i class="fas {{ f.icono }}"></i></span>
+      <div class="row-main">
+        <div class="row-title">
+          {{ f.titulo }}
+          {% if f.alerta %}<span class="badge badge-coral" style="margin-left:7px">Fallido</span>{% endif %}
+        </div>
+        <div class="row-meta">
+          {{ f.cuando|time:"H:i" }}{% if f.nota %} · {{ f.nota }}{% endif %}{% if f.aparato %} · {{ f.aparato }}{% endif %}{% if f.ip %} · {{ f.ip }}{% endif %}
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% empty %}
+  <div class="glass" style="border-radius:24px;padding:26px 20px;text-align:center">
+    <div class="row-meta">No hay actividad en los últimos {{ dias_mostrados }} días.</div>
+  </div>
+  {% endfor %}
+
+  <div class="hint" style="font-size:11.5px;margin-top:16px;line-height:1.55;max-width:60ch">
+    Acá ves los últimos {{ dias_mostrados }} días. El registro se guarda
+    {{ meses_conservacion }} meses y después se borra solo. La dirección IP y el
+    aparato son los que informó el navegador: si entras desde el celular, la
+    dirección puede cambiar varias veces al día.
+  </div>
+
+</div>
+</section>
+{% endblock %}

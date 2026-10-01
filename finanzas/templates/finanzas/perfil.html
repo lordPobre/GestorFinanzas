@@ -247,6 +247,15 @@
             <i class="fas fa-chevron-right pf-flecha"></i>
           </a>
 
+          <a href="{% url 'actividad_cuenta' %}" class="pf-fila">
+            <span class="pf-icono azul"><i class="fas fa-clock-rotate-left"></i></span>
+            <span class="pf-txt">
+              <span class="pf-titulo">Actividad de la cuenta</span>
+              <span class="pf-meta">Entradas, intentos fallidos y cambios de seguridad</span>
+            </span>
+            <i class="fas fa-chevron-right pf-flecha"></i>
+          </a>
+
           <div class="pf-fila">
             <span class="pf-icono{% if profile.correo_verificado %} verde{% else %} rojo{% endif %}"><i class="fas fa-envelope-circle-check"></i></span>
             <span class="pf-txt">

@@ -1,0 +1,122 @@
+{% extends 'finanzas/legal_base.html' %}
+{% block title %}Seguridad · Fintora{% endblock %}
+{% block actual_seguridad %} aria-current="page"{% endblock %}
+{% block eyebrow %}Seguridad{% endblock %}
+{% block encabezado %}Cómo se protege tu cuenta{% endblock %}
+
+{% block intro %}
+<p>
+  Lo que hace Fintora para que tus datos viajen cifrados, para que nadie más
+  entre a tu cuenta y para que otra persona no pueda ver lo que anotaste.
+</p>
+{% endblock %}
+
+{% block ficha %}<dl class="legal-version">
+  <div><dt>SSL Labs</dt><dd class="legal-mono">A+</dd></div>
+  <div><dt>Mozilla Observatory</dt><dd class="legal-mono">A</dd></div>
+  <div><dt>Última revisión</dt><dd>{{ revision_seguridad }}</dd></div>
+</dl>{% endblock %}
+
+{% block cuerpo %}
+
+<section id="resultados">
+<h2>Revisiones externas</h2>
+<p>
+  Estos servicios revisan el sitio desde fuera, sin acceso al código. Los
+  enlaces abren el resultado en vivo: si algo cambia, ahí se ve.
+</p>
+<div class="legal-proveedores">
+  <div class="legal-proveedor">
+    <div class="legal-proveedor-cabeza"><b>SSL Labs</b><span class="legal-pais"><i class="fas fa-check"></i>A+</span></div>
+    <p>Revisa el cifrado de la conexión: versiones de TLS, certificado y HSTS. <a href="{{ informe_ssl_labs }}" target="_blank" rel="noopener">Ver el resultado</a></p>
+  </div>
+  <div class="legal-proveedor">
+    <div class="legal-proveedor-cabeza"><b>Mozilla Observatory</b><span class="legal-pais"><i class="fas fa-check"></i>A</span></div>
+    <p>Revisa las cabeceras de seguridad que recibe tu navegador. <a href="{{ informe_observatory }}" target="_blank" rel="noopener">Ver el resultado</a></p>
+  </div>
+  <div class="legal-proveedor">
+    <div class="legal-proveedor-cabeza"><b>internet.nl</b><span class="legal-pais"><i class="fas fa-magnifying-glass"></i>Prueba abierta</span></div>
+    <p>Revisa conexión, DNS y estándares de internet. <a href="{{ informe_internet_nl }}" target="_blank" rel="noopener">Hacer la prueba</a></p>
+  </div>
+</div>
+</section>
+
+<section id="conexion">
+<h2>La conexión</h2>
+<ul class="legal-checks">
+  <li><span class="legal-icono-si"><i class="fas fa-check"></i></span><span>Todo va por HTTPS. Si alguien entra por http, se le redirige, y el navegador recuerda durante un año que nunca debe conectarse sin cifrar (HSTS).</span></li>
+  <li><span class="legal-icono-si"><i class="fas fa-check"></i></span><span>Solo se aceptan TLS 1.2 y TLS 1.3. Las versiones antiguas están desactivadas.</span></li>
+  <li><span class="legal-icono-si"><i class="fas fa-check"></i></span><span>El dominio declara qué autoridad puede emitir sus certificados (registro CAA), para que nadie más pueda sacar uno a nombre de Fintora.</span></li>
+</ul>
+</section>
+
+<section id="cuenta">
+<h2>Tu cuenta</h2>
+<ul class="legal-checks">
+  <li><span class="legal-icono-si"><i class="fas fa-check"></i></span><span>Las contraseñas se guardan con Argon2. Ni siquiera quien administra el servicio puede leerlas.</span></li>
+  <li><span class="legal-icono-si"><i class="fas fa-check"></i></span><span>Cinco intentos fallidos bloquean el acceso durante 15 minutos. Además
+    hay un tope por cuenta, aunque los intentos vengan de direcciones
+    distintas, y otro por dirección, aunque prueben cuentas distintas.</span></li>
+  <li><span class="legal-icono-si"><i class="fas fa-check"></i></span><span>Los enlaces que llegan por correo, para confirmar la cuenta o cambiar la contraseña, aceptan un número limitado de intentos por hora.</span></li>
+  <li><span class="legal-icono-si"><i class="fas fa-check"></i></span><span>Verificación en dos pasos disponible, con códigos de respaldo.</span></li>
+  <li><span class="legal-icono-si"><i class="fas fa-check"></i></span><span>Entrada con Face ID o huella, que no depende de una contraseña que se pueda adivinar o filtrar.</span></li>
+  <li><span class="legal-icono-si"><i class="fas fa-check"></i></span><span>La sesión se cierra sola después de 8 horas sin uso.</span></li>
+  <li><span class="legal-icono-si"><i class="fas fa-check"></i></span><span>Puedes ver desde qué aparatos está abierta tu cuenta y cerrar cualquiera a distancia, desde Perfil.</span></li>
+  <li><span class="legal-icono-si"><i class="fas fa-check"></i></span><span>Cada acceso, cada intento fallido y cada cambio de seguridad queda anotado con fecha, dirección y navegador. Es lo que permite reconstruir qué pasó si algo sale mal.</span></li>
+</ul>
+</section>
+
+<section id="navegador">
+<h2>En tu navegador</h2>
+<ul class="legal-checks">
+  <li><span class="legal-icono-si"><i class="fas fa-check"></i></span><span>Política de contenido con un valor único por respuesta: un script ajeno que alguien intente meter en la página no se ejecuta.</span></li>
+  <li><span class="legal-icono-si"><i class="fas fa-check"></i></span><span>Las imágenes solo se cargan desde el propio sitio y desde el almacenamiento de Fintora.</span></li>
+  <li><span class="legal-icono-si"><i class="fas fa-check"></i></span><span>Las tipografías, los iconos y los gráficos se cargan desde el propio servidor: tu navegador no le pide nada a terceros.</span></li>
+  <li><span class="legal-icono-si"><i class="fas fa-check"></i></span><span>Ningún otro sitio puede mostrar Fintora dentro de un marco, que es como se arman las páginas falsas que imitan un botón.</span></li>
+  <li><span class="legal-icono-si"><i class="fas fa-check"></i></span><span>Las cookies de sesión solo viajan por HTTPS y no las puede leer ningún script.</span></li>
+</ul>
+</section>
+
+<section id="datos">
+<h2>Tus datos</h2>
+<ul class="legal-checks">
+  <li><span class="legal-icono-si"><i class="fas fa-check"></i></span><span>Cada consulta a la base filtra por tu usuario, y hay pruebas automáticas
+    que verifican que nadie alcance los datos de otro cambiando un número en
+    la dirección.</span></li>
+  <li><span class="legal-icono-si"><i class="fas fa-check"></i></span><span>La base está en una red privada, con el almacenamiento cifrado por el proveedor.</span></li>
+  <li><span class="legal-icono-si"><i class="fas fa-check"></i></span><span>La foto de perfil está en un almacenamiento privado y se muestra con enlaces que caducan a las pocas horas.</span></li>
+  <li><span class="legal-icono-si"><i class="fas fa-check"></i></span><span>Una copia diaria de la base, verificada, en un almacenamiento privado separado del resto.</span></li>
+</ul>
+<p>
+  El detalle de qué se guarda, dónde y por cuánto tiempo está en la
+  <a href="{% url 'privacidad' %}">política de privacidad</a>.
+</p>
+</section>
+
+<section id="reportar">
+<h2>Si encuentras una falla</h2>
+<p>
+  Escribe a <a href="mailto:{{ correo_contacto }}">{{ correo_contacto }}</a>
+  con lo que encontraste y cómo reproducirlo. Se agradece el aviso y se
+  responde por correo.
+</p>
+<p>
+  Mientras lo revisas, no entres a datos de otras personas ni hagas pruebas
+  que dejen el servicio sin funcionar. Los datos de contacto también están en
+  <a href="{% url 'security_txt' %}">security.txt</a>, el formato estándar
+  para estos avisos.
+</p>
+<div class="legal-aviso">
+  <span class="legal-aviso-icono"><i class="fas fa-triangle-exclamation"></i></span>
+  <p>
+    Ningún sistema es invulnerable. Si ocurre un incidente que afecte tus datos,
+    se te avisará por correo con lo que se sepa y lo que convenga que hagas, y se
+    notificará a la autoridad dentro del plazo legal.
+  </p>
+</div>
+</section>
+
+{% endblock %}
+
+{% block pie_version %}Última revisión: {{ revision_seguridad }}.{% endblock %}
+{% block ver_tambien %}Ver también la <a href="{% url 'privacidad' %}">política de privacidad</a>.{% endblock %}

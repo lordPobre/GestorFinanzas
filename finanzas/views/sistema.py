@@ -62,7 +62,7 @@ def security_txt(request):
         f'Expires: {vence.strftime("%Y-%m-%dT%H:%M:%SZ")}',
         'Preferred-Languages: es, en',
         f'Canonical: {canonica}',
-        f'Policy: {request.build_absolute_uri("/privacidad/")}',
+        f'Policy: {request.build_absolute_uri("/seguridad/")}',
         '',
     ])
     return HttpResponse(texto, content_type='text/plain; charset=utf-8')

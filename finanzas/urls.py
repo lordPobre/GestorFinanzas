@@ -3,7 +3,7 @@ from django.http import HttpResponseRedirect
 from django.urls import path, reverse
 
 from . import google_login, legal
-from .views import (analisis, cartola, categorias, cuenta, cuotas, descargas,
+from .views import (actividad, analisis, cartola, categorias, cuenta, cuotas, descargas,
                     encuesta, estadisticas, landing, metas, movimientos, passkeys, plan, prestamos, sistema, suscripciones)
 
 
@@ -77,6 +77,7 @@ urlpatterns = [
     path('perfil/mis-datos/', cuenta.mis_datos, name='mis_datos'),
     path('perfil/eliminar-cuenta/', cuenta.eliminar_cuenta, name='eliminar_cuenta'),
     path('perfil/sesiones/', cuenta.sesiones_activas, name='sesiones_activas'),
+    path('perfil/actividad/', actividad.actividad, name='actividad_cuenta'),
     path('perfil/dos-pasos/', cuenta.configurar_2fa, name='configurar_2fa'),
     path('perfil/face-id/', passkeys.passkeys, name='passkeys'),
     path('perfil/face-id/opciones/', passkeys.registro_opciones, name='passkey_registro_opciones'),
@@ -119,6 +120,7 @@ urlpatterns = [
 
     path('privacidad/', legal.privacidad, name='privacidad'),
     path('terminos/', legal.terminos, name='terminos'),
+    path('seguridad/', legal.seguridad, name='seguridad'),
 
     path('sw.js', sistema.service_worker, name='service_worker'),
     path('salud/', sistema.salud, name='salud'),
