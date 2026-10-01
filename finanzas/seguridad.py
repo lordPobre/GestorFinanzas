@@ -78,7 +78,7 @@ def limpiar_intentos(usuario, ip):
         cache.delete(f"login-cuenta:{usuario}")
 
 
-def limitar(veces, segundos, mensaje=None):
+def limitar(veces, segundos, mensaje=None, destino="dashboard"):
     def decorador(vista):
         @wraps(vista)
         def envoltorio(request, *args, **kwargs):
@@ -96,7 +96,7 @@ def limitar(veces, segundos, mensaje=None):
                 if request.headers.get("X-Requested-With") == "XMLHttpRequest":
                     return JsonResponse({"ok": False, "msg": texto}, status=429)
                 messages.warning(request, texto)
-                return redirect("dashboard")
+                return redirect(destino)
 
             cache.set(clave, (usados + 1, vence), max(1, int(vence - ahora)))
             return vista(request, *args, **kwargs)

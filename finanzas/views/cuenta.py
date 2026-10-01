@@ -304,6 +304,7 @@ def recuperar(request):
     return render(request, 'registration/recuperar.html',
                   {'enviado': enviado, 'email': correo_txt})
 
+@limitar(20, 3600, 'Demasiados intentos con enlaces de recuperación. Prueba más tarde.', destino='login')
 def restablecer(request, uidb64, token):
     from django.contrib.auth.forms import SetPasswordForm
     from django.contrib.auth.tokens import default_token_generator
@@ -714,6 +715,7 @@ def eliminar_cuenta(request):
     messages.success(request, 'Tu cuenta y todos tus datos fueron eliminados.')
     return redirect('login')
 
+@limitar(20, 3600, 'Demasiados intentos con enlaces de confirmación. Prueba más tarde.', destino='login')
 def verificar_correo(request, token):
     usuario = verificacion.usuario_de(token)
     if usuario is None:

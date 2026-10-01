@@ -1,0 +1,8 @@
+{% extends "error_base.html" %}
+{% block title %}La sesión venció{% endblock %}
+{% block tono %}ambar{% endblock %}
+{% block etiqueta %}Sesión vencida{% endblock %}
+{% block codigo %}403{% endblock %}
+{% block titulo %}La página estuvo abierta mucho rato.{% endblock %}
+{% block texto %}Por seguridad, el formulario dejó de ser válido. Vuelve a entrar y repite lo que estabas haciendo.{% endblock %}
+{% block acciones %}<a class="er-btn principal" href="/login/">Volver a entrar</a><a class="er-btn vidrio" href="/">Ir al inicio</a>{% endblock %}
