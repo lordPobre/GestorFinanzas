@@ -17,7 +17,7 @@
       texto: 'Este número es lo que te queda para el resto del mes: lo que entró, menos tus gastos, las cuotas y lo que todavía tienes por pagar. Al lado están lo que debes y lo que te deben.'
     },
     {
-      ruta: 'inicio', icono: 'fa-heart-pulse', desde: 2,
+      ruta: 'inicio', icono: 'fa-heart-pulse', desde: 2, soloEscritorio: true,
       sel: '[data-tour="salud"]',
       titulo: 'La salud de tu mes',
       texto: 'Un número del 1 al 100 que resume cuánto de lo que entró ya está comprometido en cuotas, suscripciones y cuentas por pagar. Baja cuando te endeudas y sube cuando pagas.'
@@ -29,7 +29,7 @@
       texto: 'Desde acá se anota todo, en cualquier pantalla. Se abre un panel con teclado de montos: eliges categoría, dices si ya lo pagaste y se guarda al toque.'
     },
     {
-      ruta: 'inicio', icono: 'fa-volume-high', desde: 4, esfera: true,
+      ruta: 'inicio', icono: 'fa-volume-high', desde: 4, esfera: true, soloTelefono: true,
       sel: '[data-tour="esfera"]',
       titulo: 'La esfera de tu mes',
       texto: 'Baja la hoja de tus pagos y aparece esta esfera. Se pone verde si vas bien, amarilla si te acercas al límite del presupuesto y roja si te pasaste. Tócala y te dice en voz alta cuánto llevas gastado. También está en Cuotas, Me deben, Suscripciones y Metas, con el resumen de cada una.'
@@ -145,6 +145,9 @@
       texto: 'Desde tu perfil descargas todo en Excel o CSV, con una hoja por mes. Acá también se cambia el presupuesto y se vuelve a ver este tour.'
     }
   ];
+
+  var TELEFONO = !!(window.matchMedia && window.matchMedia('(max-width: 720px)').matches);
+  PASOS = PASOS.filter(function (p) { return TELEFONO ? !p.soloEscritorio : !p.soloTelefono; });
 
   var NUEVOS = [];
 
