@@ -5,56 +5,91 @@
 
   var reducir = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   var timers = [];
-  var cuadro = null;
+  var cuadros = [];
 
   function formatear(n) { return '$' + n.toLocaleString('es-CL'); }
 
   function parar() {
     timers.forEach(clearTimeout);
     timers = [];
-    if (cuadro) cancelAnimationFrame(cuadro);
+    cuadros.forEach(cancelAnimationFrame);
+    cuadros = [];
   }
 
-  function animarTelefono(pantalla) {
-    var fases = pantalla.querySelectorAll('[data-lp-fase]');
-    var cifra = pantalla.querySelector('[data-lp-cifra]');
-    var barra = pantalla.querySelector('[data-lp-barra]');
-    var pagada = pantalla.querySelector('[data-lp-pagada]');
+  function contar(cifra) {
     var meta = Number(cifra.dataset.meta) || 0;
+    var inicio = performance.now();
+    var duracion = 1300;
+    function paso(ahora) {
+      var p = Math.min(1, (ahora - inicio) / duracion);
+      cifra.textContent = formatear(Math.round(meta * (1 - Math.pow(1 - p, 3))));
+      if (p < 1) cuadros.push(requestAnimationFrame(paso));
+    }
+    cuadros.push(requestAnimationFrame(paso));
+  }
 
-    parar();
+  function animarEscena(escena) {
+    var fases = escena.querySelectorAll('[data-lp-fase]');
+    var marcas = escena.querySelectorAll('[data-lp-t]:not([data-lp-barra])');
+    var barras = escena.querySelectorAll('[data-lp-barra]');
+    var cifras = escena.querySelectorAll('[data-lp-cifra]');
+
     if (reducir) {
       fases.forEach(function (el) { el.classList.add('lp-ok'); });
-      if (pagada) pagada.classList.add('lp-ok');
+      marcas.forEach(function (el) { el.classList.add('lp-ok'); });
+      barras.forEach(function (el) { el.style.width = el.dataset.ancho; });
       return;
     }
 
     fases.forEach(function (el) { el.classList.remove('lp-ok'); });
-    if (pagada) pagada.classList.remove('lp-ok');
-    cifra.textContent = formatear(0);
-    if (barra) {
-      barra.style.transition = 'none';
-      barra.style.width = '0%';
-      void barra.offsetWidth;
-      barra.style.transition = '';
-    }
+    marcas.forEach(function (el) { el.classList.remove('lp-ok'); });
+    cifras.forEach(function (el) { el.textContent = formatear(0); });
+    barras.forEach(function (el) {
+      el.style.transition = 'none';
+      el.style.width = '0%';
+      void el.offsetWidth;
+      el.style.transition = '';
+    });
 
     var tiempos = { 1: 250, 2: 550, 3: 1350, 4: 1650, 5: 1850, 6: 2050 };
     fases.forEach(function (el) {
       timers.push(setTimeout(function () { el.classList.add('lp-ok'); }, tiempos[el.dataset.lpFase] || 0));
     });
-    if (barra) timers.push(setTimeout(function () { barra.style.width = barra.dataset.ancho; }, 650));
-    timers.push(setTimeout(function () {
-      var inicio = performance.now();
-      var duracion = 1300;
-      function paso(ahora) {
-        var p = Math.min(1, (ahora - inicio) / duracion);
-        cifra.textContent = formatear(Math.round(meta * (1 - Math.pow(1 - p, 3))));
-        if (p < 1) cuadro = requestAnimationFrame(paso);
+    marcas.forEach(function (el) {
+      timers.push(setTimeout(function () { el.classList.add('lp-ok'); }, Number(el.dataset.lpT) || 0));
+    });
+    barras.forEach(function (el) {
+      timers.push(setTimeout(function () { el.style.width = el.dataset.ancho; }, Number(el.dataset.lpT) || 700));
+    });
+    cifras.forEach(function (el) {
+      timers.push(setTimeout(function () { contar(el); }, 650));
+    });
+  }
+
+  function prepararTelefono(pantalla) {
+    var escenas = Array.prototype.slice.call(pantalla.querySelectorAll('[data-lp-escena]'));
+    var actual = 0;
+    if (!escenas.length) return;
+
+    function ir(i) {
+      parar();
+      actual = (i + escenas.length) % escenas.length;
+      escenas.forEach(function (e, j) { e.classList.toggle('activa', j === actual); });
+      var escena = escenas[actual];
+      animarEscena(escena);
+      if (!reducir) timers.push(setTimeout(siguiente, Number(escena.dataset.lpDura) || 5500));
+    }
+
+    function siguiente() {
+      if (document.hidden) {
+        timers.push(setTimeout(siguiente, 1000));
+        return;
       }
-      cuadro = requestAnimationFrame(paso);
-    }, 650));
-    if (pagada) timers.push(setTimeout(function () { pagada.classList.add('lp-ok'); }, 3100));
+      ir(actual + 1);
+    }
+
+    ir(0);
+    pantalla.addEventListener('click', function () { ir(actual + 1); });
   }
 
   function prepararPestanas() {
@@ -268,10 +303,7 @@
 
   document.addEventListener('DOMContentLoaded', function () {
     var pantalla = document.querySelector('[data-lp-telefono]');
-    if (pantalla) {
-      animarTelefono(pantalla);
-      pantalla.addEventListener('click', function () { animarTelefono(pantalla); });
-    }
+    if (pantalla) prepararTelefono(pantalla);
     prepararPestanas();
     prepararRevelado();
     prepararChat();
