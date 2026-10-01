@@ -1,0 +1,79 @@
+.ini-esfera, .ini-asa { display: none; }
+
+@media (max-width: 720px) {
+  .ini-hero { position: relative; }
+  .ini-panel:has(> .ini-asa)::before { display: none; }
+  .ini-panel {
+    transform: translateY(calc(var(--esfera-p, 0) * var(--esfera-d, 0px)));
+    transition: transform .5s cubic-bezier(.2, .85, .25, 1);
+  }
+  .ini-panel > :not(.ini-asa):not(.ini-pestanas) { opacity: calc(1 - var(--esfera-p, 0) * 1.8); transition: opacity .45s ease; }
+  .ini-asa {
+    display: flex; align-items: center; justify-content: center; align-self: stretch;
+    height: 30px; margin: -10px -20px -10px; padding: 0; border: none; background: none;
+    cursor: grab; touch-action: none; -webkit-tap-highlight-color: transparent;
+  }
+  .ini-asa::before { content: ''; width: 40px; height: 5px; border-radius: 100px; background: rgba(255, 255, 255, .22); }
+  .ini-pestanas { touch-action: none; }
+  .ini-accesos { opacity: calc(1 - var(--esfera-p, 0) * 1.6); transition: opacity .45s ease; }
+  html.esfera-abierta, html.esfera-abierta body { overflow: hidden; }
+  html.esfera-abierta .ini-accesos { pointer-events: none; }
+  html.esfera-arrastrando .ini-panel, html.esfera-arrastrando .ini-panel > *,
+  html.esfera-arrastrando .ini-accesos, html.esfera-arrastrando .ini-esfera { transition: none !important; }
+
+  .ini-esfera {
+    --esfera-tam: clamp(150px, 25vh, 210px);
+    position: absolute; z-index: 0; left: 0; right: 0; top: var(--esfera-top, 150px);
+    display: flex; flex-direction: column; align-items: center; gap: 20px;
+    opacity: calc((var(--esfera-p, 0) - .2) * 1.25);
+    transform: scale(calc(.7 + .3 * var(--esfera-p, 0))); transform-origin: 50% 0;
+    transition: opacity .45s ease, transform .45s cubic-bezier(.2, .8, .2, 1);
+    pointer-events: none;
+  }
+  html.esfera-abierta .ini-esfera { pointer-events: auto; }
+
+  .ini-esfera[data-estado="verde"]    { --c1: #2fe08a; --c2: #13c2a3; --c3: #a6f05a; --cg: #22c983; --ct: #6ee873; --vel: 1.15; }
+  .ini-esfera[data-estado="amarillo"] { --c1: #ffb627; --c2: #ff8a1f; --c3: #ffe07a; --cg: #ffaa2c; --ct: #ffc94d; --vel: .85; }
+  .ini-esfera[data-estado="rojo"]     { --c1: #ff3b3b; --c2: #ff2d78; --c3: #ff7a3d; --cg: #ff3d4a; --ct: #ff8a8a; --vel: .55; }
+  .ini-esfera[data-estado="neutro"]   { --c1: #8a8580; --c2: #5d5955; --c3: #b5afa8; --cg: #8a8580; --ct: rgba(245, 245, 245, .7); --vel: 1.3; }
+
+  .ini-esfera-bola {
+    position: relative; width: var(--esfera-tam); height: var(--esfera-tam); flex-shrink: 0; padding: 0;
+    border: none; border-radius: 50%; background: none; cursor: pointer; -webkit-tap-highlight-color: transparent;
+    animation: esferaRespira calc(4.2s * var(--vel, 1)) ease-in-out infinite;
+  }
+  .ini-esfera-bola:focus-visible { outline: 2px solid var(--ct); outline-offset: 6px; }
+  .ini-esfera.hablando .ini-esfera-bola { animation: esferaHabla .55s ease-in-out infinite; }
+  .ini-esfera-bola span, .ini-esfera-bola i { position: absolute; display: block; border-radius: 50%; }
+  .eb-brillo { inset: -16%; background: var(--cg); filter: blur(46px); opacity: .45; transition: opacity .4s ease; }
+  .ini-esfera.hablando .eb-brillo { opacity: .75; }
+  .eb-nucleo {
+    inset: 0; overflow: hidden; isolation: isolate; background: #0c0b0a;
+    box-shadow: 0 0 50px color-mix(in srgb, var(--cg) 40%, transparent);
+  }
+  .eb-nucleo i { filter: blur(20px); mix-blend-mode: screen; animation-timing-function: linear; animation-iteration-count: infinite; }
+  .eb-nucleo .b1 { width: 82%; height: 82%; left: -10%; top: -8%; background: var(--c1); transform-origin: 62% 62%; animation-name: esferaGiro1; animation-duration: calc(6.5s * var(--vel, 1)); }
+  .eb-nucleo .b2 { width: 72%; height: 72%; left: 36%; top: 30%; background: var(--c2); transform-origin: 28% 30%; animation-name: esferaGiro2; animation-duration: calc(8s * var(--vel, 1)); }
+  .eb-nucleo .b3 { width: 54%; height: 54%; left: 18%; top: 46%; background: var(--c3); transform-origin: 62% 18%; animation-name: esferaGiro1; animation-duration: calc(5s * var(--vel, 1)); }
+  .eb-nucleo .b4 { width: 40%; height: 40%; left: 50%; top: 6%; background: var(--c1); transform-origin: 20% 80%; animation-name: esferaGiro2; animation-duration: calc(7s * var(--vel, 1)); }
+  .eb-luz { inset: 24%; background: radial-gradient(circle, rgba(255, 255, 255, .6), rgba(255, 255, 255, 0) 70%); filter: blur(10px); mix-blend-mode: overlay; }
+  .eb-reflejo { inset: 0; background: radial-gradient(58% 42% at 34% 20%, rgba(255, 255, 255, .5), rgba(255, 255, 255, 0) 62%); }
+  .eb-borde { inset: 0; box-shadow: inset 0 -22px 44px rgba(0, 0, 0, .5), inset 0 2px 6px rgba(255, 255, 255, .28), inset 0 0 0 1px rgba(255, 255, 255, .1); }
+
+  .ini-esfera-txt { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 0 36px; text-align: center; }
+  .ini-esfera-etq { display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; color: var(--ct); }
+  .ini-esfera-etq b { width: 7px; height: 7px; border-radius: 50%; background: var(--ct); }
+  .ini-esfera-nota { max-width: 320px; font-size: 15px; font-weight: 600; line-height: 1.45; color: rgba(245, 245, 245, .78); text-wrap: pretty; }
+  .ini-esfera-ayuda { display: flex; align-items: center; gap: 7px; margin-top: 4px; font-size: 12.5px; font-weight: 700; color: rgba(245, 245, 245, .55); }
+  .ini-esfera-ayuda[hidden] { display: none; }
+}
+
+@media (max-width: 720px) and (prefers-reduced-motion: reduce) {
+  .ini-esfera-bola, .ini-esfera.hablando .ini-esfera-bola, .eb-nucleo i { animation: none; }
+  .ini-panel, .ini-esfera { transition-duration: .01s; }
+}
+
+@keyframes esferaGiro1 { 0% { transform: rotate(0deg) scale(1); } 50% { transform: rotate(180deg) scale(1.18); } 100% { transform: rotate(360deg) scale(1); } }
+@keyframes esferaGiro2 { 0% { transform: rotate(360deg) scale(1.1); } 50% { transform: rotate(180deg) scale(.9); } 100% { transform: rotate(0deg) scale(1.1); } }
+@keyframes esferaRespira { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.045); } }
+@keyframes esferaHabla { 0%, 100% { transform: scale(1); } 30% { transform: scale(1.09); } 60% { transform: scale(.97); } }

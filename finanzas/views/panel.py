@@ -10,6 +10,7 @@ from .. import encuesta as encuesta_mod
 from ..models import (Categoria, Deuda, GastoPendiente, MetaAhorro, Presupuesto, Suscripcion,
     Transaccion)
 from ..servicios.cuotas import mis_cuotas_detalle, proyecciones_deuda_activas
+from ..servicios.esfera import estado_esfera
 from ..servicios.mes import MESES_LARGOS, nombre_mes_es, numeros_mes, resumen_mes
 from ..servicios.panel import desglose_categorias, insights_panel, primeros_pasos, serie_seis_meses
 from ..servicios.pendientes import calendario_del_mes, pendientes_del_mes
@@ -219,5 +220,8 @@ def dashboard(request):
         request.user,
         resumen_actual=r if (year, month) == (hoy.year, hoy.month) else None,
     ))
+    context['esfera'] = estado_esfera(
+        request.user, r, presupuesto, month, (year, month) == (hoy.year, hoy.month),
+        simbolo_de(request.user))
     context['mostrar_encuesta'] = encuesta_mod.debe_mostrar(request)
     return render(request, 'finanzas/dashboard.html', context)

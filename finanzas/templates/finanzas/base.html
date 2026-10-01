@@ -198,9 +198,6 @@
   <a href="{% url 'prestamos' %}" data-label="Me deben" class="nav-item {% if request.resolver_match.url_name == 'prestamos' %}active{% endif %}">
     <i class="fas fa-hand-holding-dollar"></i><span>Me deben</span>
   </a>
-  <a href="{% url 'estadisticas' %}" data-label="Estadísticas" class="nav-item {% if request.resolver_match.url_name == 'estadisticas' %}active{% endif %}">
-    <i class="fas fa-chart-pie"></i><span>Estadísticas</span>
-  </a>
   <button type="button" class="nav-item {% if not request.resolver_match.url_name in 'dashboard deudas prestamos estadisticas' %}active{% endif %}" data-open="#modalMas" data-label="Más">
     <i class="fas fa-grip"></i><span>Más</span>
   </button>
