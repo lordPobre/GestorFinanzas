@@ -28,14 +28,9 @@
 
 {% block card %}
 {% if enviado %}
-{% comment %}
-  El mismo mensaje exista o no la cuenta. Si dijéramos "ese correo no está
-  registrado", este formulario serviría para averiguar qué direcciones
-  tienen cuenta en la app.
-{% endcomment %}
-<span style="display:inline-flex;align-items:center;justify-content:center;width:56px;height:56px;border-radius:20px;background:var(--green-tenue);color:var(--green);font-size:22px;margin-bottom:22px">
-  <i class="fas fa-paper-plane"></i>
-</span>
+<div style="display:flex;align-items:center;gap:10px;margin-bottom:18px;font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--text-muted)">
+  <span style="width:7px;height:7px;border-radius:50%;background:var(--green);flex:none"></span>Enlace enviado
+</div>
 
 <h2 class="auth-h">Revisa tu correo</h2>
 <p style="margin:10px 0 0;font-size:13.5px;color:var(--text-secondary);line-height:1.6">
@@ -67,9 +62,9 @@
 
 {% else %}
 
-<span style="display:inline-flex;align-items:center;justify-content:center;width:56px;height:56px;border-radius:20px;background:var(--amber-tenue);color:var(--amber);font-size:22px;margin-bottom:22px">
-  <i class="fas fa-key"></i>
-</span>
+<div style="display:flex;align-items:center;gap:10px;margin-bottom:18px;font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--text-muted)">
+  <span style="width:7px;height:7px;border-radius:50%;background:var(--amber);flex:none"></span>Acceso a tu cuenta
+</div>
 
 <h2 class="auth-h">Recuperar contraseña</h2>
 <p style="margin:10px 0 28px;font-size:13.5px;color:var(--text-secondary);line-height:1.6">

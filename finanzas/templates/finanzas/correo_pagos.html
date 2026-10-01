@@ -1,132 +1,122 @@
-{% comment %}
-  Aviso mensual de pagos pendientes, en HTML.
-
-  Mismas reglas que el correo de recuperación: maquetación con <table>,
-  estilos en línea y tipografías del sistema. La versión de texto plano
-  (correo_pagos.txt) viaja en el mismo envío.
-
-  El monto va en su propia celda alineada a la derecha, no en la misma línea
-  del nombre: en el ancho de un teléfono la línea se parte y el importe
-  termina debajo del nombre de otro cobro.
-{% endcomment %}<!DOCTYPE html>
+{% load correo_marca %}<!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<meta name="supported-color-schemes" content="dark">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&display=swap">
 <title>Lo que te queda por pagar</title>
 </head>
-<body style="margin:0;padding:0;background-color:#141414;">
+<body style="margin:0;padding:0;background-color:#0f0e0c;">
 
-<div style="display:none;font-size:1px;color:#141414;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;">
+<div style="display:none;font-size:1px;color:#0f0e0c;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;">
   {{ cantidad }} pago{{ cantidad|pluralize:"s" }} sin pagar en {{ mes }} · {{ total }} en total.
 </div>
 
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#141414;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#0f0e0c" style="background-color:#0f0e0c;">
 <tr>
-<td align="center" style="padding:32px 16px;">
+<td align="center" style="padding:0 12px;">
 
-  <table role="presentation" width="440" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:440px;">
+  <table role="presentation" width="560" cellpadding="0" cellspacing="0" border="0" bgcolor="#0f0e0c" style="width:100%;max-width:560px;background-color:#0f0e0c;">
 
-    <!-- Marca -->
     <tr>
-      <td style="padding:0 4px 22px;">
-        <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+      <td align="center" style="padding:0 0 18px;">
+        <img src="cid:fintora-cabecera" width="560" alt="Fintora" style="display:block;width:100%;max-width:560px;height:auto;border:0;outline:none;color:#ffffff;font-family:'Manrope',-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:22px;font-weight:800;">
+      </td>
+    </tr>
+
+    <tr>
+      <td align="center" style="padding:4px 16px 28px;">
+        <span style="display:inline-block;margin-bottom:14px;padding:6px 13px;border-radius:100px;background-color:#2a2824;border:1px solid #3a3833;font-family:'Manrope',-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:12px;font-weight:700;color:#ffffff;"><span style="text-transform:capitalize;">{{ mes }}</span> {{ anio }}</span>
+        <br>
+        <p style="margin:0;font-family:'Manrope',-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:14px;font-weight:700;color:#e0d6c6;">
+          {{ nombre }}, te quedan {{ cantidad }} pago{{ cantidad|pluralize:"s" }} este mes
+        </p>
+        <p style="margin:6px 0 14px;font-family:'Manrope',-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:46px;font-weight:800;line-height:1.1;letter-spacing:-.04em;color:#ffffff;">
+          {{ total }}
+        </p>
+        <span style="display:inline-block;padding:6px 13px;border-radius:100px;background-color:#2a2824;border:1px solid #3a3833;font-family:'Manrope',-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:12px;font-weight:700;color:#ffffff;">Total por pagar</span>
+        {% if atrasados %}<span style="display:inline-block;padding:6px 13px;border-radius:100px;background-color:#3a2222;border:1px solid #4d2c2c;font-family:'Manrope',-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:12px;font-weight:700;color:#ff9b9b;">{{ atrasados }} de ellos ya venci{{ atrasados|pluralize:"ó,eron" }}</span>{% else %}<span style="display:inline-block;padding:6px 13px;border-radius:100px;background-color:#1a2a1b;border:1px solid #2a4a2c;font-family:'Manrope',-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:12px;font-weight:700;color:#6ee873;">Ninguno está vencido todavía</span>{% endif %}
+      </td>
+    </tr>
+
+    <tr>
+      <td bgcolor="#1c1a17" style="background-color:#1c1a17;border:1px solid #2c2a26;border-radius:22px;padding:8px 20px 6px;">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+        {% for grupo in grupos %}
         <tr>
-          <td width="38" style="vertical-align:middle;">
-            <div style="width:38px;height:38px;border-radius:12px;background-color:#ffaa2c;text-align:center;line-height:38px;font-size:19px;font-weight:700;color:#1a1200;font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">F</div>
-          </td>
-          <td style="padding-left:11px;vertical-align:middle;font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:18px;font-weight:700;color:#f5f5f5;letter-spacing:-.02em;">
-            Fintora
+          <td colspan="3" style="padding:{% if forloop.first %}12px{% else %}18px{% endif %} 0 0;font-family:'Manrope',-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:12px;font-weight:700;color:#9a958c;">
+            {{ grupo.titulo }}
           </td>
         </tr>
+        {% for fila in grupo.filas %}
+        <tr>
+          <td width="38" style="vertical-align:middle;padding:12px 12px 12px 0;"><div style="width:38px;height:38px;border-radius:50%;background-color:{% if fila.atrasado %}#3d2624{% elif grupo.titulo == 'Suscripciones' %}#3d2e17{% elif grupo.titulo == 'Gastos y cuentas' %}#2c2b45{% else %}#26324a{% endif %};text-align:center;line-height:38px;font-family:'Manrope',-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:14px;font-weight:800;color:{% if fila.atrasado %}#ff9b9b{% elif grupo.titulo == 'Suscripciones' %}#ffbb56{% elif grupo.titulo == 'Gastos y cuentas' %}#a9b1fb{% else %}#8db4ff{% endif %};">{{ fila.nombre|first|upper }}</div></td>
+          <td style="vertical-align:middle;padding:12px 0;font-family:'Manrope',-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;{% if not forloop.last %}border-bottom:1px solid #2a2824;{% endif %}">
+            <div style="font-size:14.5px;font-weight:700;color:#ffffff;">{{ fila.nombre }}</div>
+            <div style="margin-top:2px;font-size:12.5px;color:{% if fila.atrasado %}#ff9b9b{% else %}#9a958c{% endif %};">{{ fila.detalle }}{% if fila.atrasado %} · sin pagar{% endif %}</div>
+          </td>
+          <td align="right" style="vertical-align:middle;padding:12px 0 12px 12px;white-space:nowrap;font-family:'Manrope',-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:14.5px;font-weight:700;color:#ffffff;{% if not forloop.last %}border-bottom:1px solid #2a2824;{% endif %}">
+            {{ fila.monto }}
+          </td>
+        </tr>
+        {% endfor %}
+        {% endfor %}
         </table>
       </td>
     </tr>
 
-    <!-- Tarjeta -->
+    {% if por_cobrar %}
     <tr>
-      <td style="background-color:#212121;border-radius:22px;padding:34px 28px 32px;">
-
-        <p style="margin:0 0 8px;font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:12px;font-weight:700;letter-spacing:.04em;color:#ffaa2c;text-transform:uppercase;">
-          {{ mes }} {{ anio }}
-        </p>
-
-        <h1 style="margin:0 0 14px;font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:23px;font-weight:700;line-height:1.3;letter-spacing:-.02em;color:#f5f5f5;">
-          {{ nombre }}, te quedan {{ cantidad }} pago{{ cantidad|pluralize:"s" }} este mes
-        </h1>
-
-        <p style="margin:0 0 26px;font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:14.5px;line-height:1.65;color:rgba(245,245,245,.72);">
-          {% if atrasados %}{{ atrasados }} de ellos ya venci{{ atrasados|pluralize:"ó,eron" }}.{% else %}Ninguno está vencido todavía.{% endif %}
-        </p>
-
-        <!-- Total -->
-        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:26px;background-color:#2b2b2b;border-radius:16px;">
+      <td style="padding-top:14px;">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#1a2a1b" style="background-color:#1a2a1b;border:1px solid #2a4a2c;border-radius:18px;">
         <tr>
-          <td style="padding:18px 20px;font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
-            <div style="font-size:11.5px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;color:rgba(245,245,245,.58);">
-              Total por pagar
-            </div>
-            <div style="margin-top:6px;font-size:28px;font-weight:700;letter-spacing:-.03em;color:#f5f5f5;">
-              {{ total }}
-            </div>
+          <td colspan="3" style="padding:14px 20px 0;font-family:'Manrope',-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:12px;font-weight:700;color:#6ee873;">
+            Y a ti te deben
           </td>
         </tr>
-        </table>
-
-        {% for grupo in grupos %}
-        <p style="margin:0 0 10px;font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:11.5px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;color:rgba(245,245,245,.58);">
-          {{ grupo.titulo }}
-        </p>
-
-        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:24px;">
-        {% for fila in grupo.filas %}
+        {% for fila in por_cobrar %}
         <tr>
-          <td style="padding:11px 0;border-bottom:1px solid rgba(255,255,255,.07);font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
-            <div style="font-size:14.5px;font-weight:600;color:#f5f5f5;">{{ fila.nombre }}</div>
-            <div style="margin-top:3px;font-size:12px;color:{% if fila.atrasado %}#ffaa2c{% else %}rgba(245,245,245,.58){% endif %};">
-              {{ fila.detalle }}{% if fila.atrasado %} · sin pagar{% endif %}
-            </div>
+          <td width="38" style="vertical-align:middle;padding:10px 12px 12px 20px;"><div style="width:38px;height:38px;border-radius:50%;background-color:#53d258;text-align:center;line-height:38px;font-family:'Manrope',-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:14px;font-weight:800;color:#07260b;">{{ fila.nombre|first|upper }}</div></td>
+          <td style="vertical-align:middle;padding:10px 0 12px;font-family:'Manrope',-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:14px;font-weight:700;color:#ffffff;">
+            {{ fila.nombre }} <span style="font-weight:500;color:#c4bfb6;">· {{ fila.detalle }}</span>
           </td>
-          <td align="right" width="90" style="padding:11px 0 11px 12px;border-bottom:1px solid rgba(255,255,255,.07);vertical-align:top;font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:14.5px;font-weight:700;color:#f5f5f5;white-space:nowrap;">
+          <td align="right" style="vertical-align:middle;padding:10px 20px 12px 12px;white-space:nowrap;font-family:'Manrope',-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:14px;font-weight:700;color:#6ee873;">
             {{ fila.monto }}
           </td>
         </tr>
         {% endfor %}
         </table>
-        {% endfor %}
+      </td>
+    </tr>
+    {% endif %}
 
-        {% if por_cobrar %}
-        {% comment %}
-          Lo que te deben cierra el correo y no suma al total: es plata que
-          entra. Mezclarla arriba haría parecer que el mes cuesta menos.
-        {% endcomment %}
-        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#2b2b2b;border-radius:16px;">
+    <tr>
+      <td style="padding-top:22px;">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr>
-          <td style="padding:18px 20px;font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
-            <div style="font-size:11.5px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;color:#53d258;">
-              Y a ti te deben
-            </div>
-            {% for fila in por_cobrar %}
-            <div style="margin-top:12px;font-size:13.5px;color:rgba(245,245,245,.72);">
-              <strong style="color:#f5f5f5;font-weight:600;">{{ fila.nombre }}</strong> · {{ fila.detalle }} — {{ fila.monto }}
-            </div>
-            {% endfor %}
+          <td align="center" bgcolor="#ffaa2c" style="background-color:#ffaa2c;border-radius:100px;">
+            <a href="{% url_sitio 'dashboard' %}" style="display:block;padding:16px 24px;font-family:'Manrope',-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:15.5px;font-weight:800;color:#1a1200;text-decoration:none;">
+              Ver en Fintora
+            </a>
           </td>
         </tr>
         </table>
-        {% endif %}
-
       </td>
     </tr>
 
-    <!-- Pie -->
     <tr>
-      <td style="padding:22px 8px 0;font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:12px;line-height:1.6;color:rgba(245, 245, 245, .62);">
-        <p style="margin:0 0 6px;">
-          Este aviso sale una vez al mes. Puedes cambiar el día o apagarlo en
-          tu perfil, en "Aviso mensual por correo".
+      <td style="padding:24px 22px 40px;font-family:'Manrope',-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:12px;line-height:1.6;color:#9a958c;">
+        <p style="margin:0 0 10px;">Este aviso sale una vez al mes. Puedes cambiar el día o apagarlo en
+          tu perfil, en "Aviso mensual por correo".</p>
+        <p style="margin:0;">
+          <a href="{% url_sitio 'privacidad' %}" style="color:#9a958c;text-decoration:underline;">Privacidad</a>
+          &nbsp;·&nbsp;
+          <a href="{% url_sitio 'terminos' %}" style="color:#9a958c;text-decoration:underline;">Términos de uso</a>
+          &nbsp;·&nbsp;
+          © {% now "Y" %} Fintora
         </p>
-        <p style="margin:0;">Fintora · Tus finanzas, claras</p>
       </td>
     </tr>
 

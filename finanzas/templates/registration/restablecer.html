@@ -14,9 +14,9 @@
 
 {% block card %}
 {% if not valido %}
-<span style="display:inline-flex;align-items:center;justify-content:center;width:56px;height:56px;border-radius:20px;background:var(--coral-tenue);color:var(--coral);font-size:22px;margin-bottom:22px">
-  <i class="fas fa-link-slash"></i>
-</span>
+<div style="display:flex;align-items:center;gap:10px;margin-bottom:18px;font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--text-muted)">
+  <span style="width:7px;height:7px;border-radius:50%;background:var(--coral);flex:none"></span>Enlace vencido
+</div>
 
 <h2 class="auth-h">Este enlace ya no sirve</h2>
 <p style="margin:10px 0 26px;font-size:13.5px;color:var(--text-secondary);line-height:1.6">
@@ -37,9 +37,9 @@
 
 {% else %}
 
-<span style="display:inline-flex;align-items:center;justify-content:center;width:56px;height:56px;border-radius:20px;background:var(--amber-tenue);color:var(--amber);font-size:22px;margin-bottom:22px">
-  <i class="fas fa-lock-open"></i>
-</span>
+<div style="display:flex;align-items:center;gap:10px;margin-bottom:18px;font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--text-muted)">
+  <span style="width:7px;height:7px;border-radius:50%;background:var(--amber);flex:none"></span>Acceso a tu cuenta
+</div>
 
 <h2 class="auth-h">Nueva contraseña</h2>
 <p style="margin:10px 0 26px;font-size:13.5px;color:var(--text-secondary);line-height:1.6">
