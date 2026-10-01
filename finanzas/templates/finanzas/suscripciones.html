@@ -4,6 +4,8 @@
 {% block search_placeholder %}Filtrar suscripciones{% endblock %}
 {% block title %}Suscripciones · Fintora{% endblock %}
 
+{% block extra_head %}<link rel="stylesheet" href="{% static 'css/inicio-esfera.css' %}">{% endblock %}
+
 {% block content %}
 
 <div class="sec-top">
@@ -19,9 +21,11 @@
     {% if monto_pendiente_mes %}<span class="chip-vidrio">Falta pagar {{ monto_pendiente_mes|money }}</span>
     {% elif suscripciones %}<span class="chip-vidrio">Al día</span>{% endif %}
   </div>
+  {% include 'finanzas/_esfera.html' %}
 </section>
 
-<section class="sec-hoja">
+<section class="sec-hoja" data-esfera-hoja>
+  <button type="button" class="ini-asa" data-esfera-asa aria-label="Bajar la hoja para ver el resumen" aria-expanded="true"></button>
   {% if atrasadas %}
   <div class="sec-tip rojo">
     <span class="sec-tip-icono"><i class="fas fa-triangle-exclamation"></i></span>
@@ -221,5 +225,6 @@
 {% endblock %}
 
 {% block extra_js %}
+<script src="{% static 'js/pantallas/inicio-esfera.js' %}" nonce="{{ csp_nonce }}"></script>
 <script src="{% static 'js/pantallas/suscripciones.js' %}" nonce="{{ csp_nonce }}" data-total-mensual="{{ total_mensual|default:0 }}"></script>
 {% endblock %}

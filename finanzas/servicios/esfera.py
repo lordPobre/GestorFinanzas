@@ -1,3 +1,5 @@
+from datetime import date
+
 from django.core.exceptions import ObjectDoesNotExist
 
 from ..templatetags.moneda import money
@@ -142,3 +144,95 @@ def esfera_me_deben(usuario, personas, simbolo='$'):
     frase = f'Te deben {_hablado(total, usuario)} en total. {detalle}'
 
     return {'estado': 'amarillo', 'etiqueta': 'Por cobrar', 'texto': texto, 'frase': frase}
+
+
+MAX_SUSCRIPCIONES_HABLADAS = 8
+
+
+def esfera_suscripciones(usuario, activas, simbolo='$'):
+    if not activas:
+        texto = 'No tienes suscripciones activas.'
+        return {'estado': 'verde', 'etiqueta': 'Sin suscripciones', 'texto': texto, 'frase': texto}
+
+    orden = sorted(activas, key=lambda s: float(s.monto), reverse=True)
+    total = sum(float(s.monto) for s in activas)
+    n = len(activas)
+    atrasadas = [s for s in activas if s.periodos_atrasados]
+    pendientes = [s for s in activas if not s.pagada_este_mes]
+    servicios = _plural(n, 'servicio', 'servicios')
+
+    texto = f'Estás suscrito a {n} {servicios} por {money(total, simbolo)} al mes.'
+    partes = [f'{s.nombre}, {_hablado(s.monto, usuario)}' for s in orden[:MAX_SUSCRIPCIONES_HABLADAS]]
+    resto = n - len(partes)
+    detalle = '; '.join(partes) + '.'
+    if resto:
+        detalle += f' Y {resto} {_plural(resto, "más", "más")}.'
+    frase = f'Estás suscrito a {n} {servicios}: {detalle} En total pagas {_hablado(total, usuario)} al mes.'
+
+    if atrasadas:
+        k = len(atrasadas)
+        monto = sum(float(s.monto_atrasado) for s in atrasadas)
+        estado, etiqueta = 'rojo', _plural(k, 'Una atrasada', 'Atrasadas')
+        texto += f' {_plural(k, "Una está atrasada", f"{k} están atrasadas")}.'
+        nombres = ', '.join(s.nombre for s in atrasadas[:3])
+        frase += f' {_plural(k, "Tienes atrasada", "Tienes atrasadas")} {nombres}, por {_hablado(monto, usuario)}.'
+    elif pendientes:
+        k = len(pendientes)
+        monto = sum(float(s.monto) for s in pendientes)
+        estado, etiqueta = 'amarillo', 'Falta pagar'
+        texto += f' Te falta pagar {money(monto, simbolo)} este mes.'
+        frase += f' Este mes te falta pagar {_hablado(monto, usuario)} en {k} {_plural(k, "suscripción", "suscripciones")}.'
+    else:
+        estado, etiqueta = 'verde', 'Al día'
+        frase += ' Este mes ya pagaste todas.'
+
+    return {'estado': estado, 'etiqueta': etiqueta, 'texto': texto, 'frase': frase}
+
+
+MAX_METAS_HABLADAS = 5
+UMBRAL_METAS_VERDE = 70
+
+
+def esfera_metas(usuario, metas, simbolo='$'):
+    if not metas:
+        texto = 'Todavía no tienes metas de ahorro.'
+        return {'estado': 'neutro', 'etiqueta': 'Sin metas', 'texto': texto, 'frase': texto}
+
+    hoy = date.today()
+    ahorrado = sum(float(m.monto_actual) for m in metas)
+    objetivo = sum(float(m.monto_meta) for m in metas)
+    pct = min(100, round(ahorrado / objetivo * 100)) if objetivo else 0
+    vencidas = [m for m in metas if not m.esta_completa and m.fecha_limite and m.fecha_limite < hoy]
+
+    n = len(metas)
+    texto = f'Llevas el {pct}% de tus metas: {money(ahorrado, simbolo)} de {money(objetivo, simbolo)}.'
+    if n == 1:
+        frase = f'Llevas el {pct} por ciento de tu meta {metas[0].nombre}: {_hablado(ahorrado, usuario)} de {_hablado(objetivo, usuario)}.'
+    else:
+        frase = f'Llevas el {pct} por ciento de tus metas: {_hablado(ahorrado, usuario)} de {_hablado(objetivo, usuario)}.'
+        orden = sorted(metas, key=lambda m: float(m.porcentaje), reverse=True)
+        partes = []
+        for m in orden[:MAX_METAS_HABLADAS]:
+            if m.esta_completa:
+                partes.append(f'{m.nombre} ya está cumplida')
+            else:
+                partes.append(f'{m.nombre} va en {round(float(m.porcentaje))} por ciento')
+        frase += ' ' + '. '.join(partes) + '.'
+        resto = n - len(partes)
+        if resto:
+            frase += f' Y {resto} {_plural(resto, "meta más", "metas más")}.'
+
+    if vencidas:
+        estado, etiqueta = 'rojo', _plural(len(vencidas), 'Meta vencida', 'Metas vencidas')
+        nombres = ', '.join(m.nombre for m in vencidas[:3])
+        texto += f' Se pasó la fecha de {nombres}.'
+        frase += f' Se pasó la fecha de {nombres}.'
+    elif pct >= UMBRAL_METAS_VERDE:
+        estado, etiqueta = 'verde', 'Casi llegas' if pct < 100 else 'Metas cumplidas'
+    else:
+        estado, etiqueta = 'amarillo', 'En camino'
+        faltan = objetivo - ahorrado
+        texto += f' Te faltan {money(faltan, simbolo)}.'
+        frase += f' Te faltan {_hablado(faltan, usuario)}.'
+
+    return {'estado': estado, 'etiqueta': etiqueta, 'texto': texto, 'frase': frase}

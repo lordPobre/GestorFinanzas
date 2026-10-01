@@ -2,6 +2,8 @@
 {% load static %}
 {% load humanize moneda %}
 {% block title %}Metas · Fintora{% endblock %}
+
+{% block extra_head %}<link rel="stylesheet" href="{% static 'css/inicio-esfera.css' %}">{% endblock %}
 {% block search_placeholder %}Filtrar metas{% endblock %}
 
 {% block content %}
@@ -20,9 +22,11 @@
     <span class="chip-vidrio">Te faltan {{ total_faltante|money }}</span>
   </div>
   {% endif %}
+  {% include 'finanzas/_esfera.html' %}
 </section>
 
-<section class="sec-hoja">
+<section class="sec-hoja" data-esfera-hoja>
+  <button type="button" class="ini-asa" data-esfera-asa aria-label="Bajar la hoja para ver el resumen" aria-expanded="true"></button>
   {% if metas_datos %}
   <div class="me-lista">
     {% for d in metas_datos %}
@@ -168,5 +172,6 @@
 {% endblock %}
 
 {% block extra_js %}
+<script src="{% static 'js/pantallas/inicio-esfera.js' %}" nonce="{{ csp_nonce }}"></script>
 <script src="{% static 'js/pantallas/metas.js' %}" nonce="{{ csp_nonce }}"></script>
 {% endblock %}

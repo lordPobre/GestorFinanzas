@@ -11,9 +11,10 @@ from django.utils import timezone
 
 from ..models import PagoServicio, SugerenciaDescartada, Suscripcion, Transaccion
 from ..servicios.detectar_suscripciones import sugerencias
+from ..servicios.esfera import esfera_suscripciones
 from ..servicios.mes import invalidar
 from ..servicios.suscripciones import generar_cobros_suscripciones
-from .comun import contadores, monto_post, redirigir
+from .comun import contadores, monto_post, redirigir, simbolo_de
 
 
 @login_required(login_url='/login/')
@@ -60,6 +61,7 @@ def suscripciones(request):
         'monto_atrasado': round(sum(float(s.monto_atrasado) for s in atrasadas)),
         'sugerencias': sugerencias(request.user, hoy),
     }
+    context['esfera'] = esfera_suscripciones(request.user, activas, simbolo_de(request.user))
     context.update(contadores(request.user))
     return render(request, 'finanzas/suscripciones.html', context)
 

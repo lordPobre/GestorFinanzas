@@ -10,7 +10,8 @@ from django.shortcuts import get_object_or_404, render
 from ..forms import MetaAhorroForm
 from ..models import AporteMeta, MetaAhorro
 from ..servicios.mes import NOMBRES_MESES
-from .comun import contadores, monto_post, redirigir
+from ..servicios.esfera import esfera_metas
+from .comun import contadores, monto_post, redirigir, simbolo_de
 
 
 @login_required(login_url='/login/')
@@ -129,5 +130,6 @@ def metas(request):
         'completas': len([m for m in lista if m.esta_completa]),
         'form': MetaAhorroForm(),
     }
+    context['esfera'] = esfera_metas(request.user, lista, simbolo_de(request.user))
     context.update(contadores(request.user))
     return render(request, 'finanzas/metas.html', context)

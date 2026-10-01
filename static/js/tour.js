@@ -32,7 +32,7 @@
       ruta: 'inicio', icono: 'fa-volume-high', desde: 4, esfera: true,
       sel: '[data-tour="esfera"]',
       titulo: 'La esfera de tu mes',
-      texto: 'Baja la hoja de tus pagos y aparece esta esfera. Se pone verde si vas bien, amarilla si te acercas al límite del presupuesto y roja si te pasaste. Tócala y te dice en voz alta cuánto llevas gastado. En Cuotas te lee lo que debes y en Me deben, quién te debe y cuánto.'
+      texto: 'Baja la hoja de tus pagos y aparece esta esfera. Se pone verde si vas bien, amarilla si te acercas al límite del presupuesto y roja si te pasaste. Tócala y te dice en voz alta cuánto llevas gastado. También está en Cuotas, Me deben, Suscripciones y Metas, con el resumen de cada una.'
     },
     {
       ruta: 'importar', icono: 'fa-file-import', desde: 2,
