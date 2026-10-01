@@ -22,6 +22,7 @@
   <link rel="stylesheet" href="{% static 'vendor/fontawesome/css/all.min.css' %}">
   <link rel="stylesheet" href="{% static 'css/finapp.css' %}">
   <link rel="stylesheet" href="{% static 'css/tema-vidrio.css' %}">
+  <link rel="stylesheet" href="{% static 'css/encabezado.css' %}?v=51">
   {% block extra_head %}{% endblock %}
   <script src="{% static 'js/pantallas/base.js' %}" nonce="{{ csp_nonce }}"></script>
 
@@ -115,9 +116,9 @@
 
     <header class="topbar">
       {% block topbar_left %}
-      <div class="topbar-saludo">
-        <span class="topbar-saludo-hola" data-saludo>Buenos días</span>
-        <span class="topbar-saludo-nombre">{{ profile.nombre_display|default:user.username }}</span>
+      <div class="topbar-saludo saludo-pastilla">
+        <span class="saludo-cielo" data-cielo aria-hidden="true"></span>
+        <span class="saludo-pastilla-txt"><span class="saludo-pastilla-hola"><span data-saludo>Buenos días</span>, </span><b data-nombre-corto>{{ profile.nombre_display|default:user.username }}</b></span>
       </div>
       {% endblock %}
 
@@ -464,6 +465,7 @@
 <script src="{% static 'js/pantallas/base-4.js' %}" nonce="{{ csp_nonce }}" {% if abrir_panel or request.GET.registrar %}data-abrir-panel="1"{% endif %}></script>
 <script src="{% static 'js/tour.js' %}" nonce="{{ request.csp_nonce }}"></script>
 <script src="{% static 'js/pantallas/base-5.js' %}" nonce="{{ csp_nonce }}" data-ruta-inicio="{% url 'dashboard' %}" data-ruta-cuotas="{% url 'deudas' %}" data-ruta-suscripciones="{% url 'suscripciones' %}" data-ruta-prestamos="{% url 'prestamos' %}" data-ruta-metas="{% url 'metas' %}" data-ruta-estadisticas="{% url 'estadisticas' %}" data-ruta-analisis="{% url 'analisis_predictivo' %}" data-ruta-importar="{% url 'importar_cartola' %}" data-ruta-perfil="{% url 'perfil' %}"></script>
+<script src="{% static 'js/pantallas/saludo-cielo.js' %}?v=51" nonce="{{ csp_nonce }}"></script>
 {% block extra_js %}{% endblock %}
 </body>
 </html>

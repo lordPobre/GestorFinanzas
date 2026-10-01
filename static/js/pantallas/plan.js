@@ -91,6 +91,7 @@
     }
     var falta = Math.max(0, d.meta - d.llevas);
     var r = $('planFondoResultado');
+    if (!r) return;
     if (!falta) r.textContent = 'Ya completaste el fondo.';
     else if (!estado.ahorro) r.textContent = 'Sin aporte mensual el fondo no avanza.';
     else {
