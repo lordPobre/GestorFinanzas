@@ -125,6 +125,8 @@ urlpatterns = [
     path('sw.js', sistema.service_worker, name='service_worker'),
     path('salud/', sistema.salud, name='salud'),
     path('.well-known/security.txt', sistema.security_txt, name='security_txt'),
+    path('robots.txt', sistema.robots_txt, name='robots_txt'),
+    path('sitemap.xml', sistema.sitemap_xml, name='sitemap_xml'),
     path('security.txt', sistema.security_txt),
 ]
 

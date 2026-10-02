@@ -1,14 +1,17 @@
-{% load static %}<!DOCTYPE html>
+{% load static marketing %}<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#ffaa2c">
-  <title>Fintora · Cuánto puedes gastar, sin planilla</title>
-  <meta name="description" content="Registra en dos toques, mira una sola cifra clara y deja que la app te avise antes de que se te pase una cuota. Gratis y sin pedir la clave del banco.">
+  <title>Fintora: app gratis para controlar gastos y cuotas en Chile</title>
+  <meta name="description" content="Anota gastos, compras en cuotas, lo que te deben y tus suscripciones, y mira cuánto puedes gastar este mes. Gratis y sin pedir la clave del banco.">
   <meta property="og:title" content="Fintora · Cuánto puedes gastar, sin planilla">
-  <meta property="og:description" content="Gratis. No pide la clave del banco.">
+  <meta property="og:description" content="Gastos, cuotas y lo que te deben, en una sola cifra. Gratis y sin pedir la clave del banco.">
   <meta property="og:type" content="website">
+  <meta name="twitter:title" content="Fintora · Cuánto puedes gastar, sin planilla">
+  <meta name="twitter:description" content="Gastos, cuotas y lo que te deben, en una sola cifra. Gratis y sin pedir la clave del banco.">
+  {% marketing_head %}
 
   <link rel="manifest" href="{% static 'site.webmanifest' %}">
   <link rel="icon" type="image/svg+xml" href="{% static 'img/favicon.svg' %}">
@@ -21,6 +24,7 @@
   <link rel="stylesheet" href="{% static 'css/landing-telefono.css' %}">
   <link rel="stylesheet" href="{% static 'css/landing-esfera.css' %}">
   <script src="{% static 'js/pantallas/landing.js' %}" nonce="{{ csp_nonce }}"></script>
+  <script type="application/ld+json" nonce="{{ csp_nonce }}">{"@context":"https://schema.org","@graph":[{"@type":"Organization","@id":"https://fintora.cl/#organizacion","name":"Fintora","url":"https://fintora.cl/","logo":"https://fintora.cl/static/img/icon-512.png","sameAs":["https://www.instagram.com/fintora.cl/","https://x.com/fintoracl"]},{"@type":"WebApplication","name":"Fintora","url":"https://fintora.cl/","applicationCategory":"FinanceApplication","operatingSystem":"Web, iOS, Android","inLanguage":"es-CL","description":"Anota gastos, compras en cuotas, lo que te deben y tus suscripciones, y mira cuánto puedes gastar este mes. Gratis y sin pedir la clave del banco.","offers":{"@type":"Offer","price":"0","priceCurrency":"CLP"},"publisher":{"@id":"https://fintora.cl/#organizacion"}},{"@type":"FAQPage","mainEntity":[{"@type":"Question","name":"¿Cuánto cuesta?","acceptedAnswer":{"@type":"Answer","text":"Nada. Crear la cuenta y usar la app es gratis."}},{"@type":"Question","name":"¿Tengo que conectar mi banco?","acceptedAnswer":{"@type":"Answer","text":"No. Fintora no se conecta a tu banco y nunca te va a pedir la clave. Lo que ve es lo que tú anotas o decides subir."}},{"@type":"Question","name":"¿Qué pasa con la cartola que subo?","acceptedAnswer":{"@type":"Answer","text":"Se lee en memoria para sacar los movimientos y las cuotas, y el PDF se descarta ahí mismo. No queda guardado en ninguna parte."}},{"@type":"Question","name":"¿Cómo la instalo en el teléfono?","acceptedAnswer":{"@type":"Answer","text":"En iPhone: abre Fintora en Safari, toca el botón Compartir (el cuadrado con la flecha hacia arriba, abajo al centro), baja y elige “Agregar a inicio”. Luego toca “Agregar”. En Android: abre Fintora en Chrome, toca el menú de los tres puntos arriba a la derecha y elige “Instalar app” o “Agregar a pantalla principal”. El ícono de Fintora queda en tu pantalla de inicio y se abre como cualquier otra app, sin pasar por la tienda."}},{"@type":"Question","name":"¿Puedo llevarme mis datos?","acceptedAnswer":{"@type":"Answer","text":"Sí. Desde tu perfil descargas todo en Excel, CSV o JSON cuando quieras."}},{"@type":"Question","name":"¿Puedo borrar mi cuenta?","acceptedAnswer":{"@type":"Answer","text":"Sí, cuando quieras y desde tu perfil. Se borra la cuenta junto con todo lo que anotaste."}}]}]}</script>
 </head>
 <body class="lp">
 
@@ -322,7 +326,7 @@
                 <div style="display:flex;flex-direction:column;gap:11px">
                   <div style="display:flex;align-items:baseline;gap:8px"><span style="">Claves del banco pedidas</span><span style="flex:1;border-bottom:1.5px dotted rgba(26,18,0,.35);transform:translateY(-4px)"></span><span style="font-weight:700;">0</span></div>
                   <div style="display:flex;align-items:baseline;gap:8px"><span style="">Cartolas guardadas</span><span style="flex:1;border-bottom:1.5px dotted rgba(26,18,0,.35);transform:translateY(-4px)"></span><span style="font-weight:700;">0</span></div>
-                  <div style="display:flex;align-items:baseline;gap:8px"><span style="">Datos compartidos</span><span style="flex:1;border-bottom:1.5px dotted rgba(26,18,0,.35);transform:translateY(-4px)"></span><span style="font-weight:700;">0</span></div>
+                  <div style="display:flex;align-items:baseline;gap:8px"><span style="">Datos de tu cuenta compartidos</span><span style="flex:1;border-bottom:1.5px dotted rgba(26,18,0,.35);transform:translateY(-4px)"></span><span style="font-weight:700;">0</span></div>
                   <div style="display:flex;align-items:baseline;gap:8px"><span style="">Face ID y dos pasos</span><span style="flex:1;border-bottom:1.5px dotted rgba(26,18,0,.35);transform:translateY(-4px)"></span><span style="font-weight:700;">incluido</span></div>
                   <div style="display:flex;align-items:baseline;gap:8px"><span style="">Excel · CSV · JSON</span><span style="flex:1;border-bottom:1.5px dotted rgba(26,18,0,.35);transform:translateY(-4px)"></span><span style="font-weight:700;">cuando quieras</span></div>
                   <div style="display:flex;align-items:baseline;gap:8px"><span style="">Borrar tu cuenta</span><span style="flex:1;border-bottom:1.5px dotted rgba(26,18,0,.35);transform:translateY(-4px)"></span><span style="font-weight:700;">cuando quieras</span></div>
@@ -393,7 +397,7 @@
         <a href="https://x.com/fintoracl" target="_blank" rel="noopener" aria-label="Fintora en X" title="X"><i class="fa-brands fa-x-twitter"></i></a>
       </span>
     </div>
-    <span class="lp-cierre-enlaces"><a href="#preguntas">Preguntas frecuentes</a><a href="#ayuda">Ayuda</a><a href="{% url 'privacidad' %}">Privacidad</a><a href="{% url 'terminos' %}">Términos de uso</a><a href="{% url 'seguridad' %}">Seguridad</a></span>
+    <span class="lp-cierre-enlaces"><a href="#preguntas">Preguntas frecuentes</a><a href="#ayuda">Ayuda</a><a href="{% url 'privacidad' %}">Privacidad</a><a href="{% url 'terminos' %}">Términos de uso</a><a href="{% url 'seguridad' %}">Seguridad</a>{% marketing_pixeles as hay_pixeles %}{% if hay_pixeles %}<a href="#cookies" data-cookies-abrir>Cookies</a>{% endif %}</span>
   </div>
 </footer>
 
@@ -439,5 +443,6 @@
   </template>
 </div>
 
+{% marketing_consentimiento %}
 </body>
 </html>

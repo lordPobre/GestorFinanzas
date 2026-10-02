@@ -1,0 +1,11 @@
+{% load static %}{% if pixeles %}<div class="cookies" data-cookies hidden role="dialog" aria-label="Cookies de medición">
+  <div class="cookies-txt">
+    <b>Cookies de medición y publicidad</b>
+    <span>Nos dicen desde qué anuncio llegaste a Fintora. Solo se activan si aceptas, y dentro de la app no hay ninguna. <a href="{% url 'privacidad' %}#medicion">Más detalles</a></span>
+  </div>
+  <div class="cookies-botones">
+    <button type="button" class="cookies-btn" data-cookies-rechazar>Rechazar</button>
+    <button type="button" class="cookies-btn principal" data-cookies-aceptar>Aceptar</button>
+  </div>
+</div>
+<script src="{% static 'js/consentimiento.js' %}?v=52" nonce="{{ csp_nonce }}" data-ga4="{{ m.ga4 }}" data-meta="{{ m.meta }}" data-tiktok="{{ m.tiktok }}" data-x="{{ m.x }}"></script>{% endif %}

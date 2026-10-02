@@ -1,5 +1,8 @@
 {% extends 'finanzas/legal_base.html' %}
 {% block title %}Política de privacidad · Fintora{% endblock %}
+{% block descripcion %}Qué datos guarda Fintora, para qué se usan, con quién se comparten y cómo ejercer tus derechos según la Ley 21.719.{% endblock %}
+{% block og_titulo %}Política de privacidad de Fintora{% endblock %}
+{% block og_descripcion %}Qué datos guarda Fintora, para qué se usan, con quién se comparten y cómo ejercer tus derechos según la Ley 21.719.{% endblock %}
 {% block actual_privacidad %} aria-current="page"{% endblock %}
 {% block encabezado %}Política de privacidad{% endblock %}
 
@@ -103,6 +106,7 @@
   <tr><td>Responderte por correo lo que el chat no supo</td><td>Tu consentimiento, al dejar tu correo en el formulario</td></tr>
   <tr><td>Entrar con Face ID o huella</td><td>Tu consentimiento, por dispositivo y revocable desde el perfil</td></tr>
   <tr><td>Mejorar la app con la encuesta</td><td>Tu consentimiento: es voluntaria</td></tr>
+  <tr><td>Medir visitas y anuncios en la portada y las páginas legales</td><td>Tu consentimiento, para las cookies. Interés legítimo, para el conteo sin cookies</td></tr>
   <tr><td>Frenar accesos no autorizados y poder reconstruir un incidente</td><td>Interés legítimo en la seguridad del servicio</td></tr>
   <tr><td>Recuperar el servicio si la base de datos falla</td><td>Seguridad del tratamiento</td></tr>
 </table>
@@ -195,6 +199,32 @@
 </p>
 </section>
 
+<section id="medicion">
+<h2>Medición y publicidad en las páginas públicas</h2>
+<p>
+  En la portada y en estas páginas (privacidad, términos y seguridad) se mide
+  cuánta gente llega y desde qué anuncio. Dentro de la app, después de entrar,
+  no hay ninguna de estas herramientas.
+</p>
+<ul class="legal-checks">
+  <li><span class="legal-icono-si"><i class="fas fa-check"></i></span><span><strong>Siempre, sin cookies:</strong> Plausible cuenta las visitas
+    sin dejar cookies y sin identificarte.</span></li>
+  <li><span class="legal-icono-si"><i class="fas fa-check"></i></span><span><strong>Solo si aceptas:</strong> Google Analytics, Meta (Facebook e
+    Instagram), TikTok y X. Dejan cookies en tu navegador para saber si
+    llegaste desde uno de sus anuncios.</span></li>
+</ul>
+<p>
+  Si no aceptas, no se cargan. Puedes cambiar tu decisión cuando quieras desde
+  «Cookies», al pie de la portada y de estas páginas.
+</p>
+<p>
+  Lo que reciben es la página que visitas, desde dónde llegaste, tu navegador y
+  tu dirección IP. Nunca reciben nada de tu cuenta: ni montos, ni movimientos,
+  ni tu correo. Cada proveedor trata esos datos según su propia política, y sus
+  cookies duran lo que fija cada uno, hasta dos años.
+</p>
+</section>
+
 <section id="terceros">
 <h2>Con quién se comparten</h2>
 <p>
@@ -222,6 +252,26 @@
   <div class="legal-proveedor">
     <div class="legal-proveedor-cabeza"><b>Google</b><span class="legal-pais"><i class="fas fa-location-dot"></i>Estados Unidos</span></div>
     <p>Tu identidad, solo si entras con cuenta de Google</p>
+  </div>
+  <div class="legal-proveedor">
+    <div class="legal-proveedor-cabeza"><b>Plausible</b><span class="legal-pais"><i class="fas fa-location-dot"></i>Unión Europea</span></div>
+    <p>Conteo de visitas sin cookies en la portada y las páginas legales</p>
+  </div>
+  <div class="legal-proveedor">
+    <div class="legal-proveedor-cabeza"><b>Google Analytics</b><span class="legal-pais"><i class="fas fa-location-dot"></i>Estados Unidos</span></div>
+    <p>Visitas y anuncios en las páginas públicas, solo si aceptas las cookies</p>
+  </div>
+  <div class="legal-proveedor">
+    <div class="legal-proveedor-cabeza"><b>Meta</b><span class="legal-pais"><i class="fas fa-location-dot"></i>Estados Unidos</span></div>
+    <p>Visitas desde anuncios de Facebook e Instagram, solo si aceptas las cookies</p>
+  </div>
+  <div class="legal-proveedor">
+    <div class="legal-proveedor-cabeza"><b>TikTok</b><span class="legal-pais"><i class="fas fa-location-dot"></i>Internacional</span></div>
+    <p>Visitas desde anuncios de TikTok, solo si aceptas las cookies</p>
+  </div>
+  <div class="legal-proveedor">
+    <div class="legal-proveedor-cabeza"><b>X</b><span class="legal-pais"><i class="fas fa-location-dot"></i>Estados Unidos</span></div>
+    <p>Visitas desde anuncios de X, solo si aceptas las cookies</p>
   </div>
 </div>
 </section>
@@ -310,8 +360,10 @@
     enlaces que caducan a las pocas horas.</span></li>
   <li><span class="legal-icono-si"><i class="fas fa-check"></i></span><span>Una copia diaria de la base, verificada, en un almacenamiento privado
     separado del resto.</span></li>
-  <li><span class="legal-icono-si"><i class="fas fa-check"></i></span><span>Las tipografías, los iconos y los gráficos se cargan desde el propio
-    servidor: tu navegador no le pide nada a terceros.</span></li>
+  <li><span class="legal-icono-si"><i class="fas fa-check"></i></span><span>Dentro de la app, las tipografías, los iconos y los gráficos se cargan
+    desde el propio servidor: tu navegador no le pide nada a terceros. En la
+    portada y en estas páginas, solo se mide como se explica en
+    <a href="#medicion">Medición y publicidad</a>.</span></li>
   <li><span class="legal-icono-si"><i class="fas fa-check"></i></span><span>Puedes ver desde qué aparatos está abierta tu cuenta y cerrar cualquiera
     a distancia, desde Perfil.</span></li>
   <li><span class="legal-icono-si"><i class="fas fa-check"></i></span><span>Política de contenido con valor único por respuesta, que impide que un

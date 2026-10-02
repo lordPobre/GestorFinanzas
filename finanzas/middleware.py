@@ -6,6 +6,8 @@ from urllib.parse import urlparse
 from django.conf import settings
 from django.utils import timezone
 
+from . import marketing
+
 log = logging.getLogger('finanzas')
 
 
@@ -32,23 +34,33 @@ class PoliticaContenidoMiddleware:
 
         respuesta = self.get_response(request)
 
+        es_html = 'text/html' in respuesta.get('Content-Type', '')
         if getattr(settings, 'ES_STAGING', False):
+            respuesta['X-Robots-Tag'] = 'noindex, nofollow'
+        elif es_html and not marketing.es_indexable(request):
             respuesta['X-Robots-Tag'] = 'noindex, nofollow'
 
         ruta_admin = getattr(settings, 'ADMIN_URL', '')
         if ruta_admin and request.path.startswith(f'/{ruta_admin}/'):
             return respuesta
 
-        if 'text/html' not in respuesta.get('Content-Type', ''):
+        if not es_html:
             return respuesta
+
+        extra = {'script': [], 'conectar': [], 'imagen': []}
+        if marketing.es_publica(request):
+            extra = marketing.origenes(marketing.config())
+
+        def mas(clave):
+            return ''.join(' ' + o for o in extra[clave])
 
         respuesta['Content-Security-Policy'] = '; '.join([
             "default-src 'self'",
-            f"script-src 'self' 'nonce-{request.csp_nonce}'",
+            f"script-src 'self' 'nonce-{request.csp_nonce}'{mas('script')}",
             "style-src 'self' 'unsafe-inline'",
             "font-src 'self'",
-            f"img-src {IMG_SRC}",
-            "connect-src 'self'",
+            f"img-src {IMG_SRC}{mas('imagen')}",
+            f"connect-src 'self'{mas('conectar')}",
             "frame-src 'none'",
             "object-src 'none'",
             "form-action 'self'",

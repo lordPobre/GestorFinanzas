@@ -51,6 +51,33 @@ def salud(request):
                         status=200 if ok else 503)
 
 
+@cache_control(max_age=3600, public=True)
+def robots_txt(request):
+    from .. import marketing
+
+    lineas = ['User-agent: *']
+    lineas += [f'Allow: {r}$' if r == '/' else f'Allow: {r}' for r in marketing.RUTAS_INDEXABLES]
+    lineas += ['Allow: /static/', 'Allow: /.well-known/', 'Disallow: /', '',
+               f'Sitemap: {marketing.SITIO}/sitemap.xml', '']
+    return HttpResponse('\n'.join(lineas), content_type='text/plain; charset=utf-8')
+
+
+@cache_control(max_age=3600, public=True)
+def sitemap_xml(request):
+    from .. import marketing
+
+    hoy = timezone.localdate().isoformat()
+    prioridad = {'/': '1.0', '/seguridad/': '0.6'}
+    urls = ''.join(
+        f'<url><loc>{marketing.SITIO}{r}</loc><lastmod>{hoy}</lastmod>'
+        f'<priority>{prioridad.get(r, "0.4")}</priority></url>'
+        for r in marketing.RUTAS_PUBLICAS
+    )
+    xml = ('<?xml version="1.0" encoding="UTF-8"?>'
+           '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' + urls + '</urlset>')
+    return HttpResponse(xml, content_type='application/xml; charset=utf-8')
+
+
 @cache_control(max_age=86400, public=True)
 def security_txt(request):
     from .. import legal

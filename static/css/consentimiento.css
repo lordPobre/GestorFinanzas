@@ -1,0 +1,14 @@
+.cookies { position: fixed; left: 50%; bottom: calc(18px + env(safe-area-inset-bottom)); z-index: 1000; transform: translateX(-50%); display: flex; align-items: center; gap: 18px; width: min(760px, calc(100% - 28px)); box-sizing: border-box; padding: 16px 18px; border-radius: 22px; background: rgba(34, 31, 28, .92); -webkit-backdrop-filter: blur(24px) saturate(160%); backdrop-filter: blur(24px) saturate(160%); border: 1px solid rgba(255, 255, 255, .12); box-shadow: 0 18px 44px rgba(0, 0, 0, .5); color: #f5f5f5; font-family: 'Manrope', system-ui, sans-serif; }
+.cookies[hidden] { display: none; }
+.cookies-txt { display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 0; font-size: 13.5px; line-height: 1.5; color: rgba(245, 245, 245, .75); }
+.cookies-txt b { font-size: 14.5px; font-weight: 800; color: #f5f5f5; }
+.cookies-txt a { color: #ffbb56; font-weight: 700; text-decoration: none; }
+.cookies-botones { display: flex; gap: 8px; flex-shrink: 0; }
+.cookies-btn { min-height: 44px; padding: 0 18px; border-radius: 100px; border: 1px solid rgba(255, 255, 255, .16); background: rgba(255, 255, 255, .08); color: #f5f5f5; font: 800 14px 'Manrope', system-ui, sans-serif; cursor: pointer; }
+.cookies-btn:hover { background: rgba(255, 255, 255, .14); }
+.cookies-btn.principal { border-color: transparent; background: #ffaa2c; color: #1a1200; }
+.cookies-btn.principal:hover { background: #ffbb56; }
+@media (max-width: 640px) {
+  .cookies { flex-direction: column; align-items: stretch; gap: 12px; }
+  .cookies-botones > * { flex: 1; }
+}
