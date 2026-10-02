@@ -34,11 +34,14 @@ def _hablado(monto, usuario):
 def estado_esfera(usuario, resumen, presupuesto, mes, es_mes_actual, simbolo='$'):
     gastado = float(resumen['gastos']) + float(resumen['total_cuotas_mes'])
 
-    if presupuesto and presupuesto.limite_mensual and float(presupuesto.limite_mensual) > 0:
-        base = float(presupuesto.limite_mensual)
+    ingresos = float(resumen['ingresos'])
+    limite = float(presupuesto.limite_mensual) if presupuesto and presupuesto.limite_mensual else 0
+
+    if limite > 0 and (ingresos <= 0 or limite <= ingresos):
+        base = limite
         de_que = 'de tu presupuesto'
-    elif float(resumen['ingresos']) > 0:
-        base = float(resumen['ingresos'])
+    elif ingresos > 0:
+        base = ingresos
         de_que = 'de lo que te entró'
     else:
         texto = 'Define tu presupuesto en Perfil o anota tus ingresos para ver cómo vas.'
@@ -61,7 +64,7 @@ def estado_esfera(usuario, resumen, presupuesto, mes, es_mes_actual, simbolo='$'
 
     if es_mes_actual:
         if estado == 'verde':
-            texto = f'Llevas {money(gastado, simbolo)} de {money(base, simbolo)}. Te quedan {queda} para el mes.'
+            texto = f'Llevas {money(gastado, simbolo)} {de_que} ({money(base, simbolo)}). Te quedan {queda} para el mes.'
             cola = f'Vas bien: te quedan {queda_h} para el mes.'
         elif estado == 'amarillo':
             texto = f'Usaste el {pct}% {de_que}. Te quedan {queda} hasta fin de mes.'
