@@ -139,6 +139,18 @@
   });
   if (mq.addEventListener) mq.addEventListener('change', () => { if (p) fijar(0); });
 
+  let pendiente = 0;
+  function remedir() {
+    if (pendiente || !mq.matches) return;
+    pendiente = requestAnimationFrame(() => {
+      pendiente = 0;
+      medir();
+      aplicar();
+    });
+  }
+  new MutationObserver(remedir).observe(hero, { subtree: true, childList: true, attributes: true, attributeFilter: ['hidden'] });
+  if (window.ResizeObserver) new ResizeObserver(remedir).observe(hero);
+
   function vozEspanol() {
     const voces = sintesis.getVoices();
     return voces.find((v) => v.lang === 'es-CL')
