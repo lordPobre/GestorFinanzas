@@ -25,6 +25,7 @@ class BuscadoresTests(TestCase):
         self.assertIn('Allow: /$', texto)
         self.assertIn('Allow: /privacidad/', texto)
         self.assertIn('Allow: /static/', texto)
+        self.assertIn('Allow: /sitemap.xml$', texto)
         self.assertIn('Disallow: /', texto)
         self.assertIn(f'Sitemap: {marketing.SITIO}/sitemap.xml', texto)
 

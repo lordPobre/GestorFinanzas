@@ -57,7 +57,7 @@ def robots_txt(request):
 
     lineas = ['User-agent: *']
     lineas += [f'Allow: {r}$' if r == '/' else f'Allow: {r}' for r in marketing.RUTAS_INDEXABLES]
-    lineas += ['Allow: /static/', 'Allow: /.well-known/', 'Disallow: /', '',
+    lineas += ['Allow: /sitemap.xml$', 'Allow: /static/', 'Allow: /.well-known/', 'Disallow: /', '',
                f'Sitemap: {marketing.SITIO}/sitemap.xml', '']
     return HttpResponse('\n'.join(lineas), content_type='text/plain; charset=utf-8')
 
