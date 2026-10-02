@@ -29,11 +29,13 @@
     const tope = pestanas || asa;
     const cab = tope.getBoundingClientRect().bottom - r.top + (pestanas ? 12 : 4);
     d = Math.max(0, Math.round(navTop - 12 - cab - topeArriba));
-    if (accesos) {
-      const ra = accesos.getBoundingClientRect();
-      const rh = hero.getBoundingClientRect();
-      esfera.style.setProperty('--esfera-top', Math.round(ra.top - rh.top - 6) + 'px');
-    }
+    const rh = hero.getBoundingClientRect();
+    let top = accesos ? accesos.getBoundingClientRect().top - rh.top - 6 : 0;
+    hero.querySelectorAll('.ini-vistas, .ini-chips, .ini-valor:not([hidden])').forEach((el) => {
+      const re = el.getBoundingClientRect();
+      if (re.height) top = Math.max(top, re.bottom - rh.top + 24);
+    });
+    if (top) esfera.style.setProperty('--esfera-top', Math.round(top) + 'px');
   }
 
   function aplicar() {
