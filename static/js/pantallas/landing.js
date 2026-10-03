@@ -93,17 +93,51 @@
   }
 
   function prepararPestanas() {
-    var botones = document.querySelectorAll('[data-lp-tab]');
+    var botones = Array.prototype.slice.call(document.querySelectorAll('[data-lp-tab]'));
     var texto = document.querySelector('[data-lp-texto]');
-    botones.forEach(function (b) {
-      b.addEventListener('click', function () {
-        botones.forEach(function (x) { x.setAttribute('aria-selected', x === b ? 'true' : 'false'); });
-        document.querySelectorAll('[data-lp-panel]').forEach(function (p) {
-          p.hidden = p.dataset.lpPanel !== b.dataset.lpTab;
-        });
-        if (texto) texto.textContent = b.dataset.texto;
+
+    function elegir(b, enfocar) {
+      botones.forEach(function (x) {
+        var si = x === b;
+        x.setAttribute('aria-selected', si ? 'true' : 'false');
+        x.tabIndex = si ? 0 : -1;
+      });
+      document.querySelectorAll('[data-lp-panel]').forEach(function (p) {
+        p.hidden = p.dataset.lpPanel !== b.dataset.lpTab;
+      });
+      if (texto) texto.textContent = b.dataset.texto;
+      if (enfocar) b.focus();
+    }
+
+    botones.forEach(function (b, i) {
+      b.addEventListener('click', function () { elegir(b, false); });
+      b.addEventListener('keydown', function (e) {
+        var total = botones.length;
+        var destino = null;
+        if (e.key === 'ArrowRight' || e.key === 'ArrowDown') destino = botones[(i + 1) % total];
+        else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') destino = botones[(i - 1 + total) % total];
+        else if (e.key === 'Home') destino = botones[0];
+        else if (e.key === 'End') destino = botones[total - 1];
+        if (!destino) return;
+        e.preventDefault();
+        elegir(destino, true);
       });
     });
+  }
+
+  function prepararBotonChat() {
+    var zonas = document.querySelectorAll('.lp-faq-lista, .lp-cierre-pie');
+    if (!zonas.length || !('IntersectionObserver' in window)) return;
+    var visibles = [];
+    var io = new IntersectionObserver(function (entradas) {
+      entradas.forEach(function (e) {
+        var i = visibles.indexOf(e.target);
+        if (e.isIntersecting && i < 0) visibles.push(e.target);
+        if (!e.isIntersecting && i >= 0) visibles.splice(i, 1);
+      });
+      document.documentElement.classList.toggle('lp-chat-oculto', visibles.length > 0);
+    }, { rootMargin: '-80% 0px 0px 0px' });
+    zonas.forEach(function (z) { io.observe(z); });
   }
 
   function prepararRevelado() {
@@ -352,6 +386,7 @@
     prepararPestanas();
     prepararRevelado();
     prepararChat();
+    prepararBotonChat();
     prepararEsfera();
   });
 })();
