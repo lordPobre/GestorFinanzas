@@ -84,6 +84,7 @@
             <span class="sec-nombre su-nombre">{{ s.nombre }}</span>
             <span class="sec-meta{% if s.activa and s.periodo_a_pagar %} pendiente{% endif %}">{% if not s.activa %}Pausada · ahorras {{ s.monto_anual|money }} al año{% elif s.estado_mes == 'atrasada' %}{{ s.monto|money }} · atrasada{% else %}{{ s.monto|money }} · se cobra el {{ s.dia_cobro }}{% endif %}</span>
           </span>
+          <i class="fas fa-chevron-down cu-flecha" aria-hidden="true"></i>
         </button>
 
         {% if s.activa %}
@@ -102,7 +103,7 @@
         {% else %}
           <form method="post" action="{% url 'cancelar_suscripcion' s.pk %}" class="su-accion">
             {% csrf_token %}
-            <button type="submit" class="su-switch" title="Reactivar {{ s.nombre }}" aria-label="Reactivar {{ s.nombre }}"><span></span></button>
+            <button type="submit" class="su-pagar" title="Reactivar {{ s.nombre }}" aria-label="Reactivar {{ s.nombre }}">Reactivar</button>
           </form>
         {% endif %}
       </div>
@@ -145,7 +146,7 @@
     <span class="sec-vacio-icono"><i class="fas fa-rotate"></i></span>
     <span class="sec-vacio-titulo">No tienes suscripciones registradas</span>
     <span class="sec-vacio-txt">Agrega las que pagas todos los meses y Fintora las cobra sola, para que aparezcan en tus gastos sin anotarlas.</span>
-    <button type="button" class="sec-btn rojo-suave" data-open="#modalSub">Agregar la primera</button>
+    <button type="button" class="sec-btn ambar" data-open="#modalSub">Agregar la primera</button>
   </div>
   {% endif %}
 </section>
@@ -175,7 +176,8 @@
         </div>
         <div style="flex:1">
           <label class="label" for="id_sub_dia">Día de cobro</label>
-          <input type="number" name="dia_cobro" id="id_sub_dia" class="mono" min="1" max="28" value="1">
+          <input type="number" name="dia_cobro" id="id_sub_dia" class="mono" min="1" max="28" value="1" aria-describedby="ayudaSubDia">
+          <div class="fo-ayuda" id="ayudaSubDia">Del 1 al 28, así se cobra todos los meses, incluso en febrero.</div>
         </div>
       </div>
       <div class="label" style="margin-bottom:9px">Categoría</div>
@@ -186,13 +188,13 @@
         <button type="button" class="chip" data-value="Servicios">Servicios</button>
         <button type="button" class="chip" data-value="Salud">Salud</button>
       </div>
-      <div class="preview-box">
-        <div class="label" style="color:var(--amber);margin-bottom:9px">Lo que te costaría</div>
-        <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:5px">
-          <span style="font-size:13px;color:var(--text-secondary)">Al año</span>
-          <span class="display" style="font-size:19px" id="subAnual">$0</span>
+      <div class="su-resumen">
+        <div class="su-resumen-etq">Lo que te costaría</div>
+        <div class="su-resumen-fila">
+          <span>Al año</span>
+          <span class="su-resumen-monto" id="subAnual">$0</span>
         </div>
-        <div style="font-size:13px;color:var(--text-muted)" id="subNota">Se suma a tus {{ total_mensual|default:0|money }} mensuales actuales.</div>
+        <div class="su-resumen-nota" id="subNota">Se suma a tus {{ total_mensual|default:0|money }} mensuales actuales.</div>
       </div>
       <button type="submit" class="btn btn-purple btn-block">Agregar suscripción</button>
     </form>
