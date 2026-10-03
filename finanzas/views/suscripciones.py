@@ -44,9 +44,17 @@ def suscripciones(request):
     grupos = {}
     for s in activas:
         grupos.setdefault(s.categoria or 'Suscripciones', []).append(s)
-    duplicadas = [{'categoria': cat, 'items': items,
-                   'ahorro_anual': round(min(float(i.monto) for i in items) * 12)}
-                  for cat, items in grupos.items() if len(items) > 1]
+    duplicadas = []
+    for cat, items in grupos.items():
+        if len(items) < 2:
+            continue
+        montos = [float(i.monto) for i in items]
+        duplicadas.append({
+            'categoria': cat,
+            'clave': cat + ':' + ','.join(str(i.pk) for i in sorted(items, key=lambda x: x.pk)),
+            'items': sorted(items, key=lambda x: float(x.monto)),
+            'ahorro_anual': round((sum(montos) - min(montos)) * 12),
+        })
 
     context = {
         'suscripciones': subs,
@@ -54,6 +62,7 @@ def suscripciones(request):
         'total_anual': round(total_mensual * 12),
         'cantidad_activas': len(activas),
         'duplicadas': duplicadas,
+        'ahorro_total': sum(g['ahorro_anual'] for g in duplicadas),
         'pendientes_mes': len(pendientes),
         'monto_pendiente_mes': round(sum(float(s.monto) for s in pendientes)),
         'monto_pagado_mes': round(sum(float(s.monto) for s in activas if s.pagada_este_mes)),

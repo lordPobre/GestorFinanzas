@@ -12,9 +12,8 @@
 <div class="sec-top">
   <div class="sec-titulo-caja">
     <span class="sec-eyebrow"><i class="fas fa-brain"></i>Planificar</span>
-    <h1 class="sec-titulo" data-tour="ia-alt">Análisis</h1>
+    <h1 class="sec-titulo an-titulo" data-tour="ia-alt">Análisis<span class="an-etq-ia"><i class="fas fa-wand-magic-sparkles" aria-hidden="true"></i>Con IA</span></h1>
   </div>
-  <span class="sec-pastilla">Con IA</span>
 </div>
 
 {% if not analisis.tiene_datos %}
@@ -36,11 +35,11 @@
   <span class="sec-monto">{% if analisis.flujo_libre >= 0 %}+{% endif %}{{ analisis.flujo_libre|money }}</span>
   <div class="sec-chips">
     <span class="chip-vidrio">Con tus últimos 3 meses</span>
-    {% if analisis.flujo_libre >= 0 %}<span class="chip-vidrio al-dia">Te sobra</span>{% else %}<span class="chip-vidrio atraso">Te falta</span>{% endif %}
   </div>
 </section>
 
-<section class="sec-hoja">
+<section class="sec-hoja an-hoja">
+  <div class="an-col an-izq">
   <button type="button" class="an-ia" id="btnIA" data-tour="ia">
     <span class="an-ia-icono"><i></i><i></i><i></i></span>
     <span class="an-ia-txt">
@@ -101,12 +100,14 @@
     </div>
   </div>
 
-  <h2 class="sec-subtitulo">Cuánto pagas en cuotas cada mes</h2>
+  </div>
+
+  <div class="an-col an-der">
+  <h2 class="sec-subtitulo an-subtitulo">Cuánto pagas en cuotas cada mes<span class="sec-badge {% if analisis.tendencia == 'bajando' %}verde{% elif analisis.tendencia == 'subiendo' %}rojo{% else %}gris{% endif %}">{{ analisis.tendencia|capfirst }}</span></h2>
   <div class="an-grafico">
     <div class="es-leyenda">
       <span><i class="verde"></i>Ya pagado {{ total_pagado_serie|money }}</span>
       <span><i class="ambar"></i>Por pagar {{ total_pendiente_serie|money }}</span>
-      <span class="sec-badge {% if analisis.tendencia == 'bajando' %}verde{% elif analisis.tendencia == 'subiendo' %}rojo{% else %}gris{% endif %}">{{ analisis.tendencia|capfirst }}</span>
     </div>
     <div class="es-lienzo"><canvas id="chartSerie" data-om-raster></canvas></div>
     <div class="an-resumen">
@@ -116,6 +117,9 @@
     </div>
   </div>
 
+  </div>
+
+  <div class="an-col an-abajo">
   <h2 class="sec-subtitulo">Mes por mes</h2>
   <div class="an-meses">
     {% for f in serie %}{% if f.total %}
@@ -132,6 +136,7 @@
   </div>
 
   <a href="{% url 'plan_plata' %}" class="sec-btn vidrio an-plan"><i class="fas fa-route"></i>Ver el plan para tu plata</a>
+  </div>
 </section>
 {% endif %}
 {% endblock %}

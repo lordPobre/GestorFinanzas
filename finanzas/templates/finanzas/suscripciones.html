@@ -24,6 +24,44 @@
     {% if monto_pendiente_mes %}<span class="chip-vidrio">Falta pagar {{ monto_pendiente_mes|money }}</span>
     {% elif suscripciones %}<span class="chip-vidrio">Al día</span>{% endif %}
   </div>
+  {% if duplicadas %}
+  <div class="su-ahorro" data-consejos>
+    <div class="su-ahorro-cab">
+      <span class="su-ahorro-titulo">Para ahorrar</span>
+      <span class="su-ahorro-total">Hasta <b data-consejos-total>{{ ahorro_total|money }}</b> al año</span>
+    </div>
+    <div class="su-ahorro-grid">
+      {% for g in duplicadas %}
+      <article class="su-tip" data-consejo="{{ g.clave }}" data-ahorro="{{ g.ahorro_anual }}">
+        <div class="su-tip-cab">
+          <span class="su-tip-logos">{% for i in g.items|slice:":3" %}{% marca_de i.nombre as m %}{% if m %}{% include 'finanzas/_marca.html' with clase="su-tip-logo" %}{% else %}<span class="su-tip-logo su-tip-logo-gen"><i class="fas fa-rotate"></i></span>{% endif %}{% endfor %}</span>
+          <span class="sec-txt">
+            <span class="sec-nombre su-tip-nombre">{% for i in g.items %}{{ i.nombre }}{% if not forloop.last %}{% if forloop.revcounter == 2 %} y {% else %}, {% endif %}{% endif %}{% endfor %}</span>
+            <span class="sec-meta">{{ g.items|length }} en {{ g.categoria }}</span>
+          </span>
+        </div>
+        <div class="su-tip-ahorro"><span>Quedándote con uno ahorras hasta</span><b>{{ g.ahorro_anual|money }} al año</b></div>
+        <div class="su-tip-elegir" data-consejo-lista hidden>
+          {% for i in g.items %}
+          <div class="su-tip-op">
+            <span>{{ i.nombre }}</span>
+            <span class="su-tip-op-monto">{{ i.monto|money }} al mes</span>
+            <form method="post" action="{% url 'cancelar_suscripcion' i.pk %}" data-confirm="¿Pausar {{ i.nombre }}? Ahorras {{ i.monto_anual|money }} al año.">
+              {% csrf_token %}
+              <button type="submit" class="sec-chico"><i class="fas fa-pause"></i>Pausar</button>
+            </form>
+          </div>
+          {% endfor %}
+        </div>
+        <div class="su-tip-acciones">
+          <button type="button" class="su-tip-btn" data-consejo-elegir aria-expanded="false">Elegir con cuál me quedo<i class="fas fa-chevron-down"></i></button>
+          <button type="button" class="su-tip-no" data-consejo-ocultar>No son lo mismo</button>
+        </div>
+      </article>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
   {% include 'finanzas/_esfera.html' %}
 </section>
 
@@ -33,7 +71,7 @@
   <div class="sec-tip rojo">
     <span class="sec-tip-icono"><i class="fas fa-triangle-exclamation"></i></span>
     <span class="sec-tip-txt">
-      <b>{{ atrasadas }} suscripción{{ atrasadas|pluralize:"es" }} con meses sin pagar</b>
+      <b>{{ atrasadas }} suscripci{{ atrasadas|pluralize:"ón,ones" }} con meses sin pagar</b>
       <span>Suman {{ monto_atrasado|money }} de cobros que ya pasaron.</span>
     </span>
   </div>
@@ -124,23 +162,6 @@
     </div>
     {% endfor %}
   </div>
-  {% if duplicadas %}
-  <div class="su-consejo">
-    <div class="su-consejo-cab">
-      <span class="sec-tip-icono"><i class="fas fa-lightbulb"></i></span>
-      <span class="sec-txt">
-        <span class="sec-nombre">Consejo para ahorrar</span>
-        <span class="sec-meta">Tienes servicios que hacen lo mismo</span>
-      </span>
-    </div>
-    {% for grupo in duplicadas %}
-    <div class="su-consejo-fila">
-      <span>{% for i in grupo.items %}{{ i.nombre }}{% if not forloop.last %}{% if forloop.revcounter == 2 %} y {% else %}, {% endif %}{% endif %}{% endfor %} se superponen. Deja uno.</span>
-      <b>{{ grupo.ahorro_anual|money }} al año</b>
-    </div>
-    {% endfor %}
-  </div>
-  {% endif %}
   {% else %}
   <div class="sec-vacio">
     <span class="sec-vacio-icono"><i class="fas fa-rotate"></i></span>

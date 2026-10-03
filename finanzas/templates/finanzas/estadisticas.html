@@ -37,14 +37,14 @@
   </div>
 </section>
 
-<section class="sec-hoja">
+<section class="sec-hoja es-hoja">
   <div class="sec-pestanas" data-pestanas-sec="estadisticas" role="tablist">
     <button type="button" class="on" data-pestana="cat" role="tab">Categorías</button>
     <button type="button" data-pestana="mes" role="tab">Mes a mes</button>
     <button type="button" data-pestana="cuotas" role="tab">Cuotas</button>
   </div>
 
-  <div class="es-panel" data-panel-sec="estadisticas" data-pestana="cat">
+  <div class="es-panel es-cats" data-panel-sec="estadisticas" data-pestana="cat">
     {% for r in ranking %}
     <div class="es-cat" data-searchable data-cat-total="{{ r.total|floatformat:'0u' }}" data-cat-color="{{ r.color }}">
       <div class="es-cat-cab">
@@ -53,9 +53,9 @@
       </div>
       <div class="es-cat-barra"><span style="width:{{ r.ancho }}%;background:{{ r.color }}"></span></div>
       {% if r.delta != None %}
-      <span class="es-cat-delta{% if r.subio %} sube{% endif %}">{% if r.subio %}+{% endif %}{{ r.delta }}% que el mes pasado</span>
+      <span class="es-cat-delta {% if r.subio %}sube{% else %}baja{% endif %}">{% if r.subio %}+{% endif %}{{ r.delta }}% que el mes pasado</span>
       {% else %}
-      <span class="es-cat-delta">Nueva este mes</span>
+      <span class="es-cat-delta nueva">Nueva este mes</span>
       {% endif %}
     </div>
     {% empty %}
@@ -85,10 +85,10 @@
             data-ingresos="{{ ingresos_json|a_json }}"
             data-gastos="{{ gastos_json|a_json }}"></canvas></div>
     <div class="es-metricas">
-      <div class="es-metrica"><span>Gasto promedio</span><b>{{ promedio_gasto|money }}</b></div>
-      <div class="es-metrica"><span>Mejor mes</span><b class="verde">{{ mejor_mes|default:"—" }}</b><small>{% if mejor_ahorro > 0 %}Ahorraste {{ mejor_ahorro|money }}{% else %}Aún sin un mes en positivo{% endif %}</small></div>
-      <div class="es-metrica"><span>Mes más caro</span><b class="rojo">{{ peor_mes|default:"—" }}</b><small>{{ peor_gasto|money }} en salidas</small></div>
-      <div class="es-metrica"><span>Tasa de ahorro</span><b>{{ tasa_ahorro }}%</b><small>{% if tasa_ahorro > 0 %}De cada $100 guardas ${{ tasa_ahorro }}{% else %}Gastas más de lo que entra{% endif %}</small></div>
+      <div class="es-metrica"><span class="es-metrica-etq"><i class="fas fa-receipt"></i>Gasto promedio</span><b>{{ promedio_gasto|money }}</b><small>al mes</small></div>
+      <div class="es-metrica"><span class="es-metrica-etq"><i class="fas fa-piggy-bank"></i>Mejor mes</span>{% if mejor_ahorro > 0 %}<b class="verde">{{ mejor_ahorro|money }}</b><small>Ahorraste en {{ mejor_mes }}</small>{% else %}<b>—</b><small>Aún sin un mes en positivo</small>{% endif %}</div>
+      <div class="es-metrica"><span class="es-metrica-etq"><i class="fas fa-arrow-trend-up"></i>Mes más caro</span><b class="rojo">{{ peor_gasto|money }}</b><small>{% if peor_mes %}Salidas de {{ peor_mes }}{% else %}Sin datos todavía{% endif %}</small></div>
+      <div class="es-metrica"><span class="es-metrica-etq"><i class="fas fa-percent"></i>Tasa de ahorro</span><b>{{ tasa_ahorro }}%</b><small>{% if tasa_ahorro > 0 %}De cada $100 guardas ${{ tasa_ahorro }}{% else %}Gastas más de lo que entra{% endif %}</small></div>
     </div>
   </div>
 
