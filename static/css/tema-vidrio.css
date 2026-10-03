@@ -697,7 +697,7 @@ a.btn-green[href*="wa.me"], a.btn-green[href*="whatsapp"] {
   display: flex; align-items: flex-start; gap: 12px; padding: 12px 14px; border-radius: 16px;
   background: var(--vidrio); border: 1px solid var(--vidrio-borde);
 }
-.ini-aviso-icono { width: 30px; height: 30px; flex-shrink: 0; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 12px; }
+.ini-aviso-icono { width: 30px; height: 30px; flex-shrink: 0; border-radius: var(--r-sm); display: flex; align-items: center; justify-content: center; font-size: 12px; }
 .ini-aviso-txt { min-width: 0; font-size: 13px; line-height: 1.45; color: var(--text-secondary); }
 .ini-aviso-txt b { display: block; margin-bottom: 2px; font-size: 12px; font-weight: 800; }
 
@@ -749,7 +749,7 @@ body:has(.ini-hero) .fab-group { display: none !important; }
   transition: background .15s;
 }
 .ini-tile:hover, .ini-mes:hover { background: rgba(255, 255, 255, .11); color: var(--text-primary); }
-.ini-tile { gap: 8px; padding: 18px; border-radius: 24px; }
+.ini-tile { gap: 8px; padding: 18px; border-radius: var(--r-lg); }
 .ini-tile-icono { width: 34px; height: 34px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 14px; }
 .ini-tile-icono.azul  { background: rgba(75, 140, 255, .2); color: #8db4ff; }
 .ini-tile-icono.verde { background: rgba(83, 210, 88, .2); color: #6ee873; }
@@ -778,7 +778,6 @@ body:has(.ini-hero) .fab-group { display: none !important; }
 .ini-cab { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
 .ini-cab-txt { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; min-width: 0; }
 .ini-titulo { margin: 0; font-size: 18px; font-weight: 800; letter-spacing: -.02em; white-space: nowrap; }
-.ini-tarjeta .ini-titulo { font-size: 17px; }
 .ini-sub { font-size: 13px; color: rgba(245, 245, 245, .68); }
 .ini-link {
   display: inline-flex; align-items: center; gap: 6px; flex-shrink: 0; padding: 0; border: none; background: none; cursor: pointer;
@@ -828,7 +827,7 @@ body:has(.ini-hero) .fab-group { display: none !important; }
 .ini-pago.grupo:hover { border-color: rgba(255, 138, 138, .45); }
 .ini-pago form { margin: 0; }
 .ini-ficha {
-  width: 32px; height: 32px; flex-shrink: 0; border-radius: 11px;
+  width: 32px; height: 32px; flex-shrink: 0; border-radius: var(--r-sm);
   display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 800;
   background: rgba(255, 255, 255, .08); color: var(--text-primary);
 }
@@ -855,6 +854,9 @@ body:has(.ini-hero) .fab-group { display: none !important; }
 .ini-pago:not(.atrasado) .ini-pago-ok > i { display: block; }
 .ini-pago:not(.atrasado) .ini-pago-ok > span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
 .ini-pago:not(.atrasado):hover .ini-pago-ok, .ini-pago:not(.atrasado):focus-within .ini-pago-ok { opacity: 1; transform: scale(1); }
+@media (hover: none) {
+  .ini-pago:not(.atrasado) .ini-pago-ok { opacity: 1; transform: none; }
+}
 .ini-pago-ver { margin-left: 6px; padding: 6px 12px; border-radius: 100px; background: #e25c5c; color: #2b0606; font-size: 12px; font-weight: 800; }
 
 .ini-lista-pagar { display: none; flex-direction: column; }
@@ -867,26 +869,30 @@ body:has(.ini-hero) .fab-group { display: none !important; }
 .ini-fila-meta { font-size: 13px; font-weight: 600; color: rgba(245, 245, 245, .68); }
 .ini-fila.pronto .ini-fila-meta { color: var(--amarillo); }
 .ini-fila.atrasado .ini-fila-meta { color: #ff9a9a; }
+.ini-fila-monto { flex-shrink: 0; font-size: 15px; font-weight: 800; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.ini-fila.atrasado .ini-fila-monto { color: #ff9a9a; }
 .ini-fila-pagar {
-  display: flex; align-items: center; gap: 6px; padding: 8px 13px; border: none; border-radius: 100px; cursor: pointer; white-space: nowrap;
-  background: rgba(255, 255, 255, .12); color: var(--text-primary); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .3);
-  font-family: 'Manrope', sans-serif; font-size: 13px; font-weight: 800; font-variant-numeric: tabular-nums;
+  display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; flex-shrink: 0; padding: 0; cursor: pointer;
+  border: 1px solid rgba(255, 255, 255, .18); border-radius: 50%; background: rgba(255, 255, 255, .12); color: var(--text-primary);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .2); font-size: 14px;
+  transition: background .15s, color .15s, transform .15s var(--ease-out);
 }
-.ini-fila-pagar i { font-size: 10px; }
+.ini-fila-pagar:hover, .ini-fila-pagar:active { border-color: transparent; background: var(--green); color: #062b08; }
 .ini-fila-pagar:active { transform: scale(.95); }
-.ini-fila.atrasado .ini-fila-pagar { background: #e25c5c; color: #2b0606; }
+.ini-fila-pagar:focus-visible { outline: 2px solid #ffbb56; outline-offset: 2px; }
+.ini-fila.atrasado .ini-fila-pagar { border-color: transparent; background: #e25c5c; color: #2b0606; }
 .ini-vacio { display: flex; align-items: center; gap: 10px; padding: 10px 0; font-size: 14px; color: rgba(245, 245, 245, .68); }
 .ini-vacio i { color: var(--green-texto); }
 .ini-vacio[hidden] { display: none; }
 .ini-vacio-grande { flex: 1; display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 12px; font-size: 14px; color: rgba(245, 245, 245, .68); }
 
 .ini-grid { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr) minmax(0, .8fr); gap: 14px; }
-.ini-tarjeta { display: flex; flex-direction: column; min-width: 0; padding: 16px 20px; }
+.ini-tarjeta { display: flex; flex-direction: column; min-width: 0; padding: 18px 22px 20px; }
 .ini-movs { gap: 4px; }
 .ini-movs .ini-cab { padding-bottom: 4px; }
 .ini-mov { display: flex; align-items: center; gap: 12px; min-width: 0; padding: 5px 0; }
 .ini-mov-icono {
-  width: 32px; height: 32px; flex-shrink: 0; border-radius: 11px;
+  width: 32px; height: 32px; flex-shrink: 0; border-radius: var(--r-sm);
   display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 800;
   background: rgba(255, 255, 255, .08); color: #ffbb56;
 }
@@ -977,7 +983,7 @@ body:has(.ini-hero) .fab-group { display: none !important; }
   .ini-top-avatar:hover { color: var(--text-primary); }
   .ini-top-campana .punto { position: absolute; top: 9px; right: 10px; width: 8px; height: 8px; border-radius: 50%; background: #ff8a8a; }
   .ini-top-mes {
-    display: flex; align-items: center; gap: 8px; min-height: 40px; padding: 0 16px; border-radius: 100px; cursor: pointer;
+    display: flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 16px; border-radius: 100px; cursor: pointer;
     font-family: 'Manrope', sans-serif; font-size: 13px; font-weight: 800; white-space: nowrap;
   }
   .ini-top-mes i { font-size: 10px; }
@@ -990,7 +996,7 @@ body:has(.ini-hero) .fab-group { display: none !important; }
   .ini-chips { justify-content: center; flex-wrap: nowrap; margin-top: 10px; }
   .chip-vidrio { padding: 7px 13px; font-size: 13px; }
   .inicio-chips { justify-content: center; }
-  .ini-accesos { justify-content: center; flex-wrap: nowrap; gap: 22px; margin-top: 26px; }
+  .ini-accesos { justify-content: center; flex-wrap: nowrap; gap: clamp(12px, 5vw, 22px); margin-top: 26px; }
   .ini-acceso, .ini-acceso.principal, .ini-acceso:hover, .ini-acceso.principal:hover {
     flex-direction: column; gap: 8px; height: auto; padding: 0; border: none; background: none; box-shadow: none;
     -webkit-backdrop-filter: none; backdrop-filter: none; color: var(--text-primary); font-size: 12px; font-weight: 700;
@@ -1018,7 +1024,7 @@ body:has(.ini-hero) .fab-group { display: none !important; }
   .ini-panel::before { content: ''; align-self: center; width: 40px; height: 5px; border-radius: 100px; background: rgba(255, 255, 255, .22); }
   .ini-pestanas { display: flex; padding: 4px; border-radius: 100px; background: rgba(255, 255, 255, .07); border: 1px solid rgba(255, 255, 255, .07); }
   .ini-pestanas > button {
-    flex: 1; min-height: 38px; padding: 0; border: none; border-radius: 100px; background: none; cursor: pointer;
+    flex: 1; min-height: 44px; padding: 0; border: none; border-radius: 100px; background: none; cursor: pointer;
     color: rgba(245, 245, 245, .68); font-family: 'Manrope', sans-serif; font-size: 13px; font-weight: 700;
     transition: background .2s;
   }
@@ -1031,7 +1037,8 @@ body:has(.ini-hero) .fab-group { display: none !important; }
   .ini-linea { gap: 0; }
   .ini-linea > .ini-cab, .ini-regla { display: none; }
   .ini-lista-pagar { display: flex; }
-  .ini-link-tel { display: inline-flex; align-self: flex-start; margin-top: 8px; }
+  .ini-link { min-height: 44px; }
+  .ini-link-tel { display: inline-flex; align-self: flex-start; margin-top: 4px; }
   .ini-grid { display: block; }
   .ini-tarjeta .ini-cab { justify-content: flex-end; padding: 0 0 2px; }
   .ini-tarjeta .ini-titulo { display: none; }

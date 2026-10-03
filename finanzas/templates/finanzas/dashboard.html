@@ -131,7 +131,7 @@
       <span class="ini-leyenda">
         <span>Gastado {{ total_gastos|money }}</span>
         <span class="por-pagar">Por pagar {{ por_pagar|money }}</span>
-        <span class="queda">Te queda</span>
+        <span class="queda">{% if disponible >= 0 %}Te queda{% else %}Te falta{% endif %} {{ disponible|money }}</span>
       </span>
     </a>
   </div>
@@ -194,12 +194,13 @@
           <span class="ini-fila-nombre">{{ i.nombre }}</span>
           <span class="ini-fila-meta">{% if i.atrasado %}Atrasado · {{ i.fecha|date:"j b" }}{% elif i.tipo == 'cuota' %}{{ i.detalle }} · vence {{ i.fecha|date:"j b" }}{% else %}Vence {{ i.fecha|date:"j b" }}{% endif %}</span>
         </span>
+        <span class="ini-fila-monto">{{ i.monto|money }}</span>
         <form method="post" action="{{ i.url_pagar }}">
           {% csrf_token %}
           <input type="hidden" name="next" value="?year={{ year }}&amp;month={{ month }}">
           <input type="hidden" name="next_path" value="{% url 'dashboard' %}">
           <input type="hidden" name="periodo" value="{{ i.periodo }}">
-          <button type="submit" class="ini-fila-pagar" aria-label="Marcar {{ i.nombre }} como pagado">{{ i.monto|money }}<i class="fas fa-check"></i></button>
+          <button type="submit" class="ini-fila-pagar" title="Marcar como pagado" aria-label="Marcar {{ i.nombre }} como pagado"><i class="fas fa-check"></i></button>
         </form>
       </div>
       {% endif %}{% endfor %}
@@ -317,12 +318,13 @@
           <span class="ini-fila-nombre">{{ i.nombre }}</span>
           <span class="ini-fila-meta">Atrasado · {{ i.fecha|date:"j b" }}</span>
         </span>
+        <span class="ini-fila-monto">{{ i.monto|money }}</span>
         <form method="post" action="{{ i.url_pagar }}">
           {% csrf_token %}
           <input type="hidden" name="next" value="?year={{ year }}&amp;month={{ month }}">
           <input type="hidden" name="next_path" value="{% url 'dashboard' %}">
           <input type="hidden" name="periodo" value="{{ i.periodo }}">
-          <button type="submit" class="ini-fila-pagar" aria-label="Marcar {{ i.nombre }} como pagado">{{ i.monto|money }}<i class="fas fa-check"></i></button>
+          <button type="submit" class="ini-fila-pagar" title="Marcar como pagado" aria-label="Marcar {{ i.nombre }} como pagado"><i class="fas fa-check"></i></button>
         </form>
       </div>
       {% endif %}{% endfor %}
