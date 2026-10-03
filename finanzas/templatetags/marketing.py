@@ -29,6 +29,16 @@ def marketing_consentimiento(context):
     return _datos(context)
 
 
+@register.inclusion_tag('finanzas/_evento.html', takes_context=True)
+def marketing_evento(context):
+    request = context.get('request')
+    c = marketing.config()
+    activo = marketing.tomar_evento(request) and marketing.hay_pixeles(c)
+    if activo:
+        request.marketing_evento = True
+    return {'activo': activo, 'm': c, 'csp_nonce': context.get('csp_nonce', '')}
+
+
 @register.simple_tag(takes_context=True)
 def marketing_pixeles(context):
     return _datos(context)['pixeles']

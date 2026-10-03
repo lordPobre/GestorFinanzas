@@ -1,4 +1,4 @@
-{% load static humanize moneda %}<!DOCTYPE html>
+{% load static humanize moneda marketing %}<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8">
@@ -467,5 +467,6 @@
 <script src="{% static 'js/pantallas/base-5.js' %}" nonce="{{ csp_nonce }}" data-ruta-inicio="{% url 'dashboard' %}" data-ruta-cuotas="{% url 'deudas' %}" data-ruta-suscripciones="{% url 'suscripciones' %}" data-ruta-prestamos="{% url 'prestamos' %}" data-ruta-metas="{% url 'metas' %}" data-ruta-estadisticas="{% url 'estadisticas' %}" data-ruta-analisis="{% url 'analisis_predictivo' %}" data-ruta-importar="{% url 'importar_cartola' %}" data-ruta-perfil="{% url 'perfil' %}"></script>
 <script src="{% static 'js/pantallas/saludo-cielo.js' %}?v=51" nonce="{{ csp_nonce }}"></script>
 {% block extra_js %}{% endblock %}
+{% marketing_evento %}
 </body>
 </html>

@@ -1,4 +1,4 @@
-{% load static %}
+{% load static marketing %}
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -140,5 +140,6 @@
 </div>
 
 <script src="{% static 'js/pantallas/onboarding.js' %}" nonce="{{ csp_nonce }}"></script>
+{% marketing_evento %}
 </body>
 </html>

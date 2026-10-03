@@ -48,7 +48,7 @@ class PoliticaContenidoMiddleware:
             return respuesta
 
         extra = {'script': [], 'conectar': [], 'imagen': []}
-        if marketing.es_publica(request):
+        if marketing.es_publica(request) or getattr(request, 'marketing_evento', False):
             extra = marketing.origenes(marketing.config())
 
         def mas(clave):

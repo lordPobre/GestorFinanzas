@@ -15,7 +15,7 @@ from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.utils import timezone
 
-from .. import auditoria, legal, sesiones, verificacion
+from .. import auditoria, legal, marketing, sesiones, verificacion
 from ..models import (Categoria, CodigoRespaldo, Deuda, EventoSeguridad, GastoPendiente, MetaAhorro,
                      Passkey, Persona, Presupuesto, RespuestaEncuesta, SegundoFactor, SesionActiva,
                      Suscripcion, Transaccion, UserProfile)
@@ -391,6 +391,7 @@ def registro(request):
             profile.save()
             logger.info('Alta de cuenta %s con politica version %s',
                         user.pk, legal.VERSION)
+            marketing.marcar_registro(request)
 
             if verificacion.enviar(request, user):
                 messages.info(

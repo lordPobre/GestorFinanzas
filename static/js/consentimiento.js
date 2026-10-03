@@ -1,7 +1,8 @@
 (function () {
   var script = document.currentScript;
   if (!script) return;
-  var ids = { ga4: script.dataset.ga4, meta: script.dataset.meta, tiktok: script.dataset.tiktok, x: script.dataset.x };
+  var ids = { ga4: script.dataset.ga4, meta: script.dataset.meta, tiktok: script.dataset.tiktok, x: script.dataset.x, xRegistro: script.dataset.xRegistro };
+  var evento = script.dataset.evento;
   var CLAVE = 'fintora.cookies';
   var aviso = document.querySelector('[data-cookies]');
   var cargado = false;
@@ -84,6 +85,13 @@
     if (ids.x) cargarX(ids.x);
   }
 
+  function registrarAlta() {
+    if (ids.ga4 && window.gtag) window.gtag('event', 'sign_up', { method: 'correo' });
+    if (ids.meta && window.fbq) window.fbq('track', 'CompleteRegistration');
+    if (ids.tiktok && window.ttq) window.ttq.track('CompleteRegistration');
+    if (ids.x && ids.xRegistro && window.twq) window.twq('event', ids.xRegistro, {});
+  }
+
   function borrarCookies() {
     var nombres = document.cookie.split(';').map(function (c) { return c.split('=')[0].trim(); });
     var dominio = location.hostname.replace(/^www\./, '');
@@ -117,6 +125,13 @@
   });
 
   var decision = leer();
+  if (evento) {
+    if (decision && decision.acepta) {
+      cargar();
+      if (evento === 'registro') registrarAlta();
+    }
+    return;
+  }
   if (decision && decision.acepta) cargar();
   else if (!decision) mostrar(true);
 })();

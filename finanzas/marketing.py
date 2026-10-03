@@ -5,6 +5,7 @@ SITIO = 'https://fintora.cl'
 RUTAS_PUBLICAS = ('/', '/privacidad/', '/terminos/', '/seguridad/')
 RUTAS_INDEXABLES = RUTAS_PUBLICAS + ('/login/', '/registro/')
 PLAUSIBLE_SCRIPT = 'https://plausible.io/js/script.js'
+CLAVE_EVENTO = 'marketing_registro'
 
 
 def _env(nombre):
@@ -17,6 +18,7 @@ def config():
         'meta': _env('META_PIXEL_ID'),
         'tiktok': _env('TIKTOK_PIXEL_ID'),
         'x': _env('X_PIXEL_ID'),
+        'x_registro': _env('X_EVENTO_REGISTRO'),
         'plausible': _env('PLAUSIBLE_DOMINIO'),
         'plausible_src': _env('PLAUSIBLE_SCRIPT') or PLAUSIBLE_SCRIPT,
         'google_verificacion': _env('GOOGLE_SITE_VERIFICATION'),
@@ -25,6 +27,16 @@ def config():
 
 def hay_pixeles(c):
     return bool(c['ga4'] or c['meta'] or c['tiktok'] or c['x'])
+
+
+def marcar_registro(request):
+    request.session[CLAVE_EVENTO] = True
+
+
+def tomar_evento(request):
+    if request is None or not hasattr(request, 'session'):
+        return False
+    return bool(request.session.pop(CLAVE_EVENTO, False))
 
 
 def _con_sesion(request):
