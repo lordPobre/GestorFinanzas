@@ -1,7 +1,7 @@
 {% extends 'finanzas/base.html' %}
 {% load static %}
 {% load humanize %}
-{% block title %}{% if editar %}Editar compra{% else %}Nueva compra en cuotas{% endif %} · FinApp{% endblock %}
+{% block title %}{% if editar %}Editar compra{% else %}Nueva compra en cuotas{% endif %} · Fintora{% endblock %}
 {% block topbar_sub %}{% if editar %}Ajustar una compra a plazo{% else %}Registrar una compra a plazo{% endif %}{% endblock %}
 
 
@@ -27,7 +27,7 @@
       <div class="field">
         <label class="label" for="{{ form.acreedor.id_for_label }}">{{ form.acreedor.label }}</label>
         {{ form.acreedor }}
-        {% for e in form.acreedor.errors %}<div class="hint" style="color:var(--coral);font-size:11px;margin-top:5px">{{ e }}</div>{% endfor %}
+        {% for e in form.acreedor.errors %}<div class="fo-error">{{ e }}</div>{% endfor %}
       </div>
 
       <div class="field">
@@ -39,21 +39,21 @@
         <div style="flex:1.5">
           <label class="label" for="{{ form.valor_cuota.id_for_label }}">{{ form.valor_cuota.label }}</label>
           {{ form.valor_cuota }}
-          <div class="hint" style="font-size:10.5px;margin-top:5px">{{ form.valor_cuota.help_text }}</div>
-          {% for e in form.valor_cuota.errors %}<div class="hint" style="color:var(--coral);font-size:11px;margin-top:5px">{{ e }}</div>{% endfor %}
+          <div class="fo-ayuda">{{ form.valor_cuota.help_text }}</div>
+          {% for e in form.valor_cuota.errors %}<div class="fo-error">{{ e }}</div>{% endfor %}
         </div>
         <div style="flex:1">
           <label class="label" for="{{ form.cuotas_totales.id_for_label }}">{{ form.cuotas_totales.label }}</label>
           {{ form.cuotas_totales }}
-          {% for e in form.cuotas_totales.errors %}<div class="hint" style="color:var(--coral);font-size:11px;margin-top:5px">{{ e }}</div>{% endfor %}
+          {% for e in form.cuotas_totales.errors %}<div class="fo-error">{{ e }}</div>{% endfor %}
         </div>
       </div>
 
       <div class="field">
         <label class="label" for="{{ form.fecha_inicio.id_for_label }}">{{ form.fecha_inicio.label }}</label>
         {{ form.fecha_inicio }}
-        <div class="hint" style="font-size:10.5px;margin-top:6px">{{ form.fecha_inicio.help_text }}</div>
-        {% for e in form.fecha_inicio.errors %}<div class="hint" style="color:var(--coral);font-size:11px;margin-top:5px">{{ e }}</div>{% endfor %}
+        <div class="fo-ayuda">{{ form.fecha_inicio.help_text }}</div>
+        {% for e in form.fecha_inicio.errors %}<div class="fo-error">{{ e }}</div>{% endfor %}
       </div>
 
       <div class="preview-box preview-cuota" id="cajaCuota" style="display:none">
@@ -67,7 +67,7 @@
 
       <div class="fo-acciones">
         <button type="submit" class="sec-btn ambar">
-          {% if editar %}Guardar cambios{% else %}Agregar compra{% endif %}
+          {% if editar %}Guardar cambios{% else %}Guardar compra{% endif %}
         </button>
         <a href="{% url 'deudas' %}" class="sec-btn vidrio">Cancelar</a>
       </div>
@@ -77,9 +77,7 @@
     <form method="post" action="{% url 'eliminar_deuda' deuda.pk %}" style="margin-top:12px"
           data-confirm="¿Eliminar {{ deuda.acreedor }}? Se borran también sus pagos registrados.">
       {% csrf_token %}
-      <button type="submit" class="btn btn-glass btn-block" style="color:var(--coral)">
-        <i class="fas fa-trash-can" style="font-size:11px"></i>Eliminar esta compra
-      </button>
+      <button type="submit" class="sec-btn rojo-suave"><i class="fas fa-trash-can"></i>Eliminar esta compra</button>
     </form>
     {% endif %}
 </section>

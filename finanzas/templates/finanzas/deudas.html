@@ -35,15 +35,10 @@
         {% marca_de d.acreedor as m %}{% if m %}{% include 'finanzas/_marca.html' with clase="sec-ficha" %}{% else %}<span class="sec-ficha cu-icono"><i class="fas fa-credit-card"></i></span>{% endif %}
         <span class="sec-txt">
           <span class="sec-nombre">{{ d.acreedor }}</span>
-          <span class="sec-meta cu-meta">Cuota {{ d.cuota_actual }} de {{ d.cuotas_totales }} · {% if d.urgencia == 'vencida' %}{{ d.monto_cuota|money }}{% else %}vence {{ d.proximo_vencimiento|date:"j b" }}{% endif %}</span>
+          <span class="sec-meta cu-meta">Cuota {{ d.cuota_actual }} de {{ d.cuotas_totales }} · {% if d.urgencia == 'vencida' %}{{ d.texto_urgencia }}{% else %}vence {{ d.proximo_vencimiento|date:"j b" }}{% endif %}</span>
         </span>
-        {% if d.urgencia == 'vencida' %}
-        <span class="sec-badge rojo">{{ d.texto_urgencia }}</span>
-        {% elif d.urgencia == 'normal' %}
-        <span class="sec-badge verde">Al día</span>
-        {% else %}
         <span class="sec-cifra">{{ d.monto_cuota|money }}</span>
-        {% endif %}
+        <i class="fas fa-chevron-down cu-flecha" aria-hidden="true"></i>
       </button>
 
       <div class="cu-pips" style="grid-template-columns:repeat({{ d.cuotas_totales }},minmax(0,1fr))">
