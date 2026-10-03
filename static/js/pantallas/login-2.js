@@ -1,4 +1,8 @@
 (function () {
+  var primero = document.querySelector('[data-enfoque]');
+  var movil = window.FintoraDispositivo ? window.FintoraDispositivo.movil : false;
+  if (primero && !movil && !primero.disabled) primero.focus();
+
   var check = document.querySelector('[data-acepta-google]');
   var boton = document.getElementById('btnGoogle');
   var aviso = document.getElementById('avisoGoogle');

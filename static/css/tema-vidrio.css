@@ -1796,7 +1796,7 @@ body:has(.fo-hoja.fo-ambar) { --luz: 255, 170, 44; }
 .auth-marca > .auth-pie { position: absolute; left: 56px; bottom: 32px; z-index: 2; gap: 10px; font-size: 13px; color: rgba(245, 245, 245, .6); }
 .auth-marca > .auth-pie > i { font-size: 12px; }
 .auth-marca .auth-ventajas { gap: 10px; margin-top: 28px; }
-.auth-marca .auth-ventaja { padding: 12px 16px; border-radius: 18px; background: rgba(255, 255, 255, .06); border: 1px solid rgba(255, 255, 255, .1); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .08); }
+.auth-marca .auth-ventaja { padding: 12px 16px; border-radius: var(--r-md); background: rgba(255, 255, 255, .06); border: 1px solid rgba(255, 255, 255, .1); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .08); }
 .auth-marca .auth-ventaja-icono { background: rgba(255, 170, 44, .18); color: #ffbb56; }
 .auth-marca .auth-ventaja-texto { font-size: 15px; font-weight: 700; }
 
@@ -1804,7 +1804,7 @@ body:has(.fo-hoja.fo-ambar) { --luz: 255, 170, 44; }
 .av-lista { display: flex; flex-direction: column; gap: 8px; padding-top: 6px; }
 .av-paso {
   display: flex; flex-direction: column; gap: 12px; width: 100%; padding: 16px 18px; box-sizing: border-box;
-  border: 1px solid transparent; border-radius: 20px; background: transparent; cursor: pointer;
+  border: 1px solid transparent; border-radius: var(--r-md); background: transparent; cursor: pointer;
   color: var(--text-primary); font-family: 'Manrope', sans-serif; text-align: left;
   transition: background .3s, border-color .3s, box-shadow .3s;
 }
@@ -1851,12 +1851,12 @@ body:has(.fo-hoja.fo-ambar) { --luz: 255, 170, 44; }
 }
 @media (prefers-reduced-motion: reduce) {
   .av-marco { animation: none; }
-  .av-pantalla, .av-luz { transition: none; }
+  .av-pantalla, .av-luz, .auth-fuerza > div { transition: none; }
 }
 
 .auth-panel { flex: 0 0 520px; padding: 24px 48px 24px 0; }
 .auth-panel > .auth-tarjeta {
-  width: 100%; max-width: none; box-sizing: border-box; padding: 26px 28px 20px; border-radius: 30px;
+  width: 100%; max-width: none; box-sizing: border-box; padding: 26px 28px 20px; border-radius: var(--r-xl);
   background: rgba(30, 28, 25, .7); border: 1px solid rgba(255, 255, 255, .12);
   -webkit-backdrop-filter: blur(34px) saturate(180%); backdrop-filter: blur(34px) saturate(180%);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, .12), 0 30px 60px -20px rgba(0, 0, 0, .6);
@@ -1866,7 +1866,7 @@ body:has(.fo-hoja.fo-ambar) { --luz: 255, 170, 44; }
 .auth-cab .auth-sub { margin: 6px 0 0; font-size: 14px; color: rgba(245, 245, 245, .7); }
 .auth-aviso { margin-bottom: 16px; }
 .auth-aviso-passkey { margin-top: 12px; }
-.auth .aviso-error { gap: 12px; padding: 12px 14px; border-radius: 18px; background: rgba(255, 138, 138, .08); border-color: rgba(255, 138, 138, .24); }
+.auth .aviso-error { gap: 12px; padding: 12px 14px; border-radius: var(--r-md); background: rgba(255, 138, 138, .08); border-color: rgba(255, 138, 138, .24); }
 .auth .aviso-error > i { color: #ff8a8a; font-size: 13px; }
 .auth .aviso-error-texto { font-size: 13px; color: rgba(245, 245, 245, .84); }
 .auth-label { margin-bottom: 6px; font-size: 13px; letter-spacing: 0; color: rgba(245, 245, 245, .74); }
@@ -1874,7 +1874,7 @@ body:has(.fo-hoja.fo-ambar) { --luz: 255, 170, 44; }
 .auth-campo-caja { position: relative; display: flex; align-items: center; }
 .auth-fila-label { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-bottom: 6px; }
 .auth-fila-label .auth-label { margin: 0; }
-.auth-olvido { font-size: 13px; font-weight: 700; color: #ffbb56; }
+.auth-olvido { padding: 12px 0; font-size: 13px; font-weight: 700; color: #ffbb56; }
 .auth-icono { font-size: 13px; color: rgba(245, 245, 245, .45); }
 .auth input.auth-campo:not([type=checkbox]):not([type=radio]),
 .auth input.auth-digito:not([type=checkbox]):not([type=radio]) {
@@ -1882,12 +1882,20 @@ body:has(.fo-hoja.fo-ambar) { --luz: 255, 170, 44; }
 }
 .auth input.auth-campo:not([type=checkbox]):not([type=radio]) { min-height: 48px; padding-top: 12px; padding-bottom: 12px; font-size: 15px; font-weight: 600; }
 .auth input.auth-campo.con-ojo { padding-right: 52px; }
-.auth input.auth-campo:focus, .auth input.auth-digito:focus { border-color: rgba(255, 187, 86, .6); background: rgba(0, 0, 0, .3); box-shadow: 0 0 0 3px rgba(255, 170, 44, .14); }
+.auth input.auth-campo:focus, .auth input.auth-digito:focus { border-color: rgba(255, 187, 86, .6); background: rgba(0, 0, 0, .3); box-shadow: 0 0 0 3px rgba(255, 170, 44, .24); }
+.auth input.auth-campo:focus-visible, .auth input.auth-digito:focus-visible { outline: none; }
+.auth-opcional { font-weight: 500; color: rgba(245, 245, 245, .56); }
+.auth-ayuda { margin-top: 6px; font-size: 12px; line-height: 1.5; color: rgba(245, 245, 245, .62); }
+.auth-ayuda:empty { display: none; }
+.auth-fuerza { height: 6px; margin-top: 10px; border-radius: 100px; background: rgba(255, 255, 255, .08); overflow: hidden; }
+.auth-fuerza > div { width: 0; height: 100%; border-radius: 100px; transition: width .3s, background .3s; }
+.auth-consentimiento { margin-top: 18px; }
 .auth-ojo {
-  position: absolute; right: 6px; width: 38px; height: 38px; border: none; border-radius: 50%; cursor: pointer;
+  position: absolute; right: 4px; width: 40px; height: 40px; border: none; border-radius: 50%; cursor: pointer;
   display: inline-flex; align-items: center; justify-content: center;
   background: rgba(255, 255, 255, .08); color: rgba(245, 245, 245, .72); font-size: 13px;
 }
+.auth-ojo::before { content: ''; position: absolute; inset: -2px; }
 .auth-ojo:hover { background: rgba(255, 255, 255, .14); color: var(--text-primary); }
 .auth-btn {
   display: flex; align-items: center; justify-content: center; gap: 10px;
@@ -1917,8 +1925,11 @@ body:has(.fo-hoja.fo-ambar) { --luz: 255, 170, 44; }
 .auth-aviso-google { font-size: 12px; line-height: 1.5; text-align: center; color: var(--coral-texto); }
 .auth-corto { display: none; }
 .auth-legal { display: flex; justify-content: center; gap: 10px; margin-top: 18px; font-size: 12px; color: rgba(245, 245, 245, .5); }
-.auth-legal a { color: rgba(245, 245, 245, .66); text-decoration: underline; }
+.auth-legal a { margin: -12px 0; padding: 12px 4px; color: rgba(245, 245, 245, .66); text-decoration: underline; }
 .auth-legal a:hover { color: var(--text-primary); }
+.auth-cambio { margin: 10px 0 0; text-align: center; font-size: 14px; color: rgba(245, 245, 245, .7); }
+.auth-cambio a { display: inline-flex; align-items: center; min-height: 44px; font-weight: 800; color: #ffbb56; }
+.auth-cambio a:hover { color: var(--amber); }
 .auth-salida:hover { background: rgba(255, 255, 255, .06); }
 
 @media (max-width: 900px) {
