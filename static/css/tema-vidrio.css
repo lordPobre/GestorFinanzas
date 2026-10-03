@@ -1244,7 +1244,14 @@ body:has(.sidebar .nav-item.active[data-label="Me deben"]) .bottomnav .nav-item.
 .md-avatar.on { background: linear-gradient(135deg, #7be27f, #3aa84a); color: #062b08; font-size: 18px; }
 .md-nombre { font-size: 16px; font-weight: 800; }
 .md-monto { flex-shrink: 0; font-size: 16px; font-weight: 800; color: #6ee873; font-variant-numeric: tabular-nums; }
-.md-monto.tenue { color: var(--amber-claro); font-size: 14px; }
+.md-monto.tenue { color: var(--text-muted); }
+.md-flecha { flex-shrink: 0; font-size: 11px; color: var(--text-muted); }
+.md-prestamo-meta { margin-top: -4px; }
+.md-sin-wsp i { font-size: 15px; color: #25d366; }
+.md-resumen { display: flex; flex-direction: column; gap: 6px; padding: 14px 16px; border-radius: var(--r-md); background: var(--green-tenue); border: 1px solid var(--green-borde); }
+.md-resumen-pie { margin-bottom: 18px; }
+.md-resumen-etq { font-size: 12px; font-weight: 700; color: var(--green-texto); }
+.md-resumen-monto { font-size: 18px; font-weight: 800; font-variant-numeric: tabular-nums; color: var(--green-texto); }
 .md-prestamos { display: flex; flex-direction: column; gap: 14px; padding: 12px; border-radius: 16px; background: rgba(0, 0, 0, .2); }
 .md-prestamo { display: flex; flex-direction: column; gap: 8px; width: 100%; padding: 0; border: none; background: none; color: var(--text-primary); font-family: 'Manrope', sans-serif; text-align: left; cursor: pointer; }
 .md-prestamo.saldado { cursor: default; opacity: .6; }
@@ -1253,10 +1260,10 @@ body:has(.sidebar .nav-item.active[data-label="Me deben"]) .bottomnav .nav-item.
 .md-prestamo-monto { flex-shrink: 0; font-weight: 800; font-variant-numeric: tabular-nums; }
 .md-barra { display: block; height: 6px; border-radius: 100px; background: rgba(255, 255, 255, .1); overflow: hidden; }
 .md-barra > span { display: block; height: 100%; border-radius: 100px; background: #6ee873; }
-.md-fila { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 20px; background: rgba(255, 255, 255, .04); color: var(--text-primary); text-decoration: none; }
+.md-fila { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: var(--r-lg); background: rgba(255, 255, 255, .04); color: var(--text-primary); text-decoration: none; }
 .md-fila:hover { background: rgba(255, 255, 255, .07); color: var(--text-primary); }
 .md-primer { margin-bottom: 18px; }
-.md-primer > summary { display: flex; align-items: center; gap: 9px; padding: 12px 14px; border-radius: 14px; cursor: pointer; list-style: none; background: rgba(255, 255, 255, .04); border: 1px solid var(--vidrio-borde); font-size: 14px; }
+.md-primer > summary { display: flex; align-items: center; gap: 9px; padding: 12px 14px; border-radius: var(--r-md); cursor: pointer; list-style: none; background: rgba(255, 255, 255, .04); border: 1px solid var(--vidrio-borde); font-size: 14px; }
 .md-primer > summary span { flex: 1; }
 .md-primer > summary i { font-size: 11px; color: var(--text-muted); }
 .md-primer-cuerpo { padding: 16px 2px 0; }
@@ -1728,8 +1735,51 @@ body:has(.fo-hoja.fo-ambar) { --luz: 255, 170, 44; }
 .md-agregar i { font-size: 11px; }
 .md-agregar:hover { color: #8af08e; }
 .md-card .sec-mas-fila.siempre { flex-wrap: nowrap; justify-content: space-between; }
-.md-prestamo-nombre { flex: 1 1 auto; flex-wrap: nowrap; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.md-prestamo-nombre { display: block; flex: 1 1 auto; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 .md-prestamo-nombre .sec-badge { flex-shrink: 0; }
+.md-personas { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.md-personas-cab { padding: 0 6px 6px; font-size: 13px; font-weight: 700; color: rgba(245, 245, 245, .68); }
+.md-fila { border: 1px solid transparent; }
+.md-fila.on { background: rgba(255, 255, 255, .08); border-color: rgba(110, 232, 115, .35); }
+.md-total { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; flex-shrink: 0; }
+.md-total-etq { font-size: 13px; font-weight: 700; color: rgba(245, 245, 245, .68); }
+.md-acciones { display: flex; align-items: center; gap: 8px; }
+.md-acciones-main { display: flex; gap: 8px; }
+.md-acciones-main .sec-btn { width: auto; padding: 0 20px; }
+.md-acciones-extra { display: flex; gap: 8px; margin-left: auto; }
+.md-acciones-extra form { margin: 0; }
+.md-icono-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 7px; width: 44px; height: 44px; flex-shrink: 0; padding: 0;
+  border: 1px solid rgba(255, 255, 255, .1); border-radius: 50%; cursor: pointer; background: rgba(255, 255, 255, .07);
+  color: rgba(245, 245, 245, .72); font-family: 'Manrope', sans-serif; font-size: 13px; font-weight: 700; white-space: nowrap;
+}
+.md-icono-btn:hover { background: rgba(255, 255, 255, .12); color: var(--text-primary); }
+.md-icono-btn:focus-visible { outline: 2px solid #6ee873; outline-offset: 2px; }
+.md-icono-btn.peligro, .md-icono-btn.peligro:hover { color: var(--coral-texto); }
+.md-prestamos-bloque { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.md-prestamos-cab { display: flex; justify-content: space-between; align-items: center; gap: 12px; font-size: 14px; font-weight: 800; }
+.md-prestamos-cab .md-agregar { width: auto; min-height: 44px; margin: 0; padding: 0; border: none; }
+@media (min-width: 721px) {
+  .md-dos { display: grid; grid-template-columns: 340px minmax(0, 1fr); gap: 20px; align-items: start; }
+  .md-dos > .md-personas { grid-column: 1; grid-row: 1; }
+  .md-dos > .md-detalle { grid-column: 2; grid-row: 1; gap: 20px; padding: 22px 24px; background: rgba(255, 255, 255, .05); }
+  .md-detalle .md-avatar { width: 52px; height: 52px; font-size: 20px; }
+  .md-detalle .md-nombre { font-size: 20px; letter-spacing: -.02em; }
+  .md-detalle .md-monto { font-size: 28px; letter-spacing: -.03em; }
+}
+@media (min-width: 721px) and (max-width: 1100px) {
+  .md-dos { grid-template-columns: 280px minmax(0, 1fr); }
+}
+@media (max-width: 720px) {
+  .md-personas-cab, .md-fila.on { display: none; }
+  .md-detalle .md-prestamos-bloque { order: 1; }
+  .md-detalle .md-acciones { order: 2; flex-direction: column; align-items: stretch; }
+  .md-acciones-main { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .md-acciones-main > :only-child { grid-column: 1 / -1; }
+  .md-acciones-main .sec-btn { width: 100%; padding: 0 16px; }
+  .md-acciones-extra { margin-left: 0; justify-content: space-between; }
+  .md-icono-btn { width: auto; padding: 0 14px; border-radius: 100px; }
+}
 .pl-deuda { display: flex; align-items: center; gap: 12px; padding: 9px 0; }
 .pl-pos { width: 30px; height: 30px; flex-shrink: 0; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 800; background: rgba(255, 255, 255, .12); color: var(--text-primary); }
 .pl-deuda.on .pl-pos { background: #ffaa2c; color: #1a1200; }
