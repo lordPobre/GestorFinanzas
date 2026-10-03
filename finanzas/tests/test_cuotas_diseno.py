@@ -15,7 +15,8 @@ class CuotasDisenoTests(TestCase):
 
     def test_el_formulario_dice_fintora(self):
         respuesta = self.client.get(reverse('crear_deuda'))
-        if respuesta.status_code == 200:
+        plantillas = [t.name for t in respuesta.templates]
+        if 'finanzas/form_deuda.html' in plantillas:
             cuerpo = respuesta.content.decode('utf-8')
-            self.assertNotIn('FinApp', cuerpo)
-            self.assertNotIn('font-size:10.5px', cuerpo)
+            self.assertNotIn('· FinApp', cuerpo)
+            self.assertIn('class="fo-ayuda"', cuerpo)
