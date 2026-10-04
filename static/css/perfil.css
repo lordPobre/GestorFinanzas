@@ -1,0 +1,34 @@
+.pf-resumen { margin-top: 2px; font-size: 14px; color: rgba(245, 245, 245, .6); }
+.pf-pestanas > button { min-height: 44px; font-size: 14px; }
+.pf-valor { flex-shrink: 0; font-size: 14px; font-weight: 700; color: rgba(245, 245, 245, .78); }
+
+.pf-prot {
+  counter-reset: prot; display: flex; flex-direction: column; gap: 12px; margin-bottom: 12px; padding: 16px 18px;
+  border-radius: 20px; background: rgba(255, 255, 255, .05); border: 1px solid rgba(245, 197, 66, .22);
+}
+.pf-prot.lista { border-color: rgba(83, 210, 88, .24); }
+.pf-prot-barra { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; }
+.pf-prot-seg { height: 6px; border-radius: 100px; background: rgba(255, 255, 255, .18); }
+.pf-prot-seg.on { background: #53d258; counter-increment: prot; }
+.pf-prot-titulo { order: -1; font-size: 17px; font-weight: 800; letter-spacing: -.02em; }
+.pf-prot-n::before { content: counter(prot); }
+.pf-prot-txt { font-size: 13px; line-height: 1.5; color: rgba(245, 245, 245, .72); text-wrap: pretty; }
+.pf-prot form { margin: 0; }
+.pf-prot-btn {
+  display: inline-flex; align-items: center; justify-content: center; align-self: flex-start; min-height: 44px; padding: 0 22px;
+  border: none; border-radius: 100px; background: #ffaa2c; color: #1a1200; text-decoration: none; cursor: pointer;
+  font-family: 'Manrope', sans-serif; font-size: 14px; font-weight: 800;
+}
+.pf-prot-btn:hover { background: #ffbb56; color: #1a1200; }
+
+@media (max-width: 720px) {
+  .pf-hero { flex-direction: row; align-items: center; gap: 16px; text-align: left; margin-top: 12px; }
+  .pf-avatar { width: 64px; height: 64px; font-size: 26px; }
+  .pf-camara { width: 24px; height: 24px; }
+  .pf-id { align-items: flex-start; }
+  .pf-nombre { font-size: 21px; }
+  .pf-resumen { font-size: 13px; }
+  .pf-nota-foto { justify-content: flex-start; }
+  .pf-prot-btn, .pf-prot form { align-self: stretch; }
+  .pf-prot-btn { width: 100%; }
+}

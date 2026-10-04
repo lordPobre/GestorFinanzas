@@ -3,7 +3,6 @@
 {% block title %}{% if editar %}Editar meta{% else %}Nueva meta{% endif %} · FinApp{% endblock %}
 {% block topbar_sub %}{% if editar %}Ajustar una meta{% else %}Ponle nombre a tu ahorro{% endif %}{% endblock %}
 
-
 {% block content %}
 
 <div class="sec-top centrado">
@@ -12,13 +11,11 @@
   <span class="sec-hueco" aria-hidden="true"></span>
 </div>
 
-<section class="sec-hero fo-hero">
-  <span class="fo-icono agua"><i class="fas fa-bullseye"></i></span>
-  
-  <span class="fo-nota">Con una fecha calculamos cuánto tienes que aportar al mes para llegar.</span>
-</section>
-
-<section class="sec-hoja fo-hoja fo-form fo-agua">
+<section class="sec-hoja fo-hoja fo-form fo-agua fo-sin-hero fo-meta">
+  <div class="fo-cab">
+    <span class="fo-icono agua"><i class="fas fa-bullseye"></i></span>
+    <span class="fo-nota">Con una fecha calculamos cuánto tienes que aportar al mes para llegar.</span>
+  </div>
   <form method="post">
       {% csrf_token %}
       <input type="hidden" name="next" value="{% url 'metas' %}">
@@ -45,7 +42,6 @@
       <div class="field">
         <label class="label" for="{{ form.fecha_limite.id_for_label }}">{{ form.fecha_limite.label }}</label>
         {{ form.fecha_limite }}
-        <div class="hint" style="font-size:10.5px;margin-top:6px">{{ form.fecha_limite.help_text }}</div>
         {% for e in form.fecha_limite.errors %}<div class="hint" style="color:var(--coral);font-size:11px;margin-top:5px">{{ e }}</div>{% endfor %}
       </div>
 

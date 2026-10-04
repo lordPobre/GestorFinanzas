@@ -1,15 +1,13 @@
 {% extends 'finanzas/base.html' %}
 {% load static %}
 {% block title %}Importar cartola · Fintora{% endblock %}
+{% block extra_head %}<link rel="stylesheet" href="{% static 'css/cartola.css' %}?v=72b">{% endblock %}
 
 {% block content %}
 
 <div class="sec-top centrado">
   <a href="{% url 'dashboard' %}" class="sec-volver" aria-label="Volver al inicio"><i class="fas fa-chevron-left"></i></a>
-  <div class="sec-titulo-caja">
-    <span class="sec-eyebrow"><i class="fas fa-file-import"></i>Datos</span>
-    <h1 class="sec-titulo">Importar cartola</h1>
-  </div>
+  <h1 class="sec-titulo">Importar cartola</h1>
   <span class="sec-hueco" aria-hidden="true"></span>
 </div>
 
@@ -20,7 +18,7 @@
     <li><span>3</span><em>Guardar</em></li>
   </ol>
   <span class="ca-titular">Sube tu cartola</span>
-  <span class="ca-nota">El archivo que descargas del banco o de tu tarjeta, en PDF, CSV o Excel. Revisas cada movimiento antes de guardarlo.</span>
+  <span class="ca-nota">El archivo que descargas del banco o de tu tarjeta. Revisas cada movimiento antes de guardarlo.</span>
 </section>
 
 <section class="sec-hoja">
@@ -34,8 +32,11 @@
         <span class="cartola-nota ca-zona-nota" id="zonaNota">o arrástralo aquí · PDF, CSV o Excel · máximo 6 MB</span>
       </label>
 
-      <div class="field" data-tour="cartola-cuotas">
-        <label class="label" for="banco">De dónde viene</label>
+      <div class="ca-fila-leer">
+      <div class="ca-banco" data-tour="cartola-cuotas">
+        <label class="ca-banco-label" for="banco">Banco o tarjeta</label>
+        <div class="ca-banco-caja">
+        <span class="ca-banco-icono"><i class="fas fa-building-columns"></i></span>
         <select name="banco" id="banco">
           <option value="">Reconocerlo solo</option>
           {% for titulo, lectores in grupos %}
@@ -46,10 +47,12 @@
           </optgroup>
           {% endfor %}
         </select>
-        <div class="hint" style="margin-top:6px">Déjalo en «Reconocerlo solo» salvo que el archivo no se lea: casi siempre acierta por el nombre impreso en el PDF.</div>
+        <i class="fas fa-chevron-down ca-banco-flecha"></i>
+        </div>
       </div>
 
       <button type="submit" class="sec-btn agua grande" id="btnLeer" disabled>Leer cartola</button>
+      </div>
     </form>
 
     <div class="ca-lado">
@@ -68,31 +71,14 @@
       </div>
       {% endif %}
 
-      <details class="sec-historial">
-        <summary>
-          <span class="sec-ficha agua"><i class="fas fa-circle-question"></i></span>
-          <span class="sec-txt">
-            <span class="sec-nombre">Cómo funciona</span>
-            <span class="sec-meta">Se lee, se comprueba y tú decides qué se guarda</span>
-          </span>
-          <i class="fas fa-chevron-down"></i>
-        </summary>
-        <ol class="ca-como">
-          <li><b>Se lee el archivo.</b> Sirve la cartola de cualquier banco y el estado de cuenta de cualquier tarjeta de casa comercial, en PDF o exportada a CSV o Excel. Tiene que ser el archivo que descarga el banco, no una foto ni una captura: una imagen no trae el texto adentro.</li>
-          <li><b>Se comprueba antes de mostrarte nada.</b> Una cartola de cuenta se verifica por la cadena de saldos; un estado de cuenta de tarjeta, sumando las cuotas contra el total facturado. Si las cuentas no dan, te avisa y no guarda nada.</li>
-          <li><b>Si tu emisor no está en la lista</b>, se intenta igual con el mismo motor. Se niega a entregar movimientos que no pueda verificar, y si no puede leerlo te muestra la forma del archivo para que ese formato se pueda agregar.</li>
-          <li><b>Se revisa.</b> Verás cada movimiento con su categoría propuesta. Puedes cambiarla, corregir la descripción o dejar fuera lo que no quieras.</li>
-          <li><b>Se guarda</b> solo lo que dejaste marcado.</li>
-        </ol>
-      </details>
-
-      <div class="sec-tip agua">
-        <span class="sec-tip-icono"><i class="fas fa-lock"></i></span>
-        <span class="sec-tip-txt">
-          <b>Sobre tus datos</b>
-          <span>El archivo no se guarda. Se lee en memoria, se saca el texto y se descarta ahí mismo. Tampoco sale de tu servidor: la cartola se interpreta acá, sin mandarla a ningún servicio externo.</span>
-        </span>
+      <div class="ca-pasos-como">
+        <b class="ca-pasos-como-titulo">Cómo funciona</b>
+        <div class="ca-paso"><span>1</span><p><b>Se lee el archivo.</b> Tiene que ser el que descarga el banco, no una foto.</p></div>
+        <div class="ca-paso"><span>2</span><p><b>Se comprueba.</b> Si los saldos o el total no cuadran, te avisa y no guarda nada.</p></div>
+        <div class="ca-paso"><span>3</span><p><b>Tú eliges.</b> Cambias categorías, corriges descripciones y guardas solo lo marcado.</p></div>
       </div>
+
+      <p class="ca-privacidad"><i class="fas fa-lock"></i><span>El archivo no se guarda ni sale de tu servidor. Se lee en memoria y se descarta.</span></p>
     </div>
   </div>
 </section>

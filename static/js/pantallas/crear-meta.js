@@ -10,6 +10,10 @@
   var nota = document.getElementById('planNota');
   if (!meta || !fecha) return;
 
+  [meta, actual].forEach(function (el) {
+    if (el && /^\d+\.0+$/.test(el.value)) el.value = String(parseInt(el.value, 10));
+  });
+
   function pintar() {
     var falta = Number(meta.value || 0) - Number(actual && actual.value || 0);
     if (falta <= 0 || !fecha.value) { caja.style.display = 'none'; return; }

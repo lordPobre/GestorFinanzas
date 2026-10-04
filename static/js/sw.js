@@ -1,6 +1,6 @@
 
 
-const VERSION = 'v53';
+const VERSION = 'v60';
 const CACHE_ESTATICOS = `finapp-estaticos-${VERSION}`;
 
 const ORIGENES_CACHEABLES = [];

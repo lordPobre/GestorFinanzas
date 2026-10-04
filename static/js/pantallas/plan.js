@@ -12,6 +12,23 @@
   var inAhorro = $('planAhorro');
   var inExtra = $('planExtra');
 
+  function llenar(el) {
+    if (!el) return;
+    var min = +el.min || 0, max = +el.max || 0;
+    el.style.setProperty('--lleno', (max > min ? (el.value - min) / (max - min) * 100 : 0) + '%');
+  }
+
+  function topeExtra() {
+    if (!inExtra) return;
+    var tope = Math.max(0, d.sobra - estado.ahorro);
+    inExtra.max = tope;
+    if (estado.extra > tope) estado.extra = tope;
+    inExtra.value = estado.extra;
+    var etiqueta = $('planExtraTope');
+    if (etiqueta) etiqueta.textContent = 'Hasta ' + plata(tope);
+    llenar(inExtra);
+  }
+
   function plata(n) {
     return (n < 0 ? '−' : '') + (d.simbolo || '$') + Math.round(Math.abs(n)).toLocaleString('es-CL');
   }
@@ -155,8 +172,8 @@
 
   function pintar() { pintarResumen(); pintarFondo(); pintarDeudas(); }
 
-  inAhorro.addEventListener('input', function () { estado.ahorro = +inAhorro.value; pintar(); });
-  if (inExtra) inExtra.addEventListener('input', function () { estado.extra = +inExtra.value; pintar(); });
+  inAhorro.addEventListener('input', function () { estado.ahorro = +inAhorro.value; llenar(inAhorro); topeExtra(); pintar(); });
+  if (inExtra) inExtra.addEventListener('input', function () { estado.extra = +inExtra.value; llenar(inExtra); pintar(); });
   document.querySelectorAll('[data-estrategia]').forEach(function (b) {
     b.addEventListener('click', function () { estado.estrategia = b.dataset.estrategia; pintar(); });
   });
@@ -203,5 +220,7 @@
       });
   });
 
+  llenar(inAhorro);
+  topeExtra();
   pintar();
 })();

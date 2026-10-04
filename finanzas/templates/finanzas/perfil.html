@@ -3,14 +3,12 @@
 {% load humanize %}
 {% block title %}Mi perfil · Fintora{% endblock %}
 {% block search_placeholder %}Filtrar ajustes{% endblock %}
+{% block extra_head %}<link rel="stylesheet" href="{% static 'css/perfil.css' %}?v=71">{% endblock %}
 
 {% block content %}
 
 <div class="sec-top">
-  <div class="sec-titulo-caja">
-    <span class="sec-eyebrow"><i class="fas fa-user"></i>Tu cuenta</span>
-    <h1 class="sec-titulo">Mi perfil</h1>
-  </div>
+  <h1 class="sec-titulo">Mi perfil</h1>
   <a href="{% url 'exportar_excel' %}" class="sec-accion pf-exportar"><i class="fas fa-file-excel"></i><span>Exportar</span></a>
 </div>
 
@@ -23,11 +21,7 @@
   <div class="pf-id">
     <h2 class="pf-nombre">{{ profile.nombre_display }}</h2>
     <span class="pf-correo">{{ profile.email|default:request.user.email|default:"Sin email" }}{% if profile.ubicacion %} · {{ profile.ubicacion }}{% endif %}</span>
-    <div class="sec-chips">
-      <span class="chip-vidrio"><b>{{ total_trans }}</b> movimiento{{ total_trans|pluralize:"s" }}</span>
-      <span class="chip-vidrio"><b>{{ total_deudas }}</b> a plazo</span>
-      <span class="chip-vidrio">desde {{ miembro_desde|lower }}</span>
-    </div>
+    <span class="pf-resumen">{{ total_trans }} movimiento{{ total_trans|pluralize:"s" }} · desde {{ miembro_desde|lower }}</span>
     <div class="pf-nota-foto" id="notaFoto" hidden><span>La foto se sube cuando guardas</span><button type="submit" form="formPerfil" class="sec-chico">Guardar foto</button></div>
   </div>
 </section>
@@ -101,6 +95,15 @@
               <button type="submit" class="sec-btn ambar">Guardar cambios</button>
             </form>
           </details>
+
+          <div class="pf-fila">
+            <span class="pf-icono"><i class="fas fa-coins"></i></span>
+            <span class="pf-txt">
+              <span class="pf-titulo">Moneda</span>
+              <span class="pf-meta">Se cambia en «Nombre, email y teléfono»</span>
+            </span>
+            <span class="pf-valor">{{ profile.moneda }}</span>
+          </div>
 
           <div class="pf-fila" data-tour="aviso">
             <span class="pf-icono{% if profile.aviso_mensual %} ambar{% endif %}"><i class="fas fa-envelope-open-text"></i></span>
@@ -218,6 +221,36 @@
   </div>
 
   <div id="panelSeguridad" style="display:none">
+    {% with n_pk=user.passkeys.count %}
+    <div class="pf-prot{% if n_pk and user.segundo_factor.activo and profile.correo_verificado %} lista{% endif %}">
+      <div class="pf-prot-barra">
+        <span class="pf-prot-seg on"></span>
+        <span class="pf-prot-seg{% if n_pk %} on{% endif %}"></span>
+        <span class="pf-prot-seg{% if user.segundo_factor.activo %} on{% endif %}"></span>
+        <span class="pf-prot-seg{% if profile.correo_verificado %} on{% endif %}"></span>
+      </div>
+      <span class="pf-prot-titulo"><span class="pf-prot-n"></span> de 4 protecciones</span>
+      {% if not user.segundo_factor.activo %}
+      <span class="pf-prot-txt">Con la verificación en dos pasos nadie entra solo con tu contraseña.</span>
+      <a href="{% url 'configurar_2fa' %}" class="pf-prot-btn">Activar dos pasos</a>
+      {% elif not n_pk %}
+      <span class="pf-prot-txt">Con Face ID o huella entras sin escribir la contraseña.</span>
+      <a href="{% url 'passkeys' %}" class="pf-prot-btn">Activar Face ID o huella</a>
+      {% elif not profile.correo_verificado %}
+      {% if user.email %}
+      <span class="pf-prot-txt">Confirma tu correo para recuperar la cuenta si olvidas la contraseña.</span>
+      <form method="post" action="{% url 'reenviar_verificacion' %}">
+        {% csrf_token %}
+        <button type="submit" class="pf-prot-btn">Confirmar correo</button>
+      </form>
+      {% else %}
+      <span class="pf-prot-txt">Agrega un correo en «Tus datos» para recuperar la cuenta si olvidas la contraseña.</span>
+      {% endif %}
+      {% else %}
+      <span class="pf-prot-txt">Tienes todo activo: contraseña, Face ID o huella, dos pasos y correo confirmado.</span>
+      {% endif %}
+    </div>
+    {% endwith %}
     <div class="pf-cols">
       <div class="pf-col">
         <div class="pf-grupo">

@@ -2,7 +2,7 @@
 {% load static %}
 {% load moneda %}
 {% block title %}Plan para tu plata · Fintora{% endblock %}
-{% block extra_head %}<link rel="stylesheet" href="{% static 'css/plan-proyeccion.css' %}?v=51">{% endblock %}
+{% block extra_head %}<link rel="stylesheet" href="{% static 'css/plan-proyeccion.css' %}?v=70">{% endblock %}
 
 {% block content %}
 
@@ -48,6 +48,21 @@
   <span class="sec-label">Te sobran al mes</span>
   <span class="sec-monto">{{ plan.sobra|money }}</span>
   <span class="pl-hero-nota">Lo que entra menos tus gastos y cuotas. Abajo decides cómo repartirlo.</span>
+  <div class="pl-reparto" aria-label="Así queda lo que te sobra">
+    <div class="pl-reparto-barra">
+      <span id="planBarAhorro"></span>
+      <span id="planBarExtra"></span>
+    </div>
+    <div class="pl-reparto-leyenda">
+      <span><i class="verde"></i>Ahorro <b data-plan="ahorro"></b></span>
+      {% if plan.deudas %}<span><i class="ambar"></i>Extra a deudas <b data-plan="extra"></b></span>{% endif %}
+      <span><i></i>Libre <b id="planLibre"></b></span>
+    </div>
+    <div id="planExcede" class="sec-tip rojo" hidden>
+      <span class="sec-tip-icono"><i class="fas fa-triangle-exclamation"></i></span>
+      <span class="sec-tip-txt"><span>Estás repartiendo más de lo que te sobra. Baja el ahorro o el extra a deudas.</span></span>
+    </div>
+  </div>
 </section>
 
 <section class="sec-hoja pl-hoja">
@@ -65,7 +80,7 @@
         <span>Apartar al mes</span>
         <b data-plan="ahorro"></b>
       </label>
-      <input id="planAhorro" class="pl-slider chico" type="range" min="0" max="{{ plan.sobra }}" step="5000" value="{{ plan.datos.ahorro }}">
+      <input id="planAhorro" class="pl-slider chico verde" type="range" min="0" max="{{ plan.sobra }}" step="5000" value="{{ plan.datos.ahorro }}">
       <div class="pl-escala"><span>$0</span><span>{{ plan.sobra|money }}</span></div>
     </div>
     {% if plan.tiene_fondo %}
@@ -98,6 +113,41 @@
     {% endif %}
   </div>
 
+  {% if plan.deudas %}
+  <div class="pl-bloque">
+    <div class="sec-cab estatica">
+      <span class="sec-ficha ambar"><i class="fas fa-credit-card"></i></span>
+      <span class="sec-txt">
+        <span class="sec-nombre">Salir antes de tus cuotas</span>
+        <span class="sec-meta">Un extra al mes adelanta el fin de tus compras a plazo</span>
+      </span>
+    </div>
+    <div class="pl-control">
+      <label for="planExtra" class="pl-extra-cab">
+        <span>Extra al mes para deudas</span>
+        <b data-plan="extra"></b>
+      </label>
+      <input id="planExtra" class="pl-slider chico ambar" type="range" min="0" max="{{ plan.sobra }}" step="5000" value="{{ plan.datos.extra }}">
+      <div class="pl-escala"><span>$0</span><span id="planExtraTope">{{ plan.sobra|money }}</span></div>
+    </div>
+    <div class="pl-control">
+      <span class="pl-extra-cab"><span>En qué orden pagar</span></span>
+      <div class="sec-pestanas pl-estrategia" role="group" aria-label="Orden de pago">
+        <button type="button" data-estrategia="saldo" aria-pressed="true">Menor saldo primero</button>
+        <button type="button" data-estrategia="cuota" aria-pressed="false">Mayor cuota primero</button>
+      </div>
+      <div class="pl-nota" id="planEstrategiaNota"></div>
+    </div>
+    <div id="planDeudas" class="pl-deudas"></div>
+    <div class="pl-resultado" id="planDeudaResultado"></div>
+  </div>
+  {% else %}
+  <div class="sec-tip agua">
+    <span class="sec-tip-icono"><i class="fas fa-circle-check"></i></span>
+    <span class="sec-tip-txt"><b>No tienes cuotas pendientes</b><span>Todo lo que te sobra puede ir a ahorro.</span></span>
+  </div>
+  {% endif %}
+
   <div class="pl-bloque pl-dap">
     <div class="pl-dap-cab">
       <div class="sec-cab estatica">
@@ -126,16 +176,16 @@
     </div>
     <div class="pl-control">
       <label for="dapAporte" class="pl-extra-cab"><span>Sumar al mes</span><b data-dap="aporte"></b></label>
-      <input id="dapAporte" class="pl-slider chico" type="range" min="0" max="{{ plan.sobra }}" step="5000" value="{{ plan.datos.ahorro }}">
+      <input id="dapAporte" class="pl-slider chico azul" type="range" min="0" max="{{ plan.sobra }}" step="5000" value="{{ plan.datos.ahorro }}">
       <div class="pl-escala"><span>$0</span><span>{{ plan.sobra|money }}</span></div>
     </div>
     <div class="pl-control">
       <label for="dapMeses" class="pl-extra-cab"><span>Por cuántos meses</span><b data-dap="meses"></b></label>
-      <input id="dapMeses" class="pl-slider chico" type="range" min="3" max="60" step="1" value="24">
+      <input id="dapMeses" class="pl-slider chico azul" type="range" min="3" max="60" step="1" value="24">
       <div class="pl-escala"><span>3 meses</span><span>5 años</span></div>
     </div>
     <div class="pl-cifras">
-      <div class="pl-cifra ambar"><span>Tendrías</span><b id="dapTotal"></b></div>
+      <div class="pl-cifra total"><span>Tendrías</span><b id="dapTotal"></b></div>
       <div class="pl-cifra azul"><span><i></i>Pusiste</span><b id="dapPuesto"></b></div>
       <div class="pl-cifra verde" id="dapInteresCaja"><span><i></i>Intereses</span><b id="dapInteres"></b></div>
     </div>
@@ -146,58 +196,6 @@
     </div>
     <div class="pl-resultado" id="dapResultado"></div>
     <span class="sec-mas-nota" id="dapNota"></span>
-  </div>
-
-  {% if plan.deudas %}
-  <div class="pl-bloque">
-    <div class="sec-cab estatica">
-      <span class="sec-ficha ambar"><i class="fas fa-credit-card"></i></span>
-      <span class="sec-txt">
-        <span class="sec-nombre">Salir antes de tus cuotas</span>
-        <span class="sec-meta">Un extra al mes adelanta el fin de tus compras a plazo</span>
-      </span>
-    </div>
-    <div class="pl-control">
-      <label for="planExtra" class="pl-extra-cab">
-        <span>Extra al mes para deudas</span>
-        <b data-plan="extra"></b>
-      </label>
-      <input id="planExtra" class="pl-slider chico" type="range" min="0" max="{{ plan.sobra }}" step="5000" value="{{ plan.datos.extra }}">
-      <div class="pl-escala"><span>$0</span><span>{{ plan.sobra|money }}</span></div>
-    </div>
-    <div class="pl-control">
-      <span class="pl-extra-cab"><span>En qué orden pagar</span></span>
-      <div class="sec-pestanas pl-estrategia" role="group" aria-label="Orden de pago">
-        <button type="button" data-estrategia="saldo" aria-pressed="true">Menor saldo primero</button>
-        <button type="button" data-estrategia="cuota" aria-pressed="false">Mayor cuota primero</button>
-      </div>
-      <div class="pl-nota" id="planEstrategiaNota"></div>
-    </div>
-    <div id="planDeudas" class="pl-deudas"></div>
-    <div class="pl-resultado" id="planDeudaResultado"></div>
-  </div>
-  {% else %}
-  <div class="sec-tip agua">
-    <span class="sec-tip-icono"><i class="fas fa-circle-check"></i></span>
-    <span class="sec-tip-txt"><b>No tienes cuotas pendientes</b><span>Todo lo que te sobra puede ir a ahorro.</span></span>
-  </div>
-  {% endif %}
-
-  <div class="pl-reparto">
-    <span class="pl-reparto-titulo">Así queda lo que te sobra</span>
-    <div class="pl-reparto-barra">
-      <span id="planBarAhorro"></span>
-      <span id="planBarExtra"></span>
-    </div>
-    <div class="pl-reparto-leyenda">
-      <span><i class="verde"></i>Ahorro <b data-plan="ahorro"></b></span>
-      {% if plan.deudas %}<span><i class="ambar"></i>Extra a deudas <b data-plan="extra"></b></span>{% endif %}
-      <span><i></i>Libre <b id="planLibre"></b></span>
-    </div>
-    <div id="planExcede" class="sec-tip rojo" hidden>
-      <span class="sec-tip-icono"><i class="fas fa-triangle-exclamation"></i></span>
-      <span class="sec-tip-txt"><span>Estás repartiendo más de lo que te sobra. Baja el ahorro o el extra a deudas.</span></span>
-    </div>
   </div>
 
   <div class="pl-bloque" data-simulador>
@@ -211,7 +209,7 @@
     <div class="pl-sim-campos">
       <div class="pl-sim-campo">
         <label class="pl-extra-cab" for="simCuota"><span>Valor de la cuota</span></label>
-        <input id="simCuota" type="number" inputmode="numeric" min="1" step="1" placeholder="45000">
+        <input id="simCuota" type="number" inputmode="numeric" min="1" step="1" placeholder="Ej: 45.000">
       </div>
       <div class="pl-sim-campo">
         <label class="pl-extra-cab" for="simCuotas"><span>Cuántas cuotas</span></label>
@@ -226,8 +224,6 @@
     <div class="pl-resultado" id="simResultado"></div>
     <span class="sec-mas-nota">Parte de lo que te sobra hoy y suma cada cuota que termina. No cuenta el extra a deudas.</span>
   </div>
-
-  {% include 'finanzas/_plan_ia.html' %}
 
   {% if plan.suscripciones %}
   <div class="pl-bloque">
@@ -248,6 +244,9 @@
     <a href="{% url 'suscripciones' %}" class="sec-btn vidrio">Ver suscripciones</a>
   </div>
   {% endif %}
+
+  {% include 'finanzas/_plan_ia.html' %}
+
 
   <details class="sec-historial pl-aprender-caja">
     <summary>
@@ -276,8 +275,8 @@
 {% block extra_js %}
 {% if plan.tiene_datos and plan.sobra > 0 %}
 {{ plan_json|json_script:"d-plan" }}
-<script src="{% static 'js/pantallas/plan.js' %}?v=51" nonce="{{ csp_nonce }}" data-url-ia="{% url 'plan_ia' %}"></script>
-<script src="{% static 'js/pantallas/plan-proyeccion.js' %}?v=51" nonce="{{ csp_nonce }}"></script>
+<script src="{% static 'js/pantallas/plan.js' %}?v=70" nonce="{{ csp_nonce }}" data-url-ia="{% url 'plan_ia' %}"></script>
+<script src="{% static 'js/pantallas/plan-proyeccion.js' %}?v=70" nonce="{{ csp_nonce }}"></script>
 <script src="{% static 'js/pantallas/plan-simulador.js' %}" nonce="{{ csp_nonce }}"></script>
 {% endif %}
 {% endblock %}

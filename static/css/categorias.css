@@ -1,0 +1,47 @@
+.ct-hero { margin-bottom: 22px; }
+.ct-intro { max-width: 60ch; font-size: 15px; line-height: 1.5; color: rgba(255, 245, 230, .78); text-wrap: pretty; }
+.ct-nueva i { color: #ffbb56; }
+.ct-cols { display: grid; grid-template-columns: minmax(0, 1fr); gap: 22px; align-items: start; }
+.ct-col { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.ct-cab { display: flex; justify-content: space-between; gap: 10px; padding: 0 6px; font-size: 13px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: rgba(245, 245, 245, .6); }
+.ct-cab > span + span { letter-spacing: 0; text-transform: none; font-weight: 700; }
+.ct-lista, .ct-sin-usar { border-radius: 20px; background: rgba(255, 255, 255, .06); border: 1px solid rgba(255, 255, 255, .09); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .08); overflow: hidden; }
+.ct-fila { display: grid; grid-template-columns: 36px minmax(0, 1fr) auto auto; align-items: center; column-gap: 12px; row-gap: 8px; padding: 12px 14px; }
+.ct-fila + .ct-fila { border-top: 1px solid rgba(255, 255, 255, .07); }
+.ct-icono { display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; flex-shrink: 0; border-radius: 12px; font-size: 14px; }
+.ct-icono.gris { background: rgba(255, 255, 255, .08); color: rgba(245, 245, 245, .85); }
+.ct-txt { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.ct-nombre { display: flex; align-items: center; gap: 6px; font-size: 15px; font-weight: 700; overflow-wrap: anywhere; }
+.ct-tuya { padding: 2px 8px; border-radius: 100px; background: rgba(255, 170, 44, .16); color: #ffbb56; font-size: 12px; font-weight: 800; }
+.ct-meta { font-size: 13px; color: rgba(245, 245, 245, .68); }
+.ct-monto { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; }
+.ct-monto b { font-size: 15px; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.ct-monto.verde b { color: #8af08e; }
+.ct-monto [data-ct-pct] { font-size: 12px; color: rgba(245, 245, 245, .6); }
+.ct-editar { display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; margin-right: -8px; border: none; border-radius: 50%; background: none; color: rgba(245, 245, 245, .6); font-size: 12px; cursor: pointer; }
+.ct-editar:hover { background: rgba(255, 255, 255, .08); color: #f5f5f5; }
+.ct-barra { grid-column: 2 / -1; display: block; height: 6px; border-radius: 100px; background: rgba(255, 255, 255, .1); overflow: hidden; }
+.ct-barra > span { display: block; width: 0; height: 100%; border-radius: 100px; transition: width .4s; }
+.ct-vacio { padding: 16px; font-size: 14px; color: rgba(245, 245, 245, .68); }
+.ct-lista:not(:has(.ct-fila)):not(:has(.ct-vacio))::before { content: 'Nada registrado todavía.'; display: block; padding: 16px; font-size: 14px; color: rgba(245, 245, 245, .68); }
+.ct-sin-usar { margin-top: 14px; }
+.ct-sin-usar > summary { display: flex; align-items: center; gap: 12px; min-height: 58px; padding: 10px 14px; list-style: none; cursor: pointer; }
+.ct-sin-usar > summary::-webkit-details-marker { display: none; }
+.ct-sin-usar > summary:hover { background: rgba(255, 255, 255, .04); }
+.ct-flecha { flex-shrink: 0; margin-left: auto; font-size: 12px; color: rgba(245, 245, 245, .4); transition: transform .2s; }
+.ct-sin-usar[open] .ct-flecha { transform: rotate(180deg); }
+.ct-chips { display: flex; flex-wrap: wrap; gap: 8px; padding: 4px 14px 16px; }
+.ct-chip { display: inline-flex; align-items: center; gap: 8px; min-height: 36px; padding: 0 12px; border: none; border-radius: 100px; background: rgba(255, 255, 255, .07); color: #f5f5f5; font-family: 'Manrope', sans-serif; font-size: 13px; font-weight: 700; }
+button.ct-chip { cursor: pointer; }
+button.ct-chip:hover { background: rgba(255, 255, 255, .12); }
+.ct-chip-lapiz { font-size: 10px; color: rgba(245, 245, 245, .5); }
+
+@media (min-width: 1024px) {
+  .ct-cols { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px; }
+  .ct-fila { padding: 12px 16px; }
+}
+
+@media (max-width: 720px) {
+  .ct-hero { margin: 10px 0 18px; }
+  .ct-intro { font-size: 14px; }
+}

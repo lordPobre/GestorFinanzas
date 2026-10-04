@@ -1,122 +1,85 @@
 {% extends 'finanzas/base.html' %}
 {% load static %}
 {% load humanize moneda %}
-{% block title %}Categorías · FinApp{% endblock %}
+{% block title %}Categorías · Fintora{% endblock %}
 {% block topbar_sub %}Cómo se ordenan tus movimientos{% endblock %}
 {% block search_placeholder %}Filtrar categorías{% endblock %}
+{% block extra_head %}<link rel="stylesheet" href="{% static 'css/categorias.css' %}?v=72">{% endblock %}
 
 {% block content %}
 <div class="sec-top">
-  <div class="sec-titulo-caja">
-    <span class="sec-eyebrow"><i class="fas fa-tags"></i>Datos</span>
-    <h1 class="sec-titulo">Categorías</h1>
-  </div>
-  <button type="button" class="sec-accion" data-open="#modalCat" aria-label="Nueva categoría"><i class="fas fa-plus"></i><span>Nueva categoría</span></button>
+  <h1 class="sec-titulo">Categorías</h1>
+  <button type="button" class="sec-accion ct-nueva" data-open="#modalCat" aria-label="Nueva categoría"><i class="fas fa-plus"></i><span>Nueva categoría</span></button>
 </div>
 
-<section class="sec-hero fo-hero">
-  <span class="fo-icono ambar"><i class="fas fa-tags"></i></span>
-  <span class="fo-nota">Los montos son de {{ nombre_mes }}. Puedes crear las tuyas y cambiar el color de cualquiera; las que vienen con la app no se borran.</span>
+<section class="sec-hero ct-hero">
+  <span class="ct-intro">Los montos son de {{ nombre_mes }}. Las que vienen con la app no se borran, pero puedes crear las tuyas.</span>
 </section>
 
-<section class="sec-hoja fo-hoja fo-ambar">
-{% if sin_usar|length > 6 %}
-<div class="glass card borde-ambar" style="margin-bottom:16px;display:flex;align-items:flex-start;gap:12px">
-  <span class="icon-tile orange" style="width:32px;height:32px"><i class="fas fa-broom" style="font-size:12px"></i></span>
-  <div>
-    <div style="font-size:12.5px;font-weight:600;margin-bottom:3px">
-      {{ sin_usar|length }} categorías sin usar
-    </div>
-    <div class="hint" style="font-size:11.5px">
-      Nunca has registrado nada en ellas. Las que creaste tú se pueden borrar;
-      las de la app simplemente no aparecerán en tus gráficos.
-    </div>
-  </div>
-</div>
-{% endif %}
-
-<div class="grid-chart par">
-
-  <div>
-    <div class="section-head" style="margin-top:0">
-      <h2 class="section-title" style="font-size:15px">En qué gastas</h2>
-      <span class="label">{{ de_gasto|length }} categorías</span>
-    </div>
-    <div class="glass card">
-      <div class="row-list cat-list">
-        {% for c in de_gasto %}
-        <div class="row" data-searchable>
-          <span class="icon-tile" style="width:34px;height:34px;background:{{ c.color }}22;color:{{ c.color }}">
-            <i class="fas {{ c.icono }}" style="font-size:13px"></i>
+<section class="sec-hoja ct-hoja">
+  <div class="ct-cols">
+    <div class="ct-col">
+      <div class="ct-cab"><span>En qué gastas</span><span>{{ de_gasto|length }} categoría{{ de_gasto|length|pluralize:"s" }}</span></div>
+      <div class="ct-lista" data-ct-lista>
+        {% for c in de_gasto %}{% if c.usos %}
+        <div class="ct-fila" data-searchable data-monto="{{ c.gastado|floatformat:"0u" }}">
+          <span class="ct-icono" style="background:{{ c.color }}29;color:{{ c.color }}"><i class="fas {{ c.icono }}"></i></span>
+          <span class="ct-txt">
+            <span class="ct-nombre">{{ c.label }}{% if c.propia %}<span class="ct-tuya">Tuya</span>{% endif %}</span>
+            <span class="ct-meta">{{ c.usos }} movimiento{{ c.usos|pluralize:"s" }}</span>
           </span>
-          <div class="row-main">
-            <div class="row-title">
-              {{ c.label }}
-              {% if c.propia %}<span class="badge badge-orange" style="font-size:9.5px;margin-left:5px">tuya</span>{% endif %}
-            </div>
-            <div class="row-meta">
-              {% if c.usos %}{{ c.usos }} movimiento{{ c.usos|pluralize:"s" }}{% else %}Sin usar{% endif %}
-            </div>
-          </div>
-          <div style="text-align:right">
-            <div class="mono" style="font-size:13px;{% if not c.gastado %}color:var(--text-muted){% endif %}">
-              {{ c.gastado|money }}
-            </div>
-            <div class="row-meta">este mes</div>
-          </div>
-
-          {% if c.propia %}
-          <button class="icon-btn" title="Editar {{ c.label }}"
-                  data-open="#modalEdit{{ c.obj.pk }}"><i class="fas fa-pen" style="font-size:10px"></i></button>
-          {% else %}
-          <span aria-hidden="true"></span>
-          {% endif %}
+          <span class="ct-monto"><b>{{ c.gastado|money }}</b><span data-ct-pct></span></span>
+          {% if c.propia %}<button type="button" class="ct-editar" data-open="#modalEdit{{ c.obj.pk }}" aria-label="Editar {{ c.label }}" title="Editar {{ c.label }}"><i class="fas fa-pen"></i></button>{% endif %}
+          <span class="ct-barra"><span data-ct-barra style="background:{{ c.color }}"></span></span>
         </div>
+        {% endif %}{% empty %}
+        <div class="ct-vacio">Todavía no hay categorías.</div>
         {% endfor %}
       </div>
     </div>
-  </div>
 
-  <div>
-    <div class="section-head" style="margin-top:0">
-      <h2 class="section-title" style="font-size:15px">De dónde entra</h2>
-      <span class="label">{{ de_ingreso|length }} categorías</span>
-    </div>
-    <div class="glass card">
-      <div class="row-list cat-list">
-        {% for c in de_ingreso %}
-        <div class="row" data-searchable>
-          <span class="icon-tile" style="width:34px;height:34px;background:{{ c.color }}22;color:{{ c.color }}">
-            <i class="fas {{ c.icono }}" style="font-size:13px"></i>
+    <div class="ct-col">
+      <div class="ct-cab"><span>De dónde entra</span><span>{{ de_ingreso|length }} categoría{{ de_ingreso|length|pluralize:"s" }}</span></div>
+      <div class="ct-lista" data-ct-lista>
+        {% for c in de_ingreso %}{% if c.usos %}
+        <div class="ct-fila" data-searchable data-monto="{{ c.gastado|floatformat:"0u" }}">
+          <span class="ct-icono" style="background:{{ c.color }}29;color:{{ c.color }}"><i class="fas {{ c.icono }}"></i></span>
+          <span class="ct-txt">
+            <span class="ct-nombre">{{ c.label }}{% if c.propia %}<span class="ct-tuya">Tuya</span>{% endif %}</span>
+            <span class="ct-meta">{{ c.usos }} movimiento{{ c.usos|pluralize:"s" }}</span>
           </span>
-          <div class="row-main">
-            <div class="row-title">
-              {{ c.label }}
-              {% if c.propia %}<span class="badge badge-orange" style="font-size:9.5px;margin-left:5px">tuya</span>{% endif %}
-            </div>
-            <div class="row-meta">
-              {% if c.usos %}{{ c.usos }} movimiento{{ c.usos|pluralize:"s" }}{% else %}Sin usar{% endif %}
-            </div>
-          </div>
-          <div style="text-align:right">
-            <div class="mono" style="font-size:13px;{% if c.gastado %}color:var(--green){% else %}color:var(--text-muted){% endif %}">
-              {{ c.gastado|money }}
-            </div>
-            <div class="row-meta">este mes</div>
-          </div>
-
-          {% if c.propia %}
-          <button class="icon-btn" title="Editar {{ c.label }}"
-                  data-open="#modalEdit{{ c.obj.pk }}"><i class="fas fa-pen" style="font-size:10px"></i></button>
-          {% else %}
-          <span aria-hidden="true"></span>
-          {% endif %}
+          <span class="ct-monto verde"><b>{{ c.gastado|money }}</b><span data-ct-pct></span></span>
+          {% if c.propia %}<button type="button" class="ct-editar" data-open="#modalEdit{{ c.obj.pk }}" aria-label="Editar {{ c.label }}" title="Editar {{ c.label }}"><i class="fas fa-pen"></i></button>{% endif %}
+          <span class="ct-barra"><span data-ct-barra style="background:{{ c.color }}"></span></span>
         </div>
+        {% endif %}{% empty %}
+        <div class="ct-vacio">Todavía no hay categorías.</div>
         {% endfor %}
       </div>
+
+      {% if sin_usar %}
+      <details class="ct-sin-usar">
+        <summary>
+          <span class="ct-icono gris"><i class="fas fa-box-archive"></i></span>
+          <span class="ct-txt">
+            <span class="ct-nombre">Sin usar · {{ sin_usar|length }}</span>
+            <span class="ct-meta">No aparecen en tus gráficos. Las tuyas se pueden borrar</span>
+          </span>
+          <i class="fas fa-chevron-down ct-flecha"></i>
+        </summary>
+        <div class="ct-chips">
+          {% for c in sin_usar %}
+          {% if c.propia %}
+          <button type="button" class="ct-chip" data-searchable data-open="#modalEdit{{ c.obj.pk }}" title="Editar {{ c.label }}"><i class="fas {{ c.icono }}" style="color:{{ c.color }}"></i>{{ c.label }}<i class="fas fa-pen ct-chip-lapiz"></i></button>
+          {% else %}
+          <span class="ct-chip" data-searchable><i class="fas {{ c.icono }}" style="color:{{ c.color }}"></i>{{ c.label }}</span>
+          {% endif %}
+          {% endfor %}
+        </div>
+      </details>
+      {% endif %}
     </div>
   </div>
-</div>
 </section>
 {% endblock %}
 
@@ -263,4 +226,5 @@
 
 {% block extra_js %}
 <script src="{% static 'js/pantallas/categorias.js' %}" nonce="{{ csp_nonce }}"></script>
+<script src="{% static 'js/pantallas/categorias-2.js' %}?v=72" nonce="{{ csp_nonce }}"></script>
 {% endblock %}

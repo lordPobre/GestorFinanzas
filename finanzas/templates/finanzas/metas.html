@@ -34,13 +34,13 @@
   <div class="me-lista">
     {% for d in metas_datos %}
     <article class="me-card{% if forloop.first %} abierta{% endif %}{% if d.meta.esta_completa %} completa{% endif %}" id="meta{{ d.meta.pk }}" data-desplegable data-searchable style="--pct:{{ d.meta.porcentaje|floatformat:'0u' }};--color:{% if d.meta.esta_completa %}#53d258{% else %}{{ d.meta.color }}{% endif %}">
+      <div class="me-linea">
       <button type="button" class="me-cab" data-desplegar aria-expanded="{% if forloop.first %}true{% else %}false{% endif %}">
         <span class="me-anillo"><span>{{ d.meta.porcentaje|floatformat:0 }}%</span></span>
         <span class="sec-txt">
           <span class="sec-nombre me-nombre">{{ d.meta.nombre }}</span>
           <span class="sec-meta">{{ d.meta.monto_actual|money }} de {{ d.meta.monto_meta|money }}</span>
           {% if d.meta.esta_completa %}
-          <span class="me-plan listo">Meta cumplida</span>
           {% elif d.meta.ahorro_mensual_sugerido %}
           <span class="me-plan">{{ d.meta.ahorro_mensual_sugerido|money }} al mes para llegar{% if d.meta.fecha_limite %} en {{ d.meta.fecha_limite|date:"F"|lower }}{% endif %}</span>
           {% else %}
@@ -52,35 +52,54 @@
         {% elif d.meses_quieta and d.meses_quieta >= 2 %}
         <span class="sec-badge amarillo">Quieta {{ d.meses_quieta }} meses</span>
         {% endif %}
+        <i class="fas fa-chevron-down cu-flecha" aria-hidden="true"></i>
       </button>
-
-      <div class="me-detalle">
-        <div class="me-aportes">
-          <span class="me-aportes-titulo">Aportes de los últimos 6 meses</span>
-          <div class="me-barras">
-            {% for s in d.serie %}
-            <span class="me-barra{% if not s.monto %} vacia{% endif %}{% if forloop.last %} actual{% endif %}" style="height:{% if s.monto %}{{ s.alto|default:0 }}{% else %}8{% endif %}%" title="{{ s.label }}: {{ s.monto|money }}"></span>
-            {% endfor %}
-          </div>
-          <div class="me-meses">
-            {% for s in d.serie %}<span{% if forloop.last %} class="actual"{% endif %}>{{ s.label }}</span>{% endfor %}
-          </div>
-        </div>
-
-        <div class="sec-botones">
-          {% if not d.meta.esta_completa %}
-          <button type="button" class="sec-btn verde" data-open="#modalAporte{{ d.meta.pk }}"><i class="fas fa-plus"></i>Aportar</button>
-          {% endif %}
-          <a href="{% url 'editar_meta' d.meta.pk %}" class="sec-btn vidrio">Editar</a>
-        </div>
-        <div class="sec-mas-fila siempre">
-          <span class="sec-mas-nota">{% if d.aportado_6m %}{{ d.aportado_6m|money }} en 6 meses{% if d.promedio_mes %} · promedio {{ d.promedio_mes|money }}{% endif %}{% else %}Todavía no registras aportes{% endif %}</span>
+      {% if not d.meta.esta_completa %}
+      <button type="button" class="me-aportar" data-open="#modalAporte{{ d.meta.pk }}" title="Aportar" aria-label="Aportar a {{ d.meta.nombre }}"><i class="fas fa-plus"></i></button>
+      {% endif %}
+      <details class="me-menu">
+        <summary class="me-menu-btn" aria-label="Más opciones de {{ d.meta.nombre }}"><i class="fas fa-ellipsis"></i></summary>
+        <div class="me-menu-panel">
+          <a href="{% url 'editar_meta' d.meta.pk %}"><i class="fas fa-pen"></i>Editar</a>
           <form method="post" action="{% url 'eliminar_meta' d.meta.pk %}" data-confirm="¿Eliminar la meta {{ d.meta.nombre }}?">
             {% csrf_token %}
             <input type="hidden" name="next" value="{% url 'metas' %}">
-            <button type="submit" class="sec-chico peligro"><i class="fas fa-trash-can"></i>Eliminar</button>
+            <button type="submit" class="peligro"><i class="fas fa-trash-can"></i>Eliminar</button>
           </form>
         </div>
+      </details>
+      </div>
+
+      <div class="me-detalle">
+        <div class="me-resumen">
+          <span class="me-orbita">
+            <span class="me-orbita-anillo"></span>
+            <span class="me-orbita-brillo"></span>
+            <span class="me-orbita-giro"><span class="me-orbita-luz"></span></span>
+            <span class="me-orbita-centro"><b>{{ d.meta.porcentaje|floatformat:0 }}%</b><span data-meta-despues>ahorrado</span></span>
+          </span>
+          <div class="me-cifras">
+            <div><span>Ahorrado</span><b>{{ d.meta.monto_actual|money }}</b></div>
+            {% if not d.meta.esta_completa %}<div><span>Falta</span><b class="falta">{{ d.meta.monto_faltante|money }}</b></div>{% endif %}
+            <div><span>Aportes en 6 meses</span><b>{% if d.aportado_6m %}{{ d.aportado_6m|money }}{% else %}$0{% endif %}</b></div>
+          </div>
+        </div>
+        {% if d.meta.esta_completa %}
+        <span class="me-lista-nota"><i class="fas fa-circle-check"></i>Llegaste a la meta.</span>
+        {% else %}
+        <form method="post" action="{% url 'aportar_meta' d.meta.pk %}" class="me-rapido" data-meta-rapido data-meta="{{ d.meta.monto_meta|floatformat:'0u' }}" data-actual="{{ d.meta.monto_actual|floatformat:'0u' }}" data-faltante="{{ d.meta.monto_faltante|floatformat:'0u' }}">
+          {% csrf_token %}
+          <input type="hidden" name="next" value="{% url 'metas' %}">
+          <input type="hidden" name="monto" value="">
+          <div class="me-chips" role="group" aria-label="Cuánto aportar">
+            {% if d.meta.ahorro_mensual_sugerido %}<button type="button" class="me-chip" data-monto="{{ d.meta.ahorro_mensual_sugerido|floatformat:'0u' }}" aria-pressed="false">{{ d.meta.ahorro_mensual_sugerido|money }} · lo que necesitas</button>{% endif %}
+            {% if d.promedio_mes %}<button type="button" class="me-chip" data-monto="{{ d.promedio_mes }}" aria-pressed="false">{{ d.promedio_mes|money }} · tu promedio</button>{% endif %}
+            <button type="button" class="me-chip" data-monto="{{ d.meta.monto_faltante|floatformat:'0u' }}" aria-pressed="false">Todo lo que falta</button>
+            <button type="button" class="me-chip" data-open="#modalAporte{{ d.meta.pk }}">Otro monto</button>
+          </div>
+          <button type="submit" class="sec-btn verde" data-meta-boton disabled>Elige un monto</button>
+        </form>
+        {% endif %}
       </div>
     </article>
     {% endfor %}
