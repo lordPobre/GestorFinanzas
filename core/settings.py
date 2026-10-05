@@ -1,6 +1,7 @@
 import os
 import sys
 from pathlib import Path
+from urllib.parse import urlparse
 
 import dj_database_url
 from dotenv import load_dotenv
@@ -52,6 +53,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'finanzas.middleware.DominioCanonicoMiddleware',
     'finanzas.middleware.PoliticaContenidoMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
@@ -166,6 +168,12 @@ if not DEBUG:
     SECURE_REDIRECT_EXEMPT = [r'^salud/$']
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
+    SESSION_COOKIE_NAME = '__Host-sessionid'
+    CSRF_COOKIE_NAME = '__Host-csrftoken'
+    SESSION_COOKIE_DOMAIN = None
+    CSRF_COOKIE_DOMAIN = None
+    SESSION_COOKIE_PATH = '/'
+    CSRF_COOKIE_PATH = '/'
     SESSION_COOKIE_HTTPONLY = True
     SESSION_COOKIE_SAMESITE = 'Lax'
     CSRF_COOKIE_SAMESITE = 'Lax'
@@ -186,6 +194,12 @@ if not DEBUG:
         origen = f'https://{DOMINIO_RAILWAY}'
         if origen not in CSRF_TRUSTED_ORIGINS:
             CSRF_TRUSTED_ORIGINS.append(origen)
+
+SITE_URL = os.environ.get('SITE_URL', '').strip().rstrip('/')
+DOMINIO_CANONICO = (os.environ.get('DOMINIO_CANONICO', '').strip().lower()
+                    or urlparse(SITE_URL).netloc.lower())
+if DEBUG or sys.argv[1:2] == ['test']:
+    DOMINIO_CANONICO = ''
 
 PROXIES_CONFIABLES = int(os.environ.get('PROXIES_CONFIABLES', '0' if DEBUG else '1'))
 

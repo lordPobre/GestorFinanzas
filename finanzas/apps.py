@@ -8,5 +8,5 @@ class FinanzasConfig(AppConfig):
     name = 'finanzas'
 
     def ready(self):
-        for modulo in ('sesiones', 'auditoria', 'servicios.senales'):
+        for modulo in ('sesiones', 'auditoria', 'servicios.senales', 'comprobaciones'):
             import_module(f'{self.name}.{modulo}')

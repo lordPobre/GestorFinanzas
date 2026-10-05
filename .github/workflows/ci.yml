@@ -107,6 +107,21 @@ jobs:
           pip-audit --requirement requirements.txt --strict
           pip-audit --requirement requirements-dev.txt --strict
 
+  secretos:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Secretos en el historial
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_CONFIG: .gitleaks.toml
+
   estilo-ampliado:
     runs-on: ubuntu-latest
     timeout-minutes: 10

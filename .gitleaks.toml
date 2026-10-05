@@ -1,0 +1,14 @@
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Valores de prueba y de desarrollo que no son secretos"
+paths = [
+  '''^finanzas/tests/''',
+  '''^finanzas/tests_.*\.py$''',
+  '''^requirements(-dev)?\.txt$''',
+]
+regexes = [
+  '''clave-solo-para-pruebas-de-integracion-continua''',
+  '''django-insecure-solo-desarrollo-local''',
+]

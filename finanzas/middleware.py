@@ -5,7 +5,7 @@ import time
 from urllib.parse import urlparse
 
 from django.conf import settings
-from django.http import JsonResponse
+from django.http import HttpResponsePermanentRedirect, JsonResponse
 from django.utils import timezone
 from django.utils.cache import add_never_cache_headers
 
@@ -25,6 +25,31 @@ def _origenes_imagenes():
 
 
 IMG_SRC = _origenes_imagenes()
+
+
+class Redireccion308(HttpResponsePermanentRedirect):
+    status_code = 308
+
+
+class DominioCanonicoMiddleware:
+
+    EXENTAS = ('/salud/',)
+    HOSTS_INTERNOS = ('healthcheck.railway.app',)
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        canonico = getattr(settings, 'DOMINIO_CANONICO', '')
+        if canonico and not settings.DEBUG and request.path not in self.EXENTAS:
+            host = request.get_host().split(':')[0].lower()
+            interno = host in self.HOSTS_INTERNOS or host.endswith('.railway.internal')
+            if host != canonico and not interno:
+                destino = f'https://{canonico}{request.get_full_path()}'
+                clase = (HttpResponsePermanentRedirect if request.method in ('GET', 'HEAD')
+                         else Redireccion308)
+                return clase(destino)
+        return self.get_response(request)
 
 
 class PoliticaContenidoMiddleware:

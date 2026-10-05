@@ -51,6 +51,33 @@ def salud(request):
                         status=200 if ok else 503)
 
 
+@cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
+def diagnostico_ip(request):
+    from django.conf import settings
+
+    from ..seguridad import _ip, red
+
+    if not (request.user.is_authenticated and request.user.is_staff):
+        raise Http404
+    reenviada = request.META.get('HTTP_X_FORWARDED_FOR', '')
+    tramos = [t.strip() for t in reenviada.split(',') if t.strip()]
+    cloudflare = request.META.get('HTTP_CF_CONNECTING_IP', '')
+    usada = _ip(request)
+    sugerida = settings.PROXIES_CONFIABLES
+    if cloudflare and cloudflare in tramos:
+        sugerida = len(tramos) - tramos.index(cloudflare)
+    return JsonResponse({
+        'remote_addr': request.META.get('REMOTE_ADDR', ''),
+        'x_forwarded_for': tramos,
+        'cf_connecting_ip': cloudflare,
+        'proxies_confiables': settings.PROXIES_CONFIABLES,
+        'ip_usada': usada,
+        'red_para_limites': red(usada),
+        'coincide_con_cloudflare': (not cloudflare) or usada == cloudflare,
+        'proxies_confiables_sugerido': sugerida,
+    })
+
+
 @cache_control(max_age=3600, public=True)
 def robots_txt(request):
     from .. import marketing

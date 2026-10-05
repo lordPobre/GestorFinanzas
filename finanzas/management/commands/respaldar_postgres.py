@@ -11,6 +11,7 @@ from django.utils import timezone
 
 PREFIJO = 'postgres/'
 TABLAS_OBLIGATORIAS = ('auth_user', 'finanzas_transaccion', 'finanzas_userprofile')
+TABLAS_SIN_DATOS = ('django_session', 'cache_finapp', 'finanzas_contador')
 
 
 class Command(BaseCommand):
@@ -103,6 +104,7 @@ class Command(BaseCommand):
     def _volcar(self, pg_dump, entorno, ruta):
         orden = [pg_dump, '--format=custom', '--compress=6', '--no-owner',
                  '--no-privileges', f'--file={ruta}']
+        orden += [f'--exclude-table-data={t}' for t in TABLAS_SIN_DATOS]
         try:
             subprocess.run(orden, env=entorno, check=True, capture_output=True, timeout=1800)
         except subprocess.CalledProcessError as e:
