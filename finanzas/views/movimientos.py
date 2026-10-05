@@ -9,7 +9,7 @@ from django.utils import timezone
 
 from ..forms import TransaccionForm
 from ..models import GastoPendiente, PagoCuota, Transaccion
-from .comun import contadores, monto_post, redirigir
+from .comun import contadores, monto_post, redirigir, texto_post
 
 
 @login_required(login_url='/login/')
@@ -149,10 +149,11 @@ def registrar_ingreso(request):
 @login_required(login_url='/login/')
 def crear_gasto_pendiente(request):
     if request.method == 'POST':
-        nombre = request.POST.get('nombre', '').strip()
+        nombre = texto_post(request, 'nombre', GastoPendiente)
         monto = monto_post(request)
         fecha_venc = request.POST.get('fecha_vencimiento')
-        categoria = request.POST.get('categoria', 'Cuentas').strip() or 'Cuentas'
+        categoria = texto_post(request, 'categoria', Transaccion) or 'Cuentas'
+        largo_desc = Transaccion._meta.get_field('descripcion').max_length or 200
 
         if not (nombre and monto > 0 and fecha_venc):
             messages.warning(request, 'Completa nombre, monto y fecha.')
@@ -166,7 +167,7 @@ def crear_gasto_pendiente(request):
 
         tx = Transaccion.objects.create(
             usuario=request.user, tipo='EGRESO', monto=monto,
-            categoria=categoria, descripcion=f'Pendiente: {nombre}',
+            categoria=categoria, descripcion=f'Pendiente: {nombre}'[:largo_desc],
             fecha=venc, es_cuota=False, pagado=False,
         )
         GastoPendiente.objects.create(

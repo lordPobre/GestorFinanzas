@@ -24,7 +24,7 @@ from ..models import (Categoria, CodigoRespaldo, Deuda, EventoSeguridad, GastoPe
                      Passkey, Persona, Presupuesto, RespuestaEncuesta, SegundoFactor, SesionActiva,
                      Suscripcion, Transaccion, UserProfile)
 from ..seguridad import (MAX_INTENTOS as MAX_INTENTOS_LOGIN, _ip, esta_bloqueado,
-                        limitar, limpiar_intentos, registrar_fallo)
+                        limitar, limpiar_intentos, red, registrar_fallo, sumar)
 from ..redirecciones import destino_seguro
 from ..servicios.mes import nombre_mes_es
 from .comun import contadores, get_or_create_profile, monto_post
@@ -275,6 +275,9 @@ def configurar_2fa(request):
 
 MAX_SOLICITUDES_RESET = 3
 VENTANA_RESET = 900
+MAX_RESET_POR_CORREO = 3
+VENTANA_RESET_CORREO = 3600
+MAX_AVISOS_REGISTRO = 2
 
 def _usuario_por_correo(correo):
     correo = (correo or '').strip()
@@ -289,7 +292,6 @@ def _usuario_por_correo(correo):
 
 def recuperar(request):
     from django.contrib.auth.tokens import default_token_generator
-    from django.core.cache import cache
     from django.template.loader import render_to_string
     from django.utils.encoding import force_bytes
     from django.utils.http import urlsafe_base64_encode
@@ -302,17 +304,17 @@ def recuperar(request):
     if request.method == 'POST':
         correo_txt = (request.POST.get('email') or '').strip()
 
-        clave = f'reset:{_ip(request)}'
-        usados = cache.get(clave, 0)
-        if usados >= MAX_SOLICITUDES_RESET:
+        usados, _ = sumar(f'reset:{red(_ip(request))}', VENTANA_RESET)
+        if usados > MAX_SOLICITUDES_RESET:
             messages.warning(
                 request,
                 'Ya pediste varios enlaces. Espera unos minutos antes de intentarlo otra vez.')
             return render(request, 'registration/recuperar.html',
                           {'email': correo_txt})
-        cache.set(clave, usados + 1, VENTANA_RESET)
 
-        usuario = _usuario_por_correo(correo_txt)
+        por_correo, _ = sumar(f'reset-correo:{correo_txt.lower()[:150]}', VENTANA_RESET_CORREO)
+        usuario = (_usuario_por_correo(correo_txt)
+                   if por_correo <= MAX_RESET_POR_CORREO else None)
         if usuario:
             auditoria.registrar('recuperacion_pedida', request, usuario)
             enlace = url_absoluta(request, reverse('restablecer', kwargs={
@@ -393,6 +395,18 @@ def restablecer(request, uidb64, token):
             usuario=usuario, usado=False).exists(),
     })
 
+def _avisar_registro_repetido(request, correo):
+    enviados, _ = sumar(f'registro-repetido:{correo.lower()[:150]}', 86400)
+    if enviados > MAX_AVISOS_REGISTRO:
+        return
+    contexto = {
+        'entrar': servicio_correo.url_absoluta(request, reverse('login')),
+        'recuperar': servicio_correo.url_absoluta(request, reverse('recuperar')),
+    }
+    servicio_correo.enviar(correo, 'Ya tienes una cuenta en Fintora',
+                           render_to_string('registration/correo_registro_repetido.txt', contexto))
+    logger.info('Registro con un correo que ya tiene cuenta: aviso enviado')
+
 @limitar(5, 3600, 'Demasiados registros desde esta conexión. Prueba más tarde.')
 def registro(request):
     if request.method == 'POST':
@@ -400,6 +414,7 @@ def registro(request):
         correo = (request.POST.get('email_perfil') or '').strip()
         error_correo = ''
         acepta = bool(request.POST.get('acepta_politica'))
+        correo_ocupado = False
 
         if not correo:
             error_correo = 'Necesitamos tu email para poder recuperar tu contraseña.'
@@ -409,12 +424,16 @@ def registro(request):
             except forms.ValidationError:
                 error_correo = 'Ese email no parece válido. Revísalo.'
             else:
-                if User.objects.filter(email__iexact=correo).exists():
-                    error_correo = 'Ya hay una cuenta con ese email.'
+                correo_ocupado = User.objects.filter(email__iexact=correo).exists()
 
         if not acepta:
             error_correo = error_correo or (
                 'Tienes que aceptar la política de privacidad y los términos de uso.')
+
+        if correo_ocupado and not error_correo and form.is_valid():
+            _avisar_registro_repetido(request, correo)
+            messages.info(request, f'Te mandamos un correo a {correo}. Ábrelo para seguir.')
+            return redirect('login')
 
         if form.is_valid() and not error_correo:
             user = form.save(commit=False)
@@ -507,11 +526,17 @@ class PerfilForm(forms.ModelForm):
         }
 
     def clean_foto(self):
+        from django.core.files.uploadedfile import UploadedFile
+
+        from ..fotos import recodificar
+
         foto = self.cleaned_data.get('foto')
-        if foto and getattr(foto, 'size', 0) > self.MAX_FOTO_MB * 1024 * 1024:
+        if not isinstance(foto, UploadedFile):
+            return foto
+        if getattr(foto, 'size', 0) > self.MAX_FOTO_MB * 1024 * 1024:
             raise forms.ValidationError(
                 f'La imagen pesa demasiado. El máximo son {self.MAX_FOTO_MB} MB.')
-        return foto
+        return recodificar(foto)
 
 def _revisar_cambio_correo(request):
     factor = SegundoFactor.objects.filter(usuario=request.user, activo=True).first()

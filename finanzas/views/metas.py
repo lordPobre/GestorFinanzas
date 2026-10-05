@@ -4,6 +4,7 @@ from dateutil.relativedelta import relativedelta
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.db import transaction
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, render
 
@@ -11,7 +12,7 @@ from ..forms import MetaAhorroForm
 from ..models import AporteMeta, MetaAhorro
 from ..servicios.mes import MESES_LARGOS
 from ..servicios.esfera import esfera_metas
-from .comun import contadores, monto_post, redirigir, simbolo_de
+from .comun import MONTO_MAXIMO, contadores, monto_post, redirigir, simbolo_de, texto_post
 
 
 @login_required(login_url='/login/')
@@ -27,9 +28,17 @@ def aportar_meta(request, meta_id):
             messages.warning(request, 'Ingresa un monto válido.')
             return redirigir(request)
 
-        AporteMeta.objects.create(meta=meta, monto=monto, nota=request.POST.get('nota', ''))
-        meta.monto_actual = (meta.monto_actual or 0) + monto
-        meta.save(update_fields=['monto_actual'])
+        with transaction.atomic():
+            meta = MetaAhorro.objects.select_for_update().get(pk=meta.pk)
+            if (meta.monto_actual or 0) + monto > MONTO_MAXIMO:
+                if es_ajax:
+                    return JsonResponse({'ok': False, 'msg': 'Ese monto es demasiado grande.'})
+                messages.warning(request, 'Ese monto es demasiado grande.')
+                return redirigir(request)
+            AporteMeta.objects.create(meta=meta, monto=monto,
+                                      nota=texto_post(request, 'nota', AporteMeta))
+            meta.monto_actual = (meta.monto_actual or 0) + monto
+            meta.save(update_fields=['monto_actual'])
 
         if es_ajax:
             return JsonResponse({

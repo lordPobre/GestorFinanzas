@@ -1,5 +1,6 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.db import transaction
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, render
 from django.utils import timezone
@@ -67,46 +68,48 @@ def pagar_cuota(request, deuda_id):
         getattr(messages, nivel)(request, msg)
         return redirigir(request)
 
-    try:
-        periodo = int(request.POST.get('periodo') or 0) or deuda.periodo_a_pagar
-    except (ValueError, TypeError):
-        periodo = deuda.periodo_a_pagar
+    with transaction.atomic():
+        deuda = Deuda.objects.select_for_update().get(pk=deuda.pk)
+        try:
+            periodo = int(request.POST.get('periodo') or 0) or deuda.periodo_a_pagar
+        except (ValueError, TypeError):
+            periodo = deuda.periodo_a_pagar
 
-    if periodo is None:
-        return responder(False, f'{deuda.acreedor} ya está pagada por completo.', 'warning')
-    if periodo not in deuda.periodos_programados:
-        return responder(False, 'Ese mes no corresponde a esta compra.', 'warning')
-    if deuda.esta_pagada_en(periodo):
-        return responder(False, 'Esa cuota ya estaba pagada.', 'warning')
+        if periodo is None:
+            return responder(False, f'{deuda.acreedor} ya está pagada por completo.', 'warning')
+        if periodo not in deuda.periodos_programados:
+            return responder(False, 'Ese mes no corresponde a esta compra.', 'warning')
+        if deuda.esta_pagada_en(periodo):
+            return responder(False, 'Esa cuota ya estaba pagada.', 'warning')
 
-    monto = deuda.monto_cuota_de(periodo)
-    fecha_cobro = deuda.fecha_cobro_de(periodo)
-    hoy = timezone.localdate()
-    numero = deuda.periodos_programados.index(periodo) + 1
+        monto = deuda.monto_cuota_de(periodo)
+        fecha_cobro = deuda.fecha_cobro_de(periodo)
+        hoy = timezone.localdate()
+        numero = deuda.periodos_programados.index(periodo) + 1
 
-    tx = Transaccion.objects.create(
-        usuario=request.user, tipo='EGRESO', monto=monto,
-        categoria=deuda.categoria,
-        descripcion=f'Cuota {numero}/{deuda.cuotas_totales} — {deuda.acreedor}',
-        fecha=fecha_cobro, es_cuota=True,
-        pagado=True, fecha_pago=hoy,
-    )
-    PagoCuota.objects.create(
-        deuda=deuda, periodo=periodo, monto=monto, fecha_pago=hoy, transaccion=tx,
-    )
-    deuda.refresh_from_db(fields=['cuotas_pagadas'])
+        tx = Transaccion.objects.create(
+            usuario=request.user, tipo='EGRESO', monto=monto,
+            categoria=deuda.categoria,
+            descripcion=f'Cuota {numero}/{deuda.cuotas_totales} — {deuda.acreedor}',
+            fecha=fecha_cobro, es_cuota=True,
+            pagado=True, fecha_pago=hoy,
+        )
+        PagoCuota.objects.create(
+            deuda=deuda, periodo=periodo, monto=monto, fecha_pago=hoy, transaccion=tx,
+        )
+        deuda.refresh_from_db(fields=['cuotas_pagadas'])
 
-    if deuda.esta_saldada:
-        msg = f'{deuda.acreedor} quedó pagada por completo.'
-    else:
-        nombres = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio',
-                   'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre']
-        etiqueta = f'{nombres[periodo % 100 - 1]} {periodo // 100}'
-        restantes = len(deuda.periodos_pendientes)
-        msg = (f'Cuota de {etiqueta} pagada. '
-               f'Te queda{"n" if restantes != 1 else ""} {restantes} '
-               f'cuota{"s" if restantes != 1 else ""}.')
-    return responder(True, msg)
+        if deuda.esta_saldada:
+            msg = f'{deuda.acreedor} quedó pagada por completo.'
+        else:
+            nombres = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio',
+                       'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre']
+            etiqueta = f'{nombres[periodo % 100 - 1]} {periodo // 100}'
+            restantes = len(deuda.periodos_pendientes)
+            msg = (f'Cuota de {etiqueta} pagada. '
+                   f'Te queda{"n" if restantes != 1 else ""} {restantes} '
+                   f'cuota{"s" if restantes != 1 else ""}.')
+        return responder(True, msg)
 
 @login_required(login_url='/login/')
 def anular_cuota(request, deuda_id):

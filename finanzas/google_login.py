@@ -1,7 +1,9 @@
 import base64
+import hashlib
 import json
 import logging
 import re
+import secrets
 import time
 import urllib.error
 import urllib.parse
@@ -47,6 +49,11 @@ def entrar_google(request):
 
     estado = get_random_string(32)
     request.session['google_estado'] = estado
+    verificador = secrets.token_urlsafe(64)
+    nonce = get_random_string(32)
+    request.session['google_verificador'] = verificador
+    request.session['google_nonce'] = nonce
+    reto = base64.urlsafe_b64encode(hashlib.sha256(verificador.encode()).digest()).rstrip(b'=').decode()
     request.session['google_next'] = destino_seguro(request, request.GET.get('next'))
 
     parametros = urllib.parse.urlencode({
@@ -56,6 +63,9 @@ def entrar_google(request):
         'scope': 'openid email profile',
         'state': estado,
         'prompt': 'select_account',
+        'code_challenge': reto,
+        'code_challenge_method': 'S256',
+        'nonce': nonce,
     })
     return redirect(f'{URL_AUTORIZAR}?{parametros}')
 
@@ -63,6 +73,8 @@ def entrar_google(request):
 @limitar(15, 3600, 'Demasiados intentos de acceso con Google. Prueba más tarde.')
 def google_listo(request):
     estado_guardado = request.session.pop('google_estado', None)
+    verificador = request.session.pop('google_verificador', '')
+    nonce = request.session.pop('google_nonce', '')
     destino = destino_seguro(request, request.session.pop('google_next', ''))
 
     if not estado_guardado or request.GET.get('state') != estado_guardado:
@@ -74,9 +86,9 @@ def google_listo(request):
         return redirect('login')
 
     try:
-        respuesta = _canjear_codigo(request.GET['code'], _uri_retorno(request))
+        respuesta = _canjear_codigo(request.GET['code'], _uri_retorno(request), verificador)
         datos = _leer_id_token(respuesta.get('id_token', ''))
-        _validar(datos)
+        _validar(datos, nonce)
     except (urllib.error.URLError, ValueError, KeyError, json.JSONDecodeError) as e:
         log.warning('Acceso con Google fallido: %s', e)
         messages.error(request, 'No se pudo verificar tu cuenta de Google.')
@@ -111,14 +123,17 @@ def google_listo(request):
     return redirect(destino or 'dashboard')
 
 
-def _canjear_codigo(codigo, uri_retorno):
-    cuerpo = urllib.parse.urlencode({
+def _canjear_codigo(codigo, uri_retorno, verificador=''):
+    campos = {
         'code': codigo,
         'client_id': settings.GOOGLE_CLIENT_ID,
         'client_secret': settings.GOOGLE_CLIENT_SECRET,
         'redirect_uri': uri_retorno,
         'grant_type': 'authorization_code',
-    }).encode()
+    }
+    if verificador:
+        campos['code_verifier'] = verificador
+    cuerpo = urllib.parse.urlencode(campos).encode()
 
     pedido = urllib.request.Request(URL_TOKEN, data=cuerpo, headers={
         'Content-Type': 'application/x-www-form-urlencoded',
@@ -136,7 +151,9 @@ def _leer_id_token(id_token):
     return json.loads(base64.urlsafe_b64decode(cuerpo).decode('utf-8'))
 
 
-def _validar(datos):
+def _validar(datos, nonce=None):
+    if nonce is not None and (not nonce or datos.get('nonce') != nonce):
+        raise ValueError('nonce distinto')
     if datos.get('iss') not in ('accounts.google.com', 'https://accounts.google.com'):
         raise ValueError('emisor inesperado')
     if datos.get('aud') != settings.GOOGLE_CLIENT_ID:

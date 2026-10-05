@@ -3,6 +3,7 @@ from datetime import date
 from dateutil.relativedelta import relativedelta
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.db import transaction
 from django.db import transaction as db_transaction
 from django.db.models import Count, Q, Sum
 from django.http import JsonResponse
@@ -126,34 +127,36 @@ def pagar_servicio(request, sub_id):
     if request.method != 'POST':
         return redirigir(request, 'suscripciones')
 
-    try:
-        periodo = int(request.POST.get('periodo') or 0) or sub.periodo_a_pagar
-    except (ValueError, TypeError):
-        periodo = sub.periodo_a_pagar
+    with transaction.atomic():
+        sub = Suscripcion.objects.select_for_update().get(pk=sub.pk)
+        try:
+            periodo = int(request.POST.get('periodo') or 0) or sub.periodo_a_pagar
+        except (ValueError, TypeError):
+            periodo = sub.periodo_a_pagar
 
-    if periodo is None:
-        return responder(False, f'{sub.nombre} ya está al día.', 'warning')
-    if periodo not in sub.periodos_programados:
-        return responder(False, 'Ese mes todavía no se ha cobrado.', 'warning')
-    if sub.esta_pagada_en(periodo):
-        return responder(False, 'Ese mes ya estaba pagado.', 'warning')
+        if periodo is None:
+            return responder(False, f'{sub.nombre} ya está al día.', 'warning')
+        if periodo not in sub.periodos_programados:
+            return responder(False, 'Ese mes todavía no se ha cobrado.', 'warning')
+        if sub.esta_pagada_en(periodo):
+            return responder(False, 'Ese mes ya estaba pagado.', 'warning')
 
-    hoy = timezone.localdate()
-    PagoServicio.objects.create(
-        suscripcion=sub, periodo=periodo, monto=sub.monto, fecha_pago=hoy,
-    )
-    sub.cobros.filter(
-        fecha__year=periodo // 100, fecha__month=periodo % 100,
-    ).update(pagado=True, fecha_pago=hoy)
-    invalidar(request.user.pk)
+        hoy = timezone.localdate()
+        PagoServicio.objects.create(
+            suscripcion=sub, periodo=periodo, monto=sub.monto, fecha_pago=hoy,
+        )
+        sub.cobros.filter(
+            fecha__year=periodo // 100, fecha__month=periodo % 100,
+        ).update(pagado=True, fecha_pago=hoy)
+        invalidar(request.user.pk)
 
-    restantes = len(sub.periodos_pendientes)
-    if restantes:
-        msg = (f'{sub.nombre}: mes pagado. '
-               f'Te queda{"n" if restantes != 1 else ""} {restantes} sin pagar.')
-    else:
-        msg = f'{sub.nombre} quedó al día.'
-    return responder(True, msg)
+        restantes = len(sub.periodos_pendientes)
+        if restantes:
+            msg = (f'{sub.nombre}: mes pagado. '
+                   f'Te queda{"n" if restantes != 1 else ""} {restantes} sin pagar.')
+        else:
+            msg = f'{sub.nombre} quedó al día.'
+        return responder(True, msg)
 
 @login_required(login_url='/login/')
 def anular_pago_servicio(request, sub_id):

@@ -39,11 +39,21 @@ def redirigir(request, por_defecto='dashboard'):
 
     return redirect(por_defecto)
 
+MONTO_MAXIMO = Decimal('99999999.99')
+
 def monto_post(request, campo='monto'):
     try:
-        return Decimal(str(request.POST.get(campo, '0')).replace('.', '').replace(',', '.'))
+        valor = Decimal(str(request.POST.get(campo, '0')).strip().replace('.', '').replace(',', '.'))
     except (InvalidOperation, ValueError, AttributeError):
         return Decimal('0')
+    if not valor.is_finite() or valor <= 0 or valor > MONTO_MAXIMO:
+        return Decimal('0')
+    return valor.quantize(Decimal('0.01'))
+
+def texto_post(request, campo, modelo, nombre_campo=None, defecto=''):
+    largo = modelo._meta.get_field(nombre_campo or campo).max_length
+    texto = ' '.join(str(request.POST.get(campo, defecto) or '').split())
+    return texto[:largo] if largo else texto
 
 def contadores(usuario, resumen_actual=None):
     cuotas_activas = Deuda.objects.filter(

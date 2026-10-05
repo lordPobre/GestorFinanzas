@@ -2,7 +2,6 @@ import logging
 import os
 from datetime import date
 
-from django.core.cache import cache
 
 log = logging.getLogger('finanzas')
 
@@ -41,6 +40,13 @@ def tope_diario():
         return 300
 
 
+def tope_por_ip():
+    try:
+        return int(os.environ.get('CHAT_AYUDA_TOPE_IP', '30'))
+    except ValueError:
+        return 30
+
+
 def limpiar(mensajes):
     if not isinstance(mensajes, list):
         return []
@@ -68,13 +74,9 @@ def limpiar(mensajes):
 
 
 def _hay_cupo():
-    clave = f'chat-ayuda:{date.today().isoformat()}'
-    cache.add(clave, 0, 60 * 60 * 26)
-    try:
-        usados = cache.incr(clave)
-    except ValueError:
-        cache.set(clave, 1, 60 * 60 * 26)
-        usados = 1
+    from .seguridad import sumar
+
+    usados, _ = sumar(f'chat-ayuda:{date.today().isoformat()}', 60 * 60 * 26)
     return usados <= tope_diario()
 
 

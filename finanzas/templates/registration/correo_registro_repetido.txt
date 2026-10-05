@@ -1,0 +1,13 @@
+Hola:
+
+Alguien intentó crear una cuenta nueva en Fintora con este correo, pero ya tienes una.
+
+Para entrar:
+{{ entrar }}
+
+Si no recuerdas la contraseña:
+{{ recuperar }}
+
+Si no fuiste tú, ignora este mensaje. Tu cuenta sigue igual.
+
+— Fintora

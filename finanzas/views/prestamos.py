@@ -1,5 +1,6 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.db import transaction
 from django.http import Http404, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
@@ -7,7 +8,7 @@ from django.views.decorators.http import require_POST
 
 from ..models import AbonoPrestamo, Persona, Prestamo
 from ..servicios.esfera import esfera_me_deben
-from .comun import contadores, monto_post, redirigir, simbolo_de
+from .comun import contadores, monto_post, redirigir, simbolo_de, texto_post
 
 
 def _totales_prestamos(personas):
@@ -135,14 +136,20 @@ def abonar_prestamo(request, prestamo_id):
             messages.warning(request, 'Ingresa un monto válido.')
             return redirect('detalle_persona', persona_id=prestamo.persona.id)
 
-        pendiente = prestamo.monto_pendiente
-        if monto > pendiente:
-            monto = pendiente
-
-        AbonoPrestamo.objects.create(
-            prestamo=prestamo, monto=monto,
-            nota=request.POST.get('nota', ''), fecha=timezone.localdate(),
-        )
+        with transaction.atomic():
+            prestamo = Prestamo.objects.select_for_update().get(pk=prestamo.pk)
+            pendiente = prestamo.monto_pendiente
+            if monto > pendiente:
+                monto = pendiente
+            if monto <= 0:
+                if es_ajax:
+                    return JsonResponse({'ok': False, 'msg': 'Este préstamo ya está al día.'})
+                messages.info(request, 'Este préstamo ya está al día.')
+                return redirect('detalle_persona', persona_id=prestamo.persona.id)
+            AbonoPrestamo.objects.create(
+                prestamo=prestamo, monto=monto,
+                nota=texto_post(request, 'nota', AbonoPrestamo), fecha=timezone.localdate(),
+            )
 
         if es_ajax:
             return JsonResponse({
