@@ -1,0 +1,21 @@
+.md-franja { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 14px; background: rgba(0, 0, 0, .2); }
+.md-franja-etq { font-size: 13px; font-weight: 700; color: rgba(245, 245, 245, .72); }
+.md-franja-monto { flex-shrink: 0; font-size: 15px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.md-detalle .md-total-etq { font-size: 12px; }
+
+@media (max-width: 720px) {
+  .md-detalle .md-monto { font-size: 20px; letter-spacing: -.02em; }
+  .md-detalle .md-acciones { display: flex; flex-direction: column; align-items: stretch; gap: 10px; }
+  .md-detalle .md-acciones-main { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px; }
+  .md-detalle .md-acciones-main > :only-child { grid-column: 1 / -1; }
+  .md-detalle .md-acciones-main .sec-btn { width: 100%; min-height: 48px; padding: 0 12px; white-space: nowrap; }
+  .md-detalle .md-acciones-extra { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px; margin: 0; padding-top: 10px; border-top: 1px solid rgba(255, 255, 255, .08); }
+  .md-detalle .md-acciones-extra form { display: flex; margin: 0; }
+  .md-detalle .md-acciones-extra .md-icono-btn {
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    width: 100%; height: 44px; min-height: 44px; padding: 0 12px; border-radius: 100px;
+    background: rgba(255, 255, 255, .04); border: 1px solid rgba(255, 255, 255, .08);
+    font-family: 'Manrope', sans-serif; font-size: 13px; font-weight: 700;
+  }
+  .md-detalle .md-acciones-extra .md-icono-btn i { font-size: 12px; }
+}

@@ -4,7 +4,8 @@
 {% block search_placeholder %}Buscar persona o préstamo{% endblock %}
 {% block title %}Me deben · Fintora{% endblock %}
 
-{% block extra_head %}<link rel="stylesheet" href="{% static 'css/inicio-esfera.css' %}">{% endblock %}
+{% block extra_head %}<link rel="stylesheet" href="{% static 'css/inicio-esfera.css' %}">
+<link rel="stylesheet" href="{% static 'css/prestamos-acciones.css' %}?v=76">{% endblock %}
 
 {% block content %}
 
@@ -35,13 +36,27 @@
         <span class="md-avatar on">{{ persona.nombre|first|upper }}</span>
         <span class="sec-txt">
           <span class="sec-nombre md-nombre">{{ persona.nombre }}</span>
-          <span class="sec-meta">{{ persona.resumen_meta }}{% if persona.cobro_del_mes and persona.cobro_del_mes != persona.total_pendiente %} · este mes {{ persona.cobro_del_mes|money }}{% endif %}</span>
+          <span class="sec-meta">{{ persona.resumen_meta }}</span>
         </span>
+        {% if persona.cobro_del_mes and persona.cobro_del_mes != persona.total_pendiente %}
         <span class="md-total">
-          <span class="md-total-etq solo-esc">Te debe</span>
+          <span class="md-total-etq">Este mes</span>
+          <span class="md-monto">{{ persona.cobro_del_mes|money }}</span>
+        </span>
+        {% else %}
+        <span class="md-total">
+          <span class="md-total-etq">Te debe</span>
           <span class="md-monto{% if not persona.total_pendiente %} tenue{% endif %}">{{ persona.total_pendiente|default:0|money }}</span>
         </span>
+        {% endif %}
       </div>
+
+      {% if persona.cobro_del_mes and persona.cobro_del_mes != persona.total_pendiente %}
+      <div class="md-franja">
+        <span class="md-franja-etq">Te debe en total</span>
+        <span class="md-franja-monto">{{ persona.total_pendiente|money }}</span>
+      </div>
+      {% endif %}
 
       <div class="md-acciones">
         <div class="md-acciones-main">
