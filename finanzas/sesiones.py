@@ -126,6 +126,7 @@ def _al_entrar(sender, request, user, **kwargs):
         return
     try:
         request.session['inicio_sesion'] = time.time()
+        request.session['bienvenida_esfera'] = True
         registrar(request, user)
     except Exception:
         log.exception('No se pudo registrar la sesión de %s', getattr(user, 'pk', '?'))

@@ -14,6 +14,17 @@
   const ayudaTxt = ayuda ? ayuda.querySelector('span') : null;
   const ayudaIco = ayuda ? ayuda.querySelector('i') : null;
   const sintesis = window.speechSynthesis && window.SpeechSynthesisUtterance ? window.speechSynthesis : null;
+  const bienvenida = esfera.hasAttribute('data-bienvenida');
+  const hola = esfera.querySelector('[data-esfera-hola]');
+  const cambio = esfera.querySelector('[data-esfera-cambio]');
+
+  function saludoDeLaHora() {
+    const h = new Date().getHours();
+    if (h >= 7 && h < 12) return 'Buenos días';
+    if (h >= 12 && h < 20) return 'Buenas tardes';
+    return 'Buenas noches';
+  }
+  esfera.querySelectorAll('[data-saludo]').forEach((n) => { n.textContent = saludoDeLaHora(); });
 
   let p = 0;
   let d = 0;
@@ -30,6 +41,13 @@
     const cab = tope.getBoundingClientRect().bottom - r.top + (pestanas ? 12 : 4);
     d = Math.max(0, Math.round(navTop - 12 - cab - topeArriba));
     const rh = hero.getBoundingClientRect();
+    if (raiz.classList.contains('esfera-bienvenida')) {
+      const alto = esfera.offsetHeight;
+      const zona = navTop - 12 - cab;
+      const arriba = Math.max(16, Math.round((zona - alto) / 2));
+      esfera.style.setProperty('--esfera-top', Math.round(arriba - rh.top) + 'px');
+      return;
+    }
     let top = accesos ? accesos.getBoundingClientRect().top - rh.top - 6 : 0;
     hero.querySelectorAll('.ini-vistas, .ini-chips, .ini-valor:not([hidden])').forEach((el) => {
       const re = el.getBoundingClientRect();
@@ -64,7 +82,13 @@
     if (bola) bola.tabIndex = abierta ? 0 : -1;
     asa.setAttribute('aria-expanded', abierta ? 'false' : 'true');
     asa.setAttribute('aria-label', abierta ? 'Subir la hoja' : 'Bajar la hoja para ver el resumen');
-    if (!abierta) callar();
+    if (!abierta) {
+      callar();
+      if (raiz.classList.contains('esfera-bienvenida')) {
+        raiz.classList.remove('esfera-bienvenida');
+        medir();
+      }
+    }
   }
 
   function abrir() {
@@ -173,7 +197,10 @@
         callar();
         return;
       }
-      const frase = esfera.dataset.frase;
+      let frase = esfera.dataset.frase || '';
+      if (hola && cambio && raiz.classList.contains('esfera-bienvenida')) {
+        frase = `${hola.textContent.trim()}. ${cambio.textContent.trim()} ${frase}`;
+      }
       if (!frase) return;
       const u = new SpeechSynthesisUtterance(frase);
       const v = vozEspanol();
@@ -196,6 +223,11 @@
     cerrar: () => fijar(0),
   };
 
-  medir();
-  fijar(0);
+  if (bienvenida && mq.matches) {
+    raiz.classList.add('esfera-bienvenida');
+    requestAnimationFrame(() => abrir());
+  } else {
+    medir();
+    fijar(0);
+  }
 })();

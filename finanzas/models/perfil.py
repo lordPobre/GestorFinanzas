@@ -49,6 +49,8 @@ class UserProfile(models.Model):
 
     analisis_ia = models.BooleanField(default=True)
 
+    esfera_estado_visto = models.CharField(max_length=12, blank=True)
+
     correo_verificado = models.BooleanField(default=False)
     correo_verificado_en = models.DateTimeField(null=True, blank=True)
 

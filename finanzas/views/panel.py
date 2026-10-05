@@ -11,6 +11,7 @@ from ..models import (Categoria, Deuda, GastoPendiente, MetaAhorro, Presupuesto,
     Transaccion)
 from ..servicios.cuotas import mis_cuotas_detalle, proyecciones_deuda_activas
 from ..servicios.esfera import estado_esfera
+from ..servicios.esfera_bienvenida import bienvenida_esfera
 from ..servicios.mes import MESES_LARGOS, nombre_mes_es, numeros_mes, resumen_mes
 from ..servicios.panel import desglose_categorias, insights_panel, primeros_pasos, serie_seis_meses
 from ..servicios.pendientes import calendario_del_mes, pendientes_del_mes
@@ -223,5 +224,15 @@ def dashboard(request):
     context['esfera'] = estado_esfera(
         request.user, r, presupuesto, month, (year, month) == (hoy.year, hoy.month),
         simbolo_de(request.user))
+    if request.session.pop('bienvenida_esfera', False) and (year, month) == (hoy.year, hoy.month):
+        perfil = context['profile']
+        estado = context['esfera']['estado']
+        context['bienvenida'] = {
+            **bienvenida_esfera(estado, perfil.esfera_estado_visto),
+            'nombre': (perfil.nombre_display or '').split(' ')[0],
+        }
+        if estado != 'neutro' and perfil.esfera_estado_visto != estado:
+            perfil.esfera_estado_visto = estado
+            perfil.save(update_fields=['esfera_estado_visto'])
     context['mostrar_encuesta'] = encuesta_mod.debe_mostrar(request)
     return render(request, 'finanzas/dashboard.html', context)
