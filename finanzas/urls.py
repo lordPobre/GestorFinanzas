@@ -11,6 +11,15 @@ class RedireccionPermanente(HttpResponseRedirect):
     status_code = 308
 
 
+class Salir(auth_views.LogoutView):
+
+    def post(self, request, *args, **kwargs):
+        respuesta = super().post(request, *args, **kwargs)
+        respuesta['Clear-Site-Data'] = '"cache"'
+        respuesta['Cache-Control'] = 'no-store'
+        return respuesta
+
+
 def ruta_antigua(nombre):
     def vista(request, **kwargs):
         destino = reverse(nombre, kwargs=kwargs)
@@ -95,7 +104,7 @@ urlpatterns = [
     path('suscripciones/<int:sub_id>/eliminar/', suscripciones.eliminar_suscripcion, name='eliminar_suscripcion'),
 
     path('login/', cuenta.entrar, name='login'),
-    path('logout/', auth_views.LogoutView.as_view(next_page='/login/'), name='logout'),
+    path('logout/', Salir.as_view(next_page='/login/'), name='logout'),
     path('verificar/', cuenta.verificar_codigo, name='verificar_codigo'),
     path('entrar/google/', google_login.entrar_google, name='google_entrar'),
     path('entrar/google/listo/', google_login.google_listo, name='google_listo'),
