@@ -4,7 +4,7 @@ from decimal import Decimal
 from dateutil.relativedelta import relativedelta
 
 from ..models import Deuda, Transaccion
-from .mes import NOMBRES_MESES
+from .mes import MESES_LARGOS
 
 
 def serie_cuotas(usuario, atras=6, adelante=6):
@@ -37,8 +37,8 @@ def serie_cuotas(usuario, atras=6, adelante=6):
 
         filas.append({
             'periodo': periodo,
-            'mes': f'{NOMBRES_MESES[f.month - 1]} {f.year}',
-            'mes_corto': NOMBRES_MESES[f.month - 1],
+            'mes': f'{MESES_LARGOS[f.month - 1]} {f.year}',
+            'mes_corto': MESES_LARGOS[f.month - 1],
             'total': float(total),
             'pagado': float(pagado),
             'pendiente': float(total - pagado),
@@ -92,7 +92,7 @@ def proyecciones_deuda_activas(todas_las_deudas):
             'fecha_fin': fin,
             'cuotas_restantes': d.cuotas_restantes,
             'monto_cuota': float(d.monto_cuota),
-            'mes_fin': f'{NOMBRES_MESES[fin.month - 1]} {fin.year}',
+            'mes_fin': f'{MESES_LARGOS[fin.month - 1]} {fin.year}',
         })
     proyecciones.sort(key=lambda x: x['fecha_fin'])
     return proyecciones

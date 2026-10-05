@@ -1,4 +1,4 @@
-{% load static humanize moneda marketing %}<!DOCTYPE html>
+{% load static humanize moneda marketing esfera_salud %}<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8">
@@ -23,6 +23,7 @@
   <link rel="stylesheet" href="{% static 'css/finapp.css' %}">
   <link rel="stylesheet" href="{% static 'css/tema-vidrio.css' %}">
   <link rel="stylesheet" href="{% static 'css/encabezado.css' %}?v=51">
+  <link rel="stylesheet" href="{% static 'css/salud-esfera.css' %}?v=74">
   {% block extra_head %}{% endblock %}
   <script src="{% static 'js/pantallas/base.js' %}" nonce="{{ csp_nonce }}"></script>
 
@@ -97,17 +98,12 @@
     </nav>
 
     {% block sidebar_foot %}
-      <div class="sidebar-foot health" data-spot data-tour="salud" title="Salud del mes{% if salud_score != None %}: {{ salud_score }}/100 · {{ salud_label }}{% endif %}">
-        <div class="salud-cab">
-          <span class="salud-titulo">Salud del mes</span>
-          {% if salud_score != None %}<span class="salud-estado">{{ salud_label|capfirst }}</span>{% endif %}
+      {% estado_salud as salud_estado %}
+      <div class="sidebar-foot health" data-spot data-tour="salud" data-estado="{{ salud_estado|default:'neutro' }}" title="Salud del mes{% if salud_score != None %}: {{ salud_score }}/100 · {{ salud_label }}{% endif %}">
+        <span class="salud-esfera" aria-hidden="true"><span class="se-brillo"></span><span class="se-nucleo"><i class="b1"></i><i class="b2"></i><i class="b3"></i><i class="b4"></i><span class="se-luz"></span><span class="se-reflejo"></span><span class="se-borde"></span></span></span>
+        <div class="salud-info">
+          <span class="salud-cifra">{% if salud_score != None %}{{ salud_score }}{% else %}–{% endif %}<small> / 100</small></span>
         </div>
-        {% if salud_score != None %}
-        <span class="salud-cifra">{{ salud_score }}<small> / 100</small></span>
-        <div class="salud-barra"><span style="width:{{ salud_score }}%"></span></div>
-        {% else %}
-        <span class="salud-nota">Registra un ingreso y aquí verás qué tan holgado va tu mes.</span>
-        {% endif %}
       </div>
     {% endblock %}
   </aside>

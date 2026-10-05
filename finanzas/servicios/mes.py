@@ -1,5 +1,5 @@
 import calendar
-import uuid
+import time
 from datetime import date
 from decimal import Decimal
 
@@ -11,11 +11,13 @@ from ..models import Deuda, Suscripcion, Transaccion
 MESES_LARGOS = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio',
                 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre']
 
-NOMBRES_MESES = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun',
-                 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic']
-
 
 def nombre_mes_es(year, month, capitalizado=True):
+    """Mes en español.
+
+    strftime('%B') usa el locale del SISTEMA, no LANGUAGE_CODE de Django, así
+    que en el servidor devolvía 'August' aunque la app esté en español.
+    """
     texto = f'{MESES_LARGOS[month - 1]} {year}'
     return texto.capitalize() if capitalizado else texto
 
@@ -26,6 +28,12 @@ def _decimal(valor):
     return Decimal(str(valor or 0))
 
 def resumen_mes(usuario, year, month):
+    """Los números del mes en un solo lugar.
+
+    Antes esta lógica vivía dentro de dashboard(), así que el panel de
+    registro, la vista de cuotas y el análisis no podían reusarla y cada
+    pantalla mostraba un 'disponible' distinto. Ahora es una función.
+    """
     _, ultimo_dia = calendar.monthrange(year, month)
     fecha_inicio = date(year, month, 1)
     fecha_fin = date(year, month, ultimo_dia)
@@ -151,10 +159,20 @@ def resumen_mes(usuario, year, month):
     }
 
 def salud_financiera(usuario, resumen_actual=None):
+    """Puntaje 0-100 del mes en curso, para el bloque del sidebar.
+
+    Tres cosas, con el peso que tienen en la vida real:
+    que no gastes más de lo que entra, que las cuotas no te ahoguen,
+    y que quede algo libre. Nada de esto necesita IA.
+
+    Si quien llama ya calculó el resumen del mes en curso (el dashboard lo
+    hace siempre), se puede pasar en 'resumen_actual' para no repetir las
+    mismas consultas.
+    """
     hoy = date.today()
     r = resumen_actual if resumen_actual is not None else resumen_mes(usuario, hoy.year, hoy.month)
     if r['ingresos'] <= 0:
-        return {'salud_score': None, 'salud_label': '', 'salud_nota': ''}
+        return {'salud_score': None, 'salud_label': '', 'salud_nota': '', 'salud_estado': 'neutro'}
 
     ingresos = r['ingresos']
     dti = r['total_cuotas_mes'] / ingresos * 100
@@ -203,7 +221,14 @@ def salud_financiera(usuario, resumen_actual=None):
     else:
         nota = 'Gastas menos de lo que entra y las cuotas están bajo control.'
 
-    return {'salud_score': score, 'salud_label': label, 'salud_nota': nota}
+    if gasto_pct >= 100:
+        estado = 'rojo'
+    elif gasto_pct >= 80:
+        estado = 'amarillo'
+    else:
+        estado = 'verde'
+
+    return {'salud_score': score, 'salud_label': label, 'salud_nota': nota, 'salud_estado': estado}
 
 
 SEGUNDOS_NUMEROS_EN_CACHE = 7 * 24 * 60 * 60
@@ -218,14 +243,14 @@ def _version(usuario_id):
     clave = _clave_version(usuario_id)
     version = cache.get(clave)
     if version is None:
-        version = uuid.uuid4().hex
+        version = time.time_ns()
         cache.set(clave, version, None)
     return version
 
 
 def invalidar(usuario_id):
     if usuario_id:
-        cache.set(_clave_version(usuario_id), uuid.uuid4().hex, None)
+        cache.set(_clave_version(usuario_id), time.time_ns(), None)
 
 
 def numeros_mes(usuario, year, month):

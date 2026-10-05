@@ -8,7 +8,7 @@ from django.db.models import Sum
 from django.shortcuts import render
 
 from ..models import Categoria, Deuda, Transaccion
-from ..servicios.mes import NOMBRES_MESES, numeros_mes, resumen_mes
+from ..servicios.mes import MESES_LARGOS, numeros_mes, resumen_mes
 from .comun import contadores
 
 
@@ -30,7 +30,7 @@ def estadisticas(request):
             r = resumen_actual = resumen_mes(request.user, f.year, f.month)
         else:
             r = numeros_mes(request.user, f.year, f.month)
-        meses.append(f'{NOMBRES_MESES[f.month - 1]} {f.year}')
+        meses.append(f'{MESES_LARGOS[f.month - 1]} {f.year}')
         ingresos.append(r['ingresos'])
         gastos.append(r['gastos'] + r['total_cuotas_mes'])
 

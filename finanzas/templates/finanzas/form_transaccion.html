@@ -78,7 +78,7 @@
         data-confirm="¿Eliminar {{ transaccion.descripcion|default:transaccion.get_categoria_display }}? No se puede deshacer.">
     {% csrf_token %}
     <input type="hidden" name="next" value="{% url 'dashboard' %}">
-    <button type="submit" class="sec-chico peligro"><i class="fas fa-trash-can"></i>Eliminar {% if transaccion.es_ingreso %}ingreso{% else %}gasto{% endif %}</button>
+    <button type="submit" class="sec-btn rojo" style="min-height:48px"><i class="fas fa-trash-can"></i>Eliminar {% if transaccion.es_ingreso %}ingreso{% else %}gasto{% endif %}</button>
   </form>
   {% endif %}
 </section>

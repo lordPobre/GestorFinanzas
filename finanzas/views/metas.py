@@ -9,7 +9,7 @@ from django.shortcuts import get_object_or_404, render
 
 from ..forms import MetaAhorroForm
 from ..models import AporteMeta, MetaAhorro
-from ..servicios.mes import NOMBRES_MESES
+from ..servicios.mes import MESES_LARGOS
 from ..servicios.esfera import esfera_metas
 from .comun import contadores, monto_post, redirigir, simbolo_de
 
@@ -92,7 +92,7 @@ def metas(request):
     for i in range(5, -1, -1):
         f = date(hoy.year, hoy.month, 1) - relativedelta(months=i)
         meses.append({'clave': f.year * 100 + f.month,
-                      'label': NOMBRES_MESES[f.month - 1]})
+                      'label': MESES_LARGOS[f.month - 1]})
 
     datos = []
     for meta in lista:

@@ -6,7 +6,7 @@ from django.db.models import Sum
 from django.urls import reverse
 
 from ..models import Categoria, Deuda, MetaAhorro, Presupuesto, Suscripcion, Transaccion
-from .mes import NOMBRES_MESES, numeros_mes
+from .mes import MESES_LARGOS, numeros_mes
 
 
 def serie_seis_meses(usuario, hoy, year, month, resumen_actual):
@@ -17,7 +17,7 @@ def serie_seis_meses(usuario, hoy, year, month, resumen_actual):
             rr = resumen_actual
         else:
             rr = numeros_mes(usuario, f.year, f.month)
-        meses_labels.append(f"{NOMBRES_MESES[f.month - 1]} {f.year}")
+        meses_labels.append(f"{MESES_LARGOS[f.month - 1]} {f.year}")
         datos_ingresos.append(rr['ingresos'])
         datos_gastos.append(rr['gastos'])
         datos_cuotas.append(rr['total_cuotas_mes'])

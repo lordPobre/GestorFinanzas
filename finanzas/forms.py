@@ -5,12 +5,20 @@ from django import forms
 
 from .models import Categoria, Deuda, MetaAhorro, Transaccion
 
+
+class MontoInput(forms.NumberInput):
+    def format_value(self, value):
+        if isinstance(value, Decimal) and value == value.to_integral_value():
+            value = value.quantize(Decimal('1'))
+        return super().format_value(value)
+
+
 class DeudaForm(forms.ModelForm):
     valor_cuota = forms.DecimalField(
         label='Valor de cada cuota',
         max_digits=10, decimal_places=2, min_value=Decimal('1'),
         help_text='Lo que te cobran cada mes, no el precio total.',
-        widget=forms.NumberInput(attrs={'placeholder': '12500', 'min': '1', 'step': '1'}),
+        widget=MontoInput(attrs={'placeholder': '12500', 'min': '1', 'step': '1'}),
     )
 
     field_order = ['acreedor', 'valor_cuota', 'cuotas_totales', 'fecha_inicio', 'categoria']
@@ -93,7 +101,7 @@ class TransaccionForm(forms.ModelForm):
         fields = ['tipo', 'monto', 'categoria', 'descripcion', 'fecha']
         labels = {'monto': 'Monto', 'categoria': 'Categoría', 'descripcion': 'Descripción'}
         widgets = {
-            'monto': forms.NumberInput(attrs={'placeholder': '50000', 'min': '1', 'step': '1'}),
+            'monto': MontoInput(attrs={'placeholder': '50000', 'min': '1', 'step': '1'}),
             'descripcion': forms.TextInput(attrs={'placeholder': 'Ej: Supermercado, sueldo de agosto'}),
         }
 
@@ -174,8 +182,8 @@ class MetaAhorroForm(forms.ModelForm):
         }
         widgets = {
             'nombre': forms.TextInput(attrs={'placeholder': 'Ej: Fondo de emergencia, viaje'}),
-            'monto_meta': forms.NumberInput(attrs={'placeholder': '500000', 'min': '1', 'step': '1'}),
-            'monto_actual': forms.NumberInput(attrs={'placeholder': '0', 'min': '0', 'step': '1'}),
+            'monto_meta': MontoInput(attrs={'placeholder': '500000', 'min': '1', 'step': '1'}),
+            'monto_actual': MontoInput(attrs={'placeholder': '0', 'min': '0', 'step': '1'}),
         }
 
     def clean_monto_meta(self):
