@@ -83,7 +83,7 @@ class ElEnlaceDeConfirmacion(TestCase):
         self.perfil.refresh_from_db()
         self.assertFalse(self.perfil.correo_verificado)
 
-    def test_cambiar_el_correo_en_el_perfil_lo_deja_sin_confirmar(self):
+    def test_cambiar_el_correo_en_el_perfil_espera_la_confirmacion(self):
         verificacion.marcar(self.perfil)
         self.client.force_login(self.ana)
 
@@ -93,11 +93,16 @@ class ElEnlaceDeConfirmacion(TestCase):
                 'nombre_completo': 'Ana',
                 'email': 'nueva-direccion@ejemplo.cl',
                 'moneda': 'CLP',
+                'password_actual': 'clave-larga-1',
             })
 
         self.perfil.refresh_from_db()
-        self.assertFalse(self.perfil.correo_verificado)
-        self.assertEqual(enviar.call_args[0][0], 'nueva-direccion@ejemplo.cl')
+        self.ana.refresh_from_db()
+        self.assertEqual(self.perfil.email_pendiente, 'nueva-direccion@ejemplo.cl')
+        self.assertEqual(self.ana.email, 'ana@ejemplo.cl')
+        self.assertTrue(self.perfil.correo_verificado)
+        destinos = [llamada[0][0] for llamada in enviar.call_args_list]
+        self.assertEqual(destinos, ['nueva-direccion@ejemplo.cl', 'ana@ejemplo.cl'])
 
     def test_reenviar_no_hace_nada_si_ya_esta_confirmado(self):
         verificacion.marcar(self.perfil)

@@ -5,7 +5,8 @@ from .movimientos import Transaccion, Categoria, Presupuesto, GastoPendiente
 from .perfil import _ruta_avatar, SEGUNDOS_URL_FOTO_EN_CACHE, UserProfile
 from ..almacenamiento import SEGUNDOS_URL_FIRMADA
 from .prestamos import Persona, Prestamo, AbonoPrestamo
-from .seguridad import SegundoFactor, CodigoRespaldo, SesionActiva, Passkey, EventoSeguridad
+from .seguridad import (SegundoFactor, CodigoRespaldo, SesionActiva, Passkey, EventoSeguridad,
+                        Contador, DispositivoConocido)
 from .suscripciones import Suscripcion, PagoServicio
 from .sugerencias import SugerenciaDescartada
 
@@ -33,5 +34,7 @@ __all__ = [
     'SesionActiva',
     'Passkey',
     'EventoSeguridad',
+    'Contador',
+    'DispositivoConocido',
     'RespuestaEncuesta',
 ]

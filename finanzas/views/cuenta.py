@@ -1,5 +1,6 @@
 import json
 import logging
+import time
 from datetime import date, datetime
 from decimal import Decimal
 
@@ -9,13 +10,16 @@ from django.contrib.auth import login, logout, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import PasswordChangeForm, UserCreationForm
 from django.contrib.auth.models import User
+from django.core import signing
 from django.db.models.fields.files import FieldFile
 from django.http import HttpResponse
 from django.shortcuts import redirect, render
+from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils import timezone
 
 from .. import auditoria, legal, marketing, sesiones, verificacion
+from .. import correo as servicio_correo
 from ..models import (Categoria, CodigoRespaldo, Deuda, EventoSeguridad, GastoPendiente, MetaAhorro,
                      Passkey, Persona, Presupuesto, RespuestaEncuesta, SegundoFactor, SesionActiva,
                      Suscripcion, Transaccion, UserProfile)
@@ -26,6 +30,19 @@ from ..servicios.mes import nombre_mes_es
 from .comun import contadores, get_or_create_profile, monto_post
 
 logger = logging.getLogger('finanzas')
+
+SEGUNDOS_2FA = 5 * 60
+SAL_CAMBIO_CORREO = 'finanzas.correo.cambio'
+HORAS_CAMBIO_CORREO = 48
+
+
+def _clave_sesion(request):
+    return f'sesion-clave:{request.user.pk}'
+
+
+def _olvidar_2fa(request):
+    for clave in ('2fa_pendiente', '2fa_desde', '2fa_next'):
+        request.session.pop(clave, None)
 
 def entrar(request):
     from django.contrib.auth.forms import AuthenticationForm
@@ -52,6 +69,7 @@ def entrar(request):
             factor = SegundoFactor.objects.filter(usuario=usuario, activo=True).first()
             if factor:
                 request.session['2fa_pendiente'] = usuario.pk
+                request.session['2fa_desde'] = time.time()
                 request.session['2fa_next'] = destino_seguro(
                     request, request.POST.get('next') or request.GET.get('next'))
                 return redirect('verificar_codigo')
@@ -81,6 +99,16 @@ def verificar_codigo(request):
     if not uid:
         return redirect('login')
 
+    desde = request.session.get('2fa_desde')
+    try:
+        vencido = not desde or time.time() - float(desde) > SEGUNDOS_2FA
+    except (TypeError, ValueError):
+        vencido = True
+    if vencido:
+        _olvidar_2fa(request)
+        messages.error(request, 'Pasó demasiado tiempo. Vuelve a entrar con tu contraseña.')
+        return redirect('login')
+
     try:
         usuario = User.objects.get(pk=uid)
         factor = usuario.segundo_factor
@@ -106,6 +134,7 @@ def verificar_codigo(request):
         if ok:
             limpiar_intentos(clave_2fa, ip)
             request.session.pop('2fa_pendiente', None)
+            request.session.pop('2fa_desde', None)
             destino = destino_seguro(request, request.session.pop('2fa_next', ''))
             request.metodo_acceso = 'código de respaldo' if usa_respaldo else 'código de verificación'
             login(request, usuario)
@@ -169,11 +198,22 @@ def _qr_svg(uri, escala=6):
     )
 
 def _confirma_identidad(request, factor):
+    ip, clave = _ip(request), _clave_sesion(request)
+    if esta_bloqueado(clave, ip):
+        return False
     if request.user.has_usable_password():
-        return request.user.check_password(request.POST.get('password', ''))
-    return factor.verificar(request.POST.get('codigo', ''))
+        ok = request.user.check_password(request.POST.get('password', ''))
+    else:
+        ok = factor.verificar(request.POST.get('codigo', ''))
+    if ok:
+        limpiar_intentos(clave, ip)
+    else:
+        registrar_fallo(clave, ip)
+    return ok
 
 def _error_identidad(request):
+    if esta_bloqueado(_clave_sesion(request), _ip(request)):
+        return 'Demasiados intentos. Espera unos minutos antes de volver a probar.'
     if request.user.has_usable_password():
         return 'Contraseña incorrecta.'
     return 'El código no coincide. Revisa la hora de tu teléfono.'
@@ -473,6 +513,94 @@ class PerfilForm(forms.ModelForm):
                 f'La imagen pesa demasiado. El máximo son {self.MAX_FOTO_MB} MB.')
         return foto
 
+def _revisar_cambio_correo(request):
+    factor = SegundoFactor.objects.filter(usuario=request.user, activo=True).first()
+    con_password = request.user.has_usable_password()
+    if not con_password and not factor:
+        return ''
+    ip, clave = _ip(request), _clave_sesion(request)
+    if esta_bloqueado(clave, ip):
+        return 'Demasiados intentos. Espera unos minutos antes de volver a probar.'
+    if con_password:
+        ok = request.user.check_password(request.POST.get('password_actual', ''))
+    else:
+        ok = factor.verificar(request.POST.get('codigo_actual', ''))
+    if not ok:
+        registrar_fallo(clave, ip)
+        return ('Para cambiar el email escribe tu contraseña actual.' if con_password
+                else 'Para cambiar el email escribe el código de tu app de verificación.')
+    limpiar_intentos(clave, ip)
+    return ''
+
+def _pedir_cambio_correo(request, profile, nuevo):
+    usuario = request.user
+    profile.email_pendiente = nuevo
+    profile.email_pendiente_desde = timezone.now()
+    profile.save(update_fields=['email_pendiente', 'email_pendiente_desde'])
+
+    token = signing.dumps({'uid': usuario.pk, 'nuevo': nuevo.lower(),
+                           'actual': (usuario.email or '').strip().lower()},
+                          salt=SAL_CAMBIO_CORREO)
+    enlace = servicio_correo.url_absoluta(
+        request, reverse('confirmar_cambio_correo', kwargs={'token': token}))
+    servicio_correo.enviar(
+        nuevo, 'Confirma tu nuevo correo en Fintora',
+        render_to_string('registration/correo_cambio.txt', {
+            'usuario': usuario, 'enlace': enlace, 'horas': HORAS_CAMBIO_CORREO}))
+
+    anterior = (usuario.email or '').strip()
+    if anterior:
+        servicio_correo.enviar(
+            anterior, 'Pidieron cambiar el correo de tu cuenta de Fintora',
+            render_to_string('registration/correo_cambio_aviso.txt', {
+                'usuario': usuario, 'nuevo': nuevo,
+                'enlace': servicio_correo.url_absoluta(request, reverse('sesiones_activas'))}))
+    auditoria.registrar('correo_cambio_pedido', request, detalle=nuevo)
+
+@limitar(20, 3600, 'Demasiados intentos con enlaces de confirmación. Prueba más tarde.', destino='login')
+def confirmar_cambio_correo(request, token):
+    try:
+        datos = signing.loads(token, salt=SAL_CAMBIO_CORREO,
+                              max_age=HORAS_CAMBIO_CORREO * 3600)
+    except signing.BadSignature:
+        datos = None
+
+    usuario = perfil = None
+    if isinstance(datos, dict):
+        usuario = User.objects.filter(pk=datos.get('uid'), is_active=True).first()
+        perfil = UserProfile.objects.filter(usuario=usuario).first() if usuario else None
+
+    valido = bool(
+        perfil and perfil.email_pendiente
+        and perfil.email_pendiente.lower() == datos.get('nuevo')
+        and (usuario.email or '').strip().lower() == datos.get('actual')
+        and not User.objects.filter(email__iexact=perfil.email_pendiente)
+                            .exclude(pk=usuario.pk).exists())
+    if not valido:
+        messages.error(request, 'El enlace no sirve: venció, ya se usó o pediste otro '
+                                'cambio después.')
+        return redirect('perfil' if request.user.is_authenticated else 'login')
+
+    nuevo = perfil.email_pendiente
+    usuario.email = nuevo
+    usuario.save(update_fields=['email'])
+    perfil.email = nuevo
+    perfil.email_pendiente = ''
+    perfil.email_pendiente_desde = None
+    perfil.correo_verificado = True
+    perfil.correo_verificado_en = timezone.now()
+    perfil.save(update_fields=['email', 'email_pendiente', 'email_pendiente_desde',
+                               'correo_verificado', 'correo_verificado_en'])
+
+    propia = request.user.is_authenticated and request.user.pk == usuario.pk
+    actual = (request.session.session_key or '') if propia else ''
+    cerradas = sesiones.cerrar_otras(usuario, actual)
+    auditoria.registrar('correo_cambiado', request, usuario,
+                        detalle=f'{cerradas} sesiones cerradas')
+    messages.success(request, 'Listo, tu correo quedó cambiado. Cerramos las demás '
+                              'sesiones abiertas.')
+    return redirect('perfil' if propia else 'login')
+
 @login_required(login_url='/login/')
 def perfil(request):
     profile = get_or_create_profile(request.user)
@@ -482,8 +610,19 @@ def perfil(request):
     if request.method == 'POST':
         accion = request.POST.get('accion')
         if accion == 'perfil':
+            email_antes = profile.email
             perfil_form = PerfilForm(request.POST, request.FILES, instance=profile)
             if perfil_form.is_valid():
+                correo = (perfil_form.cleaned_data.get('email') or '').strip()
+                cambia_correo = bool(correo) and (
+                    correo.lower() != (request.user.email or '').strip().lower())
+                error_correo = _revisar_cambio_correo(request) if cambia_correo else ''
+            if perfil_form.is_valid() and error_correo:
+                perfil_form.add_error('email', error_correo)
+                messages.error(request, error_correo)
+            elif perfil_form.is_valid():
+                if cambia_correo:
+                    perfil_form.instance.email = email_antes
                 if request.POST.get('quitar_foto'):
                     perfil_form.instance.foto = None
                 perfil_form.save()
@@ -493,32 +632,29 @@ def perfil(request):
                     request.user.first_name = partes[0]
                     request.user.last_name = partes[1] if len(partes) > 1 else ''
                     request.user.save(update_fields=['first_name', 'last_name'])
-                correo = (perfil_form.cleaned_data.get('email') or '').strip()
-                if correo and correo.lower() != (request.user.email or '').lower():
-                    if not User.objects.filter(email__iexact=correo).exclude(
-                            pk=request.user.pk).exists():
-                        request.user.email = correo
-                        request.user.save(update_fields=['email'])
-                        profile.correo_verificado = False
-                        profile.correo_verificado_en = None
-                        profile.save(update_fields=['correo_verificado',
-                                                    'correo_verificado_en'])
-                        verificacion.enviar(request, request.user)
-                    else:
-                        messages.warning(
-                            request,
-                            'Ese email ya está en otra cuenta, así que no se usará '
-                            'para recuperar la contraseña de esta.')
+                if cambia_correo:
+                    _pedir_cambio_correo(request, profile, correo)
+                    messages.info(
+                        request,
+                        f'Te mandamos un enlace a {correo}. El email cambia cuando lo abras.')
                 messages.success(request, 'Perfil actualizado correctamente.')
                 return redirect('perfil')
         elif accion == 'password':
+            ip, clave = _ip(request), _clave_sesion(request)
+            if esta_bloqueado(clave, ip):
+                messages.error(request, 'Demasiados intentos con la contraseña. '
+                                        'Espera unos minutos.')
+                return redirect('perfil')
             pw_form = PasswordChangeForm(request.user, request.POST)
             if pw_form.is_valid():
                 user = pw_form.save()
                 update_session_auth_hash(request, user)
+                limpiar_intentos(clave, ip)
                 auditoria.registrar('contrasena_cambiada', request, user)
                 messages.success(request, 'Contraseña actualizada.')
                 return redirect('perfil')
+            if 'old_password' in pw_form.errors:
+                registrar_fallo(clave, ip)
         elif accion == 'aviso_mensual':
             profile.aviso_mensual = request.POST.get('activar') == '1'
             profile.save(update_fields=['aviso_mensual'])

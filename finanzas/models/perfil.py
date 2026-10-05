@@ -52,6 +52,9 @@ class UserProfile(models.Model):
     correo_verificado = models.BooleanField(default=False)
     correo_verificado_en = models.DateTimeField(null=True, blank=True)
 
+    email_pendiente = models.EmailField(blank=True)
+    email_pendiente_desde = models.DateTimeField(null=True, blank=True)
+
     politica_version  = models.CharField(max_length=20, blank=True)
     politica_aceptada = models.DateTimeField(null=True, blank=True)
 

@@ -1,9 +1,11 @@
 import logging
 import os
 import secrets
+import time
 from urllib.parse import urlparse
 
 from django.conf import settings
+from django.http import JsonResponse
 from django.utils import timezone
 from django.utils.cache import add_never_cache_headers
 
@@ -91,6 +93,54 @@ class SinCacheMiddleware:
                 and not respuesta.has_header('Cache-Control')):
             add_never_cache_headers(respuesta)
         return respuesta
+
+
+class SesionAbsolutaMiddleware:
+
+    CLAVE = 'inicio_sesion'
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        usuario = getattr(request, 'user', None)
+        if usuario is not None and usuario.is_authenticated:
+            vencida = self._revisar(request, usuario)
+            if vencida is not None:
+                return vencida
+
+        from . import aparatos
+        respuesta = self.get_response(request)
+        return aparatos.poner_cookie(request, respuesta, not settings.DEBUG)
+
+    def _revisar(self, request, usuario):
+        maximo = getattr(settings, 'SESION_MAXIMA_HORAS', 168) * 3600
+        inicio = request.session.get(self.CLAVE)
+        try:
+            edad = time.time() - float(inicio) if inicio is not None else None
+        except (TypeError, ValueError):
+            edad = None
+        if edad is None:
+            request.session[self.CLAVE] = time.time()
+            return None
+        if edad <= maximo:
+            return None
+
+        from django.contrib import messages
+        from django.contrib.auth import logout
+        from django.contrib.auth.views import redirect_to_login
+
+        from . import auditoria
+
+        auditoria.registrar('sesion_vencida', request, usuario)
+        logout(request)
+        dias = max(1, round(maximo / 86400))
+        texto = (f'Por seguridad, la sesión se cierra cada {dias} día'
+                 f'{"s" if dias != 1 else ""}. Vuelve a entrar.')
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'ok': False, 'msg': texto}, status=401)
+        messages.info(request, texto)
+        return redirect_to_login(request.get_full_path(), settings.LOGIN_URL)
 
 
 class ActividadMiddleware:

@@ -1,0 +1,11 @@
+Hola {{ usuario.username }}:
+
+Pediste que tu cuenta de Fintora use este correo. Para confirmarlo, abre este enlace:
+
+{{ enlace }}
+
+El enlace vale {{ horas }} horas. Hasta que lo abras, la cuenta sigue con el correo anterior. Al confirmarlo cerraremos las demás sesiones abiertas.
+
+Si no lo pediste tú, ignora este mensaje.
+
+— Fintora

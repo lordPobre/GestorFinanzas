@@ -92,6 +92,7 @@ urlpatterns = [
     path('perfil/face-id/opciones/', passkeys.registro_opciones, name='passkey_registro_opciones'),
     path('perfil/face-id/verificar/', passkeys.registro_verificar, name='passkey_registro_verificar'),
     path('perfil/reenviar-confirmacion/', cuenta.reenviar_verificacion, name='reenviar_verificacion'),
+    path('perfil/confirmar-correo/<str:token>/', cuenta.confirmar_cambio_correo, name='confirmar_cambio_correo'),
 
     path('suscripciones/', suscripciones.suscripciones, name='suscripciones'),
     path('suscripciones/nueva/', suscripciones.crear_suscripcion, name='crear_suscripcion'),

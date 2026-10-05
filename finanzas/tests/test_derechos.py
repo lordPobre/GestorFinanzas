@@ -172,6 +172,7 @@ class BloqueoDelSegundoFactor(TestCase):
     def test_tras_cinco_codigos_malos_queda_bloqueado(self):
         sesion = self.client.session
         sesion['2fa_pendiente'] = self.ana.pk
+        sesion['2fa_desde'] = __import__('time').time()
         sesion.save()
 
         for _ in range(5):

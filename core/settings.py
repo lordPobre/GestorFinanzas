@@ -60,6 +60,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'finanzas.middleware.SinCacheMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
+    'finanzas.middleware.SesionAbsolutaMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'finanzas.middleware.ActividadMiddleware',
 ]
@@ -197,6 +198,7 @@ GOOGLE_CLIENT_ID = os.environ.get('GOOGLE_CLIENT_ID', '')
 GOOGLE_CLIENT_SECRET = os.environ.get('GOOGLE_CLIENT_SECRET', '')
 
 SESSION_COOKIE_AGE = 60 * 60 * 8
+SESION_MAXIMA_HORAS = int(os.environ.get('SESION_MAXIMA_HORAS', '168'))
 SESSION_SAVE_EVERY_REQUEST = True
 SESSION_EXPIRE_AT_BROWSER_CLOSE = False
 

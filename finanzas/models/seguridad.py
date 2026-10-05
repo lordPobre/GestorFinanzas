@@ -184,6 +184,10 @@ class EventoSeguridad(models.Model):
         ('datos_descargados', 'Descarga de datos personales'),
         ('cuenta_eliminada', 'Cuenta eliminada'),
         ('admin_denegado', 'Acceso al panel denegado'),
+        ('correo_cambio_pedido', 'Cambio de correo pedido'),
+        ('correo_cambiado', 'Correo cambiado'),
+        ('dispositivo_nuevo', 'Acceso desde un aparato nuevo'),
+        ('sesion_vencida', 'Sesión vencida'),
     ]
 
     creado = models.DateTimeField(auto_now_add=True, db_index=True)
@@ -202,3 +206,34 @@ class EventoSeguridad(models.Model):
 
     def __str__(self):
         return f'{self.get_tipo_display()} · {self.referencia or "-"} · {self.creado:%Y-%m-%d %H:%M}'
+
+
+class Contador(models.Model):
+    clave = models.CharField(max_length=200, unique=True)
+    cuenta = models.PositiveIntegerField(default=0)
+    vence = models.DateTimeField(db_index=True)
+
+    class Meta:
+        verbose_name = 'Contador de intentos'
+        verbose_name_plural = 'Contadores de intentos'
+
+    def __str__(self):
+        return f'{self.clave}: {self.cuenta}'
+
+
+class DispositivoConocido(models.Model):
+    usuario = models.ForeignKey(User, on_delete=models.CASCADE, related_name='dispositivos')
+    huella = models.CharField(max_length=64)
+    agente = models.CharField(max_length=300, blank=True)
+    creado = models.DateTimeField(default=timezone.now)
+    ultima_vez = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        ordering = ['-ultima_vez']
+        verbose_name = 'Aparato conocido'
+        verbose_name_plural = 'Aparatos conocidos'
+        constraints = [models.UniqueConstraint(fields=('usuario', 'huella'),
+                                               name='dispositivo_unico')]
+
+    def __str__(self):
+        return f'Aparato de {self.usuario.username}'

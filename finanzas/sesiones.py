@@ -1,4 +1,5 @@
 import logging
+import time
 
 from django.contrib.auth.signals import user_logged_in, user_logged_out
 from django.contrib.sessions.models import Session
@@ -121,10 +122,18 @@ def cerrar_otras(usuario, clave_actual):
 
 @receiver(user_logged_in)
 def _al_entrar(sender, request, user, **kwargs):
+    if request is None:
+        return
     try:
+        request.session['inicio_sesion'] = time.time()
         registrar(request, user)
     except Exception:
         log.exception('No se pudo registrar la sesión de %s', getattr(user, 'pk', '?'))
+    try:
+        from . import aparatos
+        aparatos.al_entrar(request, user)
+    except Exception:
+        log.exception('No se pudo revisar el aparato de %s', getattr(user, 'pk', '?'))
 
 
 @receiver(user_logged_out)

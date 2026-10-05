@@ -98,6 +98,7 @@ def google_listo(request):
 
     if SegundoFactor.objects.filter(usuario=usuario, activo=True).exists():
         request.session['2fa_pendiente'] = usuario.pk
+        request.session['2fa_desde'] = time.time()
         request.session['2fa_next'] = destino
         return redirect('verificar_codigo')
 

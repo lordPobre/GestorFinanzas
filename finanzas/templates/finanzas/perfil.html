@@ -73,7 +73,19 @@
                 <div>
                   <label class="label" for="{{ perfil_form.email.id_for_label }}">Email</label>
                   {{ perfil_form.email }}
+                  {% if profile.email_pendiente %}<div class="hint" style="margin-top:6px">Pendiente: {{ profile.email_pendiente }}. Abre el enlace que te mandamos a esa dirección.</div>{% endif %}
                 </div>
+                {% if user.has_usable_password %}
+                <div>
+                  <label class="label" for="idPasswordActual">Contraseña actual</label>
+                  <input type="password" name="password_actual" id="idPasswordActual" autocomplete="current-password" placeholder="Solo si cambias el email">
+                </div>
+                {% elif user.segundo_factor.activo %}
+                <div>
+                  <label class="label" for="idCodigoActual">Código de tu app</label>
+                  <input type="text" name="codigo_actual" id="idCodigoActual" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="Solo si cambias el email">
+                </div>
+                {% endif %}
                 <div>
                   <label class="label" for="{{ perfil_form.telefono.id_for_label }}">Teléfono</label>
                   {{ perfil_form.telefono }}

@@ -1,0 +1,14 @@
+Hola {{ usuario.username }}:
+
+Alguien entró a tu cuenta de Fintora desde un aparato que no habíamos visto antes.
+
+Aparato: {{ aparato }}
+Cuándo: {{ cuando|date:"j \d\e F \d\e Y, H:i" }}
+
+Si fuiste tú, no tienes que hacer nada.
+
+Si no fuiste tú, cambia tu contraseña ahora y cierra las sesiones que no reconozcas:
+
+{{ enlace }}
+
+— Fintora

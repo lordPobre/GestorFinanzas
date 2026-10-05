@@ -13,7 +13,7 @@ from django.urls import reverse
 from .. import google_login
 from ..models import (AbonoPrestamo, Categoria, Deuda, PagoCuota, PagoServicio, Persona, Prestamo,
                       SegundoFactor, SesionActiva, Suscripcion, Transaccion, UserProfile)
-from ..seguridad import limitar
+from ..seguridad import leer, limitar
 from ..servicios.panel import desglose_categorias
 from ..servicios.suscripciones import generar_cobros_suscripciones
 from ..views.cartola import SESION
@@ -197,9 +197,9 @@ class LimiteConVentanaFija(TestCase):
         clave = 'limite:vista_de_prueba:127.0.0.1'
 
         vista(pedido)
-        primero = cache.get(clave)
+        primero = leer(clave)
         vista(pedido)
-        segundo = cache.get(clave)
+        segundo = leer(clave)
         self.assertEqual(segundo[0], 2)
         self.assertEqual(primero[1], segundo[1])
 

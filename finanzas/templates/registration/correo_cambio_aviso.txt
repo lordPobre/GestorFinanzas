@@ -1,0 +1,13 @@
+Hola {{ usuario.username }}:
+
+Se pidió cambiar el correo de tu cuenta de Fintora a {{ nuevo }}.
+
+El cambio no se hace hasta que alguien abra el enlace que mandamos a esa dirección.
+
+Si fuiste tú, no tienes que hacer nada.
+
+Si no fuiste tú, alguien tiene tu contraseña. Entra y cámbiala ahora, y cierra las sesiones que no reconozcas:
+
+{{ enlace }}
+
+— Fintora
