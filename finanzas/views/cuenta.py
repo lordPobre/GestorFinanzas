@@ -21,6 +21,7 @@ from ..models import (Categoria, CodigoRespaldo, Deuda, EventoSeguridad, GastoPe
                      Suscripcion, Transaccion, UserProfile)
 from ..seguridad import (MAX_INTENTOS as MAX_INTENTOS_LOGIN, _ip, esta_bloqueado,
                         limitar, limpiar_intentos, registrar_fallo)
+from ..redirecciones import destino_seguro
 from ..servicios.mes import nombre_mes_es
 from .comun import contadores, get_or_create_profile, monto_post
 
@@ -51,14 +52,13 @@ def entrar(request):
             factor = SegundoFactor.objects.filter(usuario=usuario, activo=True).first()
             if factor:
                 request.session['2fa_pendiente'] = usuario.pk
-                request.session['2fa_next'] = request.POST.get('next') or request.GET.get('next', '')
+                request.session['2fa_next'] = destino_seguro(
+                    request, request.POST.get('next') or request.GET.get('next'))
                 return redirect('verificar_codigo')
 
             login(request, usuario)
-            destino = request.POST.get('next') or request.GET.get('next')
-            if destino and destino.startswith('/') and not destino.startswith('//'):
-                return redirect(destino)
-            return redirect('dashboard')
+            destino = destino_seguro(request, request.POST.get('next') or request.GET.get('next'))
+            return redirect(destino or 'dashboard')
 
         intentos = registrar_fallo(usuario_txt, ip)
         quedan = MAX_INTENTOS_LOGIN - intentos
@@ -106,7 +106,7 @@ def verificar_codigo(request):
         if ok:
             limpiar_intentos(clave_2fa, ip)
             request.session.pop('2fa_pendiente', None)
-            destino = request.session.pop('2fa_next', '')
+            destino = destino_seguro(request, request.session.pop('2fa_next', ''))
             request.metodo_acceso = 'código de respaldo' if usa_respaldo else 'código de verificación'
             login(request, usuario)
 
@@ -118,9 +118,7 @@ def verificar_codigo(request):
                     f'Usaste un código de respaldo. Te quedan {quedan}. '
                     'Genera otros desde tu perfil si te quedan pocos.')
 
-            if destino and destino.startswith('/') and not destino.startswith('//'):
-                return redirect(destino)
-            return redirect('dashboard')
+            return redirect(destino or 'dashboard')
 
         registrar_fallo(clave_2fa, ip)
         auditoria.registrar('codigo_fallido', request, usuario, detalle='acceso')

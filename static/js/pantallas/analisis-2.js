@@ -60,7 +60,12 @@
     estado.style.display = 'block';
     estado.textContent = 'Leyendo tus números…';
 
-    fetch(urlIA, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+    var token = document.querySelector('[name=csrfmiddlewaretoken]');
+    fetch(urlIA, {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: { 'X-Requested-With': 'XMLHttpRequest', 'X-CSRFToken': token ? token.value : '' }
+    })
       .then(function (r) { return r.json(); })
       .then(function (d) {
         if (d.ok) pintar(d.ia);

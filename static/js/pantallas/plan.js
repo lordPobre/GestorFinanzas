@@ -194,7 +194,13 @@
     btnTexto.textContent = 'Leyendo tu plan…';
     avisoIA('Leyendo tu plan…');
     var q = new URLSearchParams({ ahorro: estado.ahorro, extra: estado.extra, estrategia: estado.estrategia });
-    fetch(urlIA + '?' + q.toString(), { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+    var token = document.querySelector('[name=csrfmiddlewaretoken]');
+    fetch(urlIA, {
+      method: 'POST',
+      body: q,
+      credentials: 'same-origin',
+      headers: { 'X-Requested-With': 'XMLHttpRequest', 'X-CSRFToken': token ? token.value : '' }
+    })
       .then(function (r) { return r.json(); })
       .then(function (res) {
         if (!res.ok || !Array.isArray(res.parrafos)) {

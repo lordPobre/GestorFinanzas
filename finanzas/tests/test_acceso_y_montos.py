@@ -50,9 +50,16 @@ class PanelPorElAccesoNormal(TestCase):
         self.assertEqual(respuesta.status_code, 404)
         self.assertTrue(EventoSeguridad.objects.filter(tipo='admin_denegado', usuario=self.ana).exists())
 
-    def test_el_personal_entra(self):
+    def test_el_personal_con_dos_pasos_entra(self):
+        SegundoFactor.objects.create(usuario=self.jefa, secreto='JBSWY3DPEHPK3PXP', activo=True)
         self.client.force_login(self.jefa)
         self.assertEqual(self.client.get('/panel-prueba/').status_code, 200)
+
+    def test_el_personal_sin_dos_pasos_va_a_activarla(self):
+        self.client.force_login(self.jefa)
+        respuesta = self.client.get('/panel-prueba/', follow=True)
+        self.assertEqual(respuesta.redirect_chain[-1][0], reverse('configurar_2fa'))
+        self.assertTrue(EventoSeguridad.objects.filter(tipo='admin_denegado', usuario=self.jefa).exists())
 
 
 class TopesDeIntentos(TestCase):

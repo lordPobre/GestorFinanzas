@@ -23,6 +23,7 @@ from webauthn.helpers.structs import (AuthenticatorSelectionCriteria,
 
 from .. import auditoria
 from ..models import Passkey, SegundoFactor
+from ..redirecciones import destino_seguro
 from ..seguridad import _ip, esta_bloqueado, limitar, limpiar_intentos, registrar_fallo
 from .comun import contadores
 
@@ -55,10 +56,8 @@ def _nombre_aparato(request):
     return 'Este dispositivo'
 
 
-def _destino(texto):
-    if texto and texto.startswith('/') and not texto.startswith('//'):
-        return texto
-    return reverse('dashboard')
+def _destino(request, texto):
+    return destino_seguro(request, texto) or reverse('dashboard')
 
 
 def _error(texto, estado=400):
@@ -212,4 +211,4 @@ def entrar_verificar(request):
 
     request.metodo_acceso = 'face_id_o_huella'
     login(request, usuario, backend=BACKEND)
-    return JsonResponse({'ok': True, 'destino': _destino(request.POST.get('next', ''))})
+    return JsonResponse({'ok': True, 'destino': _destino(request, request.POST.get('next', ''))})

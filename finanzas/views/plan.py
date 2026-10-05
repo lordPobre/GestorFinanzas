@@ -1,6 +1,7 @@
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.shortcuts import render
+from django.views.decorators.http import require_POST
 
 from ..plan import ESTRATEGIAS, armar_plan, resumen_para_ia
 from ..seguridad import limitar
@@ -25,6 +26,7 @@ def plan_plata(request):
 
 
 @login_required(login_url='/login/')
+@require_POST
 @limitar(6, 3600, 'Ya pediste varias explicaciones esta hora. '
                   'Los números del plan no dependen de la IA.')
 def plan_ia(request):
@@ -40,9 +42,9 @@ def plan_ia(request):
         return JsonResponse({'ok': False, 'msg': 'Todavía no hay un plan que explicar.'})
 
     tope = plan['sobra']
-    ahorro = _entero(request.GET.get('ahorro'), tope)
-    extra = _entero(request.GET.get('extra'), tope) if plan['deudas'] else 0
-    estrategia = request.GET.get('estrategia')
+    ahorro = _entero(request.POST.get('ahorro'), tope)
+    extra = _entero(request.POST.get('extra'), tope) if plan['deudas'] else 0
+    estrategia = request.POST.get('estrategia')
     if estrategia not in ESTRATEGIAS:
         estrategia = 'saldo'
 

@@ -7,6 +7,7 @@ from django.urls import NoReverseMatch, reverse
 
 from ..forms import TransaccionForm
 from ..models import Categoria, Deuda, Persona, Suscripcion, UserProfile
+from ..redirecciones import destino_seguro
 from ..servicios.mes import salud_financiera
 
 
@@ -21,13 +22,14 @@ def redirigir(request, por_defecto='dashboard'):
         return redirect(por_defecto)
 
     if destino.startswith('?'):
-        base = request.POST.get('next_path') or request.path
+        base = destino_seguro(request, request.POST.get('next_path'), request.path)
         if base == request.path:
             base = reverse(por_defecto)
         return redirect(f'{base}{destino}')
 
-    if destino.startswith('/') and not destino.startswith('//'):
-        return redirect(destino)
+    seguro = destino_seguro(request, destino)
+    if seguro:
+        return redirect(seguro)
 
     if '/' not in destino and ':' not in destino:
         try:

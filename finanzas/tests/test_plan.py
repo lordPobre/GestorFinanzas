@@ -91,9 +91,9 @@ class VistasTests(TestCase):
         perfil = get_or_create_profile(self.ana)
         perfil.analisis_ia = False
         perfil.save(update_fields=['analisis_ia'])
-        r = self.client.get(reverse('plan_ia'))
+        r = self.client.post(reverse('plan_ia'))
         self.assertTrue(r.json()['desactivado'])
 
     def test_sin_datos_no_llama_a_la_ia(self):
-        r = self.client.get(reverse('plan_ia'))
+        r = self.client.post(reverse('plan_ia'))
         self.assertFalse(r.json()['ok'])

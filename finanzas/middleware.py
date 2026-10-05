@@ -5,6 +5,7 @@ from urllib.parse import urlparse
 
 from django.conf import settings
 from django.utils import timezone
+from django.utils.cache import add_never_cache_headers
 
 from . import marketing
 
@@ -76,6 +77,20 @@ class PoliticaContenidoMiddleware:
 
 def nonce_contexto(request):
     return {'csp_nonce': getattr(request, 'csp_nonce', '')}
+
+
+class SinCacheMiddleware:
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        respuesta = self.get_response(request)
+        usuario = getattr(request, 'user', None)
+        if (usuario is not None and usuario.is_authenticated
+                and not respuesta.has_header('Cache-Control')):
+            add_never_cache_headers(respuesta)
+        return respuesta
 
 
 class ActividadMiddleware:

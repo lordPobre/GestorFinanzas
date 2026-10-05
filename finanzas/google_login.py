@@ -16,6 +16,7 @@ from django.urls import reverse
 from django.utils.crypto import get_random_string
 
 from .models import SegundoFactor, UserProfile
+from .redirecciones import destino_seguro
 from .seguridad import limitar
 
 log = logging.getLogger('finanzas')
@@ -36,12 +37,6 @@ def _uri_retorno(request):
     return uri
 
 
-def _destino_seguro(valor):
-    if valor and valor.startswith('/') and not valor.startswith('//'):
-        return valor
-    return ''
-
-
 def entrar_google(request):
     if request.user.is_authenticated:
         return redirect('dashboard')
@@ -52,7 +47,7 @@ def entrar_google(request):
 
     estado = get_random_string(32)
     request.session['google_estado'] = estado
-    request.session['google_next'] = _destino_seguro(request.GET.get('next'))
+    request.session['google_next'] = destino_seguro(request, request.GET.get('next'))
 
     parametros = urllib.parse.urlencode({
         'client_id': settings.GOOGLE_CLIENT_ID,
@@ -68,7 +63,7 @@ def entrar_google(request):
 @limitar(15, 3600, 'Demasiados intentos de acceso con Google. Prueba más tarde.')
 def google_listo(request):
     estado_guardado = request.session.pop('google_estado', None)
-    destino = _destino_seguro(request.session.pop('google_next', ''))
+    destino = destino_seguro(request, request.session.pop('google_next', ''))
 
     if not estado_guardado or request.GET.get('state') != estado_guardado:
         messages.error(request, 'La sesión con Google no coincide. Vuelve a intentarlo.')

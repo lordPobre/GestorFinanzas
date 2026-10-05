@@ -70,7 +70,7 @@ class OposicionAlAnalisisConIA(TestCase):
         original = modulo_ia.interpretar_con_ia
         modulo_ia.interpretar_con_ia = lambda *a, **k: llamadas.append(1)
         try:
-            respuesta = self.client.get(reverse('analisis_ia'))
+            respuesta = self.client.post(reverse('analisis_ia'))
         finally:
             modulo_ia.interpretar_con_ia = original
 

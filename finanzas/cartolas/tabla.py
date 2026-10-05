@@ -7,6 +7,9 @@ from decimal import Decimal
 from .base import Cartola, ErrorCartola, MovimientoLeido, plata
 
 MAX_FILAS = 5000
+MAX_XLSX_DESCOMPRIMIDO = 40 * 1024 * 1024
+MAX_XLSX_ENTRADAS = 500
+MAX_XLSX_PROPORCION = 100
 
 MES_ABREV = {
     'ene': 1, 'jan': 1, 'feb': 2, 'mar': 3, 'abr': 4, 'apr': 4, 'may': 5,
@@ -103,6 +106,7 @@ def _de_excel(binario):
         raise ErrorCartola(
             'Falta la librería para leer Excel. Guarda el archivo como CSV y '
             'súbelo así.')
+    _revisar_zip(binario)
     try:
         libro = load_workbook(binario, read_only=True, data_only=True)
     except Exception:
@@ -116,6 +120,27 @@ def _de_excel(binario):
         filas.append([_celda(c) for c in fila])
     libro.close()
     return filas
+
+
+def _revisar_zip(binario):
+    import zipfile
+
+    binario.seek(0)
+    try:
+        with zipfile.ZipFile(binario) as archivo:
+            entradas = archivo.infolist()
+    except (zipfile.BadZipFile, ValueError):
+        raise ErrorCartola('No se pudo abrir el Excel. ¿Seguro que es el archivo '
+                           'que exportó el banco?')
+    finally:
+        binario.seek(0)
+
+    total = sum(e.file_size for e in entradas)
+    comprimido = sum(e.compress_size for e in entradas) or 1
+    if (len(entradas) > MAX_XLSX_ENTRADAS or total > MAX_XLSX_DESCOMPRIMIDO
+            or (total > 5 * 1024 * 1024 and total / comprimido > MAX_XLSX_PROPORCION)):
+        raise ErrorCartola('El Excel es demasiado grande para leerlo. Guárdalo como CSV '
+                           'y súbelo así.')
 
 
 def _celda(valor):

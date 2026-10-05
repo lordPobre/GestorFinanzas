@@ -34,6 +34,20 @@ FORMATO_FECHA = 'DD/MM/YYYY'
 
 MAX_FILAS = 20_000
 
+INICIOS_FORMULA = ('=', '+', '-', '@', '\t', '\r', '\uff1d', '\uff0b', '\uff0d', '\uff20')
+
+
+def texto_csv(valor):
+    if isinstance(valor, str) and valor.startswith(INICIOS_FORMULA):
+        return "'" + valor
+    return valor
+
+
+def texto_celda(celda):
+    if isinstance(celda.value, str) and celda.data_type == 'f':
+        celda.data_type = 's'
+    return celda
+
 
 def nombre_mes(anio, mes):
     return f'{MESES[mes - 1]} {anio}'.capitalize()
@@ -95,7 +109,7 @@ def escribir_csv(writer, usuario, cuenta, hoy):
     escribir = writer.writerow
 
     escribir(['Fintora — Movimientos'])
-    escribir(['Cuenta', cuenta])
+    escribir(['Cuenta', texto_csv(cuenta)])
     escribir(['Exportado', hoy.strftime('%d/%m/%Y')])
     escribir(['Movimientos', len(filas)])
     if filas:
@@ -133,8 +147,8 @@ def escribir_csv(writer, usuario, cuenta, hoy):
             f['fecha'].strftime('%d/%m/%Y'),
             f['origen'],
             f['tipo'],
-            f['categoria'],
-            f['descripcion'],
+            texto_csv(f['categoria']),
+            texto_csv(f['descripcion']),
             f['estado'],
             f['fecha_pago'].strftime('%d/%m/%Y') if f['fecha_pago'] else '',
             int(f['ingreso']) if f['ingreso'] else '',
@@ -259,8 +273,8 @@ def libro_excel(usuario, cuenta, hoy):
         c.font = Font(name=fuente, size=10.5, bold=True,
                       color=COLOR_ORIGEN.get(f['origen'], TINTA))
 
-        ws.cell(row=fila, column=3, value=f['categoria']).font = normal
-        ws.cell(row=fila, column=4, value=f['descripcion']).font = normal
+        texto_celda(ws.cell(row=fila, column=3, value=f['categoria'])).font = normal
+        texto_celda(ws.cell(row=fila, column=4, value=f['descripcion'])).font = normal
 
         c = ws.cell(row=fila, column=5, value=f['estado'])
         c.font = Font(name=fuente, size=10.5, bold=f['estado'] == 'Sin pagar',
@@ -327,8 +341,8 @@ def libro_excel(usuario, cuenta, hoy):
         c.number_format = FORMATO_FECHA
         plana.cell(row=n, column=3, value=f['origen'])
         plana.cell(row=n, column=4, value=f['tipo'])
-        plana.cell(row=n, column=5, value=f['categoria'])
-        plana.cell(row=n, column=6, value=f['descripcion'])
+        texto_celda(plana.cell(row=n, column=5, value=f['categoria']))
+        texto_celda(plana.cell(row=n, column=6, value=f['descripcion']))
         plana.cell(row=n, column=7, value=f['estado'])
         if f['fecha_pago']:
             c = plana.cell(row=n, column=8, value=f['fecha_pago'])

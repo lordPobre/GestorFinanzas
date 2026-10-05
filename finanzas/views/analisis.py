@@ -1,6 +1,7 @@
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.shortcuts import render
+from django.views.decorators.http import require_POST
 
 from ..seguridad import limitar
 from ..servicios.cuotas import serie_cuotas
@@ -41,6 +42,7 @@ def analisis_predictivo(request):
     return render(request, 'finanzas/analisis.html', context)
 
 @login_required(login_url='/login/')
+@require_POST
 @limitar(6, 3600, 'Ya pediste varias interpretaciones esta hora. '
                   'Los números de la pantalla no dependen de la IA.')
 def analisis_ia(request):

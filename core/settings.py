@@ -58,6 +58,7 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'finanzas.middleware.SinCacheMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'finanzas.middleware.ActividadMiddleware',
@@ -265,6 +266,25 @@ if not DEBUG and not _SOLO_ESTATICOS and 'runserver' not in sys.argv:
     if SECRET_KEY.startswith('django-insecure'):
         raise RuntimeError('SECRET_KEY de desarrollo en producción.')
 
+CABECERAS_SENTRY = {'user-agent', 'content-type', 'accept', 'content-length'}
+
+
+def limpiar_evento_sentry(evento, pista):
+    import re
+
+    pedido = evento.get('request')
+    if pedido:
+        for clave in ('data', 'cookies', 'query_string', 'env'):
+            pedido.pop(clave, None)
+        pedido['headers'] = {k: v for k, v in (pedido.get('headers') or {}).items()
+                             if k.lower() in CABECERAS_SENTRY}
+        if pedido.get('url'):
+            pedido['url'] = re.sub(r'(/recuperar/|/registro/confirmar/)[^?#]+',
+                                   r'\1[filtrado]/', pedido['url'])
+    evento.pop('user', None)
+    return evento
+
+
 SENTRY_DSN = os.environ.get('SENTRY_DSN', '').strip()
 if SENTRY_DSN and not _SOLO_ESTATICOS:
     import sentry_sdk
@@ -274,6 +294,9 @@ if SENTRY_DSN and not _SOLO_ESTATICOS:
         dsn=SENTRY_DSN,
         integrations=[DjangoIntegration()],
         send_default_pii=False,
+        max_request_body_size='never',
+        include_local_variables=False,
+        before_send=limpiar_evento_sentry,
         traces_sample_rate=0.0,
         environment=ENTORNO,
         release=os.environ.get('RAILWAY_GIT_COMMIT_SHA', '')[:12] or None,
