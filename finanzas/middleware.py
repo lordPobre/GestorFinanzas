@@ -42,7 +42,9 @@ class DominioCanonicoMiddleware:
     def __call__(self, request):
         canonico = getattr(settings, 'DOMINIO_CANONICO', '')
         if canonico and not settings.DEBUG and request.path not in self.EXENTAS:
-            host = request.get_host().split(':')[0].lower()
+            host = (request.META.get('HTTP_X_FORWARDED_HOST') if settings.USE_X_FORWARDED_HOST
+                    else '') or request.META.get('HTTP_HOST', '')
+            host = host.split(',')[0].strip().split(':')[0].lower()
             interno = host in self.HOSTS_INTERNOS or host.endswith('.railway.internal')
             if host != canonico and not interno:
                 destino = f'https://{canonico}{request.get_full_path()}'

@@ -33,6 +33,12 @@ class DominioCanonicoTests(TestCase):
         r = self.client.get('/privacidad/', HTTP_HOST='healthcheck.railway.app')
         self.assertNotEqual(r.status_code, 301)
 
+    @override_settings(ALLOWED_HOSTS=['fintora.cl'])
+    def test_un_host_fuera_de_la_lista_tambien_redirige(self):
+        r = self.client.get('/', HTTP_HOST='fintora.up.railway.app')
+        self.assertEqual(r.status_code, 301)
+        self.assertEqual(r['Location'], 'https://fintora.cl/')
+
     def test_el_canonico_pasa(self):
         self.assertEqual(self.client.get('/privacidad/', HTTP_HOST='fintora.cl').status_code, 200)
 
