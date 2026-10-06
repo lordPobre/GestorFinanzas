@@ -11,11 +11,11 @@ python manage.py check --deploy        # con DEBUG=False
 python manage.py makemigrations --check --dry-run
 ```
 
-Durante las pruebas, `core/settings.py` quita `RESEND_API_KEY` del entorno, así que no sale ningún correo aunque tengas la clave en `.env`. Las llamadas a Anthropic y a Google siempre se simulan con `unittest.mock`.
+Durante las pruebas, `core/settings.py` quita `RESEND_API_KEY` del entorno, así que no sale ningún correo aunque tengas la clave en `.env`. Las llamadas a Anthropic, Google y ElevenLabs siempre se simulan con `unittest.mock`.
 
 ## Integración continua
 
-`.github/workflows/ci.yml` corre en cada push a `main` y en cada pull request. Tiene cuatro trabajos:
+`.github/workflows/ci.yml` corre en cada push a `main` y en cada pull request. Tiene cinco trabajos:
 
 | Trabajo | Qué hace | Si falla |
 | --- | --- | --- |
@@ -23,6 +23,7 @@ Durante las pruebas, `core/settings.py` quita `RESEND_API_KEY` del entorno, así
 | `despliegue` | `check --deploy --fail-level WARNING` con `DEBUG=False` | Build en rojo: significa que falta un ajuste de seguridad de producción |
 | `dependencias` | `pip-audit --strict` sobre `requirements.txt` y `requirements-dev.txt` | Build en rojo: hay una dependencia con una vulnerabilidad conocida |
 | `estilo-ampliado` | `ruff` con las reglas S (seguridad), B, DJ y UP | Solo informa (`--exit-zero`) |
+| `secretos` | Gitleaks sobre todo el historial, con las excepciones de `.gitleaks.toml` | Build en rojo: hay una credencial en un commit |
 
 Las pruebas corren contra Postgres, igual que producción, y no contra SQLite. Dependabot abre PRs semanales para pip (los lunes, con parches y versiones menores agrupados) y mensuales para las GitHub Actions.
 
@@ -30,11 +31,11 @@ En el CI, el usuario y la base de Postgres se llaman `fintora` y `ALLOWED_HOSTS`
 
 ## Qué cubre cada archivo
 
-Son 24 archivos en `finanzas/tests/` con 283 pruebas.
+Son 49 archivos en `finanzas/tests/` con 419 pruebas, contadas sobre las entregas hasta el lote 82. Las 18 filas de arriba son las del 28 de septiembre; las de abajo, las que se sumaron después. Seis archivos de antes no tienen fila propia.
 
 | Archivo | Pruebas | Qué asegura |
 | --- | --- | --- |
-| `test_acceso_y_montos.py` | 17 | Admin: su login es el de la app, sin sesión manda al acceso, cuenta sin permiso → 404 y evento, el personal entra. Topes de intentos: 5 por usuario+IP, cambiar de IP no salta el tope de la cuenta, una IP contra muchas cuentas se frena, entrar bien no limpia el contador de la IP, con la cuenta bloqueada la contraseña correcta no entra. Eventos de seguridad: acceso y fallo quedan anotados, la descarga de datos los incluye, borrar la cuenta deja la evidencia sin vínculo, la purga borra solo lo de más de un año. El destino se conserva al pasar por 2FA. Las sumas del mes no arrastran error de coma flotante |
+| `test_acceso_y_montos.py` | 18 | Admin: su login es el de la app, sin sesión manda al acceso, cuenta sin permiso → 404 y evento, el personal entra. Topes de intentos: 5 por usuario+IP, cambiar de IP no salta el tope de la cuenta, una IP contra muchas cuentas se frena, entrar bien no limpia el contador de la IP, con la cuenta bloqueada la contraseña correcta no entra. Eventos de seguridad: acceso y fallo quedan anotados, la descarga de datos los incluye, borrar la cuenta deja la evidencia sin vínculo, la purga borra solo lo de más de un año. El destino se conserva al pasar por 2FA. Las sumas del mes no arrastran error de coma flotante |
 | `test_cabecera.py` | 1 | Las pantallas sueltas traen el perfil que usa la cabecera |
 | `test_cartola_cuentarut.py` | 10 | Lector de CuentaRUT: reconoce el formato, lee todas las filas, completa el año, deduce el signo por la cadena de saldos, une descripciones partidas en dos líneas, quita el número de operación, cuadra contra los totales declarados, avisa si falta una fila, rechaza un PDF sin detalle y no se lo lleva el lector genérico de BancoEstado |
 | `test_cartola_tabla.py` | 14 | CSV/Excel: detecta extensiones, columnas cargo/abono, monto con saldo, monto con signo, rechazo de columnas desconocidas y de archivos vacíos. La muestra anónima borra nombres y cifras, conserva la estructura y respeta el tope de líneas |
@@ -52,6 +53,21 @@ Son 24 archivos en `finanzas/tests/` con 283 pruebas.
 | `test_vistas.py` | 8 | Aislamiento: un usuario no alcanza ni modifica objetos de otro, y las listas solo muestran lo propio. Las pantallas privadas piden sesión. Con `prefetch_related` no hay consultas extra por fila |
 | `test_ritmo.py` | 7 | Avisa cuando una categoría se pasa del promedio, da el monto por día si aún hay margen, no avisa antes del día 7 ni con un solo mes de historial, ignora suscripciones y pendientes, felicita si se gasta menos |
 | `test_detectar_suscripciones.py` | 11 | La clave ignora números y palabras de relleno, pide 3 meses seguidos y montos parecidos, descarta dos cobros en un mes y lo que dejó de cobrarse, ignora lo ya registrado y lo descartado, agregar no duplica el cobro del mes |
+| `test_correos_marca.py` | 8 | Los cuatro correos llevan la cabecera en línea, el remitente «Fintora» y enlaces al sitio correcto en local y en producción |
+| `test_seguridad_publica.py` | 7 | `/seguridad/` es pública, marca su pestaña y trae las notas; `security.txt` apunta a `/seguridad/` |
+| `test_actividad.py` | 8 | La actividad muestra lo de la cuenta, los fallos con su usuario o correo solo desde el alta, deja fuera el admin y el borrado, y respeta los 90 días |
+| `test_seo.py` | 11 | `robots.txt` deja leer el sitemap, `sitemap.xml`, `noindex` dentro de la app, datos estructurados y medición solo con su variable y en páginas públicas |
+| `test_evento_registro.py` | 4 | El evento de registro sale una vez, solo con consentimiento y sin datos personales |
+| `test_landing_diseno.py`, `test_auth_diseno.py` | 3 y 5 | Auditorías visuales de la portada, del acceso y del registro |
+| `test_inicio_diseno.py`, `test_cuotas_diseno.py`, `test_medeben_diseno.py`, `test_medeben_escritorio.py`, `test_subs_diseno.py`, `test_analisis_diseno.py`, `test_estadisticas_diseno.py`, `test_metas_diseno.py`, `test_metas_orbita.py`, `test_plan_orden.py` | 17 en total | Lo que pidió cada auditoría visual: botón de pago aparte del monto, montos y estados, columnas de escritorio, flechas que se abren, orden del Plan |
+| `test_subs_consejos.py` | 2 | El ahorro se calcula como la suma de los demás por 12 y «No son lo mismo» descuenta el grupo |
+| `test_seguridad_77.py` | 17 | Redirecciones abiertas, fórmulas en CSV y Excel, zip malicioso, `no-store` con sesión, Sentry sin datos, IA solo por POST, admin con 2FA |
+| `test_salir.py` | 2 | Salir responde `Clear-Site-Data` y Atrás no muestra la app |
+| `test_seguridad_78.py` | 15 | Cambio de correo con reautenticación y enlace, contadores en la base e IPv6 por /64, topes con la sesión iniciada, sesión de 7 días, código de 2FA en 5 minutos, aviso de aparato nuevo |
+| `test_seguridad_79.py` | 11 | `limpieza_diaria`, respaldo sin datos de sesiones, cookies `__Host-`, dominio canónico (también con hosts fuera de `ALLOWED_HOSTS`) y diagnóstico de IP solo para el personal |
+| `test_seguridad_80.py` | 13 | Montos fuera de rango, textos largos, pagos sin duplicar, aislamiento automático de todas las rutas con id, fotos sin EXIF, registro que no revela correos, tope de recuperación por dirección, PKCE y `nonce` de Google, tope del chat por IP |
+| `test_esfera_bienvenida.py` | 5 | El saludo aparece solo en la primera visita, compara con el estado visto y lo guarda |
+| `test_voz.py` | 9 | El audio sale con el saludo y el nombre, rechaza textos sin firma o de otro usuario y un nombre sin firma, respeta el interruptor de IA, solo POST, la pantalla trae los textos firmados, `sintetizar` llama a ElevenLabs una vez y guarda en caché, sin clave no hay voz |
 
 ## Qué no tiene pruebas hoy
 
@@ -63,13 +79,14 @@ Estos son los huecos que conviene cubrir primero, ordenados por riesgo:
 4. **Lectores de Banco de Chile, CMR y Ripley.** Tienen documento real de referencia, pero no una prueba propia como CuentaRUT.
 5. **`avisar_pagos`**: día efectivo en meses cortos y un solo envío por periodo.
 6. **`respaldar_postgres`** con `--seco` en el CI, contra el Postgres del servicio.
-7. **Frontend**: no hay pruebas de JavaScript. Los flujos críticos (registrar desde el panel, pagar desde el inicio, el chat de ayuda) solo se prueban a mano.
+7. **Frontend**: no hay pruebas de JavaScript. Los flujos críticos (registrar desde el panel, pagar desde el inicio, el chat de ayuda, la hoja de la esfera y el audio en el iPhone) solo se prueban a mano.
 
 ## Cómo se escribe una prueba nueva
 
 - Una prueba por comportamiento, con el nombre como frase en español que diga qué se espera: `test_pagar_el_mas_antiguo_avanza_al_siguiente`.
 - `SimpleTestCase` si no toca la base (lectores de cartola, filtros). Si la toca, `TestCase`.
 - Para dos usuarios, heredar de `BaseDosUsuarios` en `test_vistas.py`: arma a Ana y a Beto con datos de cada tipo.
-- Servicios externos siempre simulados: `mock.patch('anthropic.Anthropic')`, `mock.patch.object(correo, 'enviar')`, `mock.patch.object(chat_ayuda, 'responder')`.
-- Si la prueba usa topes o caché, llamar a `cache.clear()` en `setUp`.
+- Servicios externos siempre simulados: `mock.patch('anthropic.Anthropic')`, `mock.patch.object(correo, 'enviar')`, `mock.patch.object(chat_ayuda, 'responder')`, `mock.patch('finanzas.views.voz.sintetizar')`.
+- Si la vista nueva recibe un id, sumarla a `DATOS` en `test_seguridad_80.py`.
+- Si la prueba usa caché, llamar a `cache.clear()` en `setUp`. Los topes viven en `Contador`, que cada `TestCase` deja vacía.
 - Para cartolas se usa texto de ejemplo con datos inventados dentro de la prueba. Nunca una cartola real.

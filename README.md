@@ -2,21 +2,23 @@
 
 Aplicación web para llevar el control del dinero del mes: ingresos, gastos,
 compras en cuotas, préstamos por cobrar, suscripciones y metas de ahorro.
-Django 5 con plantillas del servidor, sin framework de front-end. Instalable
+Django 5.2 con plantillas del servidor, sin framework de front-end. Instalable
 como aplicación en el teléfono (PWA).
 
 ## Qué hace
 
 | Pantalla | Para qué |
 | --- | --- |
-| Inicio | Lo que entró, lo que salió y lo que queda libre este mes |
+| Inicio | Lo que entró, lo que salió y lo que queda libre este mes. En el teléfono, la esfera de estado, que saluda y lee el resumen en voz alta |
 | Cuotas | Compras a plazo, mes por mes, con estado de cada cobro |
 | Me deben | Personas, préstamos y abonos |
-| Suscripciones | Cobros recurrentes y su pago mensual |
+| Suscripciones | Cobros recurrentes, su pago mensual y cuánto ahorrarías con los duplicados |
+| Metas | Ahorro con fecha y aportes rápidos |
+| Plan para tu plata | Reparto de lo que sobra, fondo para imprevistos, depósito a plazo y simulador de cuotas |
 | Estadísticas | Gasto por categoría y evolución |
 | Análisis | Diagnóstico con motor propio, e interpretación con IA si hay clave |
 | Cartolas | Importa un extracto bancario en PDF, Excel o CSV y lo clasifica |
-| Perfil | Cuenta, seguridad, exportaciones y borrado de datos |
+| Perfil | Cuenta, seguridad, actividad de la cuenta, exportaciones y borrado de datos |
 
 ## Levantar el entorno
 
@@ -34,7 +36,8 @@ python manage.py runserver
 
 Sin `DATABASE_URL` usa SQLite local con modo WAL. Sin credenciales de R2 las
 fotos van al disco. Sin `ANTHROPIC_API_KEY` el análisis muestra solo los
-números del motor determinístico. Nada de eso hace falta para desarrollar.
+números del motor determinístico. Sin `ELEVENLABS_API_KEY` la esfera no habla.
+Nada de eso hace falta para desarrollar.
 
 En `.env` basta con `DEBUG=True`.
 
@@ -55,6 +58,11 @@ producción:
 | `SENTRY_DSN` | Monitoreo de errores. Opcional |
 | `ENTORNO` | `staging` en el entorno de pruebas. Por defecto `produccion` |
 | `CORREO_EN_STAGING` | `1` para que staging envíe correos de verdad. Vacío los bloquea |
+| `SITE_URL`, `DOMINIO_CANONICO` | Dominio público para los correos, y el host al que se redirige cualquier otro nombre |
+| `ELEVENLABS_API_KEY`, `ELEVENLABS_VOZ` | Voz de la esfera. Opcional |
+
+Las de analítica y píxeles de las páginas públicas están en
+[docs/09](docs/09-INSTALACION-Y-DESPLIEGUE.md#variables-de-entorno).
 
 ## Pruebas
 
@@ -98,7 +106,7 @@ python manage.py createcachetable
 La caché en base de datos es la que hace que los bloqueos por intentos
 fallidos cuenten igual en todos los workers.
 
-Detalle completo en [docs/DESPLIEGUE-RAILWAY.md](docs/DESPLIEGUE-RAILWAY.md).
+Detalle completo en [docs/09 · Instalación y despliegue](docs/09-INSTALACION-Y-DESPLIEGUE.md).
 
 ## Cómo está organizado
 
@@ -106,7 +114,7 @@ Detalle completo en [docs/DESPLIEGUE-RAILWAY.md](docs/DESPLIEGUE-RAILWAY.md).
 core/              settings, urls, wsgi
 finanzas/
   models/          un archivo por tema: movimientos, cuotas, metas, suscripciones,
-                   prestamos, perfil, seguridad, encuesta
+                   prestamos, perfil, seguridad, encuesta, sugerencias
   forms.py
   urls.py
   views/           una pantalla o grupo de pantallas por archivo
@@ -115,14 +123,20 @@ finanzas/
     cuotas.py  movimientos.py  metas.py  prestamos.py  suscripciones.py
     categorias.py  estadisticas.py  analisis.py  descargas.py  sistema.py
     cuenta.py      entrar, registro, perfil, datos personales, sesiones
-    cartola.py  encuesta.py  passkeys.py
+    cartola.py  encuesta.py  passkeys.py  actividad.py  voz.py  plan.py
   servicios/       cálculos sin request: reciben usuario y fechas, devuelven datos
     mes.py  cuotas.py  pendientes.py  suscripciones.py  panel.py
+    ritmo.py  detectar_suscripciones.py  esfera.py  esfera_bienvenida.py  actividad.py
   cartolas/        un lector por banco, más uno genérico
   analisis.py      motor determinístico del diagnóstico
   ia.py            interpretación con Claude, opcional
-  seguridad.py     bloqueo de intentos y límite de peticiones
-  middleware.py    Content-Security-Policy con nonce
+  seguridad.py     bloqueo de intentos y límite de peticiones (tabla Contador)
+  middleware.py    dominio canónico, CSP con nonce, sin caché y sesión absoluta
+  redirecciones.py destinos next solo del propio dominio
+  aparatos.py      aviso de acceso desde un aparato nuevo
+  fotos.py         fotos de perfil sin EXIF
+  voz.py           voz de la esfera con ElevenLabs
+  marketing.py     analítica y píxeles de las páginas públicas
   almacenamiento.py  disco local o Cloudflare R2
   correo.py        envío por la API de Resend
   avisos.py        aviso mensual de cobros
@@ -143,8 +157,9 @@ servicio no lee `request`, no manda mensajes y no redirige.
 ```bash
 python manage.py avisar_pagos              # aviso mensual por correo
 python manage.py limpiar_inactivas         # avisa y borra cuentas abandonadas
-python manage.py respaldar                 # copia de seguridad
+python manage.py respaldar_postgres        # copia de seguridad a R2
 python manage.py limpiar_avatares_huerfanos
+python manage.py limpieza_diaria           # sesiones y contadores vencidos
 ```
 
 `limpiar_inactivas` corre a diario y no hace nada la mayoría de los días:
@@ -164,26 +179,23 @@ avisa a los 12 meses sin uso y borra 30 días después de ese aviso. Con
 pruebas, se cambia ahí y en esta tabla.
 
 - `/seguridad/`: página pública que explica las protecciones en lenguaje simple.
-- `/.well-known/security.txt`: contacto para reportar fallas. Lo arma
-  `views/sistema.py` con el correo de `legal.py`, y el vencimiento se renueva
-  solo, 180 días adelante. Su campo `Policy` apunta a `/seguridad/`.
-- En el código: `seguridad.py` (bloqueos y límites de peticiones),
-  `middleware.py` (CSP con nonce), `core/settings.py` (HSTS, cookies, cabeceras).
-- En Cloudflare: TLS 1.2 como mínimo, TLS 1.3 activo y registros CAA para
-  Let's Encrypt. Se configuran en el panel de Cloudflare, no en el repositorio.
+- `/.well-known/security.txt`: contacto para reportar fallas. El vencimiento se
+  renueva solo, 180 días adelante.
+- El detalle de los controles está en [docs/06 · Seguridad](docs/06-SEGURIDAD.md).
 
 Fallas de seguridad: escribir a soporte@perseustechnology.dev, no abrir un
 issue público.
 
+## Autoría y propiedad
+
+Fintora y su código son propiedad de Carlos López Figueroa, titular de todos
+sus derechos. Todos los derechos reservados. Desarrollada con asistencia de
+Claude (Anthropic).
+
 ## Documentación
 
-- [docs/DESPLIEGUE-RAILWAY.md](docs/DESPLIEGUE-RAILWAY.md) — puesta en producción
-- [docs/RESPALDOS.md](docs/RESPALDOS.md) — copias y restauración
-- [docs/MIGRACION-POSTGRES.md](docs/MIGRACION-POSTGRES.md) — paso desde SQLite
-- [docs/AUDITORIA-SEGURIDAD.md](docs/AUDITORIA-SEGURIDAD.md) — revisión de vulnerabilidades
-- [docs/AUDITORIA-CUMPLIMIENTO-2026.md](docs/AUDITORIA-CUMPLIMIENTO-2026.md) — brechas de cumplimiento y plan
-- [docs/REGISTRO-TRATAMIENTOS.md](docs/REGISTRO-TRATAMIENTOS.md) — qué dato personal vive dónde
-- [docs/BRECHAS.md](docs/BRECHAS.md) — qué hacer ante un incidente de seguridad
-- [docs/ARQUITECTURA.md](docs/ARQUITECTURA.md) — decisiones de diseño y por qué
-- [docs/STAGING.md](docs/STAGING.md) — entorno de pruebas con base propia
-- [docs/DECISION-CIFRADO.md](docs/DECISION-CIFRADO.md) — por qué no se cifran las descripciones
+Toda la referencia está en [docs/](docs/README.md): producto, arquitectura,
+modelo de datos, rutas, cartolas, seguridad, privacidad, frontend, despliegue,
+operación, pruebas, decisiones, deuda técnica y convenciones. Los anexos vivos
+son `REGISTRO-TRATAMIENTOS.md`, `BRECHAS.md`, `RESPALDOS.md`, `STAGING.md`,
+`CARTOLAS-COBERTURA.md` y `ESTILOS.md`.

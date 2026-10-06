@@ -12,6 +12,7 @@ Lo que hay que hacer para que el servicio siga funcionando: tareas programadas, 
 | inactivas | `railway/inactivas.json` | `python manage.py limpiar_inactivas` | `0 12 * * *` | 8–9 AM |
 | respaldo | `railway/respaldo.json` | `python manage.py respaldar_postgres` | `0 7 * * *` | 3–4 AM |
 | avatares | `railway/avatares.json` | `python manage.py limpiar_avatares_huerfanos` | `0 4 * * 0` | Domingos de madrugada |
+| limpieza | `railway/limpieza.json` | `python manage.py limpieza_diaria` | `30 6 * * *` | 2:30–3:30 AM |
 
 Cada tarea es un servicio aparte del mismo repositorio, que arranca, corre y termina (`restartPolicyType: NEVER`). En *Settings → Config-as-code → Railway Config File* se apunta a su archivo. Sin eso, el servicio toma `railway.json` y arranca un servidor web.
 
@@ -41,6 +42,10 @@ python manage.py limpiar_inactivas --seco        # obligatorio antes de activarl
 python manage.py limpiar_inactivas --solo-avisos
 ```
 
+### `limpieza_diaria`
+
+Corre `clearsessions`, borra los contadores de `Contador` ya vencidos y las filas de `SesionActiva` cuya sesión de Django ya no existe.
+
 ### `limpiar_avatares_huerfanos`
 
 Lista los archivos de `avatares/` que ningún perfil referencia. Con `--borrar`, los elimina. Si todos parecen huérfanos, aborta: eso indica un problema de rutas, no archivos sobrantes.
@@ -49,7 +54,7 @@ Lista los archivos de `avatares/` que ningún perfil referencia. Con `--borrar`,
 
 Hay dos líneas:
 
-1. **Propia:** `respaldar_postgres` todos los días a un bucket **privado** de R2, distinto del de las fotos y con un token propio. Hace el volcado de la base, verifica que tenga datos de `auth_user`, `finanzas_transaccion` y `finanzas_userprofile`, calcula el SHA-256, lo sube a `postgres/fintora-AAAAMMDD-HHMMSS.dump` y deja las 30 copias más recientes.
+1. **Propia:** `respaldar_postgres` todos los días a un bucket **privado** de R2, distinto del de las fotos y con un token propio. Hace el volcado de la base, verifica que tenga datos de `auth_user`, `finanzas_transaccion` y `finanzas_userprofile`, calcula el SHA-256, lo sube a `postgres/fintora-AAAAMMDD-HHMMSS.dump` y deja las 30 copias más recientes. De `django_session`, `cache_finapp` y `finanzas_contador` guarda solo la estructura.
 2. **Del proveedor:** los respaldos del Postgres de Railway, para volver atrás rápido.
 
 El servicio `respaldo` se construye con `railway/Dockerfile.respaldo` (Python 3.13 más el cliente oficial de PostgreSQL), para que `pg_dump` sea de la misma versión mayor que el servidor. Si se actualiza Postgres, hay que definir `PG_MAJOR` con la versión nueva. El comando compara las versiones y falla con un mensaje claro si no calzan.
@@ -77,6 +82,8 @@ El primer lunes de cada mes: descargar la última copia, verificar el hash, rest
 | Logs | Panel de Railway (consola). `seguridad.log` solo si hay un volumen con `LOG_DIR` | |
 | Tareas | Panel de Railway: cada corrida de un servicio programado queda con su salida y su código de salida | Una corrida fallida queda en rojo |
 | Costo | Panel de Railway | Límite y alerta de gasto |
+| Voz | Deploy Logs: `ElevenLabs devolvió …` | Ninguna automática. 401 = clave mala; 404 = *voice ID* malo; 400 `free_users_not_allowed` o 402 `paid_plan_required` = voz que pide plan de pago; 402 `quota_exceeded` = sin créditos |
+| IP real | `/perfil/diagnostico-ip/`, solo personal | Revisar al cambiar algo delante de Railway (por ejemplo, poner Cloudflare como proxy) |
 
 `/salud/` prueba la base (`SELECT 1`) y la caché (escribir y leer una clave). Si algo falla, responde 503 con `degradado` y qué parte falló.
 
@@ -92,9 +99,10 @@ El primer lunes de cada mes: descargar la última copia, verificar el hash, rest
 | --- | --- |
 | Semanal | Revisar y fusionar los PR de Dependabot con el CI en verde |
 | Mensual | Simulacro de restauración. Revisar Sentry y los eventos `bloqueo` y `admin_denegado` en el admin |
-| Mensual | Revisar el consumo de la API de Anthropic y el tope diario del chat |
+| Mensual | Revisar el consumo de la API de Anthropic, el tope diario del chat y los créditos de ElevenLabs |
+| Trimestral | Volver a pasar SSL Labs y Mozilla Observatory, y actualizar `legal.REVISION_SEGURIDAD` y la tabla del `README.md` |
 | Trimestral | Revisar `docs/CARTOLAS-COBERTURA.md` y los formatos que fallaron (las muestras anónimas que hayan llegado) |
-| Anual | Rotar `SECRET_KEY` (cierra todas las sesiones y obliga a volver a vincular Face ID: avisar antes), las credenciales de R2 y las claves de API. Anotar la fecha de cada rotación |
+| Anual | Rotar `SECRET_KEY` (cierra todas las sesiones, obliga a volver a vincular Face ID y hace que todos los aparatos cuenten como nuevos: avisar antes), las credenciales de R2 y las claves de API, incluida la de ElevenLabs. Anotar la fecha de cada rotación |
 | Al cambiar la política | Subir `legal.VERSION` y `VIGENTE_DESDE`, avisar por correo a todos los usuarios antes de la fecha de vigencia y actualizar `docs/REGISTRO-TRATAMIENTOS.md` |
 
 ## Incidentes de seguridad
@@ -111,7 +119,7 @@ El historial registra un incidente: las claves de R2 publicadas en el historial 
 
 ## Soporte a usuarios
 
-- Canal: `soporte@perseustechnology.dev`. Ahí llegan también los formularios del chat de ayuda.
+- Canal: `soporte@perseustechnology.dev`. Ahí llegan también los formularios del chat de ayuda y los avisos de fallas de seguridad (`security.txt`).
 - Las solicitudes de derechos por escrito tienen un plazo de 30 días corridos.
 - Si el envío de correos está caído, la pantalla de recuperación dice que se escriba a soporte. El restablecimiento manual se hace con `railway run python manage.py changepassword <usuario>`, después de verificar la identidad por un canal propio.
 - Para investigar un problema de una cuenta se usan los eventos de seguridad y los logs. No se entra a la cuenta de la persona.

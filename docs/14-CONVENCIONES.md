@@ -21,8 +21,10 @@
 ## Plantillas, CSS y JavaScript
 
 - `<script>` siempre con `nonce="{{ csp_nonce }}"` y desde un archivo en `static/js/pantallas/`. Nada de JavaScript en línea ni de `onclick=`.
-- Nada de recursos de terceros (fuentes, CDN, analítica). Si hace falta una librería, se copia a `static/vendor/` con su licencia.
-- Colores y medidas con los tokens de `finapp.css`. Los estilos nuevos van en la sección de su pantalla (`docs/ESTILOS.md`).
+- Nada de recursos de terceros dentro de la app (fuentes, CDN, analítica). Si hace falta una librería, se copia a `static/vendor/` con su licencia. La medición de las páginas públicas pasa por `marketing.py` y su variable de entorno.
+- Colores y medidas con los tokens de `finapp.css`. Los estilos nuevos van en la sección de su pantalla (`docs/ESTILOS.md`) o en una hoja propia cargada después de `tema-vidrio.css`.
+- No se tocan las reglas de la franja de la barra de estado en `tema-vidrio.css` (ver [08](08-FRONTEND.md)).
+- Cada lote que cambia CSS o JS sube la versión de `sw.js`.
 - Texto que viene del usuario, de una cartola o de la IA: autoescape en la plantilla y `textContent` en JavaScript. Nunca `|safe` ni `innerHTML` con datos.
 - Todo control táctil de 44 px como mínimo. Respetar `prefers-reduced-motion`.
 
@@ -40,7 +42,7 @@
 ## Pruebas
 
 - Toda corrección de un error trae la prueba que lo habría detectado.
-- Toda vista nueva con datos queda cubierta por el aislamiento de `test_vistas.py` (un usuario no alcanza lo del otro).
+- Toda vista nueva con datos queda cubierta por el aislamiento de `test_vistas.py` y, si recibe un id, se suma a `DATOS` en `test_seguridad_80.py`.
 - Los servicios externos siempre simulados. Nunca una cartola ni un dato real en una prueba.
 - Detalle en [11 · Pruebas](11-PRUEBAS.md).
 
@@ -67,4 +69,5 @@
 - [ ] Probado en el teléfono (o con F12 en ancho de teléfono)
 - [ ] Sin scripts sin nonce ni recursos externos nuevos
 - [ ] Documentación actualizada si corresponde
-- [ ] Si toca datos personales: registro de tratamientos y política revisados
+- [ ] Si toca datos personales o suma un proveedor: registro de tratamientos, política y `legal.VERSION` revisados
+- [ ] Si cambia CSS o JS: versión de `sw.js` subida

@@ -170,6 +170,31 @@
   análisis y el plan siguen funcionando con los números del motor propio y nada
   sale del servidor.
 </p>
+<h3>La voz de la esfera</h3>
+<p>
+  En el teléfono, al tocar la esfera se escucha el resumen de la pantalla. La
+  voz la genera ElevenLabs a partir del texto, solo si el análisis con IA está
+  activado.
+</p>
+<div class="legal-par">
+  <div class="legal-par-si">
+    <div class="legal-par-etq"><i class="fas fa-arrow-up-right-from-square"></i>Lo que se envía, exactamente</div>
+    <p>La frase que muestra la esfera: el estado del mes, los montos de esa
+    pantalla y, en Me deben, los nombres de las personas y lo que te deben. La
+    primera vez que entras a Inicio, también el saludo con tu nombre y cómo
+    cambió tu estado.</p>
+  </div>
+  <div class="legal-par-no">
+    <div class="legal-par-etq"><i class="fas fa-lock"></i>Lo que no se envía</div>
+    <p>Tu correo, tu usuario, las descripciones de tus movimientos ni ningún
+    identificador de tu cuenta. El servidor solo acepta textos que él mismo
+    preparó para ti.</p>
+  </div>
+</div>
+<p>
+  El audio se guarda en el servidor 6 horas para no pedirlo dos veces. Se apaga
+  con el mismo interruptor de <em>Perfil → Análisis con IA</em>.
+</p>
 </section>
 
 <section id="chat">
@@ -250,6 +275,10 @@
     <p>Los agregados numéricos del análisis y los montos del plan para tu plata, si tienes el análisis con IA activado, y el texto de lo que escribas en el chat de ayuda</p>
   </div>
   <div class="legal-proveedor">
+    <div class="legal-proveedor-cabeza"><b>ElevenLabs</b><span class="legal-pais"><i class="fas fa-location-dot"></i>Estados Unidos</span></div>
+    <p>El texto que la esfera lee en voz alta, con montos, los nombres de quienes te deben y el nombre del saludo, si tienes el análisis con IA activado</p>
+  </div>
+  <div class="legal-proveedor">
     <div class="legal-proveedor-cabeza"><b>Google</b><span class="legal-pais"><i class="fas fa-location-dot"></i>Estados Unidos</span></div>
     <p>Tu identidad, solo si entras con cuenta de Google</p>
   </div>
@@ -286,7 +315,9 @@
   <tr><td>Copias de respaldo de la base</td><td>30 días</td></tr>
   <tr><td>Contadores de bloqueo temporal</td><td>Entre 15 minutos y 1 hora</td></tr>
   <tr><td>Conversación del chat de ayuda</td><td>No se guarda en el servidor</td></tr>
-  <tr><td>Contador de preguntas del chat por dirección IP</td><td>1 hora</td></tr>
+  <tr><td>Contador de preguntas del chat por dirección IP</td><td>Hasta 1 día</td></tr>
+  <tr><td>Audio de la voz de la esfera</td><td>6 horas</td></tr>
+  <tr><td>Aparatos desde los que entraste</td><td>Mientras la cuenta exista</td></tr>
   <tr><td>Correo y pregunta del formulario del chat</td><td>En el buzón de {{ correo_contacto }} hasta que se responda y se cierre la consulta</td></tr>
   <tr><td>Archivo de cartola subido</td><td>No se guarda</td></tr>
   <tr><td>Movimientos leídos de una cartola, mientras los revisas</td><td>En tu sesión hasta que confirmes o descartes, como máximo 8 horas</td></tr>
@@ -318,7 +349,7 @@
   <tr><td>Llevártelos a otro servicio</td><td>El mismo archivo, en formato JSON. También hay exportación a Excel y CSV</td></tr>
   <tr><td>Corregir lo que esté mal</td><td>Cada dato se edita desde su propia pantalla</td></tr>
   <tr><td>Borrarlos</td><td>Perfil → Seguridad → Eliminar mi cuenta</td></tr>
-  <tr><td>Oponerte al análisis y al plan con IA</td><td>Perfil → Análisis con IA, apagado</td></tr>
+  <tr><td>Oponerte al análisis, al plan y a la voz con IA</td><td>Perfil → Análisis con IA, apagado</td></tr>
   <tr><td>Oponerte al correo mensual</td><td>Perfil → Aviso mensual, apagado</td></tr>
   <tr><td>Reclamar</td><td>Escribe a {{ correo_contacto }}. Si no queda resuelto, puedes recurrir a la Agencia de Protección de Datos Personales</td></tr>
 </table>

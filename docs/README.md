@@ -1,24 +1,26 @@
 # Documentación de Fintora
 
-Referencia completa del proyecto: qué hace, cómo está construido, cómo se opera, cómo se protege y qué falta. Se escribió leyendo el código de `lordPobre/GestorFinanzas`, rama `main`, el 27 de septiembre de 2026. Si el código y este texto no coinciden, manda el código, y hay que corregir el texto.
+Referencia completa del proyecto: qué hace, cómo está construido, cómo se opera, cómo se protege y qué falta. Se escribió leyendo el código de `lordPobre/GestorFinanzas`, rama `main`, el 27 de septiembre de 2026, y se puso al día el 6 de octubre de 2026 con los lotes 28 a 83. Si el código y este texto no coinciden, manda el código, y hay que corregir el texto.
+
+Fintora y su código son propiedad de Carlos López Figueroa, titular de todos sus derechos. Desarrollada con asistencia de Claude (Anthropic).
 
 ## Capítulos
 
 | # | Capítulo | Qué contiene |
 | --- | --- | --- |
-| 01 | [Producto](01-PRODUCTO.md) | Qué es, para quién, funciones, diferenciales, estado y costos |
-| 02 | [Arquitectura](02-ARQUITECTURA.md) | Stack, estructura del repositorio, capas, recorrido de una petición, el cálculo del mes, configuración por entorno y límites |
-| 03 | [Modelo de datos](03-MODELO-DE-DATOS.md) | Los 20 modelos, sus campos, restricciones, cálculos y migraciones |
-| 04 | [Rutas, vistas y API interna](04-RUTAS-Y-VISTAS.md) | Las más de 80 rutas, con método, permisos, topes y respuestas JSON |
+| 01 | [Producto](01-PRODUCTO.md) | Qué es, para quién, funciones (con la esfera), diferenciales, estado y costos |
+| 02 | [Arquitectura](02-ARQUITECTURA.md) | Stack, estructura del repositorio, capas, recorrido de una petición, el cálculo del mes, la esfera y su voz, la medición de las páginas públicas, configuración por entorno y límites |
+| 03 | [Modelo de datos](03-MODELO-DE-DATOS.md) | Los 22 modelos, sus campos, restricciones, cálculos y migraciones |
+| 04 | [Rutas, vistas y API interna](04-RUTAS-Y-VISTAS.md) | Las más de 90 rutas, con método, permisos, topes y respuestas JSON |
 | 05 | [Cartolas](05-CARTOLAS.md) | Cómo se lee un extracto bancario, lectores por banco, enriquecimiento, cobertura y cómo agregar uno |
 | 06 | [Seguridad](06-SEGURIDAD.md) | Modelo de amenazas, acceso, aislamiento, CSP, topes, infraestructura y cómo verificar |
 | 07 | [Privacidad y cumplimiento](07-PRIVACIDAD-Y-CUMPLIMIENTO.md) | Ley 21.719: bases de licitud, derechos, plazos, encargados, IA y pendientes |
 | 08 | [Frontend](08-FRONTEND.md) | Plantillas, CSS y tokens, JavaScript, recorrido guiado y PWA |
 | 09 | [Instalación y despliegue](09-INSTALACION-Y-DESPLIEGUE.md) | Entorno local, todas las variables, Railway, dependencias, migraciones y cómo volver atrás |
 | 10 | [Operación](10-OPERACION.md) | Tareas programadas, respaldos y restauración, monitoreo, mantenimiento, incidentes y soporte |
-| 11 | [Pruebas](11-PRUEBAS.md) | CI, las 211 pruebas por archivo, lo que falta cubrir y cómo escribir una |
-| 12 | [Historial de decisiones](12-DECISIONES.md) | Cronología y las 19 decisiones que explican el código |
-| 13 | [Deuda técnica y hoja de ruta](13-DEUDA-TECNICA-Y-HOJA-DE-RUTA.md) | Errores, hallazgos de seguridad y cumplimiento, pendientes de infraestructura y el orden sugerido |
+| 11 | [Pruebas](11-PRUEBAS.md) | CI, las 419 pruebas por archivo, lo que falta cubrir y cómo escribir una |
+| 12 | [Historial de decisiones](12-DECISIONES.md) | Cronología y las 25 decisiones que explican el código |
+| 13 | [Deuda técnica y hoja de ruta](13-DEUDA-TECNICA-Y-HOJA-DE-RUTA.md) | Errores, la auditoría de seguridad de octubre, pendientes y el orden sugerido |
 | 14 | [Convenciones](14-CONVENCIONES.md) | Idioma, código, plantillas, URL, base, pruebas, git y la lista antes de fusionar |
 
 ## Anexos vivos
@@ -32,7 +34,7 @@ Documentos operativos que se actualizan con el uso y se leen en el momento:
 | [RESPALDOS.md](RESPALDOS.md) | Configuración del respaldo, restauración y registro del simulacro mensual |
 | [STAGING.md](STAGING.md) | Cómo montar y usar el entorno de pruebas |
 | [CARTOLAS-COBERTURA.md](CARTOLAS-COBERTURA.md) | Estado de cada emisor de cartolas |
-| [ESTILOS.md](ESTILOS.md) | Índice de secciones de `finapp.css` |
+| [ESTILOS.md](ESTILOS.md) | Índice de secciones de `finapp.css`. Las hojas que se cargan encima están en el capítulo 08 |
 | [AUDITORIA-SEGURIDAD.md](AUDITORIA-SEGURIDAD.md), [AUDITORIA-CUMPLIMIENTO-2026.md](AUDITORIA-CUMPLIMIENTO-2026.md) | Auditorías de septiembre de 2026, conservadas como evidencia fechada. No se reescriben: lo que siga abierto está en el capítulo 13 |
 
 ## Por dónde empezar según quién eres
@@ -70,4 +72,4 @@ Se revisaron uno por uno los 16 archivos que había en `docs/` y la copia de `DE
 
 ## Versión en PDF
 
-`Documentacion Fintora.pdf` reúne los 14 capítulos con portada e índice. Se genera desde estos mismos archivos, así que ante cualquier diferencia manda el Markdown.
+`Documentacion Fintora.pdf` reúne los 14 capítulos con portada e índice. Es de la versión del 27 de septiembre: hay que regenerarlo con esta. Se genera desde estos mismos archivos, así que ante cualquier diferencia manda el Markdown.

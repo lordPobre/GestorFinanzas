@@ -25,7 +25,10 @@ User ─┬─ 1:1 ─ UserProfile
       ├─ 1:N ─ Passkey
       ├─ 1:N ─ RespuestaEncuesta
       ├─ 1:N ─ SugerenciaDescartada
+      ├─ 1:N ─ DispositivoConocido
       └─ 0:N ─ EventoSeguridad (SET_NULL: sobrevive al borrado de la cuenta)
+
+Contador (sin FK: la clave identifica usuario, IP o correo)
 ```
 
 ## Movimientos (`models/movimientos.py`)
@@ -224,7 +227,8 @@ Uno por usuario (`related_name='profile'`). Se crea en el registro. Si falta, la
 | Foto | `foto`: `ImageField` en `avatares/{usuario_id}/{8 hex}.{ext}`, sobre el almacenamiento de `almacenamiento.py` (disco o R2) |
 | Aviso mensual | `aviso_mensual` (on por defecto), `aviso_dia` (20), `aviso_ultimo_periodo` |
 | IA | `analisis_ia` (on por defecto) |
-| Correo | `correo_verificado`, `correo_verificado_en` |
+| Correo | `correo_verificado`, `correo_verificado_en`. `email_pendiente` y `email_pendiente_desde`: el correo nuevo mientras no se confirma (48 h) |
+| Esfera | `esfera_estado_visto` (12): el estado de Inicio que la persona vio la última vez que entró |
 | Consentimiento | `politica_version`, `politica_aceptada` |
 | Inactividad | `ultima_actividad`, `aviso_inactividad_enviado` |
 
@@ -244,6 +248,14 @@ Ocho códigos de 8 caracteres con el formato `XXXX-XXXX`, de un alfabeto sin car
 
 Una fila por sesión abierta: `clave` (session key, única), `ip`, `agente`, `creada` y `ultima_vez`. Es lo que permite listar los aparatos y cerrar sesiones a distancia. `navegador`, `sistema`, `aparato` e `icono` se deducen del *user agent*.
 
+### `DispositivoConocido`
+
+Un aparato desde el que se entró: `usuario`, `huella` (64, derivada de la cookie firmada `fintora_aparato`), `agente`, `creado` y `ultima_vez`. La restricción `dispositivo_unico` hace único `(usuario, huella)`. Si alguien entra desde un aparato que no está y la cuenta ya tenía otro, se manda un aviso por correo y queda el evento `dispositivo_nuevo`. Lo maneja `aparatos.py`.
+
+### `Contador`
+
+Contadores de intentos y de topes de peticiones: `clave` (200, única), `cuenta` y `vence` (con índice). `seguridad.py` suma con `F()` dentro de la base, así que dos workers no pierden intentos. Las IPv6 se agrupan por /64. `limpieza_diaria` borra los vencidos.
+
 ### `Passkey`
 
 Credenciales WebAuthn (Face ID, huella, llave de seguridad): `credencial_id` (única), `clave_publica`, `contador` de firmas, `nombre` que pone el usuario, `creada` y `ultimo_uso`. No se guarda ningún dato biométrico.
@@ -255,7 +267,7 @@ Registro de auditoría. Es de solo lectura en el admin: no se puede crear, edita
 | Campo | Notas |
 | --- | --- |
 | `creado` | Índice |
-| `tipo` | Índice. 19 tipos: `acceso`, `acceso_fallido`, `salida`, `bloqueo`, `codigo_fallido`, `2fa_activada`, `2fa_desactivada`, `codigos_regenerados`, `codigo_respaldo_usado`, `passkey_agregada`, `passkey_quitada`, `passkey_fallida`, `contrasena_cambiada`, `recuperacion_pedida`, `contrasena_restablecida`, `sesiones_cerradas`, `datos_descargados`, `cuenta_eliminada`, `admin_denegado` |
+| `tipo` | Índice. 23 tipos: `acceso`, `acceso_fallido`, `salida`, `bloqueo`, `codigo_fallido`, `2fa_activada`, `2fa_desactivada`, `codigos_regenerados`, `codigo_respaldo_usado`, `passkey_agregada`, `passkey_quitada`, `passkey_fallida`, `contrasena_cambiada`, `recuperacion_pedida`, `contrasena_restablecida`, `sesiones_cerradas`, `datos_descargados`, `cuenta_eliminada`, `admin_denegado`, `correo_cambio_pedido`, `correo_cambiado`, `dispositivo_nuevo`, `sesion_vencida` |
 | `usuario` | FK User, **SET_NULL**: el evento sobrevive al borrado de la cuenta |
 | `referencia` | Nombre de usuario o correo escrito, con índice. Permite rastrear los eventos después del borrado |
 | `ip`, `agente`, `detalle` | |
@@ -270,12 +282,12 @@ Se conserva 12 meses (ver [10 · Operación](10-OPERACION.md)).
 
 ## Tablas que no son modelos
 
-- **Caché** `cache_finapp`: con Postgres, la crea `createcachetable` (está en el `preDeployCommand` de Railway). Guarda los contadores de intentos fallidos, los topes de peticiones, el cupo diario del chat y las URL firmadas de las fotos.
-- **Sesiones** de Django (`django_session`): 8 horas, renovadas en cada petición.
+- **Caché** `cache_finapp`: con Postgres, la crea `createcachetable` (está en el `preDeployCommand` de Railway). Guarda los meses cerrados, las URL firmadas de las fotos y el audio de la voz de la esfera (6 horas). Los contadores de intentos y de topes pasaron a la tabla `Contador` en el lote 78.
+- **Sesiones** de Django (`django_session`): 8 horas sin uso, renovadas en cada petición, con un máximo de 7 días desde que se entró (`SESION_MAXIMA_HORAS`).
 
 ## Migraciones
 
-35 migraciones en `finanzas/migrations/`. La numeración salta de `0016` a `0100` a propósito: la `0100_pagocuota` inició el modelo de pagos por periodo y marca un corte con el esquema original. Desde ahí se agrega una por cambio:
+37 migraciones en `finanzas/migrations/`. La numeración salta de `0016` a `0100` a propósito: la `0100_pagocuota` inició el modelo de pagos por periodo y marca un corte con el esquema original. Desde ahí se agrega una por cambio:
 
 | Migración | Qué agrega |
 | --- | --- |
@@ -296,5 +308,7 @@ Se conserva 12 meses (ver [10 · Operación](10-OPERACION.md)).
 | 0116 | `Transaccion.suscripcion` y vínculo de los cobros existentes por su descripción |
 | 0117 | Crea los `PagoCuota` que faltaban en deudas importadas desde cartolas y recalcula `cuotas_pagadas` |
 | 0118 | `SugerenciaDescartada` |
+| 0119 | `Contador`, `DispositivoConocido`, `UserProfile.email_pendiente` y `email_pendiente_desde`, y cuatro tipos nuevos de `EventoSeguridad` |
+| 0120 | `UserProfile.esfera_estado_visto` |
 
 El CI corre `makemigrations --check`: un cambio de modelo sin su migración deja el build en rojo.

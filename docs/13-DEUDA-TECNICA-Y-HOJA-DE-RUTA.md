@@ -1,6 +1,6 @@
 # 13 · Deuda técnica y hoja de ruta
 
-Lo que queda por mejorar y lo que resolvió la entrega de arreglos del 28 de septiembre de 2026. Todo sale de la lectura del código de `main` de esa fecha.
+Lo que queda por mejorar y lo que se resolvió: la entrega de arreglos del 28 de septiembre de 2026 y la auditoría de seguridad de octubre (lotes 77 a 80). Actualizado el 6 de octubre de 2026 con los lotes hasta el 83.
 
 ## Resuelto en la entrega de arreglos
 
@@ -31,6 +31,30 @@ Lo que queda por mejorar y lo que resolvió la entrega de arreglos del 28 de sep
 | D3 | `Prestamo` y `Persona` calculaban con `float` | `Decimal`, con la cuota redondeada al peso como en `Deuda` |
 | D4 | `Deuda.cuotas_pagadas` se mantenía a mano en cada vista | Lo actualiza una señal de `PagoCuota` |
 
+## Resuelto en la auditoría de seguridad de octubre
+
+| # | Qué era | Cómo quedó | Lote |
+| --- | --- | --- | --- |
+| SA1 | `/\malo.com` pasaba el filtro de `next` | `redirecciones.py` en todos los `next` | 77 |
+| SA2 | Una descripción como `=HYPERLINK(...)` se exportaba como fórmula | `'` delante en el CSV, texto en el Excel | 77 |
+| SA3 | Un `.xlsx` comprimido malicioso podía agotar la memoria | Revisión del zip antes de abrirlo y `defusedxml` | 77, 79 |
+| SA4 | Atrás mostraba la app después de salir | `no-store` con sesión, `Clear-Site-Data` al salir y recarga en Safari | 77, 77b |
+| SA5 | Sentry podía recibir formularios y cookies | Solo cuatro cabeceras y tokens ocultos en la URL | 77 |
+| SA6 | `/analisis/ia/` aceptaba GET | Solo POST con CSRF | 77 |
+| SA7 | El admin no exigía 2FA | Obligatoria, revisada en cada página | 77 |
+| SB1 | Cambiar el correo no pedía la contraseña | Reautenticación, enlace al correo nuevo y aviso al anterior | 78 |
+| SB2 | Los contadores podían perder intentos entre workers y las IPv6 los saltaban | Tabla `Contador` y agrupación /64 | 78 |
+| SB3 | Una sesión usada a diario no vencía nunca | Máximo de 7 días | 78 |
+| SB4 | No se avisaba de un acceso desde un aparato nuevo | Cookie `fintora_aparato` y correo | 78 |
+| SC1 | Las sesiones vencidas se acumulaban y viajaban en el respaldo | `limpieza_diaria` y respaldo sin sus datos | 79 |
+| SC2 | Cookies sin prefijo y sitio accesible por varios nombres | `__Host-` y dominio canónico | 79, 79b |
+| SC3 | No se buscaban secretos en el historial | Gitleaks en el CI | 79 |
+| SD1 | Un `NaN` en un monto daba error 500 | `monto_post` lo rechaza | 80 |
+| SD2 | Un doble toque podía pagar dos veces | Transacción con bloqueo de fila | 80 |
+| SD3 | El registro decía si un correo tenía cuenta | Respuesta igual y aviso por correo | 80 |
+| SD4 | Las fotos guardaban la ubicación del EXIF | Se vuelven a guardar sin EXIF | 80 |
+| SD5 | Google sin PKCE ni `nonce` | Agregados | 80 |
+
 ## Pendiente
 
 | # | Qué | Por qué importa |
@@ -42,15 +66,18 @@ Lo que queda por mejorar y lo que resolvió la entrega de arreglos del 28 de sep
 | D9 | La lectura de una cartola ocurre dentro de la petición, con el límite de 60 s de gunicorn | Los topes evitan que se cuelgue, pero una cartola cerca del tope puede cortarse. Pasarla a una cola (`django-q2` sobre Postgres, con un segundo servicio que corra `qcluster`) cuando los registros muestren cortes reales |
 | D10 | Las reglas ampliadas de `ruff` (S, B, DJ, UP) solo informan | Revisar el resumen del trabajo `estilo-ampliado`, corregir por familia y moverlas a `select` en `pyproject.toml` |
 | D11 | La cobertura mínima está en 55 % | Subirla al valor real, redondeado hacia abajo, y después 5 puntos por lote |
-| D12 | `finapp.css` (unos 165 KB) tiene los ajustes de teléfono de varias pantallas agrupados en la sección de la barra inferior | Funciona, pero mover reglas puede cambiar cuál gana. Reordenar una sección a la vez, comparando capturas (ver `docs/ESTILOS.md`) |
+| D12 | `finapp.css` (unos 165 KB) tiene los ajustes de teléfono de varias pantallas agrupados en la sección de la barra inferior, y encima van `tema-vidrio.css` y diez hojas por pantalla | Funciona, pero el orden de carga decide qué regla gana (el lote 70 lo sufrió). Reordenar una sección a la vez, comparando capturas (ver `docs/ESTILOS.md`) |
+| D13 | `style-src 'unsafe-inline'` sigue en la CSP | Quitarlo exige mover a archivos los estilos escritos en las plantillas |
+| D14 | Un registro nuevo entra a la app y uno con correo repetido vuelve al acceso | Esa diferencia todavía deja adivinar si un correo tiene cuenta. Cerrarla exige confirmar el correo antes de crear la cuenta |
+| D15 | DNSSEC y la inscripción en HSTS *preload* | DNSSEC se activa en Cloudflare y en Registrar.eu. El *preload* es difícil de revertir: solo cuando todos los subdominios funcionen por HTTPS |
+| D16 | La voz depende del plan de ElevenLabs | El plan gratuito no permite uso comercial ni voces de Voice Library. En producción hace falta un plan de pago, y su DPA (C5 en [07](07-PRIVACIDAD-Y-CUMPLIMIENTO.md#pendientes-de-cumplimiento)) |
+| D17 | `esfera_salud.py` y `esfera.py` calculan el color de Inicio por separado | Hoy usan los mismos tramos. Si uno cambia, el otro tiene que cambiar igual |
 
 ## Hoja de ruta sugerida
 
-**Antes del 1 de octubre:** aplicar la entrega de arreglos, menos la política, y apuntar las tareas de Railway a sus archivos.
+**Antes del 20 de octubre:** enviar el aviso de la política 1.5, contratar el plan de ElevenLabs y guardar su DPA (C4, C5 y D16), y apuntar `railway/limpieza.json` en su servicio.
 
-**1 de octubre:** desplegar la política 1.3 y enviar el aviso.
-
-**Este mes:** D10 y D11, que solo piden leer lo que el CI ya reporta, y las pruebas de JavaScript (D7) para el chat y el tour.
+**Este mes:** D10 y D11, que solo piden leer lo que el CI ya reporta, las pruebas de JavaScript (D7) para el chat, el tour y la esfera, y DNSSEC (D15).
 
 **Siguiente trimestre:**
 

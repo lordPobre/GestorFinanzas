@@ -17,6 +17,13 @@ Las decisiones de diseño que explican por qué el código es como es, en orden 
 | Sep. 2026 | Django 5.2 LTS y `STORAGES` (los estáticos vuelven a servirse con hash y comprimidos) |
 | 27 sep. 2026 | Landing pública, preguntas frecuentes, chat de ayuda con IA, rediseño de privacidad y términos. Cambio de nombre a **Fintora** |
 | 29–30 sep. 2026 | Rediseño en vidrio (lotes 13 a 27). Inicio con botones Gastos, Ingresos y Puedes gastar; editar y borrar movimientos; Plan ordenado por pasos con **simulador de cuotas**; aviso de **ritmo de gasto**; **suscripciones sugeridas**; Face ID solo en celular y tablet; nueva lista de movimientos |
+| Oct. 2026 | Lotes 29 a 39: franja de la barra de estado solo al hacer scroll, Me deben siempre en verde, teléfono de la portada con cuatro pantallas, correos oscuros como la app, íconos de línea en el acceso |
+| Oct. 2026 | Lotes 40 a 45: **la esfera** en Inicio, Cuotas, Me deben, Suscripciones y Metas, con voz del navegador, en la portada y en el tour |
+| Oct. 2026 | Lotes 46 a 49: páginas de error propias, SSL Labs **A+** y Observatory **A**, página `/seguridad/`, `security.txt` y Actividad de la cuenta |
+| 1 oct. 2026 | Lotes 50 a 55: proyección de ahorro y depósito a plazo en el Plan, saludo con cielo animado, SEO, analítica y píxeles solo en las páginas públicas (**política 1.4**) y evento de registro |
+| Oct. 2026 | Lotes 56 a 76: auditoría visual pantalla por pantalla, con una prueba por pantalla; esfera en la barra lateral del computador |
+| Oct. 2026 | Lotes 77 a 80: **auditoría de seguridad**, en cuatro partes (A a D). Migración 0119 |
+| Oct. 2026 | Lotes 81 a 83: la esfera saluda al entrar (migración 0120) y habla solo con **ElevenLabs**; propiedad intelectual en los términos y en la portada |
 
 ## Decisiones vigentes
 
@@ -66,6 +73,8 @@ Las decisiones de diseño que explican por qué el código es como es, en orden 
 
 **Por qué:** privacidad (ningún tercero ve qué pantallas abre una persona) y una CSP cerrada. Hay pruebas que lo verifican.
 
+**Desde el lote 52** vale para la app. Las páginas públicas pueden medir visitas (ver D-23).
+
 ### D-08 · No cifrar las descripciones a nivel de campo
 
 **Qué:** `cifrado.py` (un `TextField` cifrado con Fernet) se eliminó el 19 de septiembre de 2026 sin haberse aplicado nunca.
@@ -85,7 +94,7 @@ Las decisiones de diseño que explican por qué el código es como es, en orden 
 
 **Qué:** `DatabaseCache` en la tabla `cache_finapp`, creada con `createcachetable` en cada despliegue.
 
-**Por qué:** con varios workers de gunicorn, `LocMemCache` hace que cada proceso lleve su propia cuenta de intentos fallidos y el tope se multiplica por la cantidad de workers. La base ya existe, así que Redis sería un servicio más que pagar y mantener.
+**Por qué:** con varios workers de gunicorn, `LocMemCache` hace que cada proceso lleve su propia cuenta y el tope se multiplica por la cantidad de workers. **Desde el lote 78** los contadores tienen su propia tabla (D-22): la caché queda para lo que se puede perder. La base ya existe, así que Redis sería un servicio más que pagar y mantener.
 
 ### D-10 · Topes de acceso por usuario, por cuenta y por IP a la vez
 
@@ -155,6 +164,46 @@ El prefijo de los respaldos de Postgres y los nombres del CI ya pasaron a `finto
 ### D-19 · Migraciones sin renumerar
 
 El salto de `0016` a `0100` es inofensivo y renumerar rompería las bases existentes. Tampoco se separan los modelos en otra app: exigiría migraciones entre apps a cambio de poco.
+
+### D-20 · La esfera habla solo con ElevenLabs
+
+**Qué:** el audio lo genera ElevenLabs en el servidor. No hay respaldo en la voz del teléfono: si el audio no llega, la esfera lo avisa en pantalla.
+
+**Por qué:** la voz del navegador cambia según el aparato, el idioma instalado y el sistema. Mezclarla con la de ElevenLabs hacía que la misma app hablara con voces distintas. Una sola voz se reconoce como la de Fintora.
+
+**Costo:** sin ElevenLabs configurado, o con la IA apagada, la esfera no habla. El audio se pide al abrir la esfera para que suene en el mismo toque, que es lo que exige el iPhone.
+
+**Revisar si:** el gasto en créditos se vuelve relevante. La caché de 6 horas ya evita pagar dos veces la misma frase.
+
+### D-21 · Textos firmados para la voz
+
+**Qué:** la vista de voz no recibe texto libre. Solo acepta textos que el servidor firmó para esa persona al dibujar la pantalla, con menos de 24 horas. El nombre del saludo viaja igual.
+
+**Por qué:** una ruta que lee en voz alta lo que le manden sirve para gastar los créditos o para que ElevenLabs lea cualquier cosa con la marca de Fintora. Firmar evita guardar los textos y no exige estado extra.
+
+### D-22 · Contadores en una tabla propia
+
+**Qué:** los intentos fallidos y los topes de `limitar` viven en `Contador`, con sumas dentro de una transacción que bloquea la fila. Las IPv6 se agrupan por /64.
+
+**Por qué:** la caché en la base leía, sumaba y escribía en tres pasos: dos workers podían perder un intento. Con una dirección IPv6 nueva por petición, el tope por IP no servía.
+
+### D-23 · Medición solo en las páginas públicas y con consentimiento
+
+**Qué:** Plausible (sin cookies) y, con el aviso de cookies aceptado, Google Analytics y los píxeles de Meta, TikTok y X, solo en la portada, las legales, entrar y registro. Cada uno se activa con su variable. Dentro de la app no se carga nada.
+
+**Por qué:** para crecer hace falta medir de dónde llega la gente, pero la app guarda datos financieros: ningún tercero tiene que ver qué pantallas abre alguien con sesión.
+
+### D-24 · Cookies `__Host-` y un solo dominio
+
+**Qué:** las cookies de sesión y CSRF llevan el prefijo `__Host-`, y toda visita por otro nombre se redirige a `DOMINIO_CANONICO`.
+
+**Por qué:** el prefijo impide que un subdominio fije o pise la sesión. Un solo dominio evita sesiones partidas y que el sitio se indexe con el nombre de Railway.
+
+### D-25 · El registro no revela qué correos tienen cuenta
+
+**Qué:** si el correo ya existe, la página responde lo mismo y el aviso llega por correo a esa dirección.
+
+**Por qué:** sin esto, el registro servía para averiguar si alguien usa Fintora. Queda la diferencia de destino (D14 en [13](13-DEUDA-TECNICA-Y-HOJA-DE-RUTA.md)).
 
 ## Procedimientos históricos
 

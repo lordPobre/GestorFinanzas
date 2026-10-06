@@ -103,19 +103,19 @@ Inventario de qué dato personal trata la aplicación, con qué finalidad, dónd
 
 | | |
 | --- | --- |
-| Datos | Por sesión: identificador, IP, navegador, fecha de inicio y de última actividad. Por contador: IP y usuario, con la cantidad de intentos |
-| Finalidad | Que el titular vea y cierre sus sesiones. Bloqueo temporal: 5 fallos del mismo usuario desde la misma IP (15 minutos), 20 contra una misma cuenta desde cualquier IP (1 hora) o 50 desde una misma IP contra cualquier cuenta (1 hora) |
+| Datos | Por sesión: identificador, IP, navegador, fecha de inicio y de última actividad. Por contador: IP (las IPv6, como red /64), usuario o correo, con la cantidad de intentos. Por aparato conocido: una huella derivada de la cookie `fintora_aparato` y el navegador |
+| Finalidad | Que el titular vea y cierre sus sesiones, y que reciba un aviso si alguien entra desde un aparato nuevo. Bloqueo temporal: 5 fallos del mismo usuario desde la misma IP (15 minutos), 20 contra una misma cuenta desde cualquier IP (1 hora) o 50 desde una misma IP contra cualquier cuenta (1 hora) |
 | Base de licitud | Seguridad del tratamiento |
-| Dónde | Postgres (`finanzas_sesionactiva`, `django_session`, tabla de caché `cache_finapp`) |
-| Conservación | Sesiones: 8 horas desde la última actividad, o hasta que se cierran. Contadores: 15 minutos a 1 hora, expiran solos |
+| Dónde | Postgres (`finanzas_sesionactiva`, `django_session`, `finanzas_contador`, `finanzas_dispositivoconocido`) |
+| Conservación | Sesiones: 8 horas desde la última actividad y 7 días como máximo, o hasta que se cierran. Contadores: 15 minutos a 1 día; `limpieza_diaria` borra los vencidos. Aparatos: mientras exista la cuenta. Las copias de respaldo no llevan los datos de sesiones ni de contadores |
 
 ## 10. Correos de la cuenta y aviso mensual
 
 | | |
 | --- | --- |
-| Datos | Correo del titular. Según el caso: enlace de confirmación, enlace de recuperación, aviso de inactividad o resumen de cobros del mes |
-| Finalidad | Confirmar el correo, recuperar el acceso, cumplir el plazo de conservación y recordar los cobros por vencer |
-| Base de licitud | Ejecución del servicio. El aviso mensual, consentimiento: se activa y desactiva desde el perfil |
+| Datos | Correo del titular. Según el caso: enlace de confirmación, enlace de recuperación, aviso de inactividad, resumen de cobros del mes, aviso de acceso desde un aparato nuevo (navegador y sistema), enlace para confirmar un correo nuevo y aviso al anterior, o aviso de registro con un correo que ya tiene cuenta |
+| Finalidad | Confirmar el correo, recuperar el acceso, cumplir el plazo de conservación, recordar los cobros por vencer y avisar de cambios de seguridad en la cuenta |
+| Base de licitud | Ejecución del servicio. El aviso mensual, consentimiento: se activa y desactiva desde el perfil. Los avisos de seguridad, interés legítimo en la seguridad |
 | Dónde | Se entrega a Resend por API HTTPS |
 | Conservación | La que aplique el proveedor a su registro de envíos |
 
@@ -185,6 +185,29 @@ Inventario de qué dato personal trata la aplicación, con qué finalidad, dónd
 | Dónde | Se envía por Resend al buzón de soporte@perseustechnology.dev. No se guarda en la base |
 | Conservación | En el buzón de soporte hasta responder y cerrar la consulta |
 
+## 17. Voz de la esfera
+
+| | |
+| --- | --- |
+| Datos enviados | La frase de la esfera de la pantalla (estado del mes, montos, y en Me deben los nombres de las personas y lo que deben, hasta 5). En la primera visita después de entrar, además el saludo con el nombre del titular y el cambio de estado |
+| Datos que NO se envían | Correo, nombre de usuario, identificadores, descripciones de movimientos |
+| Finalidad | Leer en voz alta el resumen de la pantalla |
+| Base de licitud | Consentimiento, con el mismo interruptor del análisis con IA (`UserProfile.analisis_ia`). Apagado, la pantalla no trae textos firmados y la vista responde 403 |
+| Dónde | API de ElevenLabs, Estados Unidos. El audio, en la caché de Postgres |
+| Conservación | El audio, 6 horas. `UserProfile.esfera_estado_visto`, mientras exista la cuenta. En ElevenLabs, la que aplique el proveedor |
+| Verificable en | `finanzas/voz.py`, `finanzas/views/voz.py`, `finanzas/templatetags/voz.py`, `finanzas/servicios/esfera.py` |
+
+## 18. Medición en las páginas públicas
+
+| | |
+| --- | --- |
+| Datos | Visita a la portada, las páginas legales, entrar o registro: página, origen, aparato. Con consentimiento, las cookies de Google Analytics y de los píxeles de Meta, TikTok y X, y el evento de registro (sin correo, nombre ni montos) |
+| Finalidad | Saber de dónde llegan las personas y medir los anuncios |
+| Base de licitud | Plausible, sin cookies: interés legítimo. El resto: consentimiento en el aviso de cookies, revocable desde «Cookies» en el pie |
+| Dónde | Plausible (Unión Europea), Google, Meta, TikTok y X. Nada dentro de la app |
+| Conservación | La que aplique cada proveedor. La decisión de cookies, en el navegador |
+| Verificable en | `finanzas/marketing.py`, `static/js/consentimiento.js`, `finanzas/tests/test_seo.py`, `finanzas/tests/test_evento_registro.py` |
+
 ---
 
 ## Encargados del tratamiento y transferencias internacionales
@@ -198,7 +221,10 @@ Todos los proveedores están fuera de Chile, lo que constituye transferencia int
 | Resend | Correo del titular y contenido de los correos de la cuenta y del aviso; correo y pregunta del formulario de contacto | Estados Unidos | DPA prefirmado por Resend, vigente desde el alta de la cuenta; copia firmada descargada el 2026-09-23 |
 | Anthropic | Agregados numéricos del análisis; texto del chat de ayuda | Estados Unidos | DPA incorporado a los Commercial Terms, revisados y descargados el 2026-09-23 |
 | Google | Identidad al entrar con cuenta de Google | Estados Unidos | Términos del servicio de identidad |
+| ElevenLabs | Texto que lee la esfera: montos, nombres de las personas de Me deben y, al entrar, el nombre del saludo | Estados Unidos | Por documentar: descargar el DPA al contratar el plan de pago |
 | Sentry (si `SENTRY_DSN` está activo) | Errores de la aplicación, sin datos personales (`send_default_pii=False`) | Estados Unidos | Por documentar |
+| Plausible (si `PLAUSIBLE_DOMINIO` está activo) | Visitas a las páginas públicas, sin cookies | Unión Europea | Términos del servicio |
+| Google Analytics, Meta, TikTok, X (si su variable está activa) | Visitas a las páginas públicas y el evento de registro, con consentimiento | Estados Unidos e internacional | Términos de cada plataforma |
 
 ## Plazos de conservación
 
@@ -208,8 +234,11 @@ Todos los proveedores están fuera de Chile, lo que constituye transferencia int
 | Cuenta sin ningún acceso | Aviso a los 12 meses, borrado 30 días después | Aplicado: tarea diaria `limpiar_inactivas` |
 | Registros de seguridad | 12 meses | Aplicado: purgado por `limpiar_inactivas` |
 | Respaldos de la base | 30 días | Aplicado: rotación de `respaldar_postgres` |
-| Contadores de bloqueo y del chat | 15 minutos a 1 hora | Aplicado: expiran solos |
-| Sesiones | 8 horas desde la última actividad | Aplicado |
+| Contadores de bloqueo y del chat | 15 minutos a 1 día | Aplicado: tabla `Contador` y `limpieza_diaria` |
+| Sesiones | 8 horas desde la última actividad, 7 días como máximo | Aplicado: `SesionAbsolutaMiddleware` y `limpieza_diaria` |
+| Aparatos conocidos | Mientras la cuenta exista | Aplicado: borrado en cascada |
+| Correo nuevo sin confirmar | 48 horas | Aplicado: el enlace vence |
+| Audio de la voz de la esfera | 6 horas | Aplicado: caché |
 | Archivo de cartola | No se guarda | Aplicado |
 | Lo leído de una cartola | Hasta 8 horas, en la sesión | Aplicado; se declara en la política 1.3 |
 | Conversación del chat | No se guarda | Aplicado |
