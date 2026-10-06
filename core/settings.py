@@ -211,6 +211,10 @@ CORREO_EN_STAGING = os.environ.get('CORREO_EN_STAGING', '').lower() in ('1', 'tr
 GOOGLE_CLIENT_ID = os.environ.get('GOOGLE_CLIENT_ID', '')
 GOOGLE_CLIENT_SECRET = os.environ.get('GOOGLE_CLIENT_SECRET', '')
 
+VAPID_PRIVADA = os.environ.get('VAPID_PRIVADA', '').strip()
+VAPID_CONTACTO = (os.environ.get('VAPID_CONTACTO', '').strip()
+                  or 'mailto:soporte@perseustechnology.dev')
+
 SESSION_COOKIE_AGE = 60 * 60 * 8
 SESION_MAXIMA_HORAS = int(os.environ.get('SESION_MAXIMA_HORAS', '168'))
 SESSION_SAVE_EVERY_REQUEST = True

@@ -149,6 +149,31 @@ def esfera_me_deben(usuario, personas, simbolo='$'):
     return {'estado': 'amarillo', 'etiqueta': 'Por cobrar', 'texto': texto, 'frase': frase}
 
 
+def esfera_debo(usuario, personas, simbolo='$'):
+    acreedores = sorted((p for p in personas if p.total_pendiente > 0),
+                        key=lambda p: p.total_pendiente, reverse=True)
+    if not acreedores:
+        texto = 'No le debes plata a nadie.'
+        return {'estado': 'verde', 'etiqueta': 'No debes nada', 'texto': texto, 'frase': texto}
+
+    total = sum(float(p.total_pendiente) for p in acreedores)
+    mes = sum(float(p.cobro_del_mes) for p in acreedores)
+    n = len(acreedores)
+    texto = (f'Le debes {money(total, simbolo)} a {n} {_plural(n, "persona", "personas")}. '
+             f'Este mes pagas {money(mes, simbolo)}.')
+
+    partes = [f'A {p.nombre} le debes {_hablado(p.total_pendiente, usuario)}'
+              for p in acreedores[:MAX_PERSONAS_HABLADAS]]
+    resto = n - len(partes)
+    detalle = '. '.join(partes) + '.'
+    if resto:
+        detalle += f' Y {resto} {_plural(resto, "persona más", "personas más")}.'
+    frase = (f'Debes {_hablado(total, usuario)} en total. Este mes te toca pagar '
+             f'{_hablado(mes, usuario)}. {detalle}')
+
+    return {'estado': 'amarillo', 'etiqueta': 'Por pagar', 'texto': texto, 'frase': frase}
+
+
 MAX_SUSCRIPCIONES_HABLADAS = 8
 
 

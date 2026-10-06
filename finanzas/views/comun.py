@@ -9,6 +9,7 @@ from ..forms import TransaccionForm
 from ..models import Categoria, Deuda, Persona, Suscripcion, UserProfile
 from ..redirecciones import destino_seguro
 from ..servicios.mes import salud_financiera
+from ..servicios.topes import topes_para_anotar
 
 
 def get_or_create_profile(user):
@@ -58,7 +59,8 @@ def texto_post(request, campo, modelo, nombre_campo=None, defecto=''):
 def contadores(usuario, resumen_actual=None):
     cuotas_activas = Deuda.objects.filter(
         usuario=usuario, cuotas_pagadas__lt=F('cuotas_totales')).count()
-    personas = Persona.objects.filter(usuario=usuario).prefetch_related('prestamos__abonos')
+    personas = (Persona.objects.filter(usuario=usuario, lado='ME_DEBE')
+                .prefetch_related('prestamos__abonos'))
     prestamos_activos = sum(len(p.prestamos_activos) for p in personas)
     total_por_cobrar = round(sum(p.total_pendiente for p in personas))
     hoy = date.today()
@@ -75,6 +77,8 @@ def contadores(usuario, resumen_actual=None):
         'cats_ingreso': Categoria.opciones(usuario, 'INGRESO'),
         'cats_egreso_json': [list(c) for c in Categoria.opciones(usuario, 'EGRESO')],
         'cats_ingreso_json': [list(c) for c in Categoria.opciones(usuario, 'INGRESO')],
+
+        'topes_json': topes_para_anotar(usuario, hoy),
 
         'subs_pendientes': sum(
             1 for s in Suscripcion.objects.filter(usuario=usuario, activa=True)

@@ -49,6 +49,13 @@ class UserProfile(models.Model):
 
     analisis_ia = models.BooleanField(default=True)
 
+    push_vence     = models.BooleanField(default=True)
+    push_dia_antes = models.BooleanField(default=True)
+    push_topes     = models.BooleanField(default=False)
+    push_resumen   = models.BooleanField(default=False)
+    push_montos    = models.BooleanField(default=False)
+    push_ultimo_dia = models.DateField(null=True, blank=True)
+
     esfera_estado_visto = models.CharField(max_length=12, blank=True)
 
     correo_verificado = models.BooleanField(default=False)

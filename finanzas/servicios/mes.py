@@ -6,7 +6,7 @@ from decimal import Decimal
 from django.core.cache import cache
 from django.db.models import Sum
 
-from ..models import Deuda, Suscripcion, Transaccion
+from ..models import Deuda, Prestamo, Suscripcion, Transaccion
 
 MESES_LARGOS = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio',
                 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre']
@@ -98,6 +98,16 @@ def resumen_mes(usuario, year, month):
         else:
             servicios_pendientes += monto
 
+    debo_pagado = cero
+    debo_pendiente = cero
+    es_actual = (year, month) == (hoy.year, hoy.month)
+    for pr in Prestamo.objects.filter(persona__usuario=usuario,
+                                      persona__lado='LE_DEBO').prefetch_related('abonos'):
+        debo_pagado += pr.abonado_en(year, month)
+        if es_actual:
+            debo_pendiente += pr.falta_este_mes(year, month)
+    total_debo = debo_pagado + debo_pendiente
+
     atrasado_arrastrado = cero
     cuotas_arrastradas = []
     if (year, month) == (hoy.year, hoy.month):
@@ -115,7 +125,7 @@ def resumen_mes(usuario, year, month):
                 })
     cuotas_arrastradas.sort(key=lambda c: c['periodo'])
 
-    comprometido = gastos + total_cuotas + atrasado_arrastrado
+    comprometido = gastos + total_cuotas + atrasado_arrastrado + total_debo
     disponible = ingresos - comprometido
 
     if (year, month) == (hoy.year, hoy.month):
@@ -139,6 +149,9 @@ def resumen_mes(usuario, year, month):
         'servicios_pagados_mes': float(servicios_pagados),
         'servicios_pendientes_mes': float(servicios_pendientes),
         'total_servicios_mes': float(servicios_pagados + servicios_pendientes),
+        'debo_pagado_mes': float(debo_pagado),
+        'debo_pendiente_mes': float(debo_pendiente),
+        'total_debo_mes': float(total_debo),
         'atrasado_arrastrado': float(atrasado_arrastrado),
         'cuotas_arrastradas': cuotas_arrastradas,
         'comprometido': float(comprometido),
@@ -147,13 +160,14 @@ def resumen_mes(usuario, year, month):
             'ingresos': ingresos,
             'gastos': gastos,
             'total_cuotas_mes': total_cuotas,
+            'total_debo_mes': total_debo,
             'comprometido': comprometido,
             'disponible': disponible,
         },
         'dias_restantes': dias_restantes,
         'por_dia': float(libre / dias_restantes),
         'pct_gastado': round(min(100, gastos / base * 100)),
-        'pct_por_pagar': round(min(100, cuotas_pendientes / base * 100)),
+        'pct_por_pagar': round(min(100, (cuotas_pendientes + debo_pendiente) / base * 100)),
         'pct_disponible': round(min(100, libre / base * 100)),
         'eventos': eventos,
     }

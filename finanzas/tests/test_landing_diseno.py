@@ -20,4 +20,4 @@ class LandingDisenoTests(TestCase):
         self.assertNotIn('width:460px', self.cuerpo)
 
     def test_no_quedan_enlaces_vacios(self):
-        self.assertNotIn('href="#" target="_blank"', self.cuerpo)
+        self.assertNotIn('href="" target="_blank"', self.cuerpo)

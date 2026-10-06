@@ -1,3 +1,5 @@
+from datetime import date
+
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
@@ -7,7 +9,7 @@ from django.utils import timezone
 from django.views.decorators.http import require_POST
 
 from ..models import AbonoPrestamo, Persona, Prestamo
-from ..servicios.esfera import esfera_me_deben
+from ..servicios.esfera import esfera_debo, esfera_me_deben
 from .comun import contadores, monto_post, redirigir, simbolo_de, texto_post
 
 
@@ -18,46 +20,72 @@ def _totales_prestamos(personas):
         'total_recuperado': round(sum(p.total_abonado for p in personas)),
     }
 
-@login_required(login_url='/login/')
-def prestamos(request):
-    personas = list(Persona.objects.filter(usuario=request.user)
-                    .prefetch_related('prestamos__abonos'))
 
-    seleccionada = None
-    pedida = request.GET.get('persona')
-    if pedida:
-        seleccionada = next((p for p in personas if str(p.id) == str(pedida)), None)
-    if seleccionada is None and personas:
-        seleccionada = max(personas, key=lambda p: p.total_pendiente)
+def _pantalla(request, lado, persona_id=None):
+    todas = list(Persona.objects.filter(usuario=request.user)
+                 .prefetch_related('prestamos__abonos'))
+    if persona_id is not None:
+        elegida = next((p for p in todas if p.id == persona_id), None)
+        if elegida is None:
+            raise Http404('Persona no encontrada')
+        lado = elegida.lado
+    personas = [p for p in todas if p.lado == lado]
 
+    if persona_id is not None:
+        seleccionada = elegida
+    else:
+        seleccionada = None
+        pedida = request.GET.get('persona')
+        if pedida:
+            seleccionada = next((p for p in personas if str(p.id) == str(pedida)), None)
+        if seleccionada is None and personas:
+            seleccionada = max(personas, key=lambda p: p.total_pendiente)
+
+    debo = lado == 'LE_DEBO'
+    totales = _totales_prestamos(personas)
     context = {
         'personas': personas,
         'persona': seleccionada,
         'prestamos': list(seleccionada.prestamos.all()) if seleccionada else [],
+        'lado': lado,
+        'debo': debo,
+        'total_me_deben': round(sum(p.total_pendiente for p in todas if p.lado == 'ME_DEBE')),
+        'total_debo': round(sum(p.total_pendiente for p in todas if p.lado == 'LE_DEBO')),
     }
-    context.update(_totales_prestamos(personas))
-    context['esfera'] = esfera_me_deben(request.user, personas, simbolo_de(request.user))
+    context.update(totales)
+    armar = esfera_debo if debo else esfera_me_deben
+    context['esfera'] = armar(request.user, personas, simbolo_de(request.user))
     context.update(contadores(request.user))
+    context['total_lado'] = totales['total_por_cobrar']
     return render(request, 'finanzas/prestamos.html', context)
+
+
+@login_required(login_url='/login/')
+def prestamos(request):
+    lado = 'LE_DEBO' if request.GET.get('lado') == 'debo' else 'ME_DEBE'
+    return _pantalla(request, lado)
+
 
 @login_required(login_url='/login/')
 def detalle_persona(request, persona_id):
-    personas = list(Persona.objects.filter(usuario=request.user)
-                    .prefetch_related('prestamos__abonos'))
+    return _pantalla(request, None, persona_id)
 
-    persona = next((p for p in personas if p.id == persona_id), None)
-    if persona is None:
-        raise Http404('Persona no encontrada')
 
-    context = {
-        'persona': persona,
-        'personas': personas,
-        'prestamos': list(persona.prestamos.all()),
-    }
-    context.update(_totales_prestamos(personas))
-    context['esfera'] = esfera_me_deben(request.user, personas, simbolo_de(request.user))
-    context.update(contadores(request.user))
-    return render(request, 'finanzas/prestamos.html', context)
+@login_required(login_url='/login/')
+@require_POST
+def pagar_mes_prestamo(request, prestamo_id):
+    prestamo = get_object_or_404(Prestamo, id=prestamo_id, persona__usuario=request.user,
+                                 persona__lado='LE_DEBO')
+    hoy = date.today()
+    with transaction.atomic():
+        prestamo = Prestamo.objects.select_for_update().select_related('persona').get(pk=prestamo.pk)
+        falta = prestamo.falta_este_mes(hoy.year, hoy.month)
+        if falta <= 0:
+            messages.info(request, 'Lo de este mes ya está pagado.')
+            return redirigir(request, 'dashboard')
+        AbonoPrestamo.objects.create(prestamo=prestamo, monto=falta, fecha=hoy, nota='Pago del mes')
+    messages.success(request, f'Pago a {prestamo.persona.nombre} registrado.')
+    return redirigir(request, 'dashboard')
 
 @login_required(login_url='/login/')
 def crear_persona(request):
@@ -68,7 +96,9 @@ def crear_persona(request):
             messages.warning(request, 'Ingresa un nombre.')
             return redirigir(request, 'prestamos')
 
-        persona = Persona.objects.create(usuario=request.user, nombre=nombre, contacto=contacto)
+        lado = 'LE_DEBO' if request.POST.get('lado') == 'LE_DEBO' else 'ME_DEBE'
+        persona = Persona.objects.create(usuario=request.user, nombre=nombre[:80],
+                                         contacto=contacto[:80], lado=lado)
         messages.success(request, f'{nombre} agregado.')
 
         monto = monto_post(request)

@@ -7,6 +7,7 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
 
 from .. import encuesta as encuesta_mod
+from .. import push
 from ..models import (Categoria, Deuda, GastoPendiente, MetaAhorro, Presupuesto, Suscripcion,
     Transaccion)
 from ..servicios.cuotas import mis_cuotas_detalle, proyecciones_deuda_activas
@@ -144,7 +145,8 @@ def dashboard(request):
                 usuario=request.user, activa=True))
         ),
 
-        'por_pagar': round(r['cuotas_pendientes_mes'] + r['servicios_pendientes_mes']),
+        'por_pagar': round(r['cuotas_pendientes_mes'] + r['servicios_pendientes_mes']
+                           + r['debo_pendiente_mes']),
         'servicios_pendientes_mes': round(r['servicios_pendientes_mes']),
         'servicios_pagados_mes': round(r['servicios_pagados_mes']),
         'dias_restantes': r['dias_restantes'],
@@ -234,5 +236,15 @@ def dashboard(request):
         if estado != 'neutro' and perfil.esfera_estado_visto != estado:
             perfil.esfera_estado_visto = estado
             perfil.save(update_fields=['esfera_estado_visto'])
+    context['push_clave'] = push.clave_publica()
+    if (context['push_clave'] and (year, month) == (hoy.year, hoy.month)
+            and not request.user.suscripciones_push.exists()):
+        proximos = [i for i in sin_pagar if 0 <= (i['fecha'] - hoy).days <= 7]
+        if proximos:
+            p = min(proximos, key=lambda i: i['fecha'])
+            dias = (p['fecha'] - hoy).days
+            cuando = 'Hoy' if dias == 0 else 'Mañana' if dias == 1 else f'El {p["fecha"].day}'
+            context['push_invitacion'] = (f'{cuando} vence {p["nombre"]}. Te avisamos el día '
+                                          'antes de cada cobro, nada más.')
     context['mostrar_encuesta'] = encuesta_mod.debe_mostrar(request)
     return render(request, 'finanzas/dashboard.html', context)

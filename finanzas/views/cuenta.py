@@ -27,7 +27,9 @@ from ..seguridad import (MAX_INTENTOS as MAX_INTENTOS_LOGIN, _ip, esta_bloqueado
                         limitar, limpiar_intentos, red, registrar_fallo, sumar)
 from ..redirecciones import destino_seguro
 from ..servicios.mes import nombre_mes_es
+from .. import push
 from .comun import contadores, get_or_create_profile, monto_post
+from .recordatorios import CAMPOS_PUSH, opciones_de
 
 logger = logging.getLogger('finanzas')
 
@@ -703,6 +705,13 @@ def perfil(request):
             profile.save(update_fields=['politica_version', 'politica_aceptada'])
             messages.success(request, 'Gracias. Quedó registrada tu aceptación.')
             return redirect('perfil')
+        elif accion == 'recordatorios':
+            campo = request.POST.get('campo')
+            if campo in CAMPOS_PUSH:
+                setattr(profile, campo, request.POST.get('activar') == '1')
+                profile.save(update_fields=[campo])
+                messages.success(request, 'Listo, quedó guardado.')
+            return redirect('perfil')
         elif accion == 'aviso_dia':
             try:
                 dia = int(request.POST.get('aviso_dia') or 20)
@@ -721,6 +730,9 @@ def perfil(request):
         'miembro_desde': nombre_mes_es(request.user.date_joined.year,
                                        request.user.date_joined.month),
         'politica_al_dia': profile.politica_version == legal.VERSION,
+        'push_clave': push.clave_publica(),
+        'n_push': request.user.suscripciones_push.count(),
+        'opciones_push': opciones_de(profile),
         'sesiones_abiertas': len(sesiones.listar(
             request.user, request.session.session_key or '')),
     }
@@ -743,7 +755,8 @@ def _valor_serializable(valor):
         return valor
     return str(valor)
 
-CAMPOS_OCULTOS = {'secreto', 'codigo_hash', 'password', 'clave_publica', 'credencial_id', 'contador'}
+CAMPOS_OCULTOS = {'secreto', 'codigo_hash', 'password', 'clave_publica', 'credencial_id', 'contador',
+                  'endpoint', 'p256dh', 'auth'}
 
 def _fila(obj):
     fila = {}
@@ -800,6 +813,8 @@ def mis_datos(request):
             for s in Suscripcion.objects.filter(usuario=u).prefetch_related('pagos')
         ],
         'gastos_pendientes': _filas(GastoPendiente.objects.filter(usuario=u)),
+        'topes_por_categoria': _filas(u.topes.all()),
+        'aparatos_con_recordatorios': _filas(u.suscripciones_push.all()),
         'accesos_face_id_o_huella': _filas(Passkey.objects.filter(usuario=u)),
         'respuestas_a_la_encuesta': _filas(RespuestaEncuesta.objects.filter(usuario=u)),
         'eventos_de_seguridad': _filas(EventoSeguridad.objects.filter(usuario=u)),

@@ -259,6 +259,24 @@ class Presupuesto(models.Model):
     def __str__(self):
         return f"Presupuesto de {self.usuario.username}: ${self.limite_mensual}"
 
+class TopeCategoria(models.Model):
+    usuario = models.ForeignKey(User, on_delete=models.CASCADE, related_name='topes')
+    categoria = models.CharField(max_length=50)
+    monto = models.DecimalField(max_digits=12, decimal_places=2)
+    avisar = models.BooleanField(default=True)
+    aviso_periodo = models.IntegerField(default=0)
+    aviso_nivel = models.IntegerField(default=0)
+
+    class Meta:
+        ordering = ['categoria']
+        constraints = [
+            models.UniqueConstraint(fields=['usuario', 'categoria'],
+                                    name='tope_unico_por_categoria'),
+        ]
+
+    def __str__(self):
+        return f'Tope de {self.categoria}: {self.monto}'
+
 class GastoPendiente(models.Model):
     usuario = models.ForeignKey(User, on_delete=models.CASCADE, related_name='gastos_pendientes')
     nombre = models.CharField(max_length=100)

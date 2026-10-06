@@ -3,6 +3,7 @@ from django.http import HttpResponseRedirect
 from django.urls import path, reverse
 
 from . import google_login, legal
+from .views import recordatorios
 from .views import voz as vistas_voz
 from .views import (actividad, analisis, cartola, categorias, cuenta, cuotas, descargas,
                     encuesta, estadisticas, landing, metas, movimientos, passkeys, plan, prestamos, sistema, suscripciones)
@@ -57,6 +58,7 @@ urlpatterns = [
 
     path('categorias/', categorias.categorias, name='categorias'),
     path('categorias/nueva/', categorias.crear_categoria, name='crear_categoria'),
+    path('categorias/tope/', categorias.guardar_tope, name='guardar_tope'),
     path('categorias/<int:cat_id>/editar/', categorias.editar_categoria, name='editar_categoria'),
     path('categorias/<int:cat_id>/eliminar/', categorias.eliminar_categoria, name='eliminar_categoria'),
 
@@ -69,6 +71,7 @@ urlpatterns = [
     path('prestamos/persona/<int:persona_id>/eliminar/', prestamos.eliminar_persona, name='eliminar_persona'),
     path('prestamos/persona/<int:persona_id>/nuevo/', prestamos.crear_prestamo, name='crear_prestamo'),
     path('prestamos/<int:prestamo_id>/abonar/', prestamos.abonar_prestamo, name='abonar_prestamo'),
+    path('prestamos/<int:prestamo_id>/pagar-mes/', prestamos.pagar_mes_prestamo, name='pagar_mes_prestamo'),
     path('prestamos/<int:prestamo_id>/eliminar/', prestamos.eliminar_prestamo, name='eliminar_prestamo'),
 
     path('analisis/', analisis.analisis_predictivo, name='analisis_predictivo'),
@@ -89,6 +92,9 @@ urlpatterns = [
     path('perfil/eliminar-cuenta/', cuenta.eliminar_cuenta, name='eliminar_cuenta'),
     path('perfil/sesiones/', cuenta.sesiones_activas, name='sesiones_activas'),
     path('perfil/actividad/', actividad.actividad, name='actividad_cuenta'),
+    path('perfil/recordatorios/suscribir/', recordatorios.suscribir, name='push_suscribir'),
+    path('perfil/recordatorios/quitar/', recordatorios.quitar, name='push_quitar'),
+    path('perfil/recordatorios/probar/', recordatorios.probar, name='push_probar'),
     path('perfil/dos-pasos/', cuenta.configurar_2fa, name='configurar_2fa'),
     path('perfil/face-id/', passkeys.passkeys, name='passkeys'),
     path('perfil/face-id/opciones/', passkeys.registro_opciones, name='passkey_registro_opciones'),

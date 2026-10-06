@@ -146,6 +146,19 @@
   </div>
 
   <div class="ini-linea" data-panel="pagar" data-linea data-hoy="{{ hoy_iso }}">
+    {% if push_invitacion %}
+    <div class="av-invita" data-push-invitacion data-clave="{{ push_clave }}" data-suscribir="{% url 'push_suscribir' %}" hidden>
+      <div class="av-invita-txt">
+        <b data-push-titulo>¿Te avisamos antes de cada cobro?</b>
+        <span data-push-texto>{{ push_invitacion }}</span>
+      </div>
+      <div class="av-invita-acciones">
+        <button type="button" class="sec-btn ambar" data-push-si>Activar avisos</button>
+        <button type="button" class="sec-btn vidrio" data-push-no>Ahora no</button>
+      </div>
+    </div>
+    {% endif %}
+
     <div class="ini-cab">
       <div class="ini-cab-txt">
         <h2 class="ini-titulo">Próximos 14 días</h2>
@@ -192,7 +205,7 @@
         {% endif %}
         <span class="ini-fila-txt">
           <span class="ini-fila-nombre">{{ i.nombre }}</span>
-          <span class="ini-fila-meta">{% if i.atrasado %}Atrasado · {{ i.fecha|date:"j b" }}{% elif i.tipo == 'cuota' %}{{ i.detalle }} · vence {{ i.fecha|date:"j b" }}{% else %}Vence {{ i.fecha|date:"j b" }}{% endif %}</span>
+          <span class="ini-fila-meta">{% if i.atrasado %}Atrasado · {{ i.fecha|date:"j b" }}{% elif i.tipo == 'cuota' or i.tipo == 'debo' %}{{ i.detalle }} · vence {{ i.fecha|date:"j b" }}{% else %}Vence {{ i.fecha|date:"j b" }}{% endif %}</span>
         </span>
         <span class="ini-fila-monto">{{ i.monto|money }}</span>
         <form method="post" action="{{ i.url_pagar }}">

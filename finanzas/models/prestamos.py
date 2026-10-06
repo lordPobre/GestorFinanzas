@@ -1,4 +1,6 @@
+import calendar
 import re
+from datetime import date
 from decimal import Decimal
 from urllib.parse import quote
 
@@ -32,7 +34,13 @@ def normalizar_telefono(texto):
 
 
 class Persona(models.Model):
+    LADOS = [
+        ('ME_DEBE', 'Me debe'),
+        ('LE_DEBO', 'Le debo'),
+    ]
+
     usuario = models.ForeignKey(User, on_delete=models.CASCADE, related_name='personas')
+    lado = models.CharField(max_length=8, choices=LADOS, default='ME_DEBE', db_index=True)
     nombre = models.CharField(max_length=80)
     contacto = models.CharField(max_length=80, blank=True, help_text='Teléfono, email o nota (opcional)')
     creada = models.DateField(default=timezone.now)
@@ -42,6 +50,10 @@ class Persona(models.Model):
 
     def __str__(self):
         return self.nombre
+
+    @property
+    def le_debo(self):
+        return self.lado == 'LE_DEBO'
 
     @property
     def inicial(self):
@@ -106,7 +118,7 @@ class Persona(models.Model):
     @property
     def enlace_whatsapp(self):
         telefono = self.telefono_whatsapp
-        if not telefono or not self.tiene_deuda:
+        if self.le_debo or not telefono or not self.tiene_deuda:
             return ''
         return f'https://wa.me/{telefono}?text={quote(self.mensaje_whatsapp)}'
 
@@ -189,6 +201,25 @@ class Prestamo(models.Model):
         if self.esta_pagado:
             return 'Devuelto completo'
         return 'Sin plazo definido'
+
+    def abonado_en(self, year, month):
+        return sum((_d(a.monto) for a in self.abonos.all()
+                    if a.fecha.year == year and a.fecha.month == month), CERO)
+
+    def compromiso_del_mes(self, year, month):
+        abonado = self.abonado_en(year, month)
+        if self.tipo == 'CUOTAS':
+            return max(abonado, min(self.monto_cuota, abonado + self.monto_pendiente))
+        return abonado + max(CERO, self.monto_pendiente)
+
+    def falta_este_mes(self, year, month):
+        return max(CERO, self.compromiso_del_mes(year, month) - self.abonado_en(year, month))
+
+    def dia_de_pago(self, year, month):
+        ultimo = calendar.monthrange(year, month)[1]
+        if self.tipo != 'CUOTAS':
+            return date(year, month, ultimo)
+        return date(year, month, min(self.fecha.day, ultimo))
 
     @property
     def montos_sugeridos(self):

@@ -4,7 +4,7 @@
 {% block title %}Categorías · Fintora{% endblock %}
 {% block topbar_sub %}Cómo se ordenan tus movimientos{% endblock %}
 {% block search_placeholder %}Filtrar categorías{% endblock %}
-{% block extra_head %}<link rel="stylesheet" href="{% static 'css/categorias.css' %}?v=72">{% endblock %}
+{% block extra_head %}<link rel="stylesheet" href="{% static 'css/categorias.css' %}?v=86">{% endblock %}
 
 {% block content %}
 <div class="sec-top">
@@ -27,10 +27,12 @@
           <span class="ct-txt">
             <span class="ct-nombre">{{ c.label }}{% if c.propia %}<span class="ct-tuya">Tuya</span>{% endif %}</span>
             <span class="ct-meta">{{ c.usos }} movimiento{{ c.usos|pluralize:"s" }}</span>
+            {% if c.tope %}<span class="ct-meta ct-tope-{{ c.tope.tono }}">{% if c.tope.exceso %}Te pasaste por {{ c.tope.exceso|money }}{% else %}Te quedan {{ c.tope.queda|money }}{% endif %}</span>{% endif %}
+            <button type="button" class="ct-tope-btn{% if c.tope %} con{% endif %}" data-open="#modalTope" data-tope-cat="{{ c.slug }}" data-tope-nombre="{{ c.label }}" data-tope-monto="{% if c.tope %}{{ c.tope.tope }}{% endif %}" data-tope-promedio="{{ c.promedio }}" data-tope-avisar="{% if not c.tope or c.tope.avisar %}1{% endif %}">{% if c.tope %}Tope {{ c.tope.tope|money }}{% else %}Poner tope{% endif %}</button>
           </span>
-          <span class="ct-monto"><b>{{ c.gastado|money }}</b><span data-ct-pct></span></span>
+          <span class="ct-monto"><b>{{ c.gastado|money }}</b>{% if c.tope %}<span class="ct-tope-de">de {{ c.tope.tope|money }}</span>{% else %}<span data-ct-pct></span>{% endif %}</span>
           {% if c.propia %}<button type="button" class="ct-editar" data-open="#modalEdit{{ c.obj.pk }}" aria-label="Editar {{ c.label }}" title="Editar {{ c.label }}"><i class="fas fa-pen"></i></button>{% endif %}
-          <span class="ct-barra"><span data-ct-barra style="background:{{ c.color }}"></span></span>
+          {% if c.tope %}<span class="ct-barra"><span class="ct-barra-tope {{ c.tope.tono }}" style="width:{{ c.tope.ancho }}%"></span></span>{% else %}<span class="ct-barra"><span data-ct-barra style="background:{{ c.color }}"></span></span>{% endif %}
         </div>
         {% endif %}{% empty %}
         <div class="ct-vacio">Todavía no hay categorías.</div>
@@ -141,6 +143,38 @@
   </div>
 </div>
 
+<div class="modal-overlay" id="modalTope">
+  <div class="modal-box" style="max-width:400px">
+    <div class="modal-head">
+      <div>
+        <div class="modal-title" data-tope-titulo>Tope del mes</div>
+        <div class="modal-sub" data-tope-sub></div>
+      </div>
+      <button class="modal-close" data-close aria-label="Cerrar"><i class="fas fa-xmark"></i></button>
+    </div>
+    <form method="post" action="{% url 'guardar_tope' %}">
+      {% csrf_token %}
+      <input type="hidden" name="categoria" data-tope-campo>
+      <div class="field">
+        <label class="label" for="id_tope_monto">Cuánto quieres gastar como máximo al mes</label>
+        <input type="number" name="monto" id="id_tope_monto" class="mono" min="1" step="1" inputmode="numeric" required>
+      </div>
+      <div class="chips ct-tope-sugeridos" data-tope-sugeridos></div>
+      <label class="ct-tope-avisar">
+        <input type="checkbox" name="avisar" value="1" checked data-tope-avisar>
+        <span>Avisarme al anotar un gasto que lo pase</span>
+      </label>
+      <button type="submit" class="btn btn-purple btn-block">Guardar tope</button>
+    </form>
+    <form method="post" action="{% url 'guardar_tope' %}" data-tope-quitar hidden>
+      {% csrf_token %}
+      <input type="hidden" name="categoria" data-tope-campo>
+      <input type="hidden" name="quitar" value="1">
+      <button type="submit" class="btn btn-glass btn-block ct-tope-quitar">Quitar tope</button>
+    </form>
+  </div>
+</div>
+
 {% for c in de_gasto %}{% if c.propia %}
 <div class="modal-overlay" id="modalEdit{{ c.obj.pk }}">
   <div class="modal-box" style="max-width:400px">
@@ -227,4 +261,5 @@
 {% block extra_js %}
 <script src="{% static 'js/pantallas/categorias.js' %}" nonce="{{ csp_nonce }}"></script>
 <script src="{% static 'js/pantallas/categorias-2.js' %}?v=72" nonce="{{ csp_nonce }}"></script>
+<script src="{% static 'js/pantallas/categorias-topes.js' %}?v=86" nonce="{{ csp_nonce }}" data-simbolo="{{ simbolo_moneda }}"></script>
 {% endblock %}

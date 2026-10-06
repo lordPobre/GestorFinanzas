@@ -3,7 +3,7 @@
 {% load humanize %}
 {% block title %}Mi perfil · Fintora{% endblock %}
 {% block search_placeholder %}Filtrar ajustes{% endblock %}
-{% block extra_head %}<link rel="stylesheet" href="{% static 'css/perfil.css' %}?v=71">{% endblock %}
+{% block extra_head %}<link rel="stylesheet" href="{% static 'css/perfil.css' %}?v=86">{% endblock %}
 
 {% block content %}
 
@@ -152,6 +152,40 @@
             </form>
             <span class="pf-meta">Llegan las cuotas del mes, las suscripciones y las cuentas sin pagar, con el total. Si el mes no alcanza el día elegido, sale el último día. Si no queda nada por pagar, no te escribimos.</span>
           </div>
+          {% endif %}
+
+          {% if push_clave %}
+          <div class="pf-fila" data-push data-clave="{{ push_clave }}" data-suscribir="{% url 'push_suscribir' %}" data-quitar="{% url 'push_quitar' %}">
+            <span class="pf-icono{% if n_push %} ambar{% endif %}" data-push-icono><i class="fas fa-bell"></i></span>
+            <span class="pf-txt">
+              <span class="pf-titulo">Recordatorios en este aparato</span>
+              <span class="pf-meta" data-push-estado>Revisando este aparato…</span>
+            </span>
+            <button type="button" class="switch" data-push-switch hidden aria-label="Recordatorios en este aparato"><span class="knob"></span></button>
+          </div>
+          {% if n_push %}
+          <div class="pf-push">
+            {% for op in opciones_push %}
+            <div class="pf-fila pf-push-fila">
+              <span class="pf-txt">
+                <span class="pf-titulo">{{ op.titulo }}</span>
+                <span class="pf-meta">{{ op.nota }}</span>
+              </span>
+              <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="accion" value="recordatorios">
+                <input type="hidden" name="campo" value="{{ op.campo }}">
+                <input type="hidden" name="activar" value="{% if op.activo %}0{% else %}1{% endif %}">
+                <button type="submit" class="switch{% if op.activo %} on{% endif %}" aria-label="{% if op.activo %}Apagar{% else %}Encender{% endif %}: {{ op.titulo }}"><span class="knob"></span></button>
+              </form>
+            </div>
+            {% endfor %}
+            <div class="pf-push-pie">
+              <span class="pf-meta">Salen a las 9:00. Los recibe{{ n_push|pluralize:"n" }} {{ n_push }} aparato{{ n_push|pluralize:"s" }}.</span>
+              <button type="button" class="sec-chico" data-push-probar="{% url 'push_probar' %}">Probar aviso</button>
+            </div>
+          </div>
+          {% endif %}
           {% endif %}
 
           <div class="pf-fila">

@@ -1,6 +1,6 @@
 
 
-const VERSION = 'v63';
+const VERSION = 'v64';
 const CACHE_ESTATICOS = `finapp-estaticos-${VERSION}`;
 
 const ORIGENES_CACHEABLES = [];
@@ -94,4 +94,34 @@ self.addEventListener('fetch', (evento) => {
 
 self.addEventListener('message', (evento) => {
   if (evento.data === 'saltar-espera') self.skipWaiting();
+});
+
+self.addEventListener('push', (evento) => {
+  let datos = {};
+  try { datos = evento.data ? evento.data.json() : {}; } catch (e) { datos = { cuerpo: evento.data ? evento.data.text() : '' }; }
+  evento.waitUntil(self.registration.showNotification(datos.titulo || 'Fintora', {
+    body: datos.cuerpo || '',
+    icon: '/static/img/favicon-180.png',
+    badge: '/static/img/favicon-180.png',
+    tag: datos.etiqueta || 'fintora',
+    lang: 'es',
+    data: { url: datos.url || '/' },
+  }));
+});
+
+self.addEventListener('notificationclick', (evento) => {
+  evento.notification.close();
+  const destino = new URL((evento.notification.data && evento.notification.data.url) || '/', self.location.origin);
+  if (destino.origin !== self.location.origin) return;
+  evento.waitUntil((async () => {
+    const ventanas = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+    for (const v of ventanas) {
+      if (new URL(v.url).origin === destino.origin && 'focus' in v) {
+        await v.focus();
+        if ('navigate' in v) await v.navigate(destino.href);
+        return;
+      }
+    }
+    await self.clients.openWindow(destino.href);
+  })());
 });

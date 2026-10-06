@@ -3,7 +3,7 @@ from datetime import date
 
 from django.urls import reverse
 
-from ..models import Deuda, GastoPendiente, Suscripcion, Transaccion
+from ..models import Deuda, GastoPendiente, Prestamo, Suscripcion, Transaccion
 
 
 def pendientes_del_mes(usuario, year, month):
@@ -88,6 +88,28 @@ def pendientes_del_mes(usuario, year, month):
         })
 
     hoy = date.today()
+    if (year, month) == (hoy.year, hoy.month):
+        for pr in (Prestamo.objects.filter(persona__usuario=usuario, persona__lado='LE_DEBO')
+                   .select_related('persona').prefetch_related('abonos')):
+            falta = pr.falta_este_mes(year, month)
+            if falta <= 0:
+                continue
+            en_cuotas = pr.tipo == 'CUOTAS'
+            items.append({
+                'tipo': 'debo',
+                'nombre': pr.persona.nombre,
+                'detalle': (f'Le debes · cuota {min(pr.cuotas_abonadas + 1, pr.cuotas_totales)} '
+                            f'de {pr.cuotas_totales}') if en_cuotas else 'Le debes · pago único',
+                'monto': falta,
+                'fecha': pr.dia_de_pago(year, month),
+                'pagado': False,
+                'fecha_pago': None,
+                'icono': 'fa-hand-holding-dollar',
+                'url_pagar': reverse('pagar_mes_prestamo', args=[pr.pk]),
+                'url_anular': '',
+                'periodo': periodo,
+            })
+
     for it in items:
         it['atrasado'] = not it['pagado'] and it['fecha'] < hoy
     items.sort(key=lambda x: (x['pagado'], not x['atrasado'], x['fecha']))

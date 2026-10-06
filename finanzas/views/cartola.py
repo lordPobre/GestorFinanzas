@@ -135,7 +135,7 @@ def revisar_cartola(request):
         'suma_egresos': sum(f['monto_dec'] for f in nuevas if f['tipo'] == 'EGRESO'),
         'cartola_cats_egreso': Transaccion.CATEGORIAS_EGRESO,
         'cartola_cats_ingreso': Transaccion.CATEGORIAS_INGRESO,
-        'personas': Persona.objects.filter(usuario=request.user),
+        'personas': Persona.objects.filter(usuario=request.user, lado='ME_DEBE'),
     }
     ctx.update(contadores(request.user))
     return render(request, 'finanzas/revisar_cartola.html', ctx)
@@ -218,13 +218,13 @@ def confirmar_cartola(request):
                 persona = None
                 pk = (request.POST.get(f'deben_persona_{i}') or '').strip()
                 if pk.isdigit():
-                    persona = Persona.objects.filter(pk=int(pk),
-                                                     usuario=request.user).first()
+                    persona = Persona.objects.filter(pk=int(pk), usuario=request.user,
+                                                     lado='ME_DEBE').first()
                 if persona is None:
                     nombre = (request.POST.get(f'deben_nombre_{i}') or '').strip()[:80]
                     if nombre:
                         persona, _ = Persona.objects.get_or_create(
-                            usuario=request.user, nombre=nombre)
+                            usuario=request.user, nombre=nombre, lado='ME_DEBE')
                 if persona is not None:
                     restantes = (m['cuota_total'] - m['cuota_actual'] + 1
                                  if es_cuota else 1)

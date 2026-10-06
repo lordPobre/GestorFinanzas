@@ -24,6 +24,7 @@
   <link rel="stylesheet" href="{% static 'css/tema-vidrio.css' %}">
   <link rel="stylesheet" href="{% static 'css/encabezado.css' %}?v=51">
   <link rel="stylesheet" href="{% static 'css/salud-esfera.css' %}?v=74">
+  <link rel="stylesheet" href="{% static 'css/avisos.css' %}?v=86">
   {% block extra_head %}{% endblock %}
   <script src="{% static 'js/pantallas/base.js' %}" nonce="{{ csp_nonce }}"></script>
 
@@ -60,8 +61,8 @@
           <i class="fas fa-credit-card"></i><span>Cuotas</span>
           {% if cuotas_activas %}<span class="nav-count">{{ cuotas_activas }}</span>{% endif %}
         </a>
-        <a href="{% url 'prestamos' %}" data-label="Me deben" class="nav-item {% if request.resolver_match.url_name == 'prestamos' %}active{% endif %}">
-          <i class="fas fa-hand-holding-dollar"></i><span>Me deben</span>
+        <a href="{% url 'prestamos' %}" data-label="Préstamos" class="nav-item {% if request.resolver_match.url_name == 'prestamos' %}active{% endif %}">
+          <i class="fas fa-hand-holding-dollar"></i><span>Préstamos</span>
           {% if prestamos_activos %}<span class="nav-count">{{ prestamos_activos }}</span>{% endif %}
         </a>
         <a href="{% url 'suscripciones' %}" data-label="Suscripciones" class="nav-item {% if request.resolver_match.url_name == 'suscripciones' %}active{% endif %}">
@@ -192,8 +193,8 @@
   <a href="{% url 'deudas' %}" data-label="Cuotas" class="nav-item {% if request.resolver_match.url_name == 'deudas' %}active{% endif %}">
     <i class="fas fa-credit-card"></i><span>Cuotas</span>
   </a>
-  <a href="{% url 'prestamos' %}" data-label="Me deben" class="nav-item {% if request.resolver_match.url_name == 'prestamos' %}active{% endif %}">
-    <i class="fas fa-hand-holding-dollar"></i><span>Me deben</span>
+  <a href="{% url 'prestamos' %}" data-label="Préstamos" class="nav-item {% if request.resolver_match.url_name == 'prestamos' %}active{% endif %}">
+    <i class="fas fa-hand-holding-dollar"></i><span>Préstamos</span>
   </a>
   <button type="button" class="nav-item {% if not request.resolver_match.url_name in 'dashboard deudas prestamos estadisticas' %}active{% endif %}" data-open="#modalMas" data-label="Más">
     <i class="fas fa-grip"></i><span>Más</span>
@@ -383,6 +384,9 @@
           Escribe un monto para continuar
         </div>
 
+        <div id="avisoTope" class="anotar-tope" role="status" aria-live="polite" hidden
+             data-topes="{{ topes_json|a_json }}" data-mes="{{ hoy_iso|slice:':7' }}" data-simbolo="{{ simbolo_moneda }}"></div>
+
         <div class="anotar-grupo">
           <label class="anotar-fila" for="campoDesc">
             <i class="fas fa-pen" aria-hidden="true"></i>
@@ -456,6 +460,8 @@
 
 <script src="{% static 'js/finapp.js' %}" nonce="{{ request.csp_nonce }}"></script>
 <script src="{% static 'js/pantallas/anotar.js' %}" nonce="{{ csp_nonce }}" data-marcas="{% static 'data/marcas.json' %}"></script>
+<script src="{% static 'js/pantallas/anotar-tope.js' %}?v=86" nonce="{{ csp_nonce }}"></script>
+<script src="{% static 'js/pantallas/recordatorios.js' %}?v=86" nonce="{{ csp_nonce }}"></script>
 <script src="{% static 'js/pantallas/cuenta.js' %}" nonce="{{ csp_nonce }}"></script>
 <script src="{% static 'js/pantallas/secciones.js' %}" nonce="{{ csp_nonce }}"></script>
 <script src="{% static 'js/pantallas/base-4.js' %}" nonce="{{ csp_nonce }}" {% if abrir_panel or request.GET.registrar %}data-abrir-panel="1"{% endif %}></script>

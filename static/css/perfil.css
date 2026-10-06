@@ -32,3 +32,8 @@
   .pf-prot-btn, .pf-prot form { align-self: stretch; }
   .pf-prot-btn { width: 100%; }
 }
+
+.pf-push { display: flex; flex-direction: column; margin: 0 0 4px 52px; border-left: 1px solid rgba(255, 255, 255, .08); }
+.pf-push-fila { padding-left: 14px; }
+.pf-push-pie { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 14px 14px; }
+@media (max-width: 720px) { .pf-push { margin-left: 0; border-left: none; } }

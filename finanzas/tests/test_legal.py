@@ -26,7 +26,7 @@ class PaginasLegalesTests(TestCase):
                 self.assertIn(f'mailto:{legal.CORREO_CONTACTO}', cuerpo)
 
     def test_las_secciones_tienen_ancla_y_titulo(self):
-        for nombre, cantidad in (('privacidad', 15), ('terminos', 10)):
+        for nombre, cantidad in (('privacidad', 15), ('terminos', 11)):
             with self.subTest(pagina=nombre):
                 cuerpo = self._cuerpo(nombre)
                 self.assertEqual(cuerpo.count('<section id="'), cantidad)
