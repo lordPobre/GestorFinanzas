@@ -31,6 +31,41 @@
   let arrastre = null;
   let suprimirHasta = 0;
   let hablando = false;
+  let audio = null;
+  let audioUrl = '';
+  let audioPara = '';
+  let pedido = null;
+
+  function claveAudio() {
+    const conCambio = cambio && raiz.classList.contains('esfera-bienvenida');
+    return (esfera.dataset.voz || '') + '|' + (conCambio ? (cambio.dataset.voz || '') : '');
+  }
+
+  function pedirAudio() {
+    if (!esfera.dataset.voz || !esfera.dataset.vozUrl || !window.fetch) return null;
+    const clave = claveAudio();
+    if (audioPara === clave && (audioUrl || pedido)) return pedido;
+    audioPara = clave;
+    audioUrl = '';
+    const datos = new FormData();
+    datos.append('frase', esfera.dataset.voz);
+    if (cambio && raiz.classList.contains('esfera-bienvenida') && cambio.dataset.voz) {
+      datos.append('cambio', cambio.dataset.voz);
+      datos.append('saludo', saludoDeLaHora());
+    }
+    const token = document.querySelector('[name=csrfmiddlewaretoken]');
+    pedido = fetch(esfera.dataset.vozUrl, {
+      method: 'POST', body: datos, credentials: 'same-origin',
+      headers: { 'X-Requested-With': 'XMLHttpRequest', 'X-CSRFToken': token ? token.value : '' },
+    }).then((r) => (r.ok && (r.headers.get('Content-Type') || '').indexOf('audio') === 0 ? r.blob() : null))
+      .then((b) => {
+        pedido = null;
+        if (b && audioPara === clave) audioUrl = URL.createObjectURL(b);
+        return audioUrl;
+      })
+      .catch(() => { pedido = null; return ''; });
+    return pedido;
+  }
 
   function medir() {
     const r = panel.getBoundingClientRect();
@@ -69,6 +104,7 @@
   }
 
   function callar() {
+    if (audio && !audio.paused) audio.pause();
     if (sintesis && hablando) sintesis.cancel();
     if (hablando) ponerHablando(false);
   }
@@ -82,6 +118,7 @@
     if (bola) bola.tabIndex = abierta ? 0 : -1;
     asa.setAttribute('aria-expanded', abierta ? 'false' : 'true');
     asa.setAttribute('aria-label', abierta ? 'Subir la hoja' : 'Bajar la hoja para ver el resumen');
+    if (abierta) pedirAudio();
     if (!abierta) {
       callar();
       if (raiz.classList.contains('esfera-bienvenida')) {
@@ -183,16 +220,17 @@
       || null;
   }
 
-  if (!sintesis) {
+  if (!sintesis && !esfera.dataset.voz) {
     if (ayuda) ayuda.hidden = true;
-  } else {
+  } else if (sintesis) {
     sintesis.getVoices();
     window.addEventListener('pagehide', () => sintesis.cancel());
   }
+  window.addEventListener('pagehide', () => { if (audio) audio.pause(); });
 
   if (bola) {
     bola.addEventListener('click', () => {
-      if (!sintesis || p < 0.5) return;
+      if (p < 0.5) return;
       if (hablando) {
         callar();
         return;
@@ -202,18 +240,37 @@
         frase = `${hola.textContent.trim()}. ${cambio.textContent.trim()} ${frase}`;
       }
       if (!frase) return;
-      const u = new SpeechSynthesisUtterance(frase);
-      const v = vozEspanol();
-      u.lang = v ? v.lang : 'es-CL';
-      if (v) u.voice = v;
-      u.rate = 1;
-      u.pitch = 1;
-      u.onend = () => ponerHablando(false);
-      u.onerror = () => ponerHablando(false);
-      sintesis.cancel();
-      ponerHablando(true);
-      sintesis.speak(u);
+      if (audioUrl && audioPara === claveAudio()) {
+        if (!audio) {
+          audio = new Audio();
+          audio.addEventListener('ended', () => ponerHablando(false));
+          audio.addEventListener('pause', () => ponerHablando(false));
+          audio.addEventListener('error', () => ponerHablando(false));
+        }
+        audio.src = audioUrl;
+        ponerHablando(true);
+        const intento = audio.play();
+        if (intento && intento.catch) intento.catch(() => { ponerHablando(false); hablarConElTelefono(frase); });
+        return;
+      }
+      pedirAudio();
+      hablarConElTelefono(frase);
     });
+  }
+
+  function hablarConElTelefono(frase) {
+    if (!sintesis) return;
+    const u = new SpeechSynthesisUtterance(frase);
+    const v = vozEspanol();
+    u.lang = v ? v.lang : 'es-CL';
+    if (v) u.voice = v;
+    u.rate = 1;
+    u.pitch = 1;
+    u.onend = () => ponerHablando(false);
+    u.onerror = () => ponerHablando(false);
+    sintesis.cancel();
+    ponerHablando(true);
+    sintesis.speak(u);
   }
 
   window.finappEsfera = {

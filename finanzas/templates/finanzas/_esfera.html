@@ -1,4 +1,4 @@
-<div class="ini-esfera" data-esfera data-tour="esfera" data-estado="{{ esfera.estado }}" data-frase="{{ esfera.frase }}"{% if bienvenida %} data-bienvenida="{{ bienvenida.cambio }}"{% endif %} aria-hidden="true">
+{% load voz %}<div class="ini-esfera" data-esfera data-tour="esfera" data-estado="{{ esfera.estado }}" data-frase="{{ esfera.frase }}" data-voz="{% voz_firmada esfera.frase %}" data-voz-url="{% url 'voz_esfera' %}"{% if bienvenida %} data-bienvenida="{{ bienvenida.cambio }}"{% endif %} aria-hidden="true">
   <button type="button" class="ini-esfera-bola" data-esfera-hablar tabindex="-1" aria-label="Escuchar el resumen">
     <span class="eb-brillo"></span>
     <span class="eb-nucleo"><i class="b1"></i><i class="b2"></i><i class="b3"></i><i class="b4"></i><span class="eb-luz"></span><span class="eb-reflejo"></span><span class="eb-borde"></span></span>
@@ -6,7 +6,7 @@
   <div class="ini-esfera-txt">
     {% if bienvenida %}
     <span class="ini-esfera-hola" data-esfera-hola><span data-saludo>Hola</span>{% if bienvenida.nombre %}, {{ bienvenida.nombre }}{% endif %}</span>
-    <span class="ini-esfera-cambio" data-esfera-cambio>{{ bienvenida.texto }}</span>
+    <span class="ini-esfera-cambio" data-esfera-cambio data-voz="{% voz_firmada bienvenida.texto %}">{{ bienvenida.texto }}</span>
     {% endif %}
     <span class="ini-esfera-etq"><b></b>{{ esfera.etiqueta }}</span>
     <span class="ini-esfera-nota">{{ esfera.texto }}</span>

@@ -3,6 +3,7 @@ from django.http import HttpResponseRedirect
 from django.urls import path, reverse
 
 from . import google_login, legal
+from .views import voz as vistas_voz
 from .views import (actividad, analisis, cartola, categorias, cuenta, cuotas, descargas,
                     encuesta, estadisticas, landing, metas, movimientos, passkeys, plan, prestamos, sistema, suscripciones)
 
@@ -31,6 +32,7 @@ def ruta_antigua(nombre):
 urlpatterns = [
     path('', landing.inicio, name='dashboard'),
     path('ayuda/chat/', landing.ayuda_chat, name='ayuda_chat'),
+    path('inicio/voz/', vistas_voz.hablar, name='voz_esfera'),
     path('ayuda/contacto/', landing.ayuda_contacto, name='ayuda_contacto'),
 
     path('cuotas/', cuotas.deudas, name='deudas'),

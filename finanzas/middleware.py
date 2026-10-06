@@ -91,6 +91,7 @@ class PoliticaContenidoMiddleware:
             "font-src 'self'",
             f"img-src {IMG_SRC}{mas('imagen')}",
             f"connect-src 'self'{mas('conectar')}",
+            "media-src 'self' blob:",
             "frame-src 'none'",
             "object-src 'none'",
             "form-action 'self'",
