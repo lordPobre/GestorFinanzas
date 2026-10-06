@@ -33,13 +33,14 @@ def hablar(request):
 
     frase = _texto(request, 'frase')
     cambio = _texto(request, 'cambio')
-    if frase is None or cambio is None or not frase:
+    nombre = _texto(request, 'nombre')
+    if frase is None or cambio is None or nombre is None or not frase:
         return JsonResponse({'ok': False}, status=400)
 
     partes = []
     saludo = request.POST.get('saludo', '')
     if cambio and saludo in SALUDOS:
-        partes.append(f'{saludo}.')
+        partes.append(f'{saludo}, {nombre}.' if nombre else f'{saludo}.')
     if cambio:
         partes.append(cambio)
     partes.append(frase)

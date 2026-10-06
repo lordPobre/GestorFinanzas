@@ -13,7 +13,6 @@
   const ayuda = esfera.querySelector('[data-esfera-ayuda]');
   const ayudaTxt = ayuda ? ayuda.querySelector('span') : null;
   const ayudaIco = ayuda ? ayuda.querySelector('i') : null;
-  const sintesis = window.speechSynthesis && window.SpeechSynthesisUtterance ? window.speechSynthesis : null;
   const bienvenida = esfera.hasAttribute('data-bienvenida');
   const hola = esfera.querySelector('[data-esfera-hola]');
   const cambio = esfera.querySelector('[data-esfera-cambio]');
@@ -30,7 +29,10 @@
   let d = 0;
   let arrastre = null;
   let suprimirHasta = 0;
-  let hablando = false;
+  let estado = 'quieto';
+  let turno = 0;
+  let avisoHasta = 0;
+  let silencioUrl = '';
   let audio = null;
   let audioUrl = '';
   let audioPara = '';
@@ -38,7 +40,7 @@
 
   function claveAudio() {
     const conCambio = cambio && raiz.classList.contains('esfera-bienvenida');
-    return (esfera.dataset.voz || '') + '|' + (conCambio ? (cambio.dataset.voz || '') : '');
+    return (esfera.dataset.voz || '') + '|' + (conCambio ? (cambio.dataset.voz || '') + '|' + ((hola && hola.dataset.voz) || '') : '');
   }
 
   function pedirAudio() {
@@ -52,6 +54,7 @@
     if (cambio && raiz.classList.contains('esfera-bienvenida') && cambio.dataset.voz) {
       datos.append('cambio', cambio.dataset.voz);
       datos.append('saludo', saludoDeLaHora());
+      if (hola && hola.dataset.voz) datos.append('nombre', hola.dataset.voz);
     }
     const token = document.querySelector('[name=csrfmiddlewaretoken]');
     pedido = fetch(esfera.dataset.vozUrl, {
@@ -96,17 +99,65 @@
     raiz.style.setProperty('--esfera-d', d + 'px');
   }
 
-  function ponerHablando(on) {
-    hablando = on;
-    esfera.classList.toggle('hablando', on);
-    if (ayudaTxt) ayudaTxt.textContent = on ? 'Hablando… toca para detener' : 'Toca la esfera para escucharlo';
-    if (ayudaIco) ayudaIco.className = on ? 'fas fa-volume-high' : 'fas fa-hand-pointer';
+  const AYUDA = {
+    quieto: ['Toca la esfera para escucharlo', 'fas fa-hand-pointer'],
+    cargando: ['Preparando la voz…', 'fas fa-spinner fa-spin'],
+    hablando: ['Hablando… toca para detener', 'fas fa-volume-high'],
+  };
+
+  function ponerEstado(nuevo) {
+    estado = nuevo;
+    avisoHasta = 0;
+    esfera.classList.toggle('hablando', nuevo === 'hablando');
+    esfera.classList.toggle('cargando', nuevo === 'cargando');
+    if (ayudaTxt) ayudaTxt.textContent = AYUDA[nuevo][0];
+    if (ayudaIco) ayudaIco.className = AYUDA[nuevo][1];
+  }
+
+  function avisar(texto) {
+    ponerEstado('quieto');
+    if (ayudaTxt) ayudaTxt.textContent = texto;
+    if (ayudaIco) ayudaIco.className = 'fas fa-circle-exclamation';
+    const hasta = performance.now() + 3500;
+    avisoHasta = hasta;
+    setTimeout(() => { if (avisoHasta === hasta && estado === 'quieto') ponerEstado('quieto'); }, 3600);
   }
 
   function callar() {
+    turno += 1;
     if (audio && !audio.paused) audio.pause();
-    if (sintesis && hablando) sintesis.cancel();
-    if (hablando) ponerHablando(false);
+    if (estado !== 'quieto') ponerEstado('quieto');
+  }
+
+  function silencio() {
+    if (silencioUrl) return silencioUrl;
+    const b = new ArrayBuffer(46);
+    const v = new DataView(b);
+    const t = (o, s) => { for (let i = 0; i < s.length; i += 1) v.setUint8(o + i, s.charCodeAt(i)); };
+    t(0, 'RIFF'); v.setUint32(4, 38, true); t(8, 'WAVE'); t(12, 'fmt ');
+    v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true);
+    v.setUint32(24, 8000, true); v.setUint32(28, 16000, true); v.setUint16(32, 2, true); v.setUint16(34, 16, true);
+    t(36, 'data'); v.setUint32(40, 2, true); v.setInt16(44, 0, true);
+    silencioUrl = URL.createObjectURL(new Blob([b], { type: 'audio/wav' }));
+    return silencioUrl;
+  }
+
+  function reproductor() {
+    if (audio) return audio;
+    audio = new Audio();
+    const fin = () => { if (estado === 'hablando') ponerEstado('quieto'); };
+    audio.addEventListener('ended', fin);
+    audio.addEventListener('pause', fin);
+    audio.addEventListener('error', fin);
+    return audio;
+  }
+
+  function sonar(url) {
+    const a = reproductor();
+    a.src = url;
+    ponerEstado('hablando');
+    const intento = a.play();
+    if (intento && intento.catch) intento.catch(() => { if (estado === 'hablando') avisar('Toca de nuevo para escucharlo'); });
   }
 
   function fijar(nuevo) {
@@ -212,65 +263,34 @@
   new MutationObserver(remedir).observe(hero, { subtree: true, childList: true, attributes: true, attributeFilter: ['hidden'] });
   if (window.ResizeObserver) new ResizeObserver(remedir).observe(hero);
 
-  function vozEspanol() {
-    const voces = sintesis.getVoices();
-    return voces.find((v) => v.lang === 'es-CL')
-      || voces.find((v) => v.lang === 'es-US')
-      || voces.find((v) => v.lang && v.lang.toLowerCase().startsWith('es'))
-      || null;
-  }
-
-  if (!sintesis && !esfera.dataset.voz) {
-    if (ayuda) ayuda.hidden = true;
-  } else if (sintesis) {
-    sintesis.getVoices();
-    window.addEventListener('pagehide', () => sintesis.cancel());
-  }
+  if (!esfera.dataset.voz && ayuda) ayuda.hidden = true;
   window.addEventListener('pagehide', () => { if (audio) audio.pause(); });
 
   if (bola) {
     bola.addEventListener('click', () => {
-      if (p < 0.5) return;
-      if (hablando) {
+      if (p < 0.5 || !esfera.dataset.voz) return;
+      if (estado !== 'quieto') {
         callar();
         return;
       }
-      let frase = esfera.dataset.frase || '';
-      if (hola && cambio && raiz.classList.contains('esfera-bienvenida')) {
-        frase = `${hola.textContent.trim()}. ${cambio.textContent.trim()} ${frase}`;
-      }
-      if (!frase) return;
-      if (audioUrl && audioPara === claveAudio()) {
-        if (!audio) {
-          audio = new Audio();
-          audio.addEventListener('ended', () => ponerHablando(false));
-          audio.addEventListener('pause', () => ponerHablando(false));
-          audio.addEventListener('error', () => ponerHablando(false));
-        }
-        audio.src = audioUrl;
-        ponerHablando(true);
-        const intento = audio.play();
-        if (intento && intento.catch) intento.catch(() => { ponerHablando(false); hablarConElTelefono(frase); });
+      const clave = claveAudio();
+      if (audioUrl && audioPara === clave) {
+        sonar(audioUrl);
         return;
       }
-      pedirAudio();
-      hablarConElTelefono(frase);
+      const a = reproductor();
+      a.src = silencio();
+      const desbloqueo = a.play();
+      if (desbloqueo && desbloqueo.catch) desbloqueo.catch(() => {});
+      ponerEstado('cargando');
+      turno += 1;
+      const mio = turno;
+      Promise.resolve(pedirAudio()).then((url) => {
+        if (mio !== turno || estado !== 'cargando') return;
+        if (url && audioPara === clave) sonar(url);
+        else avisar('La voz no está disponible ahora');
+      });
     });
-  }
-
-  function hablarConElTelefono(frase) {
-    if (!sintesis) return;
-    const u = new SpeechSynthesisUtterance(frase);
-    const v = vozEspanol();
-    u.lang = v ? v.lang : 'es-CL';
-    if (v) u.voice = v;
-    u.rate = 1;
-    u.pitch = 1;
-    u.onend = () => ponerHablando(false);
-    u.onerror = () => ponerHablando(false);
-    sintesis.cancel();
-    ponerHablando(true);
-    sintesis.speak(u);
   }
 
   window.finappEsfera = {

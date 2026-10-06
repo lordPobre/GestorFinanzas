@@ -5,7 +5,7 @@
   </button>
   <div class="ini-esfera-txt">
     {% if bienvenida %}
-    <span class="ini-esfera-hola" data-esfera-hola><span data-saludo>Hola</span>{% if bienvenida.nombre %}, {{ bienvenida.nombre }}{% endif %}</span>
+    <span class="ini-esfera-hola" data-esfera-hola data-voz="{% voz_firmada bienvenida.nombre %}"><span data-saludo>Hola</span>{% if bienvenida.nombre %}, {{ bienvenida.nombre }}{% endif %}</span>
     <span class="ini-esfera-cambio" data-esfera-cambio data-voz="{% voz_firmada bienvenida.texto %}">{{ bienvenida.texto }}</span>
     {% endif %}
     <span class="ini-esfera-etq"><b></b>{{ esfera.etiqueta }}</span>
