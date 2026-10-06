@@ -154,6 +154,15 @@
           </div>
           {% endif %}
 
+          {% if not push_clave %}
+          <div class="pf-fila">
+            <span class="pf-icono"><i class="fas fa-bell"></i></span>
+            <span class="pf-txt">
+              <span class="pf-titulo">Recordatorios en el teléfono</span>
+              <span class="pf-meta">{% if request.user.is_staff %}No disponibles: falta VAPID_PRIVADA en las variables del servicio web{% else %}Todavía no están disponibles{% endif %}</span>
+            </span>
+          </div>
+          {% endif %}
           {% if push_clave %}
           <div class="pf-fila" data-push data-clave="{{ push_clave }}" data-suscribir="{% url 'push_suscribir' %}" data-quitar="{% url 'push_quitar' %}">
             <span class="pf-icono{% if n_push %} ambar{% endif %}" data-push-icono><i class="fas fa-bell"></i></span>
