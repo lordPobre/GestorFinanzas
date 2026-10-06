@@ -163,7 +163,6 @@
             </span>
             <button type="button" class="switch" data-push-switch hidden aria-label="Recordatorios en este aparato"><span class="knob"></span></button>
           </div>
-          {% if n_push %}
           <div class="pf-push">
             {% for op in opciones_push %}
             <div class="pf-fila pf-push-fila">
@@ -181,11 +180,14 @@
             </div>
             {% endfor %}
             <div class="pf-push-pie">
+              {% if n_push %}
               <span class="pf-meta">Salen a las 9:00. Los recibe{{ n_push|pluralize:"n" }} {{ n_push }} aparato{{ n_push|pluralize:"s" }}.</span>
               <button type="button" class="sec-chico" data-push-probar="{% url 'push_probar' %}">Probar aviso</button>
+              {% else %}
+              <span class="pf-meta">Activa los recordatorios en este aparato para empezar a recibirlos. Lo que elijas aquí vale para todos tus aparatos.</span>
+              {% endif %}
             </div>
           </div>
-          {% endif %}
           {% endif %}
 
           <div class="pf-fila">
