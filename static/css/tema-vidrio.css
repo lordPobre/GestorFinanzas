@@ -1040,7 +1040,7 @@ body:has(.ini-hero) .fab-group { display: none !important; }
   .ini-link { min-height: 44px; }
   .ini-link-tel { display: inline-flex; align-self: flex-start; margin-top: 4px; }
   .ini-grid { display: block; }
-  .ini-tarjeta .ini-cab { justify-content: flex-end; padding: 0 0 2px; }
+  .ini-tarjeta .ini-cab { order: 1; justify-content: flex-start; padding: 4px 0 0; }
   .ini-tarjeta .ini-titulo { display: none; }
   .ini-mov { padding: 10px 0; }
   .ini-mov-icono { width: 40px; height: 40px; border-radius: 14px; font-size: 14px; box-shadow: inset 0 1px 0 rgba(255, 255, 255, .12); }
@@ -1080,6 +1080,23 @@ body:has(.ini-hero) .fab-group { display: none !important; }
   .bottomnav .nav-item.active > span:not(.nav-count) { display: inline; opacity: 1; }
   .bottomnav .nav-count, .bottomnav .nav-hueco { display: none; }
   .fab-group { right: 18px; left: auto; bottom: calc(100px + var(--safe-b)); transform: none; }
+}
+
+@media (max-width: 720px) {
+  body:has(.fab-group .fab):not(:has(.ini-hero)):not(:has(.ca-form)):not(:has(.rv-hoja)):not(:has(.fo-form)) {
+    --barra-borde: max(16px, calc(50% - 230px));
+  }
+  body:has(.fab-group .fab):not(:has(.ini-hero)):not(:has(.ca-form)):not(:has(.rv-hoja)):not(:has(.fo-form)) .bottomnav {
+    left: var(--barra-borde); right: var(--barra-borde); transform: none;
+    justify-content: space-between; padding: 0 62px 0 8px;
+  }
+  body:has(.fab-group .fab):not(:has(.ini-hero)):not(:has(.ca-form)):not(:has(.rv-hoja)):not(:has(.fo-form)) .fab-group {
+    right: calc(var(--barra-borde) + 7px); bottom: calc(33px + var(--safe-b)); z-index: 60;
+  }
+  body:has(.fab-group .fab):not(:has(.ini-hero)):not(:has(.ca-form)):not(:has(.rv-hoja)):not(:has(.fo-form)) .fab-group .fab {
+    width: 46px; height: 46px; background: var(--amber); color: var(--tinta-ambar);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, .45);
+  }
 }
 
 body:has(.sec-top) .saludo-card { display: none !important; }

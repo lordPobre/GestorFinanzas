@@ -77,6 +77,9 @@
   .ini-hero > :not(.ini-esfera), .saludo-card { transition: opacity .45s ease; }
   html.esfera-bienvenida .ini-hero > :not(.ini-esfera),
   html.esfera-bienvenida .saludo-card { opacity: 0; pointer-events: none; }
+  html.esfera-bienvenida [data-politica-pendiente],
+  html.esfera-bienvenida .aviso-encuesta,
+  html.esfera-bienvenida [data-pasos] { display: none; }
   html.esfera-bienvenida .ini-esfera-etq { display: none; }
   html:not(.esfera-bienvenida) .ini-esfera-hola,
   html:not(.esfera-bienvenida) .ini-esfera-cambio { display: none; }
