@@ -28,7 +28,7 @@ from ..seguridad import (MAX_INTENTOS as MAX_INTENTOS_LOGIN, _ip, esta_bloqueado
 from ..redirecciones import destino_seguro
 from ..servicios.mes import nombre_mes_es
 from .. import push
-from .comun import contadores, get_or_create_profile, monto_post
+from .comun import contadores, get_or_create_profile, monto_post, redirigir
 from .recordatorios import CAMPOS_PUSH, opciones_de
 
 logger = logging.getLogger('finanzas')
@@ -704,7 +704,7 @@ def perfil(request):
             profile.politica_aceptada = timezone.now()
             profile.save(update_fields=['politica_version', 'politica_aceptada'])
             messages.success(request, 'Gracias. Quedó registrada tu aceptación.')
-            return redirect('perfil')
+            return redirigir(request, 'perfil')
         elif accion == 'recordatorios':
             campo = request.POST.get('campo')
             if campo in CAMPOS_PUSH:

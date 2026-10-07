@@ -143,7 +143,7 @@ El detalle está en [05 · Cartolas](05-CARTOLAS.md).
 | `/entrar/face-id/verificar/` | `passkey_entrar_verificar` | P. Bloqueo por IP |
 | `/bienvenido/` | `onboarding` | L. Primeros pasos |
 | `/bienvenido/completar/` | `completar_onboarding` | L · P. Ingreso, primera compra en cuotas y presupuesto. Luego redirige a `/?tour=1` |
-| `/perfil/` | `perfil` | L. POST con `accion`: `perfil`, `password`, `aviso_mensual`, `analisis_ia`, `aceptar_politica`, `aviso_dia` o `recordatorios` (`campo`, una de las cinco opciones `push_*`, y `activar=1`). Cambiar el correo pide la contraseña actual (o el código de la app si la cuenta entra solo con Google) y deja el correo nuevo en `email_pendiente` |
+| `/perfil/` | `perfil` | L. POST con `accion`: `perfil`, `password`, `aviso_mensual`, `analisis_ia`, `aceptar_politica` (vuelve a `next` si es del sitio; la usa la franja del Inicio), `aviso_dia` o `recordatorios` (`campo`, una de las cinco opciones `push_*`, y `activar=1`). Cambiar el correo pide la contraseña actual (o el código de la app si la cuenta entra solo con Google) y deja el correo nuevo en `email_pendiente` |
 | `/perfil/confirmar-correo/<token>/` | `confirmar_cambio_correo` | Enlace al correo nuevo, válido 48 h. Cambia el correo y cierra las demás sesiones. Un pedido nuevo invalida el anterior |
 | `/perfil/mis-datos/` | `mis_datos` | L. JSON con todos los datos de la cuenta |
 | `/perfil/eliminar-cuenta/` | `eliminar_cuenta` | L. Hay que escribir ELIMINAR y la contraseña |

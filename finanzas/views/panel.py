@@ -7,7 +7,7 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
 
 from .. import encuesta as encuesta_mod
-from .. import push
+from .. import legal, push
 from ..models import (Categoria, Deuda, GastoPendiente, MetaAhorro, Presupuesto, Suscripcion,
     Transaccion)
 from ..servicios.cuotas import mis_cuotas_detalle, proyecciones_deuda_activas
@@ -246,5 +246,8 @@ def dashboard(request):
             cuando = 'Hoy' if dias == 0 else 'Mañana' if dias == 1 else f'El {p["fecha"].day}'
             context['push_invitacion'] = (f'{cuando} vence {p["nombre"]}. Te avisamos el día '
                                           'antes de cada cobro, nada más.')
+    context['politica_pendiente'] = context['profile'].politica_version != legal.VERSION
+    context['politica_version'] = legal.VERSION
+    context['politica_vigente'] = legal.VIGENTE_DESDE
     context['mostrar_encuesta'] = encuesta_mod.debe_mostrar(request)
     return render(request, 'finanzas/dashboard.html', context)

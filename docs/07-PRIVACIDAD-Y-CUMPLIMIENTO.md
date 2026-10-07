@@ -37,7 +37,7 @@ Fintora trata datos personales de residentes en Chile y está sujeta a la **Ley 
 | Analítica y píxeles en las páginas públicas (Google Analytics, Meta, TikTok, X) | Consentimiento: el aviso de cookies, revocable desde «Cookies» en el pie |
 | Respaldos | Seguridad del tratamiento |
 
-El **consentimiento a la política** se registra en el alta (`politica_version`, `politica_aceptada`), con una casilla obligatoria. Cuando la versión cambia, el perfil lo muestra y pide aceptar la nueva. `test_privacidad.py` prueba que sin aceptar no se crea la cuenta.
+El **consentimiento a la política** se registra en el alta (`politica_version`, `politica_aceptada`), con una casilla obligatoria. Cuando la versión cambia, `avisar_politica` la avisa por correo, el Inicio muestra una franja con el enlace y el botón «Aceptar», y el perfil también la pide. La franja llega a las cuentas sin correo. `test_privacidad.py` prueba que sin aceptar no se crea la cuenta.
 
 ## Derechos del titular
 

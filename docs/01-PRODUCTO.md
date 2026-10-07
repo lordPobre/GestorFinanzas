@@ -24,7 +24,7 @@ Se muestra en grande en el inicio. Tres botones cambian lo que dice: **Gastos** 
 
 | Pantalla | Qué permite |
 | --- | --- |
-| **Inicio** | La cifra del mes, calendario de cobros, pagos pendientes (cuotas, suscripciones, gastos, cuentas por pagar y la cuota del mes de lo que debes) con botón de pagar, gráfico de 6 meses, gasto por categoría, avisos (presupuesto, gasto contra el mes anterior, cuotas por vencer, cuándo termina una compra), metas, últimos movimientos y primeros pasos para cuentas nuevas. Navegación entre meses. Desde el día 7, la campana avisa qué categorías van más rápido que tu promedio. Si hay un cobro en los próximos 7 días y la cuenta no tiene recordatorios, invita a activarlos |
+| **Inicio** | La cifra del mes, calendario de cobros, pagos pendientes (cuotas, suscripciones, gastos, cuentas por pagar y la cuota del mes de lo que debes) con botón de pagar, gráfico de 6 meses, gasto por categoría, avisos (presupuesto, gasto contra el mes anterior, cuotas por vencer, cuándo termina una compra), metas, últimos movimientos y primeros pasos para cuentas nuevas. Navegación entre meses. Desde el día 7, la campana avisa qué categorías van más rápido que tu promedio. Si hay un cobro en los próximos 7 días y la cuenta no tiene recordatorios, invita a activarlos. Si la cuenta no aceptó la versión vigente de la política, una franja arriba la enlaza y deja aceptarla ahí mismo |
 | **Esfera de estado** | En el teléfono, detrás de la hoja de Inicio, Cuotas, Me deben, Suscripciones y Metas. Su color resume la pantalla (verde, amarillo o rojo; gris si no hay datos) y al tocarla una voz lee el resumen. Al entrar, saluda por el nombre y dice si el estado del mes cambió desde la última vez. En el computador, la tarjeta de salud de la barra lateral muestra la esfera con la puntuación |
 | **Movimientos** | «Ver todo» muestra el mes completo con lo que entró y salió, agrupado por día. Filtros Todo, Únicos, Cuotas e Ingresos con su cantidad y suma. Tocar abre la edición de ingresos y gastos; deslizar paga o borra. Borrar una cuota anula ese pago |
 | **Registrar** | Botón central siempre a mano: gasto o ingreso en dos toques, con teclado de monto y categoría. Un gasto puede quedar “por pagar” |
@@ -76,7 +76,7 @@ Avisos en el teléfono o el computador, una vez al día (9:00 en verano, 8:00 en
 
 - En producción en Railway, abierta al público, con cuentas reales. El simulacro de restauración del 24 de septiembre de 2026 contó **9 usuarios y 64 movimientos**.
 - Un solo responsable y titular de todos los derechos: Carlos López Figueroa. Desarrollada con asistencia de Claude (Anthropic).
-- 522 pruebas automáticas, CI en cada cambio, monitoreo de errores y de disponibilidad, respaldos diarios verificados.
+- 527 pruebas automáticas, CI en cada cambio, monitoreo de errores y de disponibilidad, respaldos diarios verificados.
 - Lo que falta corregir está en [13 · Deuda técnica](13-DEUDA-TECNICA-Y-HOJA-DE-RUTA.md).
 
 ## Costos de operación

@@ -21,6 +21,24 @@
 
 {% if mostrar_encuesta %}{% include 'finanzas/_aviso_encuesta.html' %}{% endif %}
 
+{% if politica_pendiente %}
+<div class="av-invita" data-politica-pendiente>
+  <div class="av-invita-txt">
+    <b>Cambió la política de privacidad</b>
+    <span>La versión {{ politica_version }} rige desde el {{ politica_vigente }}. Suma los recordatorios en el teléfono, lo que debes a otras personas y la voz de la esfera.</span>
+  </div>
+  <div class="av-invita-acciones">
+    <a href="{% url 'privacidad' %}" class="sec-btn vidrio">Leer la política</a>
+    <form method="post" action="{% url 'perfil' %}">
+      {% csrf_token %}
+      <input type="hidden" name="accion" value="aceptar_politica">
+      <input type="hidden" name="next" value="{% url 'dashboard' %}">
+      <button type="submit" class="sec-btn ambar">Aceptar</button>
+    </form>
+  </div>
+</div>
+{% endif %}
+
 {% if primeros_pasos %}
 <div class="glass pasos-card" data-pasos data-spot>
   <div class="pasos-cab">
