@@ -24,6 +24,7 @@ Las decisiones de diseño que explican por qué el código es como es, en orden 
 | Oct. 2026 | Lotes 56 a 76: auditoría visual pantalla por pantalla, con una prueba por pantalla; esfera en la barra lateral del computador |
 | Oct. 2026 | Lotes 77 a 80: **auditoría de seguridad**, en cuatro partes (A a D). Migración 0119 |
 | Oct. 2026 | Lotes 81 a 83: la esfera saluda al entrar (migración 0120) y habla solo con **ElevenLabs**; propiedad intelectual en los términos y en la portada |
+| Oct. 2026 | Lotes 86 y 87: **Debo**, topes por categoría y **recordatorios en el teléfono** (migración 0121), con sus pruebas |
 
 ## Decisiones vigentes
 
@@ -204,6 +205,26 @@ El salto de `0016` a `0100` es inofensivo y renumerar rompería las bases existe
 **Qué:** si el correo ya existe, la página responde lo mismo y el aviso llega por correo a esa dirección.
 
 **Por qué:** sin esto, el registro servía para averiguar si alguien usa Fintora. Queda la diferencia de destino (D14 en [13](13-DEUDA-TECNICA-Y-HOJA-DE-RUTA.md)).
+
+### D-26 · Web Push propio, sin `pywebpush`
+
+**Qué:** `push.py` cifra (RFC 8291) y firma (VAPID, RFC 8292) con `cryptography`, que ya estaba, y envía con `urllib`.
+
+**Por qué:** son unas 170 líneas que se leen completas y no suman dependencias que auditar. Sigue la línea de D-11 y D-12. `test_recordatorios.py` descifra lo enviado como lo haría el aparato y verifica la firma.
+
+**Revisar si:** algún servicio de avisos cambia el formato o aparece un error que una librería mantenida ya resolvió.
+
+### D-27 · Debo usa los mismos modelos que Me deben
+
+**Qué:** `Persona.lado` separa los dos lados. Préstamos, cuotas y abonos son los mismos modelos.
+
+**Por qué:** las dos listas se comportan igual y así no hay dos copias del mismo cálculo. Lo que cambia (WhatsApp, «Por pagar», «Puedes gastar») se decide con el lado. Las cartolas siguen anotando solo en Me deben.
+
+### D-28 · Los topes avisan, no bloquean
+
+**Qué:** al anotar un gasto que llega al 80 % o pasa el tope, aparece el aviso antes de guardar, pero se puede guardar igual.
+
+**Por qué:** el gasto ya ocurrió. Si la app no lo deja anotar, la cifra del mes queda mal.
 
 ## Procedimientos históricos
 

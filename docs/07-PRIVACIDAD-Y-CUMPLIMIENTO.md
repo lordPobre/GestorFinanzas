@@ -23,9 +23,10 @@ Fintora trata datos personales de residentes en Chile y está sujeta a la **Ley 
 | Tratamiento | Base de licitud |
 | --- | --- |
 | Cuenta, movimientos, cuotas, suscripciones, metas, presupuesto | Ejecución del servicio pedido |
-| Personas de “Me deben” (terceros que no son usuarios) | Interés legítimo del titular. Quien los ingresa responde de hacerlo con fundamento, y la política se lo advierte |
+| Personas de “Me deben” y “Debo” (terceros que no son usuarios) | Interés legítimo del titular. Quien los ingresa responde de hacerlo con fundamento, y la política se lo advierte |
 | Foto de perfil | Consentimiento (opcional) |
 | Aviso mensual por correo | Consentimiento, revocable en el perfil |
+| Recordatorios en el teléfono | Consentimiento, por aparato: el navegador pide permiso. Se apagan en el perfil o en los ajustes del teléfono |
 | Análisis con IA y voz de la esfera | Consentimiento, revocable en el perfil (`analisis_ia`). Un solo interruptor apaga las dos |
 | Chat de ayuda | Consentimiento: solo si la persona escribe |
 | Formulario de contacto del chat | Consentimiento: al dejar su correo |
@@ -67,6 +68,7 @@ La descarga de datos excluye las credenciales (secreto 2FA, hashes de los códig
 | Aparatos conocidos | Mientras exista la cuenta | Borrado en cascada |
 | Correo nuevo sin confirmar | 48 h | El enlace vence |
 | Audio de la voz | 6 h | Caché del servidor |
+| Aparatos con recordatorios | Hasta apagarlos, que el servicio de avisos diga que el aparato ya no existe o se borre la cuenta | `push_quitar`, borrado ante 404 o 410 y en cascada |
 | Conversación del chat | No se guarda en el servidor | Vive en la pestaña |
 | Formulario del chat | En el buzón de soporte hasta cerrar la consulta | Manual |
 | Archivo de cartola | No se guarda | Se procesa en memoria |
@@ -83,6 +85,7 @@ Todos los proveedores están fuera de Chile. Cada transferencia se declara en la
 | Resend | Correo y contenido del aviso mensual, de la verificación, de la recuperación y del formulario de contacto | EE. UU. | DPA prefirmado |
 | Anthropic | Agregados del análisis y texto del chat | EE. UU. | DPA en los Commercial Terms |
 | Google | Identidad, solo al entrar con Google | EE. UU. | Términos del servicio de identidad |
+| Servicio de avisos del navegador (Google, Mozilla, Apple o Microsoft, según el aparato) | El recordatorio cifrado, que no puede leer. Ve la dirección del aparato y la hora del envío | EE. UU. | Lo elige el navegador de la persona. No hay contrato con Fintora |
 | ElevenLabs | Texto que la esfera lee en voz alta: montos del mes, en Me deben los nombres de las personas y lo que deben, y al entrar el nombre del saludo. Solo con el análisis con IA activado | EE. UU. | Por documentar (ver pendientes) |
 | Sentry (si está activo) | Errores de la aplicación, sin datos personales (`send_default_pii=False`) | EE. UU. | Por documentar |
 | Plausible (si está activo) | Visitas a las páginas públicas, sin cookies | UE | Términos del servicio |
@@ -113,6 +116,7 @@ C1, C2 y C3 se resolvieron en la entrega de arreglos (ver [13 · Deuda técnica]
 - **C4. Aviso de la política 1.5.** Enviar el correo a todas las cuentas antes del 20 de octubre de 2026.
 - **C5. Acuerdo con ElevenLabs.** Revisar y descargar su DPA y guardarlo en `legal/dpa/`. El plan gratuito no permite uso comercial: en producción hace falta un plan de pago.
 - **C6. Acuerdos de Sentry y de los proveedores de medición**, si se activan.
+- **C7. Versión de la política.** El lote 86 sumó a la 1.5 el apartado de los recordatorios sin subir la versión. Si el aviso de la 1.5 ya salió o alguien ya la aceptó, hay que pasarla a 1.6 y avisar de nuevo.
 
 ## Para un auditor
 
@@ -122,7 +126,7 @@ C1, C2 y C3 se resolvieron en la entrega de arreglos (ver [13 · Deuda técnica]
 | ¿Qué acepta el usuario? | `/privacidad/`, `/terminos/`, `registration/registro.html`, `UserProfile.politica_*` |
 | ¿Se pueden ejercer los derechos? | `views/cuenta.py` (`mis_datos`, `eliminar_cuenta`), `test_derechos.py` |
 | ¿Se respetan los plazos? | `inactividad.py`, `auditoria.purgar`, `respaldar_postgres._rotar`, `test_conservacion.py` |
-| ¿Qué sale hacia terceros? | `ia._construir_prompt`, `chat_ayuda`, `voz.py` y `views/voz.py`, `correo.py`, `marketing.py`, `test_terceros_fotos_cache.py`, `test_voz.py`, la CSP en `middleware.py` |
+| ¿Qué sale hacia terceros? | `ia._construir_prompt`, `chat_ayuda`, `voz.py` y `views/voz.py`, `correo.py`, `marketing.py`, `test_terceros_fotos_cache.py`, `test_voz.py`, `push.py` y `servicios/recordatorios.py` con `test_recordatorios.py`, la CSP en `middleware.py` |
 | ¿Cómo se protege? | [06 · Seguridad](06-SEGURIDAD.md) |
 | ¿Qué pasa ante una brecha? | `docs/BRECHAS.md` |
 | ¿Hay contratos con los encargados? | Tabla de encargados y `legal/dpa/` |

@@ -1,6 +1,6 @@
 # 13 · Deuda técnica y hoja de ruta
 
-Lo que queda por mejorar y lo que se resolvió: la entrega de arreglos del 28 de septiembre de 2026 y la auditoría de seguridad de octubre (lotes 77 a 80). Actualizado el 6 de octubre de 2026 con los lotes hasta el 83.
+Lo que queda por mejorar y lo que se resolvió: la entrega de arreglos del 28 de septiembre de 2026 y la auditoría de seguridad de octubre (lotes 77 a 80). Actualizado el 6 de octubre de 2026 con los lotes hasta el 87.
 
 ## Resuelto en la entrega de arreglos
 
@@ -72,10 +72,13 @@ Lo que queda por mejorar y lo que se resolvió: la entrega de arreglos del 28 de
 | D15 | DNSSEC y la inscripción en HSTS *preload* | DNSSEC se activa en Cloudflare y en Registrar.eu. El *preload* es difícil de revertir: solo cuando todos los subdominios funcionen por HTTPS |
 | D16 | La voz depende del plan de ElevenLabs | El plan gratuito no permite uso comercial ni voces de Voice Library. En producción hace falta un plan de pago, y su DPA (C5 en [07](07-PRIVACIDAD-Y-CUMPLIMIENTO.md#pendientes-de-cumplimiento)) |
 | D17 | `esfera_salud.py` y `esfera.py` calculan el color de Inicio por separado | Hoy usan los mismos tramos. Si uno cambia, el otro tiene que cambiar igual |
+| D18 | En el computador, el aviso abre Fintora pero no trae el botón «Marcar pagada» (propuesta 2c) | Las acciones dentro del aviso dependen del navegador. Hoy hay que entrar a la app para pagar |
+| D19 | `enviar_recordatorios` manda en serie, con hasta 10 segundos de espera por aparato | Con pocas cuentas sobra. Con cientos de aparatos puede tardar minutos: mandar en paralelo o por tandas |
+| D20 | Los recordatorios salen a la misma hora para todos (12:00 UTC) | Se corren una hora con el horario de verano y no sirven a quien vive en otro huso |
 
 ## Hoja de ruta sugerida
 
-**Antes del 20 de octubre:** enviar el aviso de la política 1.5, contratar el plan de ElevenLabs y guardar su DPA (C4, C5 y D16), y apuntar `railway/limpieza.json` en su servicio.
+**Antes del 20 de octubre:** enviar el aviso de la política 1.5, contratar el plan de ElevenLabs y guardar su DPA (C4, C5 y D16), apuntar `railway/limpieza.json` en su servicio, poner `VAPID_PRIVADA`, crear el servicio `recordatorios` y decidir si la política pasa a 1.6 (C7 en [07](07-PRIVACIDAD-Y-CUMPLIMIENTO.md)).
 
 **Este mes:** D10 y D11, que solo piden leer lo que el CI ya reporta, las pruebas de JavaScript (D7) para el chat, el tour y la esfera, y DNSSEC (D15).
 

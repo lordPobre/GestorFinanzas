@@ -24,7 +24,7 @@ Se muestra en grande en el inicio. Tres botones cambian lo que dice: **Gastos** 
 
 | Pantalla | Qué permite |
 | --- | --- |
-| **Inicio** | La cifra del mes, calendario de cobros, pagos pendientes (cuotas, suscripciones, gastos y cuentas por pagar) con botón de pagar, gráfico de 6 meses, gasto por categoría, avisos (presupuesto, gasto contra el mes anterior, cuotas por vencer, cuándo termina una compra), metas, últimos movimientos y primeros pasos para cuentas nuevas. Navegación entre meses. Desde el día 7, la campana avisa qué categorías van más rápido que tu promedio |
+| **Inicio** | La cifra del mes, calendario de cobros, pagos pendientes (cuotas, suscripciones, gastos, cuentas por pagar y la cuota del mes de lo que debes) con botón de pagar, gráfico de 6 meses, gasto por categoría, avisos (presupuesto, gasto contra el mes anterior, cuotas por vencer, cuándo termina una compra), metas, últimos movimientos y primeros pasos para cuentas nuevas. Navegación entre meses. Desde el día 7, la campana avisa qué categorías van más rápido que tu promedio. Si hay un cobro en los próximos 7 días y la cuenta no tiene recordatorios, invita a activarlos |
 | **Esfera de estado** | En el teléfono, detrás de la hoja de Inicio, Cuotas, Me deben, Suscripciones y Metas. Su color resume la pantalla (verde, amarillo o rojo; gris si no hay datos) y al tocarla una voz lee el resumen. Al entrar, saluda por el nombre y dice si el estado del mes cambió desde la última vez. En el computador, la tarjeta de salud de la barra lateral muestra la esfera con la puntuación |
 | **Movimientos** | «Ver todo» muestra el mes completo con lo que entró y salió, agrupado por día. Filtros Todo, Únicos, Cuotas e Ingresos con su cantidad y suma. Tocar abre la edición de ingresos y gastos; deslizar paga o borra. Borrar una cuota anula ese pago |
 | **Registrar** | Botón central siempre a mano: gasto o ingreso en dos toques, con teclado de monto y categoría. Un gasto puede quedar “por pagar” |
@@ -32,14 +32,14 @@ Se muestra en grande en el inicio. Tres botones cambian lo que dice: **Gastos** 
 | **Suscripciones** | Se anotan una vez y se generan solas cada mes. Reconoce unas 40 marcas (Netflix, Spotify, ChatGPT, gimnasio…), detecta suscripciones duplicadas en la misma categoría y muestra lo que se ahorraría al año cancelando una. Sugiere como suscripción los cobros que se repiten cada mes en movimientos y cartolas. Arriba de la lista, «Para ahorrar» agrupa los servicios parecidos y dice cuánto se ahorra al año quedándose con el más barato |
 | **Plan para tu plata** | Reparte lo que sobra al mes entre ahorro, deudas y libre. Proyecta el fondo para imprevistos como una cuenta de ahorro con tasa y, desde que se completa, un depósito a plazo renovable. Son estimaciones antes de impuestos. Opcionalmente, una explicación en palabras simples hecha con IA |
 | **¿Y si compro en cuotas?** | En el Plan: con el valor de la cuota y cuántas son, muestra 12 barras con lo que quedaría libre cada mes con y sin la compra, y marca el mes más justo. No guarda nada |
-| **Me deben** | Préstamos a personas, de pago único o en cuotas, con abonos parciales, montos sugeridos, cuánto falta, en qué cuota va y cuánto paga este mes. Cobro por WhatsApp. En el computador, la lista de personas y el detalle van lado a lado |
+| **Préstamos** | Dos pestañas. **Me deben**: préstamos a personas, de pago único o en cuotas, con abonos parciales, montos sugeridos, cuánto falta, en qué cuota va y cuánto paga este mes. Cobro por WhatsApp. En el computador, la lista de personas y el detalle van lado a lado. **Debo**: lo que se le debe a otras personas, con las mismas cuotas y abonos, en coral y sin WhatsApp. La cuota del mes aparece en «Por pagar» del Inicio y resta de «Puedes gastar» |
 | **Metas de ahorro** | Monto, fecha y aportes. Calcula cuánto aportar al mes y avisa si una meta lleva meses sin aportes. Al abrir una meta, un anillo muestra el avance y los chips de aporte rápido dicen hasta dónde llegarías |
-| **Categorías** | 12 de gasto y 7 de ingreso fijas, más las propias con color e ícono |
+| **Categorías** | 12 de gasto y 7 de ingreso fijas, más las propias con color e ícono. Cada categoría de gasto acepta un tope mensual, sugerido con el promedio de los últimos 3 meses. La barra pasa a amarillo desde el 80 % y a coral al pasarse. Al anotar un gasto que llega al 80 % o pasa el tope, avisa antes de guardar, sin bloquear |
 | **Estadísticas** | 12 meses de ingresos y gastos, mejor y peor mes, tasa de ahorro, ranking de categorías contra el mes anterior |
 | **Análisis** | Diagnóstico propio: carga de cuotas sobre el ingreso, flujo libre, riesgo de 0 a 100 con sus factores, proyección de la deuda a 7 meses. Opcionalmente, una interpretación en lenguaje natural hecha con IA |
 | **Importar cartola** | PDF del banco o de la tarjeta, o CSV/Excel. Lee, categoriza, detecta cuotas, suscripciones, duplicados y traspasos propios, y deja revisar antes de guardar. El archivo no se guarda |
 | **Exportar** | Excel con subtotales por mes, CSV, y la descarga completa de los datos en JSON |
-| **Perfil** | Datos, foto, moneda (8 opciones), presupuesto, aviso mensual por correo, verificación en dos pasos, Face ID o huella, sesiones abiertas, **actividad de la cuenta** de los últimos 90 días, resumen de las 4 protecciones (contraseña, Face ID, dos pasos, correo confirmado), cambio de correo con confirmación, política aceptada, borrar la cuenta |
+| **Perfil** | Datos, foto, moneda (8 opciones), presupuesto, aviso mensual por correo, recordatorios en el teléfono, verificación en dos pasos, Face ID o huella, sesiones abiertas, **actividad de la cuenta** de los últimos 90 días, resumen de las 4 protecciones (contraseña, Face ID, dos pasos, correo confirmado), cambio de correo con confirmación, política aceptada, borrar la cuenta |
 | **Recorrido guiado** | Tour por las pantallas reales después de la bienvenida |
 | **Encuesta** | NPS y opinión por pantalla, a los 14 días de uso, como máximo una vez cada 6 meses |
 
@@ -59,6 +59,10 @@ Usuario y contraseña, **Google**, y **Face ID o huella** (passkeys), que solo s
 
 Confirmación del correo al registrarse, recuperación de contraseña, **aviso mensual** de lo que queda por pagar (el día que la persona elige), aviso de cuenta inactiva a los 12 meses, aviso de acceso desde un aparato nuevo, confirmación y aviso del cambio de correo, y aviso a quien intenta registrarse con un correo que ya tiene cuenta. Los correos HTML usan el diseño oscuro de la app, con 480 px de ancho y la cabecera como imagen adjunta.
 
+## Recordatorios en el teléfono
+
+Avisos en el teléfono o el computador, una vez al día (9:00 en verano, 8:00 en invierno): el día que vence un cobro, el día antes, al llegar al 80 % de un tope y al pasarlo, y un resumen los domingos. Se activan en cada aparato desde Perfil; las cinco opciones son de la cuenta. Por defecto no muestran montos en la pantalla bloqueada. En el iPhone hace falta tener la app agregada a la pantalla de inicio.
+
 ## Diferenciales
 
 1. **Las cuotas como ciudadanas de primera.** La mayoría de las apps de presupuesto las tratan como un gasto más. Aquí cada cuota vive en su mes, se paga, se atrasa y se arrastra.
@@ -72,7 +76,7 @@ Confirmación del correo al registrarse, recuperación de contraseña, **aviso m
 
 - En producción en Railway, abierta al público, con cuentas reales. El simulacro de restauración del 24 de septiembre de 2026 contó **9 usuarios y 64 movimientos**.
 - Un solo responsable y titular de todos los derechos: Carlos López Figueroa. Desarrollada con asistencia de Claude (Anthropic).
-- 419 pruebas automáticas, CI en cada cambio, monitoreo de errores y de disponibilidad, respaldos diarios verificados.
+- 514 pruebas automáticas, CI en cada cambio, monitoreo de errores y de disponibilidad, respaldos diarios verificados.
 - Lo que falta corregir está en [13 · Deuda técnica](13-DEUDA-TECNICA-Y-HOJA-DE-RUTA.md).
 
 ## Costos de operación

@@ -31,7 +31,7 @@ En el CI, el usuario y la base de Postgres se llaman `fintora` y `ALLOWED_HOSTS`
 
 ## Qué cubre cada archivo
 
-Son 49 archivos en `finanzas/tests/` con 419 pruebas, contadas sobre las entregas hasta el lote 82. Las 18 filas de arriba son las del 28 de septiembre; las de abajo, las que se sumaron después. Seis archivos de antes no tienen fila propia.
+Son 52 archivos en `finanzas/tests/` con 514 pruebas, contadas sobre las entregas hasta el lote 87. Las 18 filas de arriba son las del 28 de septiembre; las de abajo, las que se sumaron después. Seis archivos de antes no tienen fila propia.
 
 | Archivo | Pruebas | Qué asegura |
 | --- | --- | --- |
@@ -67,6 +67,9 @@ Son 49 archivos en `finanzas/tests/` con 419 pruebas, contadas sobre las entrega
 | `test_seguridad_79.py` | 11 | `limpieza_diaria`, respaldo sin datos de sesiones, cookies `__Host-`, dominio canónico (también con hosts fuera de `ALLOWED_HOSTS`) y diagnóstico de IP solo para el personal |
 | `test_seguridad_80.py` | 13 | Montos fuera de rango, textos largos, pagos sin duplicar, aislamiento automático de todas las rutas con id, fotos sin EXIF, registro que no revela correos, tope de recuperación por dirección, PKCE y `nonce` de Google, tope del chat por IP |
 | `test_esfera_bienvenida.py` | 5 | El saludo aparece solo en la primera visita, compara con el estado visto y lo guarda |
+| `test_recordatorios.py` | 46 | Cifrado: el aparato descifra lo enviado, sal y clave nuevas en cada envío, otro aparato no puede leerlo, firma VAPID válida con el destino y la vigencia. Claves: el par generado calza, sin clave no hay recordatorios, una clave rota se anota, `generar_vapid` entrega la variable lista. Solo servicios de avisos conocidos por HTTPS. Envío: cifrado y firmado, 404 y 410 borran el aparato, una falla no lo borra, sin clave no sale nada. Suscribir, quitar solo lo propio, 10 aparatos, probar con pausa de 30 s, opciones del perfil, descarga de datos. Invitación de Inicio. Avisos de hoy, de mañana, agrupados, de lo que debes, del domingo y sin montos por defecto. `enviar_recordatorios`: una vez al día, `--forzar`, cuentas inactivas fuera y una cuenta con error no frena a las demás |
+| `test_topes.py` | 21 | Tonos en 80 y 100 %, lo que queda y lo que se pasó. Poner, cambiar y quitar un tope; categorías de ingreso, ajenas y montos en cero rechazados; borrar una categoría borra su tope. Promedio de los 3 meses anteriores, lo que recibe el panel de anotar y un recordatorio por nivel y por mes |
+| `test_debo.py` | 28 | Día de pago en meses cortos y a fin de mes. Lo que falta del mes con abonos parciales o de más. La cuota en «Por pagar» solo del mes en curso y de la cuenta. Resta de «Puedes gastar» sin contarse dos veces. Marcar pagada solo por POST, solo en Debo y solo lo propio. Pestañas, alta en Debo, WhatsApp solo para cobrar y el botón de pago en Inicio |
 | `test_voz.py` | 9 | El audio sale con el saludo y el nombre, rechaza textos sin firma o de otro usuario y un nombre sin firma, respeta el interruptor de IA, solo POST, la pantalla trae los textos firmados, `sintetizar` llama a ElevenLabs una vez y guarda en caché, sin clave no hay voz |
 
 ## Qué no tiene pruebas hoy
@@ -79,7 +82,7 @@ Estos son los huecos que conviene cubrir primero, ordenados por riesgo:
 4. **Lectores de Banco de Chile, CMR y Ripley.** Tienen documento real de referencia, pero no una prueba propia como CuentaRUT.
 5. **`avisar_pagos`**: día efectivo en meses cortos y un solo envío por periodo.
 6. **`respaldar_postgres`** con `--seco` en el CI, contra el Postgres del servicio.
-7. **Frontend**: no hay pruebas de JavaScript. Los flujos críticos (registrar desde el panel, pagar desde el inicio, el chat de ayuda, la hoja de la esfera y el audio en el iPhone) solo se prueban a mano.
+7. **Frontend**: no hay pruebas de JavaScript. Los flujos críticos (registrar desde el panel, pagar desde el inicio, el chat de ayuda, la hoja de la esfera el audio en el iPhone y activar los recordatorios) solo se prueban a mano.
 
 ## Cómo se escribe una prueba nueva
 
@@ -88,5 +91,6 @@ Estos son los huecos que conviene cubrir primero, ordenados por riesgo:
 - Para dos usuarios, heredar de `BaseDosUsuarios` en `test_vistas.py`: arma a Ana y a Beto con datos de cada tipo.
 - Servicios externos siempre simulados: `mock.patch('anthropic.Anthropic')`, `mock.patch.object(correo, 'enviar')`, `mock.patch.object(chat_ayuda, 'responder')`, `mock.patch('finanzas.views.voz.sintetizar')`.
 - Si la vista nueva recibe un id, sumarla a `DATOS` en `test_seguridad_80.py`.
+- Para los recordatorios, `override_settings(VAPID_PRIVADA=…)` con una clave de `push.generar_claves()`, y `mock.patch('finanzas.push.urlopen')` o `mock.patch.object(push, 'enviar_a_usuario')`. Nunca se conecta a un servicio de avisos real.
 - Si la prueba usa caché, llamar a `cache.clear()` en `setUp`. Los topes viven en `Contador`, que cada `TestCase` deja vacía.
 - Para cartolas se usa texto de ejemplo con datos inventados dentro de la prueba. Nunca una cartola real.

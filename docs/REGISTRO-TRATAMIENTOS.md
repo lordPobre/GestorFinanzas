@@ -2,14 +2,14 @@
 
 Inventario de qué dato personal trata la aplicación, con qué finalidad, dónde vive y cuánto se conserva. Es el documento que pide la Ley 21.719 cuando se fiscaliza: no basta con tener los controles, hay que poder mostrar qué se trata y por qué.
 
-Última revisión: 27 de septiembre de 2026.
+Última revisión: 6 de octubre de 2026.
 
 | | |
 | --- | --- |
 | Responsable del tratamiento | Carlos López Figueroa, persona natural, Valparaíso, Chile |
 | Canal para el ejercicio de derechos | soporte@perseustechnology.dev |
 | Alcance | Servicio abierto al público, con cuentas de usuarios reales |
-| Política vigente | La indicada en `finanzas/legal.py` (`VERSION`, `VIGENTE_DESDE`). Los tratamientos 15 y 16 entran con la versión 1.3 |
+| Política vigente | La indicada en `finanzas/legal.py` (`VERSION`, `VIGENTE_DESDE`). Los tratamientos 15 y 16 entran con la versión 1.3, y el 19 con la 1.5 (ver C7 en `docs/07`) |
 
 ---
 
@@ -39,22 +39,22 @@ Inventario de qué dato personal trata la aplicación, con qué finalidad, dónd
 
 | | |
 | --- | --- |
-| Datos | Acreedor o nombre, montos, calendario de cobros y pagos, nombre de la meta y aportes, límite mensual. Comercios que la persona marcó como «no es una suscripción» (un texto corto derivado de la descripción, sin montos ni fechas) |
+| Datos | Acreedor o nombre, montos, calendario de cobros y pagos, nombre de la meta y aportes, límite mensual, topes por categoría y el último recordatorio de cada tope. Comercios que la persona marcó como «no es una suscripción» (un texto corto derivado de la descripción, sin montos ni fechas) |
 | Finalidad | Proyectar los compromisos del mes |
 | Base de licitud | Ejecución del servicio |
-| Dónde | Postgres (`finanzas_deuda`, `finanzas_pagocuota`, `finanzas_suscripcion`, `finanzas_pagoservicio`, `finanzas_metaahorro`, `finanzas_aportemeta`, `finanzas_presupuesto`, `finanzas_gastopendiente`, `finanzas_sugerenciadescartada`) |
+| Dónde | Postgres (`finanzas_deuda`, `finanzas_pagocuota`, `finanzas_suscripcion`, `finanzas_pagoservicio`, `finanzas_metaahorro`, `finanzas_aportemeta`, `finanzas_presupuesto`, `finanzas_topecategoria`, `finanzas_gastopendiente`, `finanzas_sugerenciadescartada`) |
 | Conservación | Mientras la cuenta exista |
 
-## 4. Datos de terceros: personas que deben dinero
+## 4. Datos de terceros: personas que deben dinero o a quienes se les debe
 
 | | |
 | --- | --- |
-| Datos | Nombre y un campo de contacto libre (teléfono, correo o nota), montos prestados y abonos |
-| Finalidad | Llevar la cuenta de los préstamos personales del titular |
-| Base de licitud | Interés legítimo del titular en administrar sus créditos personales |
+| Datos | Nombre y un campo de contacto libre (teléfono, correo o nota), el lado (me debe o le debo), montos prestados o debidos, cuotas y abonos |
+| Finalidad | Llevar la cuenta de los préstamos personales del titular, en los dos sentidos |
+| Base de licitud | Interés legítimo del titular en administrar sus créditos y deudas personales |
 | Dónde | Postgres (`finanzas_persona`, `finanzas_prestamo`, `finanzas_abonoprestamo`) |
 | Conservación | Mientras la cuenta exista, o hasta que el titular los borre |
-| Observación | **Son datos de personas que no son usuarias de la aplicación y no han dado consentimiento.** El titular los ingresa por su cuenta. La política le advierte que responde de hacerlo con fundamento, que anote lo mínimo y que borre los datos si la persona lo pide |
+| Observación | **Son datos de personas que no son usuarias de la aplicación y no han dado consentimiento.** El titular los ingresa por su cuenta. La política le advierte que responde de hacerlo con fundamento, que anote lo mínimo y que borre los datos si la persona lo pide. En Debo, el nombre puede aparecer en el recordatorio del teléfono del titular («Hoy vence …») |
 
 ## 5. Foto de perfil
 
@@ -208,6 +208,18 @@ Inventario de qué dato personal trata la aplicación, con qué finalidad, dónd
 | Conservación | La que aplique cada proveedor. La decisión de cookies, en el navegador |
 | Verificable en | `finanzas/marketing.py`, `static/js/consentimiento.js`, `finanzas/tests/test_seo.py`, `finanzas/tests/test_evento_registro.py` |
 
+## 19. Recordatorios en el teléfono
+
+| | |
+| --- | --- |
+| Datos | Por aparato: la dirección que entrega el navegador para recibir avisos (`endpoint`), sus claves de cifrado (`p256dh`, `auth`), el navegador, la fecha de alta y la del último envío. Por cuenta: las cinco opciones y el último día de envío |
+| Datos enviados | El texto del aviso: el nombre de lo que vence (cuota, suscripción, cuenta o persona a quien se le debe), la categoría de un tope y, solo si la persona activa «Mostrar montos», los montos |
+| Finalidad | Recordar los cobros y los topes sin abrir la app |
+| Base de licitud | Consentimiento: el navegador pide permiso en cada aparato. Se apaga en Perfil o en los ajustes del teléfono |
+| Dónde | Postgres (`finanzas_suscripcionpush` y los campos `push_*` de `finanzas_userprofile`). El aviso viaja por el servicio de avisos del navegador, cifrado de punta a punta: ese servicio no puede leerlo |
+| Conservación | Hasta que se apague en el aparato, el servicio responda que el aparato ya no existe o se elimine la cuenta. Hasta 10 aparatos por cuenta |
+| Verificable en | `finanzas/push.py`, `finanzas/servicios/recordatorios.py`, `finanzas/views/recordatorios.py`, `finanzas/tests/test_recordatorios.py` |
+
 ---
 
 ## Encargados del tratamiento y transferencias internacionales
@@ -220,6 +232,7 @@ Todos los proveedores están fuera de Chile, lo que constituye transferencia int
 | Cloudflare R2 | Fotos de perfil y respaldos de la base | Red global | Customer DPA v6.4, incorporado al Self-Serve Subscription Agreement, revisado y descargado el 2026-09-23 |
 | Resend | Correo del titular y contenido de los correos de la cuenta y del aviso; correo y pregunta del formulario de contacto | Estados Unidos | DPA prefirmado por Resend, vigente desde el alta de la cuenta; copia firmada descargada el 2026-09-23 |
 | Anthropic | Agregados numéricos del análisis; texto del chat de ayuda | Estados Unidos | DPA incorporado a los Commercial Terms, revisados y descargados el 2026-09-23 |
+| Servicio de avisos del navegador: Google (Chrome y Android), Mozilla (Firefox), Apple (Safari) o Microsoft (Edge) | El recordatorio cifrado, sin poder leerlo; la dirección del aparato y la hora del envío | Estados Unidos | Lo elige el navegador de la persona. Sin contrato con Fintora |
 | Google | Identidad al entrar con cuenta de Google | Estados Unidos | Términos del servicio de identidad |
 | ElevenLabs | Texto que lee la esfera: montos, nombres de las personas de Me deben y, al entrar, el nombre del saludo | Estados Unidos | Por documentar: descargar el DPA al contratar el plan de pago |
 | Sentry (si `SENTRY_DSN` está activo) | Errores de la aplicación, sin datos personales (`send_default_pii=False`) | Estados Unidos | Por documentar |
@@ -239,6 +252,7 @@ Todos los proveedores están fuera de Chile, lo que constituye transferencia int
 | Aparatos conocidos | Mientras la cuenta exista | Aplicado: borrado en cascada |
 | Correo nuevo sin confirmar | 48 horas | Aplicado: el enlace vence |
 | Audio de la voz de la esfera | 6 horas | Aplicado: caché |
+| Aparatos con recordatorios | Hasta apagarlos, que el servicio los dé por vencidos o se borre la cuenta | Aplicado: `push_quitar`, borrado ante 404 o 410 y en cascada |
 | Archivo de cartola | No se guarda | Aplicado |
 | Lo leído de una cartola | Hasta 8 horas, en la sesión | Aplicado; se declara en la política 1.3 |
 | Conversación del chat | No se guarda | Aplicado |
@@ -255,5 +269,6 @@ Todos los proveedores están fuera de Chile, lo que constituye transferencia int
 | Supresión | Perfil → Seguridad → Eliminar mi cuenta. Borra todo de inmediato |
 | Oposición al análisis con IA | Perfil → Análisis con IA, apagado |
 | Oposición al correo mensual | Perfil → Aviso mensual, apagado |
+| Oposición a los recordatorios | Perfil → Recordatorios en este aparato, apagado, o los ajustes del teléfono |
 | Canal formal de solicitudes | soporte@perseustechnology.dev, respuesta en 30 días corridos |
 | Evidencia del consentimiento | `UserProfile.politica_version` y `politica_aceptada`, registrados en el alta y al aceptar cada versión nueva |

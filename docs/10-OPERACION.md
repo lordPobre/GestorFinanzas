@@ -13,6 +13,7 @@ Lo que hay que hacer para que el servicio siga funcionando: tareas programadas, 
 | respaldo | `railway/respaldo.json` | `python manage.py respaldar_postgres` | `0 7 * * *` | 3–4 AM |
 | avatares | `railway/avatares.json` | `python manage.py limpiar_avatares_huerfanos` | `0 4 * * 0` | Domingos de madrugada |
 | limpieza | `railway/limpieza.json` | `python manage.py limpieza_diaria` | `30 6 * * *` | 2:30–3:30 AM |
+| recordatorios | `railway/recordatorios.json` | `python manage.py enviar_recordatorios` | `0 12 * * *` | 8–9 AM |
 
 Cada tarea es un servicio aparte del mismo repositorio, que arranca, corre y termina (`restartPolicyType: NEVER`). En *Settings → Config-as-code → Railway Config File* se apunta a su archivo. Sin eso, el servicio toma `railway.json` y arranca un servidor web.
 
@@ -45,6 +46,16 @@ python manage.py limpiar_inactivas --solo-avisos
 ### `limpieza_diaria`
 
 Corre `clearsessions`, borra los contadores de `Contador` ya vencidos y las filas de `SesionActiva` cuya sesión de Django ya no existe.
+
+### `enviar_recordatorios`
+
+A cada cuenta activa con al menos un aparato le arma los avisos del día según sus opciones: lo que vence hoy, lo que vence mañana, los topes que llegaron al 80 % o al 100 % (un aviso por nivel y por mes) y, los domingos, el resumen. Pasa una vez al día por cada cuenta (`push_ultimo_dia`). Borra los aparatos que el servicio da por vencidos. Si una cuenta falla, lo anota en el log y sigue con las demás; esa cuenta se vuelve a intentar en la corrida siguiente. Sin `VAPID_PRIVADA` no hace nada.
+
+```bash
+python manage.py enviar_recordatorios           # los de hoy
+python manage.py enviar_recordatorios --forzar  # aunque ya hayan salido hoy
+python manage.py generar_vapid                  # el par de claves, una sola vez
+```
 
 ### `limpiar_avatares_huerfanos`
 
@@ -103,6 +114,7 @@ El primer lunes de cada mes: descargar la última copia, verificar el hash, rest
 | Trimestral | Volver a pasar SSL Labs y Mozilla Observatory, y actualizar `legal.REVISION_SEGURIDAD` y la tabla del `README.md` |
 | Trimestral | Revisar `docs/CARTOLAS-COBERTURA.md` y los formatos que fallaron (las muestras anónimas que hayan llegado) |
 | Anual | Rotar `SECRET_KEY` (cierra todas las sesiones, obliga a volver a vincular Face ID y hace que todos los aparatos cuenten como nuevos: avisar antes), las credenciales de R2 y las claves de API, incluida la de ElevenLabs. Anotar la fecha de cada rotación |
+| Si se filtra `VAPID_PRIVADA` | Generar otra con `generar_vapid` y cambiarla en Railway. Todos los aparatos dejan de recibir avisos hasta que cada persona los active de nuevo. No se rota por calendario |
 | Al cambiar la política | Subir `legal.VERSION` y `VIGENTE_DESDE`, avisar por correo a todos los usuarios antes de la fecha de vigencia y actualizar `docs/REGISTRO-TRATAMIENTOS.md` |
 
 ## Incidentes de seguridad

@@ -79,27 +79,29 @@ Todas las rutas están en `finanzas/urls.py`, salvo el panel de administración,
 | `/metas/<id>/editar/` | `editar_meta` | L |
 | `/metas/<id>/eliminar/` | `eliminar_meta` | L · P |
 
-### Me deben (`views/prestamos.py`)
+### Préstamos: Me deben y Debo (`views/prestamos.py`)
 
 | Ruta | Nombre | Notas |
 | --- | --- | --- |
-| `/prestamos/` | `prestamos` | L. `?persona=` elige la persona. Por defecto, la que más debe |
-| `/prestamos/persona/nueva/` | `crear_persona` | L. Puede crear el primer préstamo en el mismo envío |
-| `/prestamos/persona/<id>/` | `detalle_persona` | L. Misma plantilla, con la persona fija |
+| `/prestamos/` | `prestamos` | L. `?lado=debo` abre Debo; sin él, Me deben. `?persona=` elige la persona. Por defecto, la que más debe |
+| `/prestamos/persona/nueva/` | `crear_persona` | L. Puede crear el primer préstamo en el mismo envío. `lado=LE_DEBO` la crea en Debo; cualquier otro valor, en Me deben |
+| `/prestamos/persona/<id>/` | `detalle_persona` | L. Misma plantilla, con la persona fija y la pestaña de su lado |
 | `/prestamos/persona/<id>/contacto/` | `editar_contacto` | L · P. Nombre y contacto (WhatsApp) |
 | `/prestamos/persona/<id>/eliminar/` | `eliminar_persona` | L · P. Se lleva sus préstamos y abonos |
 | `/prestamos/persona/<id>/nuevo/` | `crear_prestamo` | L |
 | `/prestamos/<id>/abonar/` | `abonar_prestamo` | L · P · J. Si el abono supera lo pendiente, se recorta. No genera movimiento |
+| `/prestamos/<id>/pagar-mes/` | `pagar_mes_prestamo` | L · P. Solo Debo (en Me deben, 404). Abona lo que falta del mes con la nota «Pago del mes» y vuelve al Inicio. Si no falta nada, no abona |
 | `/prestamos/<id>/eliminar/` | `eliminar_prestamo` | L · P |
 
 ### Categorías, estadísticas y análisis
 
 | Ruta | Nombre | Vista | Notas |
 | --- | --- | --- | --- |
-| `/categorias/` | `categorias` | `categorias.categorias` | L. Gasto del mes y uso de cada categoría, fija o propia |
+| `/categorias/` | `categorias` | `categorias.categorias` | L. Gasto del mes y uso de cada categoría, fija o propia. Estado del tope y promedio de los últimos 3 meses |
 | `/categorias/nueva/` | `crear_categoria` | | L · P |
+| `/categorias/tope/` | `guardar_tope` | `categorias.guardar_tope` | L · P. `categoria` (de gasto, fija o propia), `monto` y `avisar=1`. Con `quitar`, borra el tope |
 | `/categorias/<id>/editar/` | `editar_categoria` | | L · P. Nombre, color e ícono |
-| `/categorias/<id>/eliminar/` | `eliminar_categoria` | | L · P. Pasa sus movimientos a `Otros` u `Otros_Ingresos` |
+| `/categorias/<id>/eliminar/` | `eliminar_categoria` | | L · P. Pasa sus movimientos a `Otros` u `Otros_Ingresos` y borra su tope |
 | `/estadisticas/` | `estadisticas` | `estadisticas.estadisticas` | L. Últimos 12 meses, mejor y peor mes, tasa de ahorro y ranking por categoría contra el mes anterior |
 | `/analisis/` | `analisis_predictivo` | `analisis.analisis_predictivo` | L. Motor propio y serie de cuotas (6 meses atrás, 6 adelante) |
 | `/analisis/plan/` | `plan_plata` | `plan.plan_plata` | L. Reparto, fondo para imprevistos, depósito a plazo y simulador de cuotas |
@@ -141,12 +143,15 @@ El detalle está en [05 · Cartolas](05-CARTOLAS.md).
 | `/entrar/face-id/verificar/` | `passkey_entrar_verificar` | P. Bloqueo por IP |
 | `/bienvenido/` | `onboarding` | L. Primeros pasos |
 | `/bienvenido/completar/` | `completar_onboarding` | L · P. Ingreso, primera compra en cuotas y presupuesto. Luego redirige a `/?tour=1` |
-| `/perfil/` | `perfil` | L. POST con `accion`: `perfil`, `password`, `aviso_mensual`, `analisis_ia`, `aceptar_politica` o `aviso_dia`. Cambiar el correo pide la contraseña actual (o el código de la app si la cuenta entra solo con Google) y deja el correo nuevo en `email_pendiente` |
+| `/perfil/` | `perfil` | L. POST con `accion`: `perfil`, `password`, `aviso_mensual`, `analisis_ia`, `aceptar_politica`, `aviso_dia` o `recordatorios` (`campo`, una de las cinco opciones `push_*`, y `activar=1`). Cambiar el correo pide la contraseña actual (o el código de la app si la cuenta entra solo con Google) y deja el correo nuevo en `email_pendiente` |
 | `/perfil/confirmar-correo/<token>/` | `confirmar_cambio_correo` | Enlace al correo nuevo, válido 48 h. Cambia el correo y cierra las demás sesiones. Un pedido nuevo invalida el anterior |
 | `/perfil/mis-datos/` | `mis_datos` | L. JSON con todos los datos de la cuenta |
 | `/perfil/eliminar-cuenta/` | `eliminar_cuenta` | L. Hay que escribir ELIMINAR y la contraseña |
 | `/perfil/sesiones/` | `sesiones_activas` | L. Cerrar una sesión o todas las demás |
 | `/perfil/actividad/` | `actividad_cuenta` | L. Registro de seguridad de la cuenta, 90 días y hasta 150 filas, agrupado por día |
+| `/perfil/recordatorios/suscribir/` | `push_suscribir` | L · P. JSON `{endpoint, keys: {p256dh, auth}}` del navegador. Solo servicios de avisos conocidos (Google, Mozilla, Apple, Microsoft) por HTTPS. Si el aparato ya estaba en otra cuenta, pasa a esta. Sin `VAPID_PRIVADA`: 404 |
+| `/perfil/recordatorios/quitar/` | `push_quitar` | L · P. Borra el aparato por su `endpoint`, solo si es de la cuenta |
+| `/perfil/recordatorios/probar/` | `push_probar` | L · P · T 1 cada 30 s. Aviso de prueba a todos los aparatos de la cuenta |
 | `/perfil/dos-pasos/` | `configurar_2fa` | L. `accion`: `activar`, `desactivar` o `regenerar`. Desactivar y regenerar: 5 intentos fallidos cada 15 min |
 | `/perfil/face-id/` | `passkeys` | L. Lista y quita dispositivos |
 | `/perfil/face-id/opciones/` | `passkey_registro_opciones` | L · P · T 10/h. Pide la contraseña |

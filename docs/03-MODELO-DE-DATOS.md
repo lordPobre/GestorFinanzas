@@ -20,6 +20,8 @@ User ─┬─ 1:1 ─ UserProfile
       ├─ 1:N ─ Suscripcion ─ 1:N ─ PagoServicio
       ├─ 1:N ─ MetaAhorro ─ 1:N ─ AporteMeta
       ├─ 1:N ─ Persona ─ 1:N ─ Prestamo ─ 1:N ─ AbonoPrestamo
+      ├─ 1:N ─ TopeCategoria
+      ├─ 1:N ─ SuscripcionPush
       ├─ 1:N ─ CodigoRespaldo
       ├─ 1:N ─ SesionActiva
       ├─ 1:N ─ Passkey
@@ -83,6 +85,10 @@ La `Transaccion` guarda el slug como texto, no una FK. Por eso desactivar una ca
 ### `Presupuesto`
 
 Uno por usuario (`OneToOne`). `limite_mensual` decimal(12,2), por defecto 500.000.
+
+### `TopeCategoria`
+
+El tope mensual de una categoría de gasto: `usuario` (FK, `related_name='topes'`), `categoria` (slug, 50), `monto` decimal(12,2), `avisar` (aviso al anotar, on por defecto), `aviso_periodo` y `aviso_nivel` (el último recordatorio enviado: 80 o 100, y en qué mes). La restricción `tope_unico_por_categoria` hace único `(usuario, categoria)`. Como `Transaccion`, guarda el slug y no una FK: al borrar una categoría propia, la vista borra su tope. Los cálculos están en `servicios/topes.py`.
 
 ### `GastoPendiente`
 
@@ -187,11 +193,11 @@ En `models/sugerencias.py`. `usuario` (FK, `related_name='sugerencias_descartada
 
 ## Préstamos (`models/prestamos.py`)
 
-Registran la plata que el usuario prestó y le deben. No hay registro de lo que el usuario debe a otras personas.
+Registran la plata que el usuario prestó y le deben (**Me deben**) y, desde el lote 86, la que él debe a otras personas (**Debo**). Los dos lados usan los mismos modelos y los distingue `Persona.lado`.
 
 ### `Persona`
 
-`usuario`, `nombre` (80), `contacto` (80, libre y opcional) y `creada`. Todo lo que muestra se calcula sobre sus préstamos: `total_prestado`, `total_abonado`, `total_pendiente`, `prestamos_activos`, `cobro_del_mes` (cuotas del mes más préstamos únicos pendientes).
+`usuario`, `lado` (8, con índice: `ME_DEBE` por defecto o `LE_DEBO`), `nombre` (80), `contacto` (80, libre y opcional) y `creada`. Todo lo que muestra se calcula sobre sus préstamos: `total_prestado`, `total_abonado`, `total_pendiente`, `prestamos_activos`, `cobro_del_mes` (cuotas del mes más préstamos únicos pendientes). `le_debo` pregunta por el lado, y `enlace_whatsapp` queda vacío en Debo.
 
 ### `Prestamo`
 
@@ -207,6 +213,8 @@ Registran la plata que el usuario prestó y le deben. No hay registro de lo que 
 `monto_pendiente`, `porcentaje`, `esta_pagado`, `monto_cuota`, `cuotas_abonadas` (lo abonado dividido por la cuota) y `montos_sugeridos` (los botones rápidos del formulario de abono: “Una cuota”, “Dos cuotas”, “La mitad” y “Todo lo pendiente”).
 
 Estos cálculos usan `Decimal`, como `Deuda`, y la cuota se redondea al peso.
+
+Para Debo: `abonado_en(año, mes)`, `compromiso_del_mes` (en cuotas, la cuota o lo abonado si fue más, sin pasar de lo pendiente; en pago único, todo lo pendiente), `falta_este_mes` y `dia_de_pago` (en cuotas, el mismo día del mes en que se anotó, o el último si el mes es más corto; en pago único, fin de mes). `resumen_mes` suma a lo comprometido `total_debo_mes`: lo pagado en el mes más, solo en el mes en curso, lo que falta. `pendientes_del_mes` agrega una fila `debo` por préstamo con algo por pagar este mes.
 
 ### `AbonoPrestamo`
 
@@ -229,10 +237,17 @@ Uno por usuario (`related_name='profile'`). Se crea en el registro. Si falta, la
 | IA | `analisis_ia` (on por defecto) |
 | Correo | `correo_verificado`, `correo_verificado_en`. `email_pendiente` y `email_pendiente_desde`: el correo nuevo mientras no se confirma (48 h) |
 | Esfera | `esfera_estado_visto` (12): el estado de Inicio que la persona vio la última vez que entró |
+| Recordatorios | `push_vence` y `push_dia_antes` (on), `push_topes`, `push_resumen` y `push_montos` (off), y `push_ultimo_dia`: el último día que `enviar_recordatorios` pasó por la cuenta |
 | Consentimiento | `politica_version`, `politica_aceptada` |
 | Inactividad | `ultima_actividad`, `aviso_inactividad_enviado` |
 
 Al cambiar la foto, `save()` borra la anterior del almacenamiento. Una señal `post_delete` borra la foto cuando se elimina el perfil. `foto_url` guarda en caché la URL firmada por 5 horas: la firma de R2 dura 6, así que la URL guardada nunca vence antes que la caché.
+
+## Recordatorios (`models/recordatorios.py`)
+
+### `SuscripcionPush`
+
+Un aparato con recordatorios: `usuario` (FK, `related_name='suscripciones_push'`), `endpoint` (500, único: la dirección del servicio de avisos del navegador), `p256dh` y `auth` (las claves que entrega el navegador para cifrar los avisos), `agente`, `creada` y `ultima_vez` (último envío aceptado). Hasta 10 por cuenta: al pasar, se borran las más antiguas. Si el servicio responde 404 o 410, la fila se borra.
 
 ## Seguridad (`models/seguridad.py`)
 
@@ -287,7 +302,7 @@ Se conserva 12 meses (ver [10 · Operación](10-OPERACION.md)).
 
 ## Migraciones
 
-37 migraciones en `finanzas/migrations/`. La numeración salta de `0016` a `0100` a propósito: la `0100_pagocuota` inició el modelo de pagos por periodo y marca un corte con el esquema original. Desde ahí se agrega una por cambio:
+38 migraciones en `finanzas/migrations/`. La numeración salta de `0016` a `0100` a propósito: la `0100_pagocuota` inició el modelo de pagos por periodo y marca un corte con el esquema original. Desde ahí se agrega una por cambio:
 
 | Migración | Qué agrega |
 | --- | --- |
@@ -310,5 +325,6 @@ Se conserva 12 meses (ver [10 · Operación](10-OPERACION.md)).
 | 0118 | `SugerenciaDescartada` |
 | 0119 | `Contador`, `DispositivoConocido`, `UserProfile.email_pendiente` y `email_pendiente_desde`, y cuatro tipos nuevos de `EventoSeguridad` |
 | 0120 | `UserProfile.esfera_estado_visto` |
+| 0121 | `Persona.lado`, los seis campos `push_*` de `UserProfile`, `TopeCategoria` y `SuscripcionPush`. Escrita a mano: `makemigrations --check` confirma que calza con los modelos |
 
 El CI corre `makemigrations --check`: un cambio de modelo sin su migración deja el build en rojo.

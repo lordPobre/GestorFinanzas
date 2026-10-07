@@ -90,7 +90,7 @@ Se carga en `base.html`. Marca `window.__finappJsCargado`, para no inicializar d
 
 ### Por pantalla: `static/js/pantallas/*.js`
 
-Hay 47 archivos, uno o más por plantilla, con el nombre de la plantilla (`dashboard.js`, `deudas.js`, `revisar-cartola.js`…). Los que terminan en `-2`, `-3`, etc. son bloques distintos de la misma plantilla que se separaron al sacar los `<script>` en línea (lote 4). Casos destacados:
+Hay 50 archivos, uno o más por plantilla, con el nombre de la plantilla (`dashboard.js`, `deudas.js`, `revisar-cartola.js`…). Los que terminan en `-2`, `-3`, etc. son bloques distintos de la misma plantilla que se separaron al sacar los `<script>` en línea (lote 4). Casos destacados:
 
 - `dashboard.js` y `estadisticas.js`: gráficos con Chart.js, con formato chileno y cifras cortas en pantallas angostas.
 - `analisis-2.js`: pide la interpretación a `/analisis/ia/` y la pinta con `textContent`.
@@ -106,6 +106,9 @@ Hay 47 archivos, uno o más por plantilla, con el nombre de la plantilla (`dashb
 - `saludo-cielo.js`: el sol o la luna del saludo según la hora, actualizado cada minuto.
 - `categorias-2.js`: porcentaje y barra de cada categoría.
 - `base-2.js`: la clase `con-scroll` y la recarga cuando Safari muestra una página guardada al ir Atrás.
+- `recordatorios.js`: el interruptor de Perfil, el permiso del navegador, suscribir o quitar el aparato, «Probar aviso» y la invitación de Inicio, que «Ahora no» esconde en ese aparato (`localStorage`). En un iPhone sin la app instalada explica cómo agregarla.
+- `categorias-topes.js`: la ventana «Poner tope», con el promedio y la sugerencia de un 10 % menos.
+- `anotar-tope.js`: el aviso del panel Registrar cuando el gasto llega al 80 % o pasa el tope. Lee `topes_json`, que agrega `contadores`.
 
 ### Consentimiento: `static/js/consentimiento.js`
 
@@ -136,11 +139,12 @@ Las claves usan el prefijo `finapp.` (por ejemplo, `finapp.pasos.oculto`, la lis
 | *Service worker* | `static/js/sw.js`, servido en `/sw.js` para que controle todo el sitio |
 | Entrada | La app instalada abre `/?fuente=pwa`: sin sesión va directo al acceso, sin pasar por la landing |
 
-Estrategia del *service worker* (versión `v63` en el lote 77b; se sube en cada lote que cambia CSS o JS):
+Estrategia del *service worker* (versión `v64` en el lote 86; se sube en cada lote que cambia CSS o JS):
 
 - **Navegación:** siempre por la red. Si no hay conexión, muestra una página “Sin conexión” embebida. **Nunca guarda HTML**: una página con datos financieros no queda en la caché del teléfono.
 - **`/static/`:** *stale-while-revalidate*. Sirve lo guardado y actualiza en segundo plano. Los nombres llevan hash (manifiesto de WhiteNoise), así que una versión nueva nunca choca con una vieja.
 - **Al activarse:** borra las cachés `finapp-*` de versiones anteriores, toma control de las pestañas abiertas y las recarga, para que nadie quede con un JavaScript viejo.
+- **Avisos:** el evento `push` muestra el aviso con título, cuerpo y etiqueta (uno nuevo con la misma etiqueta reemplaza al anterior). Al tocarlo, abre la dirección que trae si es de Fintora, en una pestaña abierta si la hay.
 - **Para forzar una actualización** de algo que no esté en `/static/`, se sube `VERSION`.
 
 ## Cómo agregar una pantalla

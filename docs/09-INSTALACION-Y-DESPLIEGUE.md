@@ -53,6 +53,8 @@ Para probar Face ID en local hace falta `localhost` (WebAuthn exige un contexto 
 | `CHAT_AYUDA_TOPE_DIARIO` | | Tope diario global de llamadas del chat (300 por defecto) |
 | `CHAT_AYUDA_TOPE_IP` | | Preguntas por día por IP o red /64 (30 por defecto) |
 | `ELEVENLABS_API_KEY`, `ELEVENLABS_VOZ` | Para la voz | Clave de ElevenLabs (basta el permiso *Text to Speech*) y el *voice ID*. Con el plan gratuito solo sirven las voces predeterminadas, como Sarah (`EXAVITQu4vr4xnSDxMaL`) |
+| `VAPID_PRIVADA` | Para los recordatorios | Clave privada de los avisos push. Se genera una sola vez con `python manage.py generar_vapid` y se pega sin comillas ni espacios. Sin ella, la app no ofrece recordatorios. Cambiarla obliga a cada aparato a activarlos de nuevo |
+| `VAPID_CONTACTO` | | `mailto:` que se informa a los servicios de avisos. Por defecto, `mailto:soporte@perseustechnology.dev` |
 | `ELEVENLABS_MODELO` | | `eleven_multilingual_v2` por defecto. `eleven_flash_v2_5` responde más rápido y gasta la mitad |
 | `GOOGLE_SITE_VERIFICATION` | | Código de verificación de Search Console, sin la etiqueta `<meta>` |
 | `PLAUSIBLE_DOMINIO`, `PLAUSIBLE_SCRIPT` | | Plausible sin cookies (`fintora.cl`). El script por defecto es `https://plausible.io/js/script.js` |

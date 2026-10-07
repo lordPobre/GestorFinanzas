@@ -149,6 +149,15 @@ upgrade-insecure-requests
 
 Límites de tamaño: 6 MB por petición y por archivo, 3000 campos por formulario. Las cartolas tienen además un máximo de 80 páginas, 1,5 millones de caracteres y 2000 movimientos.
 
+### Recordatorios en el teléfono (`push.py`)
+
+- Web Push estándar (RFC 8291 y 8292) escrito con `cryptography`, sin librerías nuevas. Cada aviso se cifra para el aparato con una clave de un solo uso: el servicio de avisos del navegador lo transporta pero no lo puede leer.
+- Solo se acepta un `endpoint` por HTTPS, sin usuario ni otro puerto, y de un servicio de avisos conocido. Así nadie puede usar la app para mandar peticiones a otra dirección. Si la dirección guardada deja de cumplirlo, se borra sin conectarse.
+- `VAPID_PRIVADA` firma cada envío (ES256, vigencia de 12 horas). Es un secreto como `SECRET_KEY`. Si se filtra, se genera otra con `generar_vapid` y cada aparato tiene que volver a activar los avisos.
+- Por defecto el aviso no muestra montos en la pantalla bloqueada (`push_montos`).
+- Al tocar el aviso, `sw.js` solo abre direcciones de Fintora.
+- «Probar aviso» admite uno cada 30 segundos por cuenta, y cada cuenta guarda hasta 10 aparatos.
+
 ## 5. Infraestructura y secretos
 
 - **Secretos** solo en variables de entorno de Railway: `SECRET_KEY`, `DATABASE_URL`, credenciales de R2 (fotos y respaldos por separado), `RESEND_API_KEY`, `ANTHROPIC_API_KEY`, `ELEVENLABS_API_KEY`, `GOOGLE_CLIENT_ID/SECRET` y `SENTRY_DSN`. Ninguno en el repositorio (ver `.gitignore`). El trabajo `secretos` del CI corre Gitleaks sobre todo el historial en cada push; `.gitleaks.toml` ignora los valores de prueba conocidos.
