@@ -1,12 +1,17 @@
 import os
 import re
+from datetime import date
+from decimal import Decimal
 from pathlib import Path
 from unittest import mock
 
 from django.conf import settings
 from django.contrib.auth.models import User
+from django.template import Context, Template
 from django.test import SimpleTestCase, TestCase
 from django.urls import reverse
+
+from finanzas.models import Transaccion
 
 PLANTILLAS = Path(settings.BASE_DIR) / 'finanzas' / 'templates'
 SCRIPTS = Path(settings.BASE_DIR) / 'static' / 'js'
@@ -20,6 +25,16 @@ SCRIPTS_ACCESO = ('finapp.js', 'dispositivo.js', 'passkeys.js', 'consentimiento.
                   'pantallas/auth-base.js', 'pantallas/auth-base-2.js', 'pantallas/auth-vitrina.js',
                   'pantallas/login.js', 'pantallas/login-2.js', 'pantallas/registro.js',
                   'pantallas/restablecer.js', 'pantallas/verificar.js', 'pantallas/legal.js')
+PANTALLAS_CON_SESION = ('base.html', '_aviso_encuesta.html', '_marca.html', '_esfera.html',
+                        'dashboard.html', 'perfil.html', 'form_transaccion.html',
+                        'form_gasto_pendiente.html')
+SCRIPTS_CON_SESION = ('finapp.js', 'tour.js', 'dispositivo.js', 'pantallas/base.js', 'pantallas/base-2.js',
+                      'pantallas/base-3.js', 'pantallas/base-4.js', 'pantallas/base-5.js',
+                      'pantallas/estilos.js', 'pantallas/anotar.js', 'pantallas/anotar-tope.js',
+                      'pantallas/recordatorios.js', 'pantallas/cuenta.js', 'pantallas/secciones.js',
+                      'pantallas/saludo-cielo.js', 'pantallas/dashboard.js', 'pantallas/inicio-cifra.js',
+                      'pantallas/inicio-movimientos.js', 'pantallas/inicio-esfera.js',
+                      'pantallas/form-transaccion.js', 'pantallas/perfil.js', 'pantallas/perfil-2.js')
 
 
 def _directivas(respuesta):
@@ -37,9 +52,28 @@ class EstilosEnLaPoliticaTests(TestCase):
     def test_las_etiquetas_style_piden_el_nonce(self):
         ana = User.objects.create_user('ana', 'ana@ejemplo.cl', 'clave-larga-1')
         self.client.force_login(ana)
-        directivas = _directivas(self.client.get(reverse('dashboard')))
+        directivas = _directivas(self.client.get(reverse('deudas')))
         self.assertIn("'nonce-", directivas['style-src-elem'])
         self.assertNotIn('unsafe-inline', directivas['style-src-elem'])
+        self.assertEqual(directivas['style-src-attr'], "style-src-attr 'unsafe-inline'")
+
+    def test_inicio_perfil_y_movimientos_no_aplican_atributos_style(self):
+        ana = User.objects.create_user('ana', 'ana@ejemplo.cl', 'clave-larga-1')
+        gasto = Transaccion.objects.create(usuario=ana, tipo='EGRESO', monto=Decimal('1000'),
+                                           categoria='Comida', fecha=date.today())
+        self.client.force_login(ana)
+        rutas = [reverse('dashboard'), reverse('perfil'), reverse('registrar_transaccion'),
+                 reverse('crear_gasto_pendiente'), reverse('editar_transaccion', args=[gasto.pk])]
+        for ruta in rutas:
+            with self.subTest(ruta=ruta):
+                respuesta = self.client.get(ruta)
+                self.assertEqual(respuesta.status_code, 200)
+                directivas = _directivas(respuesta)
+                self.assertIn("'nonce-", directivas['style-src-elem'])
+                self.assertEqual(directivas['style-src-attr'], "style-src-attr 'none'")
+
+    def test_la_portada_sin_sesion_sigue_aceptando_atributos_style(self):
+        directivas = _directivas(self.client.get(reverse('dashboard')))
         self.assertEqual(directivas['style-src-attr'], "style-src-attr 'unsafe-inline'")
 
     def test_el_acceso_y_las_legales_no_aplican_atributos_style(self):
@@ -86,3 +120,22 @@ class PlantillasSinEstiloEnLineaTests(SimpleTestCase):
         con_style = [nombre for nombre in SCRIPTS_ACCESO
                      if SCRIPT_CON_STYLE.search((SCRIPTS / nombre).read_text('utf-8'))]
         self.assertEqual(con_style, [])
+
+    def test_inicio_perfil_y_movimientos_no_traen_atributos_style(self):
+        con_style = [nombre for nombre in PANTALLAS_CON_SESION
+                     if ATRIBUTO_STYLE.search((PLANTILLAS / 'finanzas' / nombre).read_text('utf-8'))]
+        self.assertEqual(con_style, [])
+
+    def test_los_scripts_de_esas_pantallas_no_escriben_atributos_style(self):
+        con_style = [nombre for nombre in SCRIPTS_CON_SESION
+                     if SCRIPT_CON_STYLE.search((SCRIPTS / nombre).read_text('utf-8'))]
+        self.assertEqual(con_style, [])
+
+    def test_el_logo_de_una_marca_lleva_sus_colores_en_datos(self):
+        html = Template(
+            "{% load marcas %}{% marca_de 'Spotify' as m %}"
+            "{% include 'finanzas/_marca.html' with clase='ini-ficha' %}"
+        ).render(Context({}))
+        self.assertIn('data-fondo="#', html)
+        self.assertIn('data-tinta="#', html)
+        self.assertNotIn('style=', html)

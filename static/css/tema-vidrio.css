@@ -834,7 +834,7 @@ body:has(.ini-hero) .fab-group { display: none !important; }
 .ini-ficha b { font-size: 13px; font-weight: 800; }
 .ini-ficha.t-cuota { background: rgba(75, 140, 255, .18); color: #8db4ff; }
 .ini-ficha.t-suscripcion { background: rgba(255, 170, 44, .16); color: #ffbb56; }
-.atrasado .ini-ficha:not([style]) { background: rgba(255, 138, 138, .2); color: #ff8a8a; }
+.atrasado .ini-ficha:not(.marca-app) { background: rgba(255, 138, 138, .2); color: #ff8a8a; }
 .ini-pago-txt { display: flex; flex-direction: column; min-width: 0; }
 .ini-pago-nombre { max-width: 190px; font-size: 14px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; }
 .ini-pago-meta { font-size: 12px; font-weight: 700; color: rgba(245, 245, 245, .7); }

@@ -246,6 +246,8 @@ El salto de `0016` a `0100` es inofensivo y renumerar rompería las bases existe
 
 **Lote 92:** el acceso y las legales ya no tienen `style=` y pasan a `style-src-attr 'none'`. La lista de rutas está en `RUTAS_SIN_ESTILO_EN_LINEA`, en `middleware.py`. Las demás pantallas siguen con `'unsafe-inline'` hasta que se limpien.
 
+**Lote 96:** la plantilla base, Inicio, Mi perfil, anotar y editar un movimiento y la cuenta por pagar quedan sin `style=`. Sus estilos pasan a `static/css/sesion.css`, que carga después de la hoja de cada pantalla. Las reglas que reemplazan un atributo llevan `!important`, porque el atributo ganaba a cualquier selector y así se ven igual; las excepciones son lo que el JavaScript cambia en línea (`#avisoMonto`, `#montoView`, `#panelSeguridad`) y el ancho de los modales, que en el teléfono debe seguir cediendo a `max-width: none !important`. Donde `tema-vidrio.css` agrandaba los textos con `[style*="font-size:…"]`, la clase nueva ya trae el tamaño final. Lo que depende de los datos usa atributos `data-` que lee `estilos.js`, y solo acepta números y colores `#hex`. Estas rutas pasan a `'none'` solo con sesión, porque la ruta de Inicio sin sesión es la portada.
+
 ### D-31 · Medir antes de optimizar
 
 **Qué:** `RendimientoMiddleware` anota las respuestas lentas y `resumen_mes` se calcula una vez por petición.

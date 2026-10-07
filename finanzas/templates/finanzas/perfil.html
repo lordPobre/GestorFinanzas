@@ -73,7 +73,7 @@
                 <div>
                   <label class="label" for="{{ perfil_form.email.id_for_label }}">Email</label>
                   {{ perfil_form.email }}
-                  {% if profile.email_pendiente %}<div class="hint" style="margin-top:6px">Pendiente: {{ profile.email_pendiente }}. Abre el enlace que te mandamos a esa dirección.</div>{% endif %}
+                  {% if profile.email_pendiente %}<div class="hint arriba-6">Pendiente: {{ profile.email_pendiente }}. Abre el enlace que te mandamos a esa dirección.</div>{% endif %}
                 </div>
                 {% if user.has_usable_password %}
                 <div>
@@ -277,7 +277,7 @@
     </div>
   </div>
 
-  <div id="panelSeguridad" style="display:none">
+  <div id="panelSeguridad">
     {% with n_pk=user.passkeys.count %}
     <div class="pf-prot{% if n_pk and user.segundo_factor.activo and profile.correo_verificado %} lista{% endif %}">
       <div class="pf-prot-barra">
@@ -397,7 +397,7 @@
                 <div>
                   <label class="label" for="{{ pw_form.new_password2.id_for_label }}">Repítela</label>
                   <input type="password" name="new_password2" id="{{ pw_form.new_password2.id_for_label }}" autocomplete="new-password" placeholder="••••••••">
-                  <div class="hint" style="margin-top:6px" id="coincide"></div>
+                  <div class="hint arriba-6" id="coincide"></div>
                 </div>
               </div>
               <button type="submit" class="sec-btn ambar">Cambiar contraseña</button>

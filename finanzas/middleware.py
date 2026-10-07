@@ -62,10 +62,19 @@ RUTAS_SIN_ESTILO_EN_LINEA = frozenset({
     'recuperar', 'restablecer', 'privacidad', 'terminos', 'seguridad',
 })
 
+RUTAS_SIN_ESTILO_CON_SESION = frozenset({
+    'dashboard', 'perfil', 'registrar_transaccion', 'registrar_ingreso',
+    'editar_transaccion', 'crear_gasto_pendiente',
+})
+
 
 def _atributos_style(request, respuesta):
     nombre = getattr(getattr(request, 'resolver_match', None), 'url_name', None)
-    if nombre in RUTAS_SIN_ESTILO_EN_LINEA and respuesta.status_code < 400:
+    usuario = getattr(request, 'user', None)
+    con_sesion = usuario is not None and usuario.is_authenticated
+    sin_estilo = (nombre in RUTAS_SIN_ESTILO_EN_LINEA
+                  or (con_sesion and nombre in RUTAS_SIN_ESTILO_CON_SESION))
+    if sin_estilo and respuesta.status_code < 400:
         return "style-src-attr 'none'"
     return "style-src-attr 'unsafe-inline'"
 

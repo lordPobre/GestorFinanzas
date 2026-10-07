@@ -28,19 +28,19 @@
       </div>
 
       <div class="form-row">
-        <div style="flex:1.4">
+        <div class="flex-14">
           <label class="label" for="id_gp_monto">Monto</label>
           <input type="number" name="monto" id="id_gp_monto" class="mono" placeholder="38500" min="1" required>
         </div>
-        <div style="flex:1.2">
+        <div class="flex-12">
           <label class="label" for="id_gp_fecha">Vence el</label>
           <input type="date" name="fecha_vencimiento" id="id_gp_fecha" required>
         </div>
       </div>
 
-      <div class="label" style="margin-bottom:9px">Categoría</div>
+      <div class="label abajo-9">Categoría</div>
       <input type="hidden" name="categoria" id="id_gp_cat" value="Cuentas">
-      <div class="chips" data-field="#id_gp_cat" style="margin-bottom:20px">
+      <div class="chips abajo-20" data-field="#id_gp_cat">
         <button type="button" class="chip on" data-value="Cuentas">Cuentas</button>
         <button type="button" class="chip" data-value="Servicios">Servicios</button>
         <button type="button" class="chip" data-value="Salud">Salud</button>
@@ -49,7 +49,7 @@
 
       <div class="fo-acciones">
         <button type="submit" class="sec-btn ambar">
-          <i class="fas fa-plus" style="font-size:11px"></i>Agregar cuenta
+          <i class="fas fa-plus ico-11"></i>Agregar cuenta
         </button>
         <a href="{% url 'dashboard' %}" class="sec-btn vidrio">Cancelar</a>
       </div>

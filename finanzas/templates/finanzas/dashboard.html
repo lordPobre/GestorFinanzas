@@ -53,7 +53,7 @@
     </div>
   </div>
   <div class="pasos-progreso">
-    <div class="progress-bar" style="height:6px"><div class="progress-fill" style="width:{{ pasos_pct }}%"></div></div>
+    <div class="progress-bar pasos-barra"><div class="progress-fill" data-ancho-pct="{{ pasos_pct }}"></div></div>
     <span class="pasos-cuenta">{{ pasos_hechos }} de {{ pasos_total }}</span>
   </div>
   <div class="pasos-lista">
@@ -142,9 +142,9 @@
     <a href="{% url 'estadisticas' %}" class="ini-mes">
       <span class="ini-mes-cab"><span>Entraron {{ total_ingresos|money }}</span><span>{{ nombre_mes }}</span></span>
       <span class="ini-barra">
-        <span class="gastado" style="width:{{ pct_gastado }}%"></span>
-        <span class="por-pagar" style="width:{{ pct_por_pagar }}%"></span>
-        <span class="queda" style="width:{{ pct_disponible }}%"></span>
+        <span class="gastado" data-ancho-pct="{{ pct_gastado }}"></span>
+        <span class="por-pagar" data-ancho-pct="{{ pct_por_pagar }}"></span>
+        <span class="queda" data-ancho-pct="{{ pct_disponible }}"></span>
       </span>
       <span class="ini-leyenda">
         <span>Gastado {{ total_gastos|money }}</span>
@@ -287,7 +287,7 @@
       {% if metas %}
       <div class="ini-metas">
         {% for m in metas|slice:":3" %}
-        <a href="{% url 'metas' %}#meta{{ m.pk }}" class="ini-meta" style="--pct:{{ m.porcentaje|floatformat:'0u' }};--color:{% if m.esta_completa %}#53d258{% else %}{{ m.color }}{% endif %}">
+        <a href="{% url 'metas' %}#meta{{ m.pk }}" class="ini-meta" data-pct-var="{{ m.porcentaje|floatformat:'0u' }}" data-color-var="{% if m.esta_completa %}#53d258{% else %}{{ m.color }}{% endif %}">
           <span class="ini-anillo"><span>{{ m.porcentaje|floatformat:0 }}%</span></span>
           <span class="ini-meta-txt">
             <span class="ini-meta-cab">
@@ -329,7 +329,7 @@
 </div>
 
 <div class="modal-overlay" id="modalAtrasados">
-  <div class="modal-box" style="max-width:460px">
+  <div class="modal-box caja-460">
     <div class="modal-head">
       <div>
         <div class="modal-title">Pagos atrasados</div>
@@ -364,7 +364,7 @@
 </div>
 
 <div class="modal-overlay" id="modalMovimientos">
-  <div class="modal-box mv-box" style="max-width:560px">
+  <div class="modal-box mv-box caja-560">
     <div class="modal-head">
       <div>
         <div class="modal-title">{{ nombre_mes }}</div>
@@ -376,7 +376,7 @@
     <div class="mv-resumen">
       <div class="mv-cifra"><span>Entró</span><b class="verde">{{ mov_entro|money }}</b></div>
       <div class="mv-cifra"><span>Salió</span><b>{{ mov_salio|money }}</b></div>
-      <div class="mv-barra" aria-hidden="true"><span class="unicos" style="width:{{ mov_pct_unicos }}%"></span><span class="cuotas" style="width:{{ mov_pct_cuotas }}%"></span></div>
+      <div class="mv-barra" aria-hidden="true"><span class="unicos" data-ancho-pct="{{ mov_pct_unicos }}"></span><span class="cuotas" data-ancho-pct="{{ mov_pct_cuotas }}"></span></div>
       <div class="mv-leyenda">
         <span><i class="unicos"></i>Únicos</span>
         <span><i class="cuotas"></i>Cuotas</span>
@@ -397,19 +397,19 @@
       <div class="swipe swipe-fila swipe-mov mv-fila{% if t.por_pagar %} sin-pagar{% endif %}" data-mov-tipo="{% if t.es_ingreso %}ingreso{% elif t.es_cuota %}cuota{% else %}unico{% endif %}" data-monto="{{ t.monto|floatformat:'0u' }}">
         <div class="swipe-acciones">
           {% if t.por_pagar %}
-          <form method="post" action="{% url 'pagar_gasto' t.pk %}" style="margin:0">
+          <form method="post" action="{% url 'pagar_gasto' t.pk %}" class="sin-margen">
             {% csrf_token %}
             <input type="hidden" name="next" value="{% url 'dashboard' %}">
             <button type="submit" class="swipe-btn editar" title="Marcar como pagado"><i class="fas fa-check"></i><span>Pagué</span></button>
           </form>
           {% elif t.es_gasto_unico %}
-          <form method="post" action="{% url 'anular_pago_gasto' t.pk %}" style="margin:0" data-confirm="¿Marcar este gasto como no pagado?">
+          <form method="post" action="{% url 'anular_pago_gasto' t.pk %}" class="sin-margen" data-confirm="¿Marcar este gasto como no pagado?">
             {% csrf_token %}
             <input type="hidden" name="next" value="{% url 'dashboard' %}">
             <button type="submit" class="swipe-btn editar" title="{{ t.texto_estado_pago }}"><i class="fas fa-rotate-left"></i><span>Deshacer</span></button>
           </form>
           {% endif %}
-          <form method="post" action="{% url 'eliminar_transaccion' t.pk %}" style="margin:0" data-confirm="{% if t.es_cuota %}¿Anular el pago de {{ t.descripcion }}? La cuota vuelve a quedar por pagar.{% else %}¿Eliminar {{ t.descripcion|default:t.get_categoria_display }}?{% endif %}">
+          <form method="post" action="{% url 'eliminar_transaccion' t.pk %}" class="sin-margen" data-confirm="{% if t.es_cuota %}¿Anular el pago de {{ t.descripcion }}? La cuota vuelve a quedar por pagar.{% else %}¿Eliminar {{ t.descripcion|default:t.get_categoria_display }}?{% endif %}">
             {% csrf_token %}
             <input type="hidden" name="next" value="{% url 'dashboard' %}">
             <button type="submit" class="swipe-btn borrar" title="Eliminar"><i class="fas fa-trash-can"></i><span>Eliminar</span></button>
@@ -419,7 +419,7 @@
           {% marca_de t.descripcion as m %}{% if m %}
           {% include 'finanzas/_marca.html' with clase="mv-icono" %}
           {% else %}
-          <span class="mv-icono{% if t.por_pagar %} sin-pagar{% endif %}" style="background:{{ t.color_categoria }}29;color:{{ t.color_categoria }}"><i class="fas {{ t.icono }}"></i></span>
+          <span class="mv-icono{% if t.por_pagar %} sin-pagar{% endif %}" data-color-cat="{{ t.color_categoria }}"><i class="fas {{ t.icono }}"></i></span>
           {% endif %}
           <span class="mv-txt">
             <span class="mv-nombre">{{ t.nombre_lista }}</span>
@@ -443,7 +443,7 @@
 </div>
 
 <div class="modal-overlay" id="modalCalendario">
-  <div class="modal-box" style="max-width:520px">
+  <div class="modal-box caja-520">
     <div class="modal-head">
       <div>
         <div class="modal-title">Pagos de {{ nombre_mes }}</div>
@@ -452,11 +452,11 @@
       <button class="modal-close" data-close aria-label="Cerrar"><i class="fas fa-xmark"></i></button>
     </div>
     <div class="ini-calendario">
-      <div class="cal-head" style="margin-bottom:5px">
+      <div class="cal-head abajo-5">
         {% for d in dias_semana %}<div>{{ d|slice:":1" }}</div>{% endfor %}
       </div>
       {% for semana in calendario %}
-      <div class="cal-week" style="margin-bottom:4px">
+      <div class="cal-week abajo-4">
         {% for dia in semana %}
           {% if dia %}
           <button type="button" class="cal-day {% if dia.tiene_pagos %}has{% endif %} {% if dia.es_hoy %}on{% endif %}"
@@ -466,15 +466,15 @@
             {% if dia.tiene_pagos %}<span class="dot {% if dia.todo_pagado %}paid{% endif %}"></span>{% endif %}
           </button>
           {% else %}
-          <span class="cal-day" style="border:none"></span>
+          <span class="cal-day sin-borde"></span>
           {% endif %}
         {% endfor %}
       </div>
       {% endfor %}
-      <div class="hint" style="margin-top:8px">Los días marcados tienen algo que pagar. Toca uno.</div>
+      <div class="hint arriba-8">Los días marcados tienen algo que pagar. Toca uno.</div>
 
       {% if gastos_pendientes %}
-      <div class="label" style="margin:18px 0 10px">Cuentas de otros meses</div>
+      <div class="label cal-sep">Cuentas de otros meses</div>
       <div class="row-list">
         {% for g in gastos_pendientes %}
         <div class="row">
@@ -484,7 +484,7 @@
             <div class="row-meta">{{ g.fecha_vencimiento|date:"j b" }} · {{ g.texto_urgencia }}</div>
           </div>
           <div class="mono">{{ g.monto|money }}</div>
-          <form method="post" action="{% url 'pagar_gasto_pendiente' g.pk %}" style="margin:0">
+          <form method="post" action="{% url 'pagar_gasto_pendiente' g.pk %}" class="sin-margen">
             {% csrf_token %}
             <input type="hidden" name="next" value="{% url 'dashboard' %}">
             <button type="submit" class="btn btn-green btn-sm">Pagar</button>
@@ -496,7 +496,7 @@
     </div>
 
     {% if monto_ya_pagado %}
-    <div class="label" style="margin:18px 0 8px">Ya pagados</div>
+    <div class="label cal-sep corto">Ya pagados</div>
     <div class="row-list">
       {% for i in pendientes %}{% if i.pagado %}
       <div class="row">
@@ -505,8 +505,8 @@
           <div class="row-title">{{ i.nombre }}</div>
           <div class="row-meta">{{ i.detalle }}{% if i.fecha_pago %} · pagado el {{ i.fecha_pago|date:"j b" }}{% endif %}</div>
         </div>
-        <div class="mono" style="color:var(--text-muted)">{{ i.monto|money }}</div>
-        <form method="post" action="{{ i.url_anular }}" style="margin:0" data-confirm="¿Marcar {{ i.nombre }} como no pagado?">
+        <div class="mono tinta-apagada">{{ i.monto|money }}</div>
+        <form method="post" action="{{ i.url_anular }}" class="sin-margen" data-confirm="¿Marcar {{ i.nombre }} como no pagado?">
           {% csrf_token %}
           <input type="hidden" name="next" value="?year={{ year }}&amp;month={{ month }}">
           <input type="hidden" name="next_path" value="{% url 'dashboard' %}">
@@ -522,7 +522,7 @@
 
 {% for d in dias_con_pago %}
 <div class="modal-overlay" id="dia{{ d.numero }}">
-  <div class="modal-box" style="max-width:420px">
+  <div class="modal-box caja-420">
     <div class="modal-head">
       <div>
         <div class="modal-title">{{ d.numero }} de {{ nombre_mes }}</div>
@@ -535,13 +535,13 @@
       <div class="row">
         <div class="row-main">
           <div class="row-title">{{ e.deuda.acreedor }}</div>
-          <div class="row-meta">{{ e.deuda.get_categoria_display }}{% if e.atrasado %} · <span style="color:var(--coral-texto)">atrasada</span>{% elif e.pago %} · pagada el {{ e.pago.fecha_pago|date:"j b" }}{% endif %}</div>
+          <div class="row-meta">{{ e.deuda.get_categoria_display }}{% if e.atrasado %} · <span class="tinta-coral-texto">atrasada</span>{% elif e.pago %} · pagada el {{ e.pago.fecha_pago|date:"j b" }}{% endif %}</div>
         </div>
         <div class="mono">{{ e.monto|money }}</div>
         {% if e.estado == 'pagado' %}
         <span class="badge badge-green">Pagada</span>
         {% else %}
-        <form method="post" action="{% url 'pagar_cuota' e.deuda.pk %}" style="margin:0">
+        <form method="post" action="{% url 'pagar_cuota' e.deuda.pk %}" class="sin-margen">
           {% csrf_token %}
           <input type="hidden" name="next" value="?year={{ year }}&amp;month={{ month }}">
           <input type="hidden" name="next_path" value="{% url 'dashboard' %}">
@@ -559,7 +559,7 @@
 {% for m in metas %}
 {% if not m.esta_completa %}
 <div class="modal-overlay" id="meta{{ m.pk }}">
-  <div class="modal-box" style="max-width:380px">
+  <div class="modal-box caja-380">
     <div class="modal-head">
       <div>
         <div class="modal-title">Aportar a {{ m.nombre }}</div>
@@ -572,7 +572,7 @@
       <input type="hidden" name="next" value="{% url 'dashboard' %}">
       <div class="field">
         <label class="label" for="id_aporte_{{ m.pk }}">Cuánto aportas</label>
-        <input type="number" name="monto" id="id_aporte_{{ m.pk }}" class="input-amount" style="color:var(--green-texto)" min="1" required>
+        <input type="number" name="monto" id="id_aporte_{{ m.pk }}" class="input-amount tinta-verde-texto" min="1" required>
       </div>
       <div class="field">
         <label class="label" for="id_nota_meta_{{ m.pk }}">Nota (opcional)</label>

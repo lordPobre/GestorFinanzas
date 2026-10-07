@@ -26,6 +26,7 @@
   <link rel="stylesheet" href="{% static 'css/salud-esfera.css' %}?v=74">
   <link rel="stylesheet" href="{% static 'css/avisos.css' %}?v=86">
   {% block extra_head %}{% endblock %}
+  <link rel="stylesheet" href="{% static 'css/sesion.css' %}?v=96">
   <script src="{% static 'js/pantallas/base.js' %}" nonce="{{ csp_nonce }}"></script>
 
   <script src="{% static 'js/pantallas/base-2.js' %}" nonce="{{ csp_nonce }}"></script>
@@ -33,9 +34,7 @@
 <body>
 
 {% if es_staging %}
-<div role="status" style="position:fixed;top:0;left:50%;transform:translateX(-50%);z-index:9999;pointer-events:none;
-     padding:4px 14px;border-radius:0 0 12px 12px;background:var(--coral);color:#fff;
-     font-family:'Manrope',system-ui,sans-serif;font-size:11px;font-weight:700;letter-spacing:.03em">
+<div role="status" class="aviso-staging">
   ENTORNO DE PRUEBAS · no se envían correos
 </div>
 {% endif %}
@@ -47,11 +46,11 @@
       <span class="brand-mark">{% include "finanzas/marca_icono.html" %}</span>
       <span>
         <span class="brand-name">Fintora</span>
-        <span class="brand-sub" style="display:block">Tus finanzas, claras</span>
+        <span class="brand-sub">Tus finanzas, claras</span>
       </span>
     </a>
 
-    <nav style="display:flex;flex-direction:column;gap:20px;flex:1;overflow-y:auto">
+    <nav class="sidebar-nav">
       <div class="nav-group">
         <div class="nav-title">Tu mes</div>
         <a href="{% url 'dashboard' %}" data-label="Inicio" class="nav-item {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
@@ -109,7 +108,7 @@
     {% endblock %}
   </aside>
 
-  <div style="flex:1;min-width:0;display:flex;flex-direction:column">
+  <div class="layout-cuerpo">
 
     <header class="topbar">
       {% block topbar_left %}
@@ -205,11 +204,11 @@
   {% block fab %}
   <button class="fab fab-mini" data-open="#modalGasto" data-preset-tipo="INGRESO"
           aria-label="Registrar un ingreso" title="Registrar un ingreso">
-    <i class="fas fa-arrow-down" style="font-size:13px"></i>
+    <i class="fas fa-arrow-down ico-13"></i>
   </button>
   <button class="fab" data-open="#modalAnotar"
           data-tour="registrar" aria-label="Anotar" title="Anotar">
-    <i class="fas fa-plus" style="font-size:18px"></i>
+    <i class="fas fa-plus ico-18"></i>
   </button>
   {% endblock %}
 </div>
@@ -245,10 +244,10 @@
         <span class="icon-tile blue"><i class="fas fa-square-poll-vertical"></i></span><span>Resultados encuesta</span></a>
       {% endif %}
     </div>
-    <form method="post" action="{% url 'logout' %}" style="margin-top:16px">
+    <form method="post" action="{% url 'logout' %}" class="hoja-salir">
       {% csrf_token %}
-      <button type="submit" class="btn btn-glass btn-block" style="color:var(--coral)">
-        <i class="fas fa-right-from-bracket" style="font-size:11px"></i>Salir
+      <button type="submit" class="btn btn-glass btn-block tinta-coral">
+        <i class="fas fa-right-from-bracket ico-11"></i>Salir
       </button>
     </form>
   </div>
@@ -265,10 +264,10 @@
         <i class="fas fa-plus"></i><span>Un gasto</span>
       </button>
       <button type="button" class="anotar-opcion" data-open="#modalGasto" data-preset-tipo="INGRESO">
-        <i class="fas fa-arrow-down" style="color:var(--green-texto)"></i><span>Un ingreso</span>
+        <i class="fas fa-arrow-down tinta-verde-texto"></i><span>Un ingreso</span>
       </button>
       <a href="{% url 'importar_cartola' %}" class="anotar-opcion">
-        <i class="fas fa-file-import" style="color:var(--teal-texto)"></i><span>Subir cartola del banco</span><small>PDF</small>
+        <i class="fas fa-file-import tinta-agua-texto"></i><span>Subir cartola del banco</span><small>PDF</small>
       </a>
     </div>
   </div>
@@ -300,16 +299,16 @@
     <div class="avisos-lista">
       {% for i in insights %}
       <div class="ini-aviso">
-        <span class="ini-aviso-icono" style="background:{{ i.tenue }};color:{{ i.color }}"><i class="fas {{ i.icono }}"></i></span>
-        <span class="ini-aviso-txt"><b style="color:{{ i.color }}">{{ i.etiqueta }}</b>{{ i.texto }}</span>
+        <span class="ini-aviso-icono ins-{{ i.tipo }}"><i class="fas {{ i.icono }}"></i></span>
+        <span class="ini-aviso-txt"><b class="ins-{{ i.tipo }}">{{ i.etiqueta }}</b>{{ i.texto }}</span>
       </div>
       {% endfor %}
     </div>
     {% endif %}
 
     {% if pendientes_atrasados %}
-    <div class="label" style="color:var(--coral);margin-bottom:9px">Atrasado</div>
-    <div class="row-list" style="margin-bottom:16px">
+    <div class="label tinta-coral abajo-9">Atrasado</div>
+    <div class="row-list abajo-16">
       {% for i in pendientes_atrasados %}
       <div class="row">
         <span class="icon-tile coral"><i class="fas {{ i.icono|default:'fa-circle-exclamation' }}"></i></span>
@@ -317,14 +316,14 @@
           <div class="row-title">{{ i.nombre }}</div>
           <div class="row-meta">{{ i.detalle }}</div>
         </div>
-        <div class="mono" style="font-size:13px;color:var(--coral)">${{ i.monto|floatformat:0 }}</div>
+        <div class="mono txt-13 tinta-coral">${{ i.monto|floatformat:0 }}</div>
       </div>
       {% endfor %}
     </div>
     {% endif %}
 
     {% if pendientes_sin_pagar %}
-    <div class="label" style="margin-bottom:9px">Por pagar este mes</div>
+    <div class="label abajo-9">Por pagar este mes</div>
     <div class="row-list">
       {% for i in pendientes_sin_pagar %}
       <div class="row">
@@ -333,15 +332,15 @@
           <div class="row-title">{{ i.nombre }}</div>
           <div class="row-meta">{{ i.detalle }}</div>
         </div>
-        <div class="mono" style="font-size:13px">${{ i.monto|floatformat:0 }}</div>
+        <div class="mono txt-13">${{ i.monto|floatformat:0 }}</div>
       </div>
       {% endfor %}
     </div>
     {% else %}
-    <div class="empty" style="padding:30px 12px">
-      <i class="fas fa-circle-check" style="color:var(--green)"></i>
-      <div class="empty-title" style="font-size:14px">Estás al día</div>
-      <div class="empty-text" style="font-size:11.5px">No hay nada pendiente de pago.</div>
+    <div class="empty empty-chico">
+      <i class="fas fa-circle-check tinta-verde"></i>
+      <div class="empty-title txt-14">Estás al día</div>
+      <div class="empty-text txt-12">No hay nada pendiente de pago.</div>
     </div>
     {% endif %}
   </div>
@@ -377,10 +376,10 @@
       <div class="anotar-grid">
         <div class="anotar-cifra">
           <span class="anotar-marca" id="anotarMarca" aria-hidden="true"><i class="fas fa-receipt"></i></span>
-          <div class="amount-display" id="montoView" style="color:var(--coral)">$0</div>
+          <div class="amount-display" id="montoView">$0</div>
         </div>
 
-        <div id="avisoMonto" class="anotar-aviso" role="alert" aria-live="polite" style="display:none">
+        <div id="avisoMonto" class="anotar-aviso" role="alert" aria-live="polite">
           Escribe un monto para continuar
         </div>
 
@@ -425,28 +424,28 @@
           </div>
 
         <div id="bloquePago">
-            <div class="label" style="margin-bottom:9px">¿Ya la pagaste?</div>
+            <div class="label abajo-9">¿Ya la pagaste?</div>
             <input type="hidden" name="sin_pagar" id="campoSinPagar" value="">
             <div class="seg" id="segPago">
               <button type="button" class="on-green" data-pagado="1">Sí, ya salió</button>
               <button type="button" data-pagado="0">Aún la debo</button>
             </div>
-            <div class="hint" style="font-size:10.5px;margin-top:8px" id="notaPago">
+            <div class="hint txt-12 arriba-8" id="notaPago">
               Cuenta como gasto del mes en los dos casos. La diferencia es si la plata ya se fue.
             </div>
           </div>
 
         {% if dias_restantes %}
-          <div class="preview-box" id="cajaImpacto" style="margin-bottom:0">
-            <div class="label" style="color:var(--amber);margin-bottom:8px">Si guardas esto</div>
-            <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:5px">
-              <span style="font-size:12px;color:var(--text-secondary)">Te queda libre</span>
-              <span class="mono" style="font-size:15px" data-preview data-base="{{ disponible }}"
+          <div class="preview-box abajo-0" id="cajaImpacto">
+            <div class="label tinta-ambar abajo-8">Si guardas esto</div>
+            <div class="impacto-fila abajo-5">
+              <span class="txt-13 tinta-sec">Te queda libre</span>
+              <span class="mono txt-15" data-preview data-base="{{ disponible }}"
                     data-dias="{{ dias_restantes }}" data-sign="-1">{{ disponible|money }}</span>
             </div>
-            <div style="display:flex;justify-content:space-between;align-items:baseline">
-              <span style="font-size:12px;color:var(--text-secondary)">Por día ({{ dias_restantes }} días)</span>
-              <span class="mono" style="font-size:12.5px;color:var(--text-secondary)" data-preview-dia>{{ por_dia|money }}</span>
+            <div class="impacto-fila">
+              <span class="txt-13 tinta-sec">Por día ({{ dias_restantes }} días)</span>
+              <span class="mono txt-13 tinta-sec" data-preview-dia>{{ por_dia|money }}</span>
             </div>
           </div>
           {% endif %}
@@ -458,6 +457,7 @@
 
 {% block modals %}{% endblock %}
 
+<script src="{% static 'js/pantallas/estilos.js' %}?v=96" nonce="{{ csp_nonce }}"></script>
 <script src="{% static 'js/finapp.js' %}" nonce="{{ request.csp_nonce }}"></script>
 <script src="{% static 'js/pantallas/anotar.js' %}" nonce="{{ csp_nonce }}" data-marcas="{% static 'data/marcas.json' %}"></script>
 <script src="{% static 'js/pantallas/anotar-tope.js' %}?v=86" nonce="{{ csp_nonce }}"></script>

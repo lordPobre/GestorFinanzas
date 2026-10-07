@@ -3,6 +3,7 @@ const path = require('node:path');
 const vm = require('node:vm');
 
 const VACIOS = new Set(['input', 'br', 'img', 'meta', 'link', 'hr']);
+const CAMPOS = new Set(['INPUT', 'TEXTAREA', 'SELECT']);
 
 function camello(nombre) {
   return nombre.replace(/-([a-z])/g, (_, letra) => letra.toUpperCase());
@@ -42,6 +43,7 @@ class Nodo {
     this.clientWidth = 600;
     this.offsetWidth = 120;
     this.offsetHeight = 50;
+    this.rect = null;
     Object.entries(atributos).forEach(([k, v]) => this.setAttribute(k, v));
   }
 
@@ -82,6 +84,10 @@ class Nodo {
   }
 
   get children() { return this.hijos; }
+  get parentNode() { return this.padre; }
+  removeChild(hijo) { hijo.remove(); return hijo; }
+  get firstElementChild() { return this.hijos[0] || null; }
+  get content() { return this; }
 
   get nextElementSibling() {
     if (!this.padre) return null;
@@ -102,6 +108,19 @@ class Nodo {
     this.padre = null;
   }
 
+  cloneNode(profundo) {
+    const copia = new Nodo(this.tagName.toLowerCase());
+    copia.atributos = { ...this.atributos };
+    copia.dataset = { ...this.dataset };
+    copia.className = this.className;
+    copia.id = this.id;
+    copia.hidden = this.hidden;
+    copia.value = this.value;
+    copia.texto = this.texto;
+    if (profundo) this.hijos.forEach((h) => copia.appendChild(h.cloneNode(true)));
+    return copia;
+  }
+
   descendientes() { return this.hijos.flatMap((h) => [h, ...h.descendientes()]); }
   querySelectorAll(selector) { return this.descendientes().filter((n) => n.matches(selector)); }
   querySelector(selector) { return this.querySelectorAll(selector)[0] || null; }
@@ -114,6 +133,21 @@ class Nodo {
       nodo = nodo.padre;
     }
     return null;
+  }
+
+  getBoundingClientRect() {
+    return this.rect || { top: 200, bottom: 250, left: 20, right: 140, width: 120, height: 50 };
+  }
+
+  focus() { Nodo.enfocado = this; }
+
+  checkValidity() {
+    return [this, ...this.descendientes()].every((n) => {
+      if (!CAMPOS.has(n.tagName)) return true;
+      const valor = String(n.value || '').trim();
+      if (n.hasAttribute('required') && !valor) return false;
+      return n.getAttribute('type') !== 'email' || !valor || /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(valor);
+    });
   }
 
   addEventListener(tipo, funcion) { (this.oyentes[tipo] = this.oyentes[tipo] || []).push(funcion); }
@@ -130,6 +164,7 @@ class Nodo {
     };
     let nodo = this;
     while (nodo && !evento.detenido) {
+      evento.currentTarget = nodo;
       (nodo.oyentes[tipo] || []).forEach((f) => f.call(nodo, evento));
       nodo = nodo.padre;
     }
@@ -141,7 +176,9 @@ class Nodo {
 
 function partes(simple) {
   const resultado = { etiqueta: null, id: null, clases: [], atributos: [] };
-  simple.replace(/\[([\w-]+)(?:="([^"]*)")?\]/g, (_, clave, valor) => { resultado.atributos.push([clave, valor]); });
+  simple.replace(/\[([\w-]+)(?:="([^"]*)"|=([\w-]+))?\]/g, (_, clave, conComillas, sinComillas) => {
+    resultado.atributos.push([clave, conComillas !== undefined ? conComillas : sinComillas]);
+  });
   const resto = simple.replace(/\[[^\]]*\]/g, '');
   const etiqueta = resto.match(/^[a-z][a-z0-9]*/i);
   if (etiqueta) resultado.etiqueta = etiqueta[0].toUpperCase();
@@ -197,6 +234,7 @@ function analizar(html) {
 
 function crearDocumento(html, datosScript = {}) {
   const documento = new Nodo('#document');
+  documento.documentElement = new Nodo('html');
   documento.body = documento.appendChild(new Nodo('body'));
   documento.body.innerHTML = html;
   documento.getElementById = (id) => documento.descendientes().find((n) => n.id === id) || null;
@@ -211,7 +249,54 @@ function memoria(inicial = {}) {
     datos,
     getItem: (clave) => (clave in datos ? datos[clave] : null),
     setItem: (clave, valor) => { datos[clave] = String(valor); },
+    removeItem: (clave) => { delete datos[clave]; },
   };
+}
+
+class DatosFormulario {
+  constructor(form) {
+    this.pares = [];
+    if (form) {
+      form.descendientes().forEach((n) => {
+        const nombre = n.getAttribute('name');
+        if (nombre && CAMPOS.has(n.tagName)) this.pares.push([nombre, n.value]);
+      });
+    }
+  }
+  append(clave, valor) { this.pares.push([clave, String(valor)]); }
+  get(clave) {
+    const par = this.pares.find(([k]) => k === clave);
+    return par ? par[1] : null;
+  }
+  has(clave) { return this.pares.some(([k]) => k === clave); }
+}
+
+function reloj() {
+  const cola = [];
+  const r = {
+    ahora: 0,
+    setTimeout(funcion, ms = 0) {
+      cola.push({ funcion, t: r.ahora + ms, hecho: false });
+      return cola.length;
+    },
+    clearTimeout(n) { if (cola[n - 1]) cola[n - 1].hecho = true; },
+    pasar(ms = 0) {
+      const hasta = r.ahora + ms;
+      for (;;) {
+        const listos = cola.filter((x) => !x.hecho && x.t <= hasta).sort((a, b) => a.t - b.t);
+        if (!listos.length) break;
+        listos[0].hecho = true;
+        r.ahora = Math.max(r.ahora, listos[0].t);
+        listos[0].funcion();
+      }
+      r.ahora = hasta;
+    },
+  };
+  return r;
+}
+
+function esperar() {
+  return new Promise((listo) => { setImmediate(listo); });
 }
 
 function ejecutar(archivo, globales) {
@@ -229,4 +314,4 @@ function ejecutar(archivo, globales) {
   return contexto;
 }
 
-module.exports = { Nodo, crearDocumento, ejecutar, memoria };
+module.exports = { Nodo, crearDocumento, ejecutar, memoria, DatosFormulario, reloj, esperar };
