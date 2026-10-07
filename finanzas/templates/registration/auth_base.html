@@ -22,6 +22,7 @@
   <link rel="stylesheet" href="{% static 'vendor/fontawesome/css/all.min.css' %}">
   <link rel="stylesheet" href="{% static 'css/finapp.css' %}">
   <link rel="stylesheet" href="{% static 'css/tema-vidrio.css' %}">
+  <link rel="stylesheet" href="{% static 'css/acceso.css' %}">
 
   <script src="{% static 'js/pantallas/auth-base.js' %}" nonce="{{ csp_nonce }}"></script>
 
@@ -30,9 +31,7 @@
 <body>
 
 {% if es_staging %}
-<div role="status" style="position:fixed;top:0;left:50%;transform:translateX(-50%);z-index:9999;pointer-events:none;
-     padding:4px 14px;border-radius:0 0 12px 12px;background:var(--coral);color:#fff;
-     font-family:'Manrope',system-ui,sans-serif;font-size:11px;font-weight:700;letter-spacing:.03em">
+<div role="status" class="aviso-staging">
   ENTORNO DE PRUEBAS · no se envían correos
 </div>
 {% endif %}

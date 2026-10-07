@@ -244,6 +244,8 @@ El salto de `0016` a `0100` es inofensivo y renumerar rompería las bases existe
 
 **Revisar si:** se reescriben las plantillas para sacar los `style=`. Entonces `style-src-attr` puede pasar a `'none'`.
 
+**Lote 92:** el acceso y las legales ya no tienen `style=` y pasan a `style-src-attr 'none'`. La lista de rutas está en `RUTAS_SIN_ESTILO_EN_LINEA`, en `middleware.py`. Las demás pantallas siguen con `'unsafe-inline'` hasta que se limpien.
+
 ### D-31 · Medir antes de optimizar
 
 **Qué:** `RendimientoMiddleware` anota las respuestas lentas y `resumen_mes` se calcula una vez por petición.

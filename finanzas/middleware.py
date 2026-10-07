@@ -57,6 +57,18 @@ class DominioCanonicoMiddleware:
 PIXELES_CON_ESTILOS = ('googletagmanager.com', 'google-analytics.com', 'facebook.net',
                        'tiktok.com', 'ads-twitter.com', 'twitter.com')
 
+RUTAS_SIN_ESTILO_EN_LINEA = frozenset({
+    'login', 'verificar_codigo', 'registro', 'confirmar_alta', 'verificar_correo',
+    'recuperar', 'restablecer', 'privacidad', 'terminos', 'seguridad',
+})
+
+
+def _atributos_style(request, respuesta):
+    nombre = getattr(getattr(request, 'resolver_match', None), 'url_name', None)
+    if nombre in RUTAS_SIN_ESTILO_EN_LINEA and respuesta.status_code < 400:
+        return "style-src-attr 'none'"
+    return "style-src-attr 'unsafe-inline'"
+
 
 class PoliticaContenidoMiddleware:
 
@@ -91,7 +103,7 @@ class PoliticaContenidoMiddleware:
         con_pixeles = any(p in o for o in extra['script'] for p in PIXELES_CON_ESTILOS)
         estilos = [] if con_pixeles or (settings.DEBUG and respuesta.status_code >= 400) else [
             f"style-src-elem 'self' 'nonce-{request.csp_nonce}'",
-            "style-src-attr 'unsafe-inline'",
+            _atributos_style(request, respuesta),
         ]
 
         respuesta['Content-Security-Policy'] = '; '.join([

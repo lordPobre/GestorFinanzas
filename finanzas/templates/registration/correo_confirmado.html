@@ -5,14 +5,14 @@
 <div class="glass card-lg">
 
   {% if valido %}
-  <div style="display:flex;align-items:center;gap:10px;margin-bottom:18px;font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--text-muted)">
-  <span style="width:7px;height:7px;border-radius:50%;background:var(--green);flex:none"></span>Correo verificado
-</div>
+  <div class="auth-estado">
+    <span class="auth-estado-punto verde"></span>Correo verificado
+  </div>
 
-  <h1 class="auth-h" style="margin-bottom:10px">
+  <h1 class="auth-h con-texto">
     {% if nuevo %}Correo confirmado{% else %}Ya estaba confirmado{% endif %}
   </h1>
-  <p class="hint" style="margin:0 0 26px;font-size:13px;line-height:1.6">
+  <p class="hint auth-hint">
     {% if nuevo %}
     Listo, {{ usuario.username }}. Desde ahora el enlace para recuperar tu
     contraseña llega a esta dirección.
@@ -28,12 +28,12 @@
   {% endif %}
 
   {% else %}
-  <div style="display:flex;align-items:center;gap:10px;margin-bottom:18px;font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--text-muted)">
-  <span style="width:7px;height:7px;border-radius:50%;background:var(--coral);flex:none"></span>Enlace vencido
-</div>
+  <div class="auth-estado">
+    <span class="auth-estado-punto coral"></span>Enlace vencido
+  </div>
 
-  <h1 class="auth-h" style="margin-bottom:10px">Este enlace ya no sirve</h1>
-  <p class="hint" style="margin:0 0 26px;font-size:13px;line-height:1.6">
+  <h1 class="auth-h con-texto">Este enlace ya no sirve</h1>
+  <p class="hint auth-hint">
     Pasaron más de 48 horas, o cambiaste tu correo después de pedirlo. Entra a
     tu cuenta y pide otro desde tu perfil: son dos toques.
   </p>

@@ -3,17 +3,17 @@
 {% block title %}Verificación · Fintora{% endblock %}
 
 {% block card %}
-<div style="display:flex;align-items:center;gap:10px;margin-bottom:18px;font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--text-muted)">
-  <span style="width:7px;height:7px;border-radius:50%;background:var(--amber);flex:none"></span>Seguridad de la cuenta
+<div class="auth-estado">
+  <span class="auth-estado-punto"></span>Seguridad de la cuenta
 </div>
 
 <h2 class="auth-h">Verificación en dos pasos</h2>
-<p style="margin:8px 0 0;font-size:13.5px;color:var(--text-secondary);line-height:1.6">
+<p class="auth-texto junto">
   Abre tu app de autenticación y escribe el código de seis dígitos.
 </p>
 
 {% if bloqueado %}
-<div class="aviso-error" style="margin-top:22px">
+<div class="aviso-error separado-arriba">
   <i class="fas fa-clock"></i>
   <div class="aviso-error-texto">
     Demasiados intentos. Espera unos minutos antes de volver a probar.
@@ -26,7 +26,7 @@
   <input type="hidden" name="es_respaldo" id="esRespaldo" value="">
   <input type="hidden" name="codigo" id="codigo">
 
-  <div id="campoNormal" style="margin:30px 0 8px">
+  <div id="campoNormal" class="auth-codigo-bloque">
     <div class="auth-digitos" id="digitos">
       <input class="auth-digito" data-i="0" inputmode="numeric" maxlength="1"
              autocomplete="one-time-code" aria-label="Dígito 1"
@@ -42,32 +42,31 @@
       <input class="auth-digito" data-i="5" inputmode="numeric" maxlength="1"
              autocomplete="off" aria-label="Dígito 6" {% if bloqueado %}disabled{% endif %}>
     </div>
-    <div style="display:flex;align-items:center;gap:8px;font-size:11.5px;color:var(--text-muted);margin-top:14px">
-      <i class="fas fa-rotate" style="font-size:10px"></i>
+    <div class="auth-nota">
+      <i class="fas fa-rotate"></i>
       <span>El código cambia cada 30 segundos.</span>
     </div>
   </div>
 
-  <div id="campoRespaldo" style="margin:30px 0 8px" hidden>
+  <div id="campoRespaldo" class="auth-codigo-bloque" hidden>
     <label class="auth-label" for="codigoRespaldo">Código de respaldo</label>
-    <input type="text" id="codigoRespaldo" class="auth-campo"
-           style="padding-left:16px;font-family:'JetBrains Mono',monospace;font-size:19px;letter-spacing:.08em;text-align:center"
+    <input type="text" id="codigoRespaldo" class="auth-campo auth-codigo respaldo"
            maxlength="9" placeholder="ABCD-2345" autocomplete="off">
-    <div style="font-size:11.5px;color:var(--text-muted);margin-top:12px">
+    <div class="auth-nota-texto">
       Uno de los ocho códigos que guardaste al activar la verificación. Cada uno sirve una sola vez.
     </div>
   </div>
 
 </form>
 
-<div style="display:flex;flex-direction:column;gap:2px;margin-top:22px;padding-top:22px;border-top:1px solid var(--line)">
+<div class="auth-salidas">
   {% if tiene_respaldo %}
   <button type="button" id="btnRespaldo" class="auth-salida">
-    <i class="fas fa-key" style="font-size:11px;color:var(--text-muted);width:14px"></i>Perdí el teléfono, usar un código de respaldo
+    <i class="fas fa-key auth-salida-ico tenue"></i>Perdí el teléfono, usar un código de respaldo
   </button>
   {% endif %}
-  <a href="{% url 'login' %}" class="auth-salida" style="color:var(--text-muted)">
-    <i class="fas fa-arrow-left" style="font-size:11px;width:14px"></i>Volver al acceso
+  <a href="{% url 'login' %}" class="auth-salida tenue">
+    <i class="fas fa-arrow-left auth-salida-ico"></i>Volver al acceso
   </a>
 </div>
 {% endblock %}

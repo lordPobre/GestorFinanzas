@@ -2,7 +2,7 @@
 {% block title %}Recuperar contraseña · Fintora{% endblock %}
 
 {% block pitch %}
-<div style="max-width:440px">
+<div class="auth-pitch">
   <h1 class="auth-titular">Olvidar la contraseña no debería costarte la cuenta.</h1>
   <p class="auth-bajada">
     Te mandamos un enlace al correo con el que te registraste. Vale una hora
@@ -28,46 +28,45 @@
 
 {% block card %}
 {% if enviado %}
-<div style="display:flex;align-items:center;gap:10px;margin-bottom:18px;font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--text-muted)">
-  <span style="width:7px;height:7px;border-radius:50%;background:var(--green);flex:none"></span>Enlace enviado
+<div class="auth-estado">
+  <span class="auth-estado-punto verde"></span>Enlace enviado
 </div>
 
 <h2 class="auth-h">Revisa tu correo</h2>
-<p style="margin:10px 0 0;font-size:13.5px;color:var(--text-secondary);line-height:1.6">
-  Si <strong style="color:var(--text-primary)">{{ email }}</strong> tiene una cuenta,
+<p class="auth-texto">
+  Si <strong>{{ email }}</strong> tiene una cuenta,
   ya salió el enlace para elegir contraseña nueva. Vale una hora.
 </p>
 
-<div style="margin-top:24px;padding:15px 17px;border-radius:16px;background:var(--bg-elev)">
-  <div style="font-size:12px;font-weight:700;margin-bottom:8px">¿No llega?</div>
-  <ul style="margin:0;padding-left:18px;font-size:12px;color:var(--text-secondary);line-height:1.7">
+<div class="auth-caja">
+  <div class="auth-caja-titulo">¿No llega?</div>
+  <ul>
     <li>Mira en la carpeta de spam o de promociones.</li>
     <li>Revisa que el correo esté bien escrito.</li>
     <li>Los correos tardan un par de minutos como máximo.</li>
   </ul>
 </div>
 
-<a href="{% url 'login' %}" class="btn btn-amber btn-block"
-   style="margin-top:24px;padding:16px;font-size:14.5px;font-weight:800;text-decoration:none">
+<a href="{% url 'login' %}" class="btn btn-amber btn-block auth-boton arriba-24">
   Volver al acceso
 </a>
 
-<form method="post" style="margin-top:12px">
+<form method="post" class="auth-reenvio">
   {% csrf_token %}
   <input type="hidden" name="email" value="{{ email }}">
-  <button type="submit" class="auth-salida" style="justify-content:center;color:var(--text-muted)">
-    <i class="fas fa-rotate" style="font-size:11px"></i>Enviarlo otra vez
+  <button type="submit" class="auth-salida tenue centrada">
+    <i class="fas fa-rotate auth-salida-ico suelto"></i>Enviarlo otra vez
   </button>
 </form>
 
 {% else %}
 
-<div style="display:flex;align-items:center;gap:10px;margin-bottom:18px;font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--text-muted)">
-  <span style="width:7px;height:7px;border-radius:50%;background:var(--amber);flex:none"></span>Acceso a tu cuenta
+<div class="auth-estado">
+  <span class="auth-estado-punto"></span>Acceso a tu cuenta
 </div>
 
 <h2 class="auth-h">Recuperar contraseña</h2>
-<p style="margin:10px 0 28px;font-size:13.5px;color:var(--text-secondary);line-height:1.6">
+<p class="auth-texto antes-form">
   Escribe el correo de tu cuenta y te mandamos un enlace para elegir una nueva.
 </p>
 
@@ -75,7 +74,7 @@
   {% csrf_token %}
   <div>
     <label class="auth-label" for="id_email_reset">Tu email</label>
-    <div style="position:relative;display:flex;align-items:center">
+    <div class="auth-campo-caja">
       <i class="fas fa-envelope auth-icono"></i>
       <input type="email" name="email" id="id_email_reset" class="auth-campo"
              placeholder="el correo de tu cuenta" value="{{ email }}"
@@ -83,15 +82,14 @@
     </div>
   </div>
 
-  <button type="submit" class="btn btn-amber btn-block"
-          style="margin-top:24px;padding:16px;font-size:14.5px;font-weight:800">
+  <button type="submit" class="btn btn-amber btn-block auth-boton arriba-24">
     Enviarme el enlace
   </button>
 </form>
 
-<div style="display:flex;flex-direction:column;gap:2px;margin-top:22px;padding-top:22px;border-top:1px solid var(--line)">
-  <a href="{% url 'login' %}" class="auth-salida" style="color:var(--text-muted)">
-    <i class="fas fa-arrow-left" style="font-size:11px;width:14px"></i>Volver al acceso
+<div class="auth-salidas">
+  <a href="{% url 'login' %}" class="auth-salida tenue">
+    <i class="fas fa-arrow-left auth-salida-ico"></i>Volver al acceso
   </a>
 </div>
 {% endif %}
