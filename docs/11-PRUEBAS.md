@@ -32,7 +32,7 @@ En el CI, el usuario y la base de Postgres se llaman `fintora` y `ALLOWED_HOSTS`
 
 ## Qué cubre cada archivo
 
-Son 57 archivos en `finanzas/tests/` con 548 pruebas, contadas sobre las entregas hasta el lote 90, más 13 pruebas de JavaScript en `pruebas_js/`. Las 18 filas de arriba son las del 28 de septiembre; las de abajo, las que se sumaron después. Seis archivos de antes no tienen fila propia.
+Son 57 archivos en `finanzas/tests/` con 548 pruebas, contadas sobre las entregas hasta el lote 90, más 36 pruebas de JavaScript en `pruebas_js/`. Las 18 filas de arriba son las del 28 de septiembre; las de abajo, las que se sumaron después. Seis archivos de antes no tienen fila propia.
 
 | Archivo | Pruebas | Qué asegura |
 | --- | --- | --- |
@@ -77,6 +77,8 @@ Son 57 archivos en `finanzas/tests/` con 548 pruebas, contadas sobre las entrega
 | `test_rendimiento.py` | 6 | El inicio calcula el mes una sola vez por petición, fuera de una petición no se recuerda nada, un cambio en los datos borra lo recordado, cada llamada recibe su copia. Las respuestas lentas quedan en el log y `Server-Timing` solo lo ve el personal |
 | `test_csp_estilos.py` | 8 | `style-src-elem` pide el nonce en la app, el acceso y las legales; el acceso y las legales no aplican atributos `style`; con píxeles activos la portada no se endurece; Plausible solo no quita el nonce; las páginas de error traen su hoja; ninguna plantilla de pantalla trae un bloque `<style>`; las plantillas del acceso y las legales no traen `style=`; los scripts que cargan no escriben atributos `style` |
 | `pruebas_js/anotar_tope.test.js` | 7 | El aviso al anotar: nada sin monto ni bajo el 80 %, amarillo al 80 %, coral al pasarse, la barra, ingresos, otra categoría u otro mes no avisan, cambiar la fecha vuelve a revisar |
+| `pruebas_js/panel_registro.test.js` | 13 | El panel para anotar: abre como gasto, pasar a ingreso cambia categorías y textos, tocar una categoría, el teclado arma el monto sin ceros a la izquierda ni más de nueve dígitos, lo que queda baja con un gasto y sube con un ingreso, coral al pasarse, no se envía sin monto, «lo pago después», el botón de ingreso, abrir el panel al cargar, categorías codificadas dos veces |
+| `pruebas_js/inicio_pagos.test.js` | 10 | Lo por pagar en el Inicio: pestaña por defecto, guardada y una que ya no existe; «pronto» a 7 días en el teléfono y la lista vacía; la línea suma atrasados y próximos, oculta lo de más de 11 días, junta varios atrasados en una tarjeta que abre la lista, cuenta aparte lo que no cabe y avisa si no hay nada; las barras comparan con el mes anterior |
 | `pruebas_js/sw.test.js` | 6 | El aviso push usa lo que manda el servidor, sin datos o con texto; tocarlo no abre direcciones de afuera, abre una pestaña nueva o usa la que ya está abierta |
 | `test_voz.py` | 9 | El audio sale con el saludo y el nombre, rechaza textos sin firma o de otro usuario y un nombre sin firma, respeta el interruptor de IA, solo POST, la pantalla trae los textos firmados, `sintetizar` llama a ElevenLabs una vez y guarda en caché, sin clave no hay voz |
 
@@ -90,7 +92,7 @@ Estos son los huecos que conviene cubrir primero, ordenados por riesgo:
 4. **Lectores de Banco de Chile, CMR y Ripley.** Tienen documento real de referencia, pero no una prueba propia como CuentaRUT.
 5. **`avisar_pagos`**: día efectivo en meses cortos y un solo envío por periodo.
 6. **`respaldar_postgres`** con `--seco` en el CI, contra el Postgres del servicio.
-7. **Frontend**: las pruebas de JavaScript cubren el aviso al anotar y el *service worker*. El resto de los flujos críticos (registrar desde el panel, pagar desde el inicio, el chat de ayuda, la hoja de la esfera, el audio en el iPhone y activar los recordatorios) se prueba a mano. El patrón de `pruebas_js/` sirve para sumarlos de a uno.
+7. **Frontend**: las pruebas de JavaScript cubren el panel para anotar, lo por pagar en el Inicio, el aviso al anotar y el *service worker*. El resto de los flujos críticos (el chat de ayuda, la hoja de la esfera, el audio en el iPhone y activar los recordatorios) se prueba a mano. El patrón de `pruebas_js/` sirve para sumarlos de a uno.
 
 ## Cómo se escribe una prueba nueva
 
@@ -101,4 +103,5 @@ Estos son los huecos que conviene cubrir primero, ordenados por riesgo:
 - Si la vista nueva recibe un id, sumarla a `DATOS` en `test_seguridad_80.py`.
 - Para los recordatorios, `override_settings(VAPID_PRIVADA=…)` con una clave de `push.generar_claves()`, y `mock.patch('finanzas.push.urlopen')` o `mock.patch.object(push, 'enviar_a_usuario')`. Nunca se conecta a un servicio de avisos real.
 - Si la prueba usa caché, llamar a `cache.clear()` en `setUp`. Los topes viven en `Contador`, que cada `TestCase` deja vacía.
+- Para JavaScript, `pruebas_js/dom_minimo.js` arma un documento falso desde HTML (`crearDocumento`), corre el archivo de `static/js/` con `ejecutar` y simula `sessionStorage` con `memoria`. Los clics se hacen con `.click()` y los envíos con `.emitir('submit')`, que suben por el árbol como en el navegador. No necesita dependencias.
 - Para cartolas se usa texto de ejemplo con datos inventados dentro de la prueba. Nunca una cartola real.
