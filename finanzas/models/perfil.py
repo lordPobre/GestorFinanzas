@@ -66,6 +66,7 @@ class UserProfile(models.Model):
 
     politica_version  = models.CharField(max_length=20, blank=True)
     politica_aceptada = models.DateTimeField(null=True, blank=True)
+    politica_avisada  = models.CharField(max_length=20, blank=True)
 
     ultima_actividad = models.DateTimeField(null=True, blank=True)
     aviso_inactividad_enviado = models.DateTimeField(null=True, blank=True)

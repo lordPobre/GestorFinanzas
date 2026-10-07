@@ -238,7 +238,7 @@ Uno por usuario (`related_name='profile'`). Se crea en el registro. Si falta, la
 | Correo | `correo_verificado`, `correo_verificado_en`. `email_pendiente` y `email_pendiente_desde`: el correo nuevo mientras no se confirma (48 h) |
 | Esfera | `esfera_estado_visto` (12): el estado de Inicio que la persona vio la última vez que entró |
 | Recordatorios | `push_vence` y `push_dia_antes` (on), `push_topes`, `push_resumen` y `push_montos` (off), y `push_ultimo_dia`: el último día que `enviar_recordatorios` pasó por la cuenta |
-| Consentimiento | `politica_version`, `politica_aceptada` |
+| Consentimiento | `politica_version`, `politica_aceptada`. `politica_avisada`: la última versión cuyo aviso por correo salió a la cuenta |
 | Inactividad | `ultima_actividad`, `aviso_inactividad_enviado` |
 
 Al cambiar la foto, `save()` borra la anterior del almacenamiento. Una señal `post_delete` borra la foto cuando se elimina el perfil. `foto_url` guarda en caché la URL firmada por 5 horas: la firma de R2 dura 6, así que la URL guardada nunca vence antes que la caché.
@@ -302,7 +302,7 @@ Se conserva 12 meses (ver [10 · Operación](10-OPERACION.md)).
 
 ## Migraciones
 
-38 migraciones en `finanzas/migrations/`. La numeración salta de `0016` a `0100` a propósito: la `0100_pagocuota` inició el modelo de pagos por periodo y marca un corte con el esquema original. Desde ahí se agrega una por cambio:
+39 migraciones en `finanzas/migrations/`. La numeración salta de `0016` a `0100` a propósito: la `0100_pagocuota` inició el modelo de pagos por periodo y marca un corte con el esquema original. Desde ahí se agrega una por cambio:
 
 | Migración | Qué agrega |
 | --- | --- |
@@ -326,5 +326,6 @@ Se conserva 12 meses (ver [10 · Operación](10-OPERACION.md)).
 | 0119 | `Contador`, `DispositivoConocido`, `UserProfile.email_pendiente` y `email_pendiente_desde`, y cuatro tipos nuevos de `EventoSeguridad` |
 | 0120 | `UserProfile.esfera_estado_visto` |
 | 0121 | `Persona.lado`, los seis campos `push_*` de `UserProfile`, `TopeCategoria` y `SuscripcionPush`. Escrita a mano: `makemigrations --check` confirma que calza con los modelos |
+| 0122 | `UserProfile.politica_avisada` |
 
 El CI corre `makemigrations --check`: un cambio de modelo sin su migración deja el build en rojo.

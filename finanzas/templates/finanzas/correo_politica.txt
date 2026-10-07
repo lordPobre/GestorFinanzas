@@ -1,0 +1,16 @@
+Hola {{ usuario.username }}:
+
+El {{ vigente_desde }} entra en vigencia la versión {{ version }} de la política de privacidad de Fintora.
+
+Qué cambia:
+{% for titulo, texto in cambios %}
+- {{ titulo }}. {{ texto }}
+{% endfor %}
+Puedes leer la política completa en {{ enlace }}
+
+Si no estás de acuerdo, puedes descargar tus datos o eliminar tu cuenta desde tu perfil: {{ enlace_perfil }}
+
+Para cualquier consulta, escríbenos a {{ correo_contacto }}.
+
+Carlos López Figueroa
+Fintora

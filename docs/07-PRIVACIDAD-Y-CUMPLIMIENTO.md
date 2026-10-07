@@ -111,12 +111,11 @@ Ver [10 · Operación](10-OPERACION.md#incidentes-de-seguridad) y `docs/BRECHAS.
 
 ## Pendientes de cumplimiento
 
-C1, C2 y C3 se resolvieron en la entrega de arreglos (ver [13 · Deuda técnica](13-DEUDA-TECNICA-Y-HOJA-DE-RUTA.md)). Quedan abiertos:
+C1, C2 y C3 se resolvieron en la entrega de arreglos (ver [13 · Deuda técnica](13-DEUDA-TECNICA-Y-HOJA-DE-RUTA.md)). C7 se resolvió en el lote 88: como el lote 86 había sumado los recordatorios a la 1.5 ya publicada, la política pasó a 1.6, y quien aceptó la 1.5 tiene que aceptar de nuevo. Quedan abiertos:
 
-- **C4. Aviso de la política 1.5.** Enviar el correo a todas las cuentas antes del 20 de octubre de 2026.
+- **C4. Aviso de la política 1.6.** Correr `avisar_politica` a más tardar el 13 de octubre de 2026, una semana antes de la vigencia (20 de octubre).
 - **C5. Acuerdo con ElevenLabs.** Revisar y descargar su DPA y guardarlo en `legal/dpa/`. El plan gratuito no permite uso comercial: en producción hace falta un plan de pago.
 - **C6. Acuerdos de Sentry y de los proveedores de medición**, si se activan.
-- **C7. Versión de la política.** El lote 86 sumó a la 1.5 el apartado de los recordatorios sin subir la versión. Si el aviso de la 1.5 ya salió o alguien ya la aceptó, hay que pasarla a 1.6 y avisar de nuevo.
 
 ## Para un auditor
 

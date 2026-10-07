@@ -25,6 +25,7 @@ Las decisiones de diseño que explican por qué el código es como es, en orden 
 | Oct. 2026 | Lotes 77 a 80: **auditoría de seguridad**, en cuatro partes (A a D). Migración 0119 |
 | Oct. 2026 | Lotes 81 a 83: la esfera saluda al entrar (migración 0120) y habla solo con **ElevenLabs**; propiedad intelectual en los términos y en la portada |
 | Oct. 2026 | Lotes 86 y 87: **Debo**, topes por categoría y **recordatorios en el teléfono** (migración 0121), con sus pruebas |
+| Oct. 2026 | Lote 88: política **1.6** y su aviso por correo con `avisar_politica` (migración 0122) |
 
 ## Decisiones vigentes
 

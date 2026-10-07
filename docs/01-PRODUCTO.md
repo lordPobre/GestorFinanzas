@@ -57,7 +57,7 @@ Usuario y contraseña, **Google**, y **Face ID o huella** (passkeys), que solo s
 
 ## Correos que envía
 
-Confirmación del correo al registrarse, recuperación de contraseña, **aviso mensual** de lo que queda por pagar (el día que la persona elige), aviso de cuenta inactiva a los 12 meses, aviso de acceso desde un aparato nuevo, confirmación y aviso del cambio de correo, y aviso a quien intenta registrarse con un correo que ya tiene cuenta. Los correos HTML usan el diseño oscuro de la app, con 480 px de ancho y la cabecera como imagen adjunta.
+Confirmación del correo al registrarse, recuperación de contraseña, **aviso mensual** de lo que queda por pagar (el día que la persona elige), aviso de cuenta inactiva a los 12 meses, aviso de acceso desde un aparato nuevo, confirmación y aviso del cambio de correo, aviso a quien intenta registrarse con un correo que ya tiene cuenta, y aviso de cada cambio de la política de privacidad. Los correos HTML usan el diseño oscuro de la app, con 480 px de ancho y la cabecera como imagen adjunta.
 
 ## Recordatorios en el teléfono
 
@@ -76,7 +76,7 @@ Avisos en el teléfono o el computador, una vez al día (9:00 en verano, 8:00 en
 
 - En producción en Railway, abierta al público, con cuentas reales. El simulacro de restauración del 24 de septiembre de 2026 contó **9 usuarios y 64 movimientos**.
 - Un solo responsable y titular de todos los derechos: Carlos López Figueroa. Desarrollada con asistencia de Claude (Anthropic).
-- 514 pruebas automáticas, CI en cada cambio, monitoreo de errores y de disponibilidad, respaldos diarios verificados.
+- 522 pruebas automáticas, CI en cada cambio, monitoreo de errores y de disponibilidad, respaldos diarios verificados.
 - Lo que falta corregir está en [13 · Deuda técnica](13-DEUDA-TECNICA-Y-HOJA-DE-RUTA.md).
 
 ## Costos de operación

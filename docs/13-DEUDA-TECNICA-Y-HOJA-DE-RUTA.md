@@ -1,6 +1,6 @@
 # 13 · Deuda técnica y hoja de ruta
 
-Lo que queda por mejorar y lo que se resolvió: la entrega de arreglos del 28 de septiembre de 2026 y la auditoría de seguridad de octubre (lotes 77 a 80). Actualizado el 6 de octubre de 2026 con los lotes hasta el 87.
+Lo que queda por mejorar y lo que se resolvió: la entrega de arreglos del 28 de septiembre de 2026 y la auditoría de seguridad de octubre (lotes 77 a 80). Actualizado el 6 de octubre de 2026 con los lotes hasta el 88.
 
 ## Resuelto en la entrega de arreglos
 
@@ -78,7 +78,9 @@ Lo que queda por mejorar y lo que se resolvió: la entrega de arreglos del 28 de
 
 ## Hoja de ruta sugerida
 
-**Antes del 20 de octubre:** enviar el aviso de la política 1.5, contratar el plan de ElevenLabs y guardar su DPA (C4, C5 y D16), apuntar `railway/limpieza.json` en su servicio, poner `VAPID_PRIVADA`, crear el servicio `recordatorios` y decidir si la política pasa a 1.6 (C7 en [07](07-PRIVACIDAD-Y-CUMPLIMIENTO.md)).
+**Antes del 13 de octubre:** correr `avisar_politica` (política 1.6).
+
+**Antes del 20 de octubre:** contratar el plan de ElevenLabs y guardar su DPA (C4, C5 y D16), apuntar `railway/limpieza.json` en su servicio, poner `VAPID_PRIVADA`, crear el servicio `recordatorios`.
 
 **Este mes:** D10 y D11, que solo piden leer lo que el CI ya reporta, las pruebas de JavaScript (D7) para el chat, el tour y la esfera, y DNSSEC (D15).
 

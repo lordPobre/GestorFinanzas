@@ -1,0 +1,91 @@
+{% load correo_marca %}<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<meta name="supported-color-schemes" content="dark">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&display=swap">
+<title>Actualizamos la política de privacidad de Fintora</title>
+</head>
+<body style="margin:0;padding:0;background-color:#0f0e0c;">
+
+<div style="display:none;font-size:1px;color:#0f0e0c;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;">
+  La versión {{ version }} entra en vigencia el {{ vigente_desde }}.
+</div>
+
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#0f0e0c" style="background-color:#0f0e0c;">
+<tr>
+<td align="center" style="padding:0 16px;">
+
+  <table role="presentation" width="480" cellpadding="0" cellspacing="0" border="0" bgcolor="#0f0e0c" style="width:100%;max-width:480px;background-color:#0f0e0c;">
+
+    <tr>
+      <td align="center" style="padding:0 0 18px;">
+        <img src="cid:fintora-cabecera" width="480" alt="Fintora" style="display:block;width:100%;max-width:480px;height:auto;border:0;outline:none;color:#ffffff;font-family:'Manrope',-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:22px;font-weight:800;">
+      </td>
+    </tr>
+
+    <tr>
+      <td bgcolor="#1c1a17" style="background-color:#1c1a17;border:1px solid #2c2a26;border-radius:22px;padding:32px 26px 28px;">
+        <p style="margin:0 0 10px;font-family:'Manrope',-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#ffaa2c;">
+          Política de privacidad {{ version }}
+        </p>
+        <h1 style="margin:0 0 12px;font-family:'Manrope',-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:24px;font-weight:800;line-height:1.25;letter-spacing:-.02em;color:#ffffff;">
+          Hola {{ usuario.username }}, cambia la política de privacidad
+        </h1>
+        <p style="margin:0 0 20px;font-family:'Manrope',-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:15px;line-height:1.65;color:#c4bfb6;">
+          El {{ vigente_desde }} entra en vigencia la versión {{ version }}. Esto es lo que cambia:
+        </p>
+
+        {% for titulo, texto in cambios %}
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:10px;background-color:#25231f;border-radius:14px;">
+        <tr>
+          <td width="8" style="padding:20px 0 0 16px;vertical-align:top;"><div style="width:8px;height:8px;border-radius:50%;background-color:#ffaa2c;font-size:0;line-height:0;">&nbsp;</div></td>
+          <td style="padding:14px 16px 14px 12px;font-family:'Manrope',-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:13px;line-height:1.6;color:#c4bfb6;">
+            <strong style="color:#ffffff;">{{ titulo }}.</strong> {{ texto }}
+          </td>
+        </tr>
+        </table>
+        {% endfor %}
+
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:18px;">
+        <tr>
+          <td align="center" bgcolor="#ffaa2c" style="background-color:#ffaa2c;border-radius:100px;">
+            <a href="{{ enlace }}" style="display:block;padding:16px 24px;font-family:'Manrope',-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:15.5px;font-weight:800;color:#1a1200;text-decoration:none;">
+              Leer la política completa
+            </a>
+          </td>
+        </tr>
+        </table>
+
+        <p style="margin:22px 0 0;font-family:'Manrope',-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:13px;line-height:1.6;color:#c4bfb6;">
+          Si no estás de acuerdo, puedes descargar tus datos o eliminar tu cuenta desde
+          <a href="{{ enlace_perfil }}" style="color:#ffffff;text-decoration:underline;">tu perfil</a>.
+          Para cualquier consulta, escríbenos a
+          <a href="mailto:{{ correo_contacto }}" style="color:#ffffff;text-decoration:underline;">{{ correo_contacto }}</a>.
+        </p>
+      </td>
+    </tr>
+
+    <tr>
+      <td style="padding:24px 20px 40px;font-family:'Manrope',-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:12px;line-height:1.6;color:#9a958c;">
+        <p style="margin:0 0 8px;">Te escribimos porque tienes una cuenta en Fintora. Los cambios de la política se avisan a todas las cuentas.</p>
+        <p style="margin:0;">
+          <a href="{% url_sitio 'privacidad' %}" style="color:#9a958c;text-decoration:underline;">Privacidad</a>
+          &nbsp;·&nbsp;
+          <a href="{% url_sitio 'terminos' %}" style="color:#9a958c;text-decoration:underline;">Términos de uso</a>
+          &nbsp;·&nbsp;
+          © {% now "Y" %} Fintora
+        </p>
+      </td>
+    </tr>
+
+  </table>
+
+</td>
+</tr>
+</table>
+
+</body>
+</html>

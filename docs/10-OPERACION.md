@@ -57,6 +57,18 @@ python manage.py enviar_recordatorios --forzar  # aunque ya hayan salido hoy
 python manage.py generar_vapid                  # el par de claves, una sola vez
 ```
 
+### `avisar_politica`
+
+Se corre a mano, una vez por versión, al menos una semana antes de la vigencia. Manda a cada cuenta activa con correo el resumen de `legal.CAMBIOS` y anota la versión en `politica_avisada`, así que repetirlo solo manda a las que faltan. Si un correo no sale, esa cuenta queda pendiente para la próxima corrida. Espera 0,6 segundos entre correos para no pasar el límite de Resend.
+
+```bash
+python manage.py avisar_politica --seco            # a cuántas cuentas avisaría
+python manage.py avisar_politica --usuario carlos  # probar con una cuenta
+python manage.py avisar_politica                   # a todas
+```
+
+En producción se corre dentro del servicio web: `railway ssh` (con el proyecto y el servicio web elegidos) y ahí el comando. Necesita `RESEND_API_KEY` y `SITE_URL`, que ese servicio ya tiene.
+
 ### `limpiar_avatares_huerfanos`
 
 Lista los archivos de `avatares/` que ningún perfil referencia. Con `--borrar`, los elimina. Si todos parecen huérfanos, aborta: eso indica un problema de rutas, no archivos sobrantes.
@@ -115,7 +127,7 @@ El primer lunes de cada mes: descargar la última copia, verificar el hash, rest
 | Trimestral | Revisar `docs/CARTOLAS-COBERTURA.md` y los formatos que fallaron (las muestras anónimas que hayan llegado) |
 | Anual | Rotar `SECRET_KEY` (cierra todas las sesiones, obliga a volver a vincular Face ID y hace que todos los aparatos cuenten como nuevos: avisar antes), las credenciales de R2 y las claves de API, incluida la de ElevenLabs. Anotar la fecha de cada rotación |
 | Si se filtra `VAPID_PRIVADA` | Generar otra con `generar_vapid` y cambiarla en Railway. Todos los aparatos dejan de recibir avisos hasta que cada persona los active de nuevo. No se rota por calendario |
-| Al cambiar la política | Subir `legal.VERSION` y `VIGENTE_DESDE`, avisar por correo a todos los usuarios antes de la fecha de vigencia y actualizar `docs/REGISTRO-TRATAMIENTOS.md` |
+| Al cambiar la política | Subir `legal.VERSION` y `VIGENTE_DESDE`, escribir `legal.CAMBIOS`, correr `avisar_politica` al menos una semana antes de la fecha de vigencia y actualizar `docs/REGISTRO-TRATAMIENTOS.md` |
 
 ## Incidentes de seguridad
 

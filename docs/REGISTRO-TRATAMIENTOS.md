@@ -9,7 +9,7 @@ Inventario de qué dato personal trata la aplicación, con qué finalidad, dónd
 | Responsable del tratamiento | Carlos López Figueroa, persona natural, Valparaíso, Chile |
 | Canal para el ejercicio de derechos | soporte@perseustechnology.dev |
 | Alcance | Servicio abierto al público, con cuentas de usuarios reales |
-| Política vigente | La indicada en `finanzas/legal.py` (`VERSION`, `VIGENTE_DESDE`). Los tratamientos 15 y 16 entran con la versión 1.3, y el 19 con la 1.5 (ver C7 en `docs/07`) |
+| Política vigente | La indicada en `finanzas/legal.py` (`VERSION`, `VIGENTE_DESDE`). Los tratamientos 15 y 16 entran con la versión 1.3, y el 19 con la 1.6 |
 
 ---
 
@@ -113,9 +113,9 @@ Inventario de qué dato personal trata la aplicación, con qué finalidad, dónd
 
 | | |
 | --- | --- |
-| Datos | Correo del titular. Según el caso: enlace de confirmación, enlace de recuperación, aviso de inactividad, resumen de cobros del mes, aviso de acceso desde un aparato nuevo (navegador y sistema), enlace para confirmar un correo nuevo y aviso al anterior, o aviso de registro con un correo que ya tiene cuenta |
-| Finalidad | Confirmar el correo, recuperar el acceso, cumplir el plazo de conservación, recordar los cobros por vencer y avisar de cambios de seguridad en la cuenta |
-| Base de licitud | Ejecución del servicio. El aviso mensual, consentimiento: se activa y desactiva desde el perfil. Los avisos de seguridad, interés legítimo en la seguridad |
+| Datos | Correo del titular. Según el caso: enlace de confirmación, enlace de recuperación, aviso de inactividad, resumen de cobros del mes, aviso de acceso desde un aparato nuevo (navegador y sistema), enlace para confirmar un correo nuevo y aviso al anterior, aviso de registro con un correo que ya tiene cuenta, o aviso de un cambio de la política de privacidad |
+| Finalidad | Confirmar el correo, recuperar el acceso, cumplir el plazo de conservación, recordar los cobros por vencer, avisar de cambios de seguridad en la cuenta e informar los cambios de la política |
+| Base de licitud | Ejecución del servicio. El aviso mensual, consentimiento: se activa y desactiva desde el perfil. Los avisos de seguridad, interés legítimo en la seguridad. El aviso de la política, la obligación de informar los cambios antes de que rijan |
 | Dónde | Se entrega a Resend por API HTTPS |
 | Conservación | La que aplique el proveedor a su registro de envíos |
 

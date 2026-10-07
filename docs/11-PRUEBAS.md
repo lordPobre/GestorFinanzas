@@ -31,7 +31,7 @@ En el CI, el usuario y la base de Postgres se llaman `fintora` y `ALLOWED_HOSTS`
 
 ## Qué cubre cada archivo
 
-Son 52 archivos en `finanzas/tests/` con 514 pruebas, contadas sobre las entregas hasta el lote 87. Las 18 filas de arriba son las del 28 de septiembre; las de abajo, las que se sumaron después. Seis archivos de antes no tienen fila propia.
+Son 53 archivos en `finanzas/tests/` con 522 pruebas, contadas sobre las entregas hasta el lote 88. Las 18 filas de arriba son las del 28 de septiembre; las de abajo, las que se sumaron después. Seis archivos de antes no tienen fila propia.
 
 | Archivo | Pruebas | Qué asegura |
 | --- | --- | --- |
@@ -70,6 +70,7 @@ Son 52 archivos en `finanzas/tests/` con 514 pruebas, contadas sobre las entrega
 | `test_recordatorios.py` | 46 | Cifrado: el aparato descifra lo enviado, sal y clave nuevas en cada envío, otro aparato no puede leerlo, firma VAPID válida con el destino y la vigencia. Claves: el par generado calza, sin clave no hay recordatorios, una clave rota se anota, `generar_vapid` entrega la variable lista. Solo servicios de avisos conocidos por HTTPS. Envío: cifrado y firmado, 404 y 410 borran el aparato, una falla no lo borra, sin clave no sale nada. Suscribir, quitar solo lo propio, 10 aparatos, probar con pausa de 30 s, opciones del perfil, descarga de datos. Invitación de Inicio. Avisos de hoy, de mañana, agrupados, de lo que debes, del domingo y sin montos por defecto. `enviar_recordatorios`: una vez al día, `--forzar`, cuentas inactivas fuera y una cuenta con error no frena a las demás |
 | `test_topes.py` | 21 | Tonos en 80 y 100 %, lo que queda y lo que se pasó. Poner, cambiar y quitar un tope; categorías de ingreso, ajenas y montos en cero rechazados; borrar una categoría borra su tope. Promedio de los 3 meses anteriores, lo que recibe el panel de anotar y un recordatorio por nivel y por mes |
 | `test_debo.py` | 28 | Día de pago en meses cortos y a fin de mes. Lo que falta del mes con abonos parciales o de más. La cuota en «Por pagar» solo del mes en curso y de la cuenta. Resta de «Puedes gastar» sin contarse dos veces. Marcar pagada solo por POST, solo en Debo y solo lo propio. Pestañas, alta en Debo, WhatsApp solo para cobrar y el botón de pago en Inicio |
+| `test_aviso_politica.py` | 8 | `avisar_politica`: una vez por cuenta y por versión, el correo trae la versión, la fecha, los cambios y los enlaces, `--seco` no envía, un correo que no sale deja la cuenta pendiente, sin correo o inactiva no se avisa, usa el correo del perfil si la cuenta no tiene, `--limite` |
 | `test_voz.py` | 9 | El audio sale con el saludo y el nombre, rechaza textos sin firma o de otro usuario y un nombre sin firma, respeta el interruptor de IA, solo POST, la pantalla trae los textos firmados, `sintetizar` llama a ElevenLabs una vez y guarda en caché, sin clave no hay voz |
 
 ## Qué no tiene pruebas hoy
