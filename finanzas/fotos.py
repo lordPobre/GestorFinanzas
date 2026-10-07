@@ -34,6 +34,6 @@ def recodificar(archivo):
             imagen.save(salida, 'JPEG', quality=CALIDAD, optimize=True)
     except forms.ValidationError:
         raise
-    except (UnidentifiedImageError, OSError, ValueError, Image.DecompressionBombError):
-        raise error
+    except (UnidentifiedImageError, OSError, ValueError, Image.DecompressionBombError) as e:
+        raise error from e
     return SimpleUploadedFile('foto.jpg', salida.getvalue(), content_type='image/jpeg')

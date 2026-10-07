@@ -16,11 +16,20 @@ select = [
     "F82",
     "F401",
     "F841",
+    "S",
+    "B",
+    "DJ",
+    "UP",
 ]
 
 [tool.ruff.lint.per-file-ignores]
-"core/settings.py" = ["F401"]
-"finanzas/tests/*.py" = ["F841", "S101", "S105", "S106"]
+"core/settings.py" = ["F401", "S105"]
+"finanzas/google_login.py" = ["S105", "S310"]
+"finanzas/correo.py" = ["S310"]
+"finanzas/push.py" = ["S310"]
+"finanzas/voz.py" = ["S310"]
+"finanzas/management/commands/respaldar_postgres.py" = ["S603"]
+"finanzas/tests/*.py" = ["F841", "S101", "S105", "S106", "S108", "B018"]
 
 [tool.coverage.run]
 source = ["finanzas", "core"]
@@ -32,6 +41,6 @@ omit = [
 ]
 
 [tool.coverage.report]
-fail_under = 55
+fail_under = 73
 show_missing = true
 skip_covered = true

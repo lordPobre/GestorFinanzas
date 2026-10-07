@@ -1,5 +1,5 @@
 import ipaddress
-import random
+import secrets
 from datetime import timedelta
 from functools import wraps
 
@@ -55,7 +55,7 @@ VENTANA_IP = 60 * 60
 
 
 def _purgar_a_veces():
-    if random.random() < 0.01:
+    if secrets.randbelow(100) == 0:
         from .models import Contador
         Contador.objects.filter(vence__lt=timezone.now()).delete()
 

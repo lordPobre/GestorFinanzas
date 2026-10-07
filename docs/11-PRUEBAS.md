@@ -20,11 +20,10 @@ Durante las pruebas, `core/settings.py` quita `RESEND_API_KEY` del entorno, así
 
 | Trabajo | Qué hace | Si falla |
 | --- | --- | --- |
-| `pruebas` | Levanta Postgres 18. Instala con `--require-hashes`, corre `ruff check`, `makemigrations --check`, `coverage run manage.py test` y `coverage report` | Build en rojo. La cobertura mínima es 55 % (`fail_under` en `pyproject.toml`) |
+| `pruebas` | Levanta Postgres 18. Instala con `--require-hashes`, corre `ruff check` (con las reglas S, B, DJ y UP desde el lote 91), `makemigrations --check`, `coverage run manage.py test` y `coverage report` | Build en rojo. La cobertura mínima es 55 % (`fail_under` en `pyproject.toml`) |
 | `despliegue` | `check --deploy --fail-level WARNING` con `DEBUG=False` | Build en rojo: significa que falta un ajuste de seguridad de producción |
 | `dependencias` | `pip-audit --strict` sobre `requirements.txt` y `requirements-dev.txt` | Build en rojo: hay una dependencia con una vulnerabilidad conocida |
 | `javascript` | `node --test pruebas_js/*.test.js` con Node 22 | Build en rojo |
-| `estilo-ampliado` | `ruff` con las reglas S (seguridad), B, DJ y UP | Solo informa (`--exit-zero`) |
 | `secretos` | Gitleaks sobre todo el historial, con las excepciones de `.gitleaks.toml` | Build en rojo: hay una credencial en un commit |
 
 Las pruebas corren contra Postgres, igual que producción, y no contra SQLite. Dependabot abre PRs semanales para pip (los lunes, con parches y versiones menores agrupados) y mensuales para las GitHub Actions.

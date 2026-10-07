@@ -102,16 +102,16 @@ def _de_csv(binario):
 def _de_excel(binario):
     try:
         from openpyxl import load_workbook
-    except ImportError:
+    except ImportError as e:
         raise ErrorCartola(
             'Falta la librería para leer Excel. Guarda el archivo como CSV y '
-            'súbelo así.')
+            'súbelo así.') from e
     _revisar_zip(binario)
     try:
         libro = load_workbook(binario, read_only=True, data_only=True)
-    except Exception:
+    except Exception as e:
         raise ErrorCartola('No se pudo abrir el Excel. ¿Seguro que es el archivo '
-                           'que exportó el banco?')
+                           'que exportó el banco?') from e
     hoja = libro[libro.sheetnames[0]]
     filas = []
     for i, fila in enumerate(hoja.iter_rows(values_only=True)):
@@ -129,9 +129,9 @@ def _revisar_zip(binario):
     try:
         with zipfile.ZipFile(binario) as archivo:
             entradas = archivo.infolist()
-    except (zipfile.BadZipFile, ValueError):
+    except (zipfile.BadZipFile, ValueError) as error:
         raise ErrorCartola('No se pudo abrir el Excel. ¿Seguro que es el archivo '
-                           'que exportó el banco?')
+                           'que exportó el banco?') from error
     finally:
         binario.seek(0)
 

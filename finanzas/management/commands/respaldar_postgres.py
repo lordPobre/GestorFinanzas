@@ -108,16 +108,17 @@ class Command(BaseCommand):
         try:
             subprocess.run(orden, env=entorno, check=True, capture_output=True, timeout=1800)
         except subprocess.CalledProcessError as e:
-            raise CommandError('pg_dump falló: ' + e.stderr.decode(errors='replace')[-800:])
-        except subprocess.TimeoutExpired:
-            raise CommandError('pg_dump tardó más de 30 minutos y se cortó.')
+            raise CommandError('pg_dump falló: ' + e.stderr.decode(errors='replace')[-800:]) from e
+        except subprocess.TimeoutExpired as e:
+            raise CommandError('pg_dump tardó más de 30 minutos y se cortó.') from e
 
     def _verificar(self, pg_restore, ruta):
         try:
             salida = subprocess.run([pg_restore, '--list', str(ruta)], check=True,
                                     capture_output=True, timeout=300).stdout.decode(errors='replace')
         except subprocess.CalledProcessError as e:
-            raise CommandError('La copia no se puede leer: ' + e.stderr.decode(errors='replace')[-800:])
+            raise CommandError(
+                'La copia no se puede leer: ' + e.stderr.decode(errors='replace')[-800:]) from e
         lineas = [linea for linea in salida.splitlines() if ' TABLE DATA ' in linea]
         faltan = [t for t in TABLAS_OBLIGATORIAS if not any(f' {t} ' in f'{linea} ' for linea in lineas)]
         if faltan:

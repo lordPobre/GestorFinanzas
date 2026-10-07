@@ -109,7 +109,7 @@ class Command(BaseCommand):
             return f'{usuarios} usuarios, {movimientos} movimientos'
         except sqlite3.DatabaseError as e:
             ruta.unlink(missing_ok=True)
-            raise CommandError(f'La copia no se puede leer: {e}')
+            raise CommandError(f'La copia no se puede leer: {e}') from e
         finally:
             con.close()
 

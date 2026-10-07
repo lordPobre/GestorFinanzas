@@ -1,3 +1,4 @@
+import logging
 from datetime import date
 
 from django.contrib.auth.models import User
@@ -6,6 +7,8 @@ from django.db.models.signals import post_delete
 from django.dispatch import receiver
 
 from ..almacenamiento import obtener_almacen
+
+log = logging.getLogger('finanzas')
 
 
 def _ruta_avatar(instance, filename):
@@ -88,7 +91,7 @@ class UserProfile(models.Model):
             try:
                 anterior.delete(save=False)
             except Exception:
-                pass
+                log.warning('No se pudo borrar la foto anterior %s', anterior.name, exc_info=True)
 
     @property
     def nombre_display(self):
@@ -132,4 +135,5 @@ def _borrar_avatar_al_eliminar_perfil(sender, instance, **kwargs):
         try:
             instance.foto.delete(save=False)
         except Exception:
-            pass
+            log.warning('No se pudo borrar la foto %s al eliminar el perfil', instance.foto.name,
+                        exc_info=True)

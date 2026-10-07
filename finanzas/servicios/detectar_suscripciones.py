@@ -2,6 +2,7 @@ import re
 import statistics
 from collections import Counter, defaultdict
 from datetime import date
+from itertools import pairwise
 
 from dateutil.relativedelta import relativedelta
 from django.db.models import Q
@@ -51,7 +52,7 @@ def _ya_registrada(clave, nombre, subs):
 
 def _meses_seguidos(periodos):
     seguidos = mejor = 1
-    for a, b in zip(periodos, periodos[1:]):
+    for a, b in pairwise(periodos):
         fa, fb = date(a // 100, a % 100, 1), date(b // 100, b % 100, 1)
         if fa + relativedelta(months=1) == fb:
             seguidos += 1

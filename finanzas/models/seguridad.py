@@ -58,6 +58,10 @@ class CodigoRespaldo(models.Model):
         verbose_name = "Código de respaldo"
         verbose_name_plural = "Códigos de respaldo"
 
+    def __str__(self):
+        estado = "usado" if self.usado else "sin usar"
+        return f"Código de respaldo de {self.usuario.username} ({estado})"
+
     @classmethod
     def generar(cls, usuario, cantidad=8):
         import secrets

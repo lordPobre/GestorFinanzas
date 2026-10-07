@@ -55,12 +55,13 @@ Lo que queda por mejorar y lo que se resolvió: la entrega de arreglos del 28 de
 | SD4 | Las fotos guardaban la ubicación del EXIF | Se vuelven a guardar sin EXIF | 80 |
 | SD5 | Google sin PKCE ni `nonce` | Agregados | 80 |
 
-## Resuelto en los lotes 86 a 90
+## Resuelto en los lotes 86 a 92
 
 | # | Qué era | Cómo quedó | Lote |
 | --- | --- | --- | --- |
 | D14 | Un registro nuevo entraba a la app y uno con correo repetido volvía al acceso | La cuenta se crea al confirmar el correo. Los dos casos responden igual | 90 |
 | C7 | Los recordatorios se sumaron a la política 1.5 ya publicada | Política 1.6, avisada por correo y con franja en el Inicio | 88 y 89 |
+| D10 | Las reglas ampliadas de `ruff` (S, B, DJ, UP) solo informaban | Los 37 avisos corregidos o justificados en `per-file-ignores`; las cuatro familias están en `select` y el trabajo `estilo-ampliado` se quitó | 91 |
 
 ## Pendiente
 
@@ -71,8 +72,7 @@ Lo que queda por mejorar y lo que se resolvió: la entrega de arreglos del 28 de
 | D7 | Las pruebas de JavaScript cubren solo el aviso al anotar y el *service worker* | Sumar el panel de registro, el pago desde el inicio, el chat y la esfera con el patrón de `pruebas_js/` (ver [11](11-PRUEBAS.md#qué-no-tiene-pruebas-hoy)) |
 | D8 | `comun.contadores()` corre en casi todas las pantallas: arma el formulario de registro, lista las categorías y calcula `salud_financiera`, que llama a `resumen_mes` del mes en curso | `base.html` dibuja el panel de registro y la salud del mes en todas las pantallas. Partirlo exige cambiar primero la plantilla base: mostrar la salud solo en el inicio y cargar el panel de registro al abrirlo |
 | D9 | La lectura de una cartola ocurre dentro de la petición, con el límite de 60 s de gunicorn | Los topes evitan que se cuelgue, pero una cartola cerca del tope puede cortarse. Pasarla a una cola (`django-q2` sobre Postgres, con un segundo servicio que corra `qcluster`) cuando los registros muestren cortes reales |
-| D10 | Las reglas ampliadas de `ruff` (S, B, DJ, UP) solo informan | Revisar el resumen del trabajo `estilo-ampliado`, corregir por familia y moverlas a `select` en `pyproject.toml` |
-| D11 | La cobertura mínima está en 55 % | Subirla al valor real, redondeado hacia abajo, y después 5 puntos por lote |
+| D11 | La cobertura mínima está en 73 %, el valor real del lote 91 | Subirla 5 puntos por lote, empezando por los módulos con menos cobertura en `coverage report` |
 | D12 | `finapp.css` (unos 165 KB) tiene los ajustes de teléfono de varias pantallas agrupados en la sección de la barra inferior, y encima van `tema-vidrio.css` y diez hojas por pantalla | Funciona, pero el orden de carga decide qué regla gana (el lote 70 lo sufrió). Reordenar una sección a la vez, comparando capturas (ver `docs/ESTILOS.md`) |
 | D13 | Los atributos `style` siguen permitidos (`style-src-attr 'unsafe-inline'`) en las pantallas con sesión | Las etiquetas `<style>` piden nonce (lote 90) y el acceso y las legales ya están en `'none'` (lote 92). Falta sacar los `style=` de las pantallas con sesión y sumar sus rutas a `RUTAS_SIN_ESTILO_EN_LINEA` |
 | D15 | DNSSEC y la inscripción en HSTS *preload* | DNSSEC se activa en Cloudflare y en Registrar.eu. El *preload* es difícil de revertir: solo cuando todos los subdominios funcionen por HTTPS |
@@ -88,7 +88,7 @@ Lo que queda por mejorar y lo que se resolvió: la entrega de arreglos del 28 de
 
 **Antes del 20 de octubre:** contratar el plan de ElevenLabs y guardar su DPA (C4, C5 y D16), apuntar `railway/limpieza.json` en su servicio, poner `VAPID_PRIVADA`, crear el servicio `recordatorios`.
 
-**Este mes:** D10 y D11, que solo piden leer lo que el CI ya reporta, las pruebas de JavaScript (D7) para el chat, el tour y la esfera, y DNSSEC (D15).
+**Este mes:** las pruebas de JavaScript (D7) para el chat, el tour y la esfera, y DNSSEC (D15).
 
 **Siguiente trimestre:**
 
