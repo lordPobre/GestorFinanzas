@@ -1,0 +1,44 @@
+{% extends 'registration/auth_base.html' %}
+{% block title %}{% if valido %}Crea tu cuenta{% else %}Enlace no válido{% endif %} · Fintora{% endblock %}
+
+{% block card %}
+<div class="glass card-lg">
+
+  {% if valido %}
+  <div style="display:flex;align-items:center;gap:14px;margin-bottom:22px">
+    <span style="display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:12px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.12);color:var(--green-texto);flex:none">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><path d="m9 12 2 2 4-4"></path></svg>
+    </span>
+    <span style="font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--text-muted)">Correo confirmado</span>
+  </div>
+
+  <h1 class="auth-h" style="margin-bottom:10px">Crea tu cuenta</h1>
+  <p class="hint" style="margin:0 0 26px;font-size:13px;line-height:1.6">
+    {{ alta.correo }} es tuyo. Toca el botón para crear la cuenta
+    <strong>{{ alta.username }}</strong> y empezar.
+  </p>
+
+  <form method="post">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-amber btn-block">Crear mi cuenta</button>
+  </form>
+
+  {% else %}
+  <div style="display:flex;align-items:center;gap:14px;margin-bottom:22px">
+    <span style="display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:12px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.12);color:var(--coral-texto);flex:none">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 17H7A5 5 0 0 1 7 7"></path><path d="M15 7h2a5 5 0 0 1 4 8"></path><line x1="8" x2="12" y1="12" y2="12"></line><line x1="2" x2="22" y1="2" y2="22"></line></svg>
+    </span>
+    <span style="font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--text-muted)">Enlace vencido</span>
+  </div>
+
+  <h1 class="auth-h" style="margin-bottom:10px">Este enlace ya no sirve</h1>
+  <p class="hint" style="margin:0 0 26px;font-size:13px;line-height:1.6">
+    Pasaron más de 48 horas, ya lo usaste o pediste otro después. Vuelve a
+    registrarte: tus datos no quedaron guardados.
+  </p>
+
+  <a href="{% url 'registro' %}" class="btn btn-amber btn-block">Registrarme</a>
+  {% endif %}
+
+</div>
+{% endblock %}

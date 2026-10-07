@@ -9,19 +9,21 @@ coverage run manage.py test && coverage report
 ruff check .
 python manage.py check --deploy        # con DEBUG=False
 python manage.py makemigrations --check --dry-run
+node --test pruebas_js/*.test.js        # JavaScript, con Node 22
 ```
 
 Durante las pruebas, `core/settings.py` quita `RESEND_API_KEY` del entorno, así que no sale ningún correo aunque tengas la clave en `.env`. Las llamadas a Anthropic, Google y ElevenLabs siempre se simulan con `unittest.mock`.
 
 ## Integración continua
 
-`.github/workflows/ci.yml` corre en cada push a `main` y en cada pull request. Tiene cinco trabajos:
+`.github/workflows/ci.yml` corre en cada push a `main` y en cada pull request. Tiene seis trabajos:
 
 | Trabajo | Qué hace | Si falla |
 | --- | --- | --- |
 | `pruebas` | Levanta Postgres 18. Instala con `--require-hashes`, corre `ruff check`, `makemigrations --check`, `coverage run manage.py test` y `coverage report` | Build en rojo. La cobertura mínima es 55 % (`fail_under` en `pyproject.toml`) |
 | `despliegue` | `check --deploy --fail-level WARNING` con `DEBUG=False` | Build en rojo: significa que falta un ajuste de seguridad de producción |
 | `dependencias` | `pip-audit --strict` sobre `requirements.txt` y `requirements-dev.txt` | Build en rojo: hay una dependencia con una vulnerabilidad conocida |
+| `javascript` | `node --test pruebas_js/*.test.js` con Node 22 | Build en rojo |
 | `estilo-ampliado` | `ruff` con las reglas S (seguridad), B, DJ y UP | Solo informa (`--exit-zero`) |
 | `secretos` | Gitleaks sobre todo el historial, con las excepciones de `.gitleaks.toml` | Build en rojo: hay una credencial en un commit |
 
@@ -31,7 +33,7 @@ En el CI, el usuario y la base de Postgres se llaman `fintora` y `ALLOWED_HOSTS`
 
 ## Qué cubre cada archivo
 
-Son 54 archivos en `finanzas/tests/` con 527 pruebas, contadas sobre las entregas hasta el lote 89. Las 18 filas de arriba son las del 28 de septiembre; las de abajo, las que se sumaron después. Seis archivos de antes no tienen fila propia.
+Son 57 archivos en `finanzas/tests/` con 548 pruebas, contadas sobre las entregas hasta el lote 90, más 13 pruebas de JavaScript en `pruebas_js/`. Las 18 filas de arriba son las del 28 de septiembre; las de abajo, las que se sumaron después. Seis archivos de antes no tienen fila propia.
 
 | Archivo | Pruebas | Qué asegura |
 | --- | --- | --- |
@@ -40,14 +42,14 @@ Son 54 archivos en `finanzas/tests/` con 527 pruebas, contadas sobre las entrega
 | `test_cartola_cuentarut.py` | 10 | Lector de CuentaRUT: reconoce el formato, lee todas las filas, completa el año, deduce el signo por la cadena de saldos, une descripciones partidas en dos líneas, quita el número de operación, cuadra contra los totales declarados, avisa si falta una fila, rechaza un PDF sin detalle y no se lo lleva el lector genérico de BancoEstado |
 | `test_cartola_tabla.py` | 14 | CSV/Excel: detecta extensiones, columnas cargo/abono, monto con saldo, monto con signo, rechazo de columnas desconocidas y de archivos vacíos. La muestra anónima borra nombres y cifras, conserva la estructura y respeta el tope de líneas |
 | `test_conservacion.py` | 19 | Inactividad: quién entra en la lista, la sesión abierta cuenta como actividad, superusuarios fuera, un solo aviso, sin correo no hay aviso, no se borra sin aviso ni durante la gracia, quien vuelve sale de la cola, el borrado se lleva todo, `--seco` no toca nada. Topes de cartola: movimientos, páginas y texto |
-| `test_cuenta.py` | 13 | Verificación de correo al registrarse: no bloquea el uso, el enlace confirma sin iniciar sesión, un token inventado no sirve, cambiar el correo invalida el enlace anterior. Sesiones abiertas: anotar, marcar la actual, cerrar las demás, no cerrar las de otra persona, salir borra la fila |
+| `test_cuenta.py` | 11 | Confirmación del correo de las cuentas antiguas: el enlace confirma sin iniciar sesión, un token inventado no sirve, cambiar el correo invalida el enlace anterior. Sesiones abiertas: anotar, marcar la actual, cerrar las demás, no cerrar las de otra persona, salir borra la fila |
 | `test_cuotas.py` | 18 | Arrastre de cuotas atrasadas al mes actual sin doble conteo. Reparto del redondeo en la última cuota. Periodos a pagar, pagados y atrasados. `resumen_mes`: ingresos, gastos, cuotas pagadas y pendientes, sin duplicar el egreso de la cuota. `DeudaForm`: total = cuota × cuotas, cuota en cero, edición, total desbordado |
 | `test_derechos.py` | 16 | Fechas: ingreso futuro hasta un año, gasto futuro rechazado. Descarga de mis datos: trae lo propio, no lo ajeno, no entrega el secreto 2FA, pide sesión. Borrado de la cuenta: exige contraseña y la palabra ELIMINAR, borra todo lo que cuelga y no toca otra cuenta. `/salud/` responde sin sesión. 2FA: bloqueo tras cinco códigos malos |
 | `test_landing.py` | 21 | La landing sin sesión, el inicio con sesión, `?fuente=pwa` → acceso, scripts con nonce. Chat de ayuda: respuesta, sin respuesta, validación, solo POST, tope por visitante, limpieza del historial, sin clave no llama, tope diario. Formulario de contacto: llega al correo, valida, trampa para bots, error si no sale. La política declara el chat |
 | `test_legal.py` | 4 | Pestaña marcada, versión y contacto, secciones con ancla y título, scripts con nonce |
 | `test_moneda_exportacion_ia.py` | 21 | Filtros de plantilla de moneda (`money`, `money_signed`, `money_corto`, `pct`, `a_json`). Exportación CSV y Excel, con y sin movimientos. IA: el prompt lleva los números; sin clave o sin datos no llama; respuestas en bloque de código, sin claves, no JSON o con error de la API. `analizar_finanzas` con y sin movimientos |
 | `test_passkeys_google_encuesta.py` | 24 | 2FA: la contraseña sola no abre sesión, código correcto, código malo anotado, un código no sirve dos veces. Face ID o huella: vincular pide contraseña, desafío, verificación obligatoria de la persona, sin desafío se rechaza, credencial desconocida se rechaza y se anota, firma válida entra, firma de otra cuenta no entra, no se puede quitar la de otra persona. Encuesta: guardado, obligatorias, rangos, resultados solo para el personal, CSV. Token de Google: válido, correo sin verificar, otra aplicación, vencido, otro emisor. Pantalla de cartolas con y sin sesión |
-| `test_privacidad.py` | 9 | Páginas legales públicas con responsable, contacto y versión. Sin aceptar la política no se crea la cuenta, y al aceptar queda registrada. Con la IA apagada el servidor no la llama. El registro de actividad marca a los usuarios con sesión y no escribe nada sin sesión |
+| `test_privacidad.py` | 9 | Páginas legales públicas con responsable, contacto y versión. Sin aceptar la política no queda ni el registro pendiente, y al aceptar queda la versión anotada hasta confirmar el correo. Con la IA apagada el servidor no la llama. El registro de actividad marca a los usuarios con sesión y no escribe nada sin sesión |
 | `test_rutas.py` | 5 | Cada ruta antigua lleva a la nueva con 308: conserva el método POST y la consulta. Las rutas nuevas siguen un solo estilo. El atajo de ingreso abre el formulario con el tipo |
 | `test_terceros_fotos_cache.py` | 11 | Ninguna página (acceso, legales, inicio con gráficos) pide recursos a terceros, ni en el HTML ni en la CSP. La política declara Face ID, encuesta, registro de seguridad y respaldos. Las fotos se sirven con URL firmada. Caché de meses cerrados: no recalcula, se invalida con movimientos o cuotas nuevas, el mes en curso nunca sale de caché y cada usuario tiene la suya |
 | `test_vistas.py` | 8 | Aislamiento: un usuario no alcanza ni modifica objetos de otro, y las listas solo muestran lo propio. Las pantallas privadas piden sesión. Con `prefetch_related` no hay consultas extra por fila |
@@ -72,6 +74,11 @@ Son 54 archivos en `finanzas/tests/` con 527 pruebas, contadas sobre las entrega
 | `test_debo.py` | 28 | Día de pago en meses cortos y a fin de mes. Lo que falta del mes con abonos parciales o de más. La cuota en «Por pagar» solo del mes en curso y de la cuenta. Resta de «Puedes gastar» sin contarse dos veces. Marcar pagada solo por POST, solo en Debo y solo lo propio. Pestañas, alta en Debo, WhatsApp solo para cobrar y el botón de pago en Inicio |
 | `test_aviso_politica.py` | 8 | `avisar_politica`: una vez por cuenta y por versión, el correo trae la versión, la fecha, los cambios y los enlaces, `--seco` no envía, un correo que no sale deja la cuenta pendiente, sin correo o inactiva no se avisa, usa el correo del perfil si la cuenta no tiene, `--limite` |
 | `test_franja_politica.py` | 5 | La franja del Inicio sale a quien no aceptó la versión vigente y no a quien sí, aceptar desde ella vuelve al Inicio y la quita, y `next` no lleva fuera del sitio |
+| `test_alta.py` | 12 | Registrarse no crea la cuenta y manda el enlace; clave y enlace no quedan en claro; un correo con cuenta recibe la misma respuesta; un registro nuevo reemplaza el enlace anterior. Abrir el enlace no crea nada; confirmar crea la cuenta con el correo verificado, la política y la sesión; el enlace sirve una vez, vence a las 48 h y uno inventado no sirve; correo o usuario tomados mientras tanto no duplican; `purgar` borra solo lo vencido |
+| `test_rendimiento.py` | 6 | El inicio calcula el mes una sola vez por petición, fuera de una petición no se recuerda nada, un cambio en los datos borra lo recordado, cada llamada recibe su copia. Las respuestas lentas quedan en el log y `Server-Timing` solo lo ve el personal |
+| `test_csp_estilos.py` | 5 | `style-src-elem` pide el nonce en la app, el acceso y las legales; con píxeles activos la portada no se endurece; las páginas de error traen su hoja; ninguna plantilla de pantalla trae un bloque `<style>` |
+| `pruebas_js/anotar_tope.test.js` | 7 | El aviso al anotar: nada sin monto ni bajo el 80 %, amarillo al 80 %, coral al pasarse, la barra, ingresos, otra categoría u otro mes no avisan, cambiar la fecha vuelve a revisar |
+| `pruebas_js/sw.test.js` | 6 | El aviso push usa lo que manda el servidor, sin datos o con texto; tocarlo no abre direcciones de afuera, abre una pestaña nueva o usa la que ya está abierta |
 | `test_voz.py` | 9 | El audio sale con el saludo y el nombre, rechaza textos sin firma o de otro usuario y un nombre sin firma, respeta el interruptor de IA, solo POST, la pantalla trae los textos firmados, `sintetizar` llama a ElevenLabs una vez y guarda en caché, sin clave no hay voz |
 
 ## Qué no tiene pruebas hoy
@@ -84,7 +91,7 @@ Estos son los huecos que conviene cubrir primero, ordenados por riesgo:
 4. **Lectores de Banco de Chile, CMR y Ripley.** Tienen documento real de referencia, pero no una prueba propia como CuentaRUT.
 5. **`avisar_pagos`**: día efectivo en meses cortos y un solo envío por periodo.
 6. **`respaldar_postgres`** con `--seco` en el CI, contra el Postgres del servicio.
-7. **Frontend**: no hay pruebas de JavaScript. Los flujos críticos (registrar desde el panel, pagar desde el inicio, el chat de ayuda, la hoja de la esfera el audio en el iPhone y activar los recordatorios) solo se prueban a mano.
+7. **Frontend**: las pruebas de JavaScript cubren el aviso al anotar y el *service worker*. El resto de los flujos críticos (registrar desde el panel, pagar desde el inicio, el chat de ayuda, la hoja de la esfera, el audio en el iPhone y activar los recordatorios) se prueba a mano. El patrón de `pruebas_js/` sirve para sumarlos de a uno.
 
 ## Cómo se escribe una prueba nueva
 

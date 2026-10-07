@@ -53,6 +53,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'finanzas.rendimiento.RendimientoMiddleware',
     'finanzas.middleware.DominioCanonicoMiddleware',
     'finanzas.middleware.PoliticaContenidoMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -214,6 +215,8 @@ GOOGLE_CLIENT_SECRET = os.environ.get('GOOGLE_CLIENT_SECRET', '')
 VAPID_PRIVADA = os.environ.get('VAPID_PRIVADA', '').strip()
 VAPID_CONTACTO = (os.environ.get('VAPID_CONTACTO', '').strip()
                   or 'mailto:soporte@perseustechnology.dev')
+
+RESPUESTA_LENTA_MS = int(os.environ.get('RESPUESTA_LENTA_MS', '1500') or 1500)
 
 SESSION_COOKIE_AGE = 60 * 60 * 8
 SESION_MAXIMA_HORAS = int(os.environ.get('SESION_MAXIMA_HORAS', '168'))

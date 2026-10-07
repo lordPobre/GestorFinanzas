@@ -133,8 +133,9 @@ El detalle está en [05 · Cartolas](05-CARTOLAS.md).
 | `/login/` | `login` | `cuenta.entrar`. Contraseña, con topes. Si hay 2FA, deriva a `/verificar/` |
 | `/logout/` | `logout` | `Salir`: cierra la sesión, responde `Clear-Site-Data: "cache"` y redirige a `/login/` |
 | `/verificar/` | `verificar_codigo` | Segundo paso: código TOTP o de respaldo, dentro de 5 minutos desde la contraseña |
-| `/registro/` | `registro` | T 5/h. Correo obligatorio, más la aceptación de la política. Si el correo ya tiene cuenta, no lo dice: manda un correo a esa dirección (2 al día como máximo) y vuelve al acceso con el mensaje de siempre |
-| `/registro/confirmar/<token>/` | `verificar_correo` | T 20/h por IP. Enlace de confirmación, válido 48 h |
+| `/registro/` | `registro` | T 5/h. Correo obligatorio, más la aceptación de la política. **No crea la cuenta**: guarda un `AltaPendiente` y manda el enlace para crearla. Si el correo ya tiene cuenta, manda en cambio el aviso a esa dirección (2 al día como máximo). En los dos casos vuelve al acceso con el mismo mensaje |
+| `/registro/crear/<token>/` | `confirmar_alta` | T 20/h por IP. GET muestra el botón «Crear mi cuenta» (los lectores de correo que abren enlaces solos no crean nada). POST crea la cuenta con el correo confirmado, inicia sesión y lleva a la bienvenida. Vence a las 48 h y sirve una vez |
+| `/registro/confirmar/<token>/` | `verificar_correo` | T 20/h por IP. Confirmación del correo de las cuentas creadas antes del lote 90 (se pide desde el perfil). Válido 48 h |
 | `/recuperar/` | `recuperar` | 3 solicitudes cada 15 min por IP y 3 correos por hora por dirección. Siempre responde lo mismo |
 | `/recuperar/<uidb64>/<token>/` | `restablecer` | T 20/h por IP. Válido 1 h. Si la cuenta tiene 2FA, también pide el código |
 | `/entrar/google/` | `google_entrar` | Redirige a Google con `state`, `nonce` y PKCE (S256) |

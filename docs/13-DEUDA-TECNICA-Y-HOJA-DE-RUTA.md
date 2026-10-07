@@ -1,6 +1,6 @@
 # 13 · Deuda técnica y hoja de ruta
 
-Lo que queda por mejorar y lo que se resolvió: la entrega de arreglos del 28 de septiembre de 2026 y la auditoría de seguridad de octubre (lotes 77 a 80). Actualizado el 6 de octubre de 2026 con los lotes hasta el 88.
+Lo que queda por mejorar y lo que se resolvió: la entrega de arreglos del 28 de septiembre de 2026 y la auditoría de seguridad de octubre (lotes 77 a 80). Actualizado el 6 de octubre de 2026 con los lotes hasta el 90.
 
 ## Resuelto en la entrega de arreglos
 
@@ -55,20 +55,26 @@ Lo que queda por mejorar y lo que se resolvió: la entrega de arreglos del 28 de
 | SD4 | Las fotos guardaban la ubicación del EXIF | Se vuelven a guardar sin EXIF | 80 |
 | SD5 | Google sin PKCE ni `nonce` | Agregados | 80 |
 
+## Resuelto en los lotes 86 a 90
+
+| # | Qué era | Cómo quedó | Lote |
+| --- | --- | --- | --- |
+| D14 | Un registro nuevo entraba a la app y uno con correo repetido volvía al acceso | La cuenta se crea al confirmar el correo. Los dos casos responden igual | 90 |
+| C7 | Los recordatorios se sumaron a la política 1.5 ya publicada | Política 1.6, avisada por correo y con franja en el Inicio | 88 y 89 |
+
 ## Pendiente
 
 | # | Qué | Por qué importa |
 | --- | --- | --- |
 | D5 | `resumen_mes` y varias pantallas recorren en Python todas las compras en cuotas y suscripciones del usuario | Correcto y sin consultas por fila, pero crece con el historial. Filtrar en la base las compras que tienen cobro en el mes |
 | D6 | La IA y el correo se llaman dentro de la petición | Si Anthropic o Resend tardan, ocupan uno de los 8 hilos. Con más usuarios, pasarlos a una cola |
-| D7 | No hay pruebas de JavaScript | Ver [11 · Pruebas](11-PRUEBAS.md#qué-no-tiene-pruebas-hoy) |
+| D7 | Las pruebas de JavaScript cubren solo el aviso al anotar y el *service worker* | Sumar el panel de registro, el pago desde el inicio, el chat y la esfera con el patrón de `pruebas_js/` (ver [11](11-PRUEBAS.md#qué-no-tiene-pruebas-hoy)) |
 | D8 | `comun.contadores()` corre en casi todas las pantallas: arma el formulario de registro, lista las categorías y calcula `salud_financiera`, que llama a `resumen_mes` del mes en curso | `base.html` dibuja el panel de registro y la salud del mes en todas las pantallas. Partirlo exige cambiar primero la plantilla base: mostrar la salud solo en el inicio y cargar el panel de registro al abrirlo |
 | D9 | La lectura de una cartola ocurre dentro de la petición, con el límite de 60 s de gunicorn | Los topes evitan que se cuelgue, pero una cartola cerca del tope puede cortarse. Pasarla a una cola (`django-q2` sobre Postgres, con un segundo servicio que corra `qcluster`) cuando los registros muestren cortes reales |
 | D10 | Las reglas ampliadas de `ruff` (S, B, DJ, UP) solo informan | Revisar el resumen del trabajo `estilo-ampliado`, corregir por familia y moverlas a `select` en `pyproject.toml` |
 | D11 | La cobertura mínima está en 55 % | Subirla al valor real, redondeado hacia abajo, y después 5 puntos por lote |
 | D12 | `finapp.css` (unos 165 KB) tiene los ajustes de teléfono de varias pantallas agrupados en la sección de la barra inferior, y encima van `tema-vidrio.css` y diez hojas por pantalla | Funciona, pero el orden de carga decide qué regla gana (el lote 70 lo sufrió). Reordenar una sección a la vez, comparando capturas (ver `docs/ESTILOS.md`) |
-| D13 | `style-src 'unsafe-inline'` sigue en la CSP | Quitarlo exige mover a archivos los estilos escritos en las plantillas |
-| D14 | Un registro nuevo entra a la app y uno con correo repetido vuelve al acceso | Esa diferencia todavía deja adivinar si un correo tiene cuenta. Cerrarla exige confirmar el correo antes de crear la cuenta |
+| D13 | Los atributos `style` siguen permitidos (`style-src-attr 'unsafe-inline'`) | Las etiquetas `<style>` ya piden nonce (lote 90). Cerrarlo del todo exige sacar los `style=` de las plantillas |
 | D15 | DNSSEC y la inscripción en HSTS *preload* | DNSSEC se activa en Cloudflare y en Registrar.eu. El *preload* es difícil de revertir: solo cuando todos los subdominios funcionen por HTTPS |
 | D16 | La voz depende del plan de ElevenLabs | El plan gratuito no permite uso comercial ni voces de Voice Library. En producción hace falta un plan de pago, y su DPA (C5 en [07](07-PRIVACIDAD-Y-CUMPLIMIENTO.md#pendientes-de-cumplimiento)) |
 | D17 | `esfera_salud.py` y `esfera.py` calculan el color de Inicio por separado | Hoy usan los mismos tramos. Si uno cambia, el otro tiene que cambiar igual |
@@ -87,6 +93,6 @@ Lo que queda por mejorar y lo que se resolvió: la entrega de arreglos del 28 de
 **Siguiente trimestre:**
 
 - Lectores propios de Santander, BCI y Scotiabank, y CSV de Tenpo, MACH y Mercado Pago (ver [05 · Cartolas](05-CARTOLAS.md#prioridad)).
-- D5 y D8, midiendo antes el tiempo de respuesta de las pantallas.
+- D5 y D8, con lo que muestren los avisos de `Respuesta lenta` (ver [10](10-OPERACION.md#respuestas-lentas)). Desde el lote 90, `resumen_mes` ya no se repite dentro de una misma petición.
 - D6 y D9, cuando los registros muestren esperas o cortes reales.
 - Programa de rotación de secretos con fecha por secreto (ver [10 · Operación](10-OPERACION.md)).

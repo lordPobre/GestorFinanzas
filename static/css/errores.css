@@ -1,0 +1,30 @@
+html, body { margin: 0; min-height: 100%; }
+body {
+  min-height: 100dvh; display: flex; align-items: center; justify-content: center; padding: 32px 24px; box-sizing: border-box;
+  background: #151412; color: #f5f5f5; font-family: 'Manrope', system-ui, -apple-system, sans-serif; -webkit-font-smoothing: antialiased;
+  position: relative; overflow-x: hidden;
+}
+body::before {
+  content: ''; position: fixed; left: -30%; right: -30%; top: -40%; height: 80%; pointer-events: none;
+  background: radial-gradient(50% 50% at 50% 45%, rgba(255, 170, 44, .38), rgba(255, 170, 44, .08) 55%, transparent 75%);
+}
+.er { position: relative; width: 100%; max-width: 420px; display: flex; flex-direction: column; gap: 18px; }
+.er-marca { display: flex; align-items: center; gap: 10px; margin-bottom: 18px; color: #f5f5f5; text-decoration: none; font-size: 17px; font-weight: 800; letter-spacing: -.02em; }
+.er-marca img { width: 32px; height: 32px; border-radius: 9px; }
+.er-estado { display: flex; align-items: center; gap: 9px; font-size: 12px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; }
+.er-estado b { width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+.er-estado.ambar { color: #ffc94d; }
+.er-estado.coral { color: #ff8a8a; }
+.er-codigo { margin-left: auto; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; font-weight: 600; letter-spacing: 0; color: rgba(245, 245, 245, .5); text-transform: none; }
+h1 { margin: 0; font-size: 30px; font-weight: 800; letter-spacing: -.035em; line-height: 1.12; text-wrap: balance; }
+p { margin: 0; font-size: 15.5px; line-height: 1.55; color: rgba(245, 245, 245, .74); text-wrap: pretty; }
+.er-acciones { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; }
+.er-btn {
+  display: inline-flex; align-items: center; justify-content: center; min-height: 48px; padding: 0 22px; border-radius: 14px;
+  font-size: 15px; font-weight: 800; text-decoration: none; cursor: pointer; border: none; font-family: inherit;
+}
+.er-btn.principal { background: #ffaa2c; color: #1a1200; }
+.er-btn.principal:hover { background: #ffbb56; color: #1a1200; }
+.er-btn.vidrio { background: rgba(255, 255, 255, .1); border: 1px solid rgba(255, 255, 255, .16); color: #f5f5f5; }
+.er-btn.vidrio:hover { background: rgba(255, 255, 255, .16); color: #f5f5f5; }
+a { color: #ffc94d; }

@@ -74,7 +74,7 @@ Mientras el bloqueo esté activo, ni siquiera la contraseña correcta entra. Al 
 
 ### Registro
 
-Si el correo ya tiene cuenta, la página no lo dice. Se manda a esa dirección un correo con los enlaces para entrar o recuperar la contraseña (2 al día como máximo) y se vuelve al acceso con el mensaje de siempre. Queda una diferencia: un registro nuevo entra directo a la app y uno repetido vuelve al acceso. Ver D14 en [13](13-DEUDA-TECNICA-Y-HOJA-DE-RUTA.md).
+Desde el lote 90 la cuenta se crea recién al abrir el enlace del correo. Un registro nuevo y uno con un correo que ya tiene cuenta responden igual: vuelven al acceso con «Te mandamos un correo». Al nuevo le llega el enlace para crear la cuenta; al repetido, el aviso con los enlaces para entrar o recuperar la contraseña (2 al día como máximo). Desde afuera no se puede saber cuál de los dos fue. El enlace es un secreto de 32 bytes; la base guarda solo su SHA-256 y la contraseña ya con hash. Abrirlo muestra un botón, para que el antivirus del correo no cree la cuenta al revisar el enlace.
 
 ### Cambio de correo
 
@@ -105,7 +105,7 @@ Pide la contraseña actual, o el código de la app si la cuenta entra solo con G
 ```
 default-src 'self';
 script-src 'self' 'nonce-<aleatorio por respuesta>';
-style-src 'self' 'unsafe-inline';
+style-src 'self' 'unsafe-inline'; style-src-elem 'self' 'nonce-…'; style-src-attr 'unsafe-inline';
 font-src 'self';
 img-src 'self' data: blob: <host de R2> <CSP_IMG_EXTRA>;
 connect-src 'self';
@@ -116,7 +116,7 @@ upgrade-insecure-requests
 ```
 
 - Todo `<script>` lleva `nonce="{{ csp_nonce }}"`. Si se cuela una inyección, el navegador no la ejecuta. Hay pruebas que recorren la landing y las páginas legales buscando scripts sin nonce.
-- `style-src 'unsafe-inline'` se mantiene porque las plantillas usan atributos `style`. Eso no permite ejecutar código.
+- Desde el lote 90, una etiqueta `<style>` solo se aplica si trae el nonce de la respuesta (`style-src-elem`). Los atributos `style` siguen permitidos (`style-src-attr 'unsafe-inline'`) porque las plantillas los usan; eso no permite ejecutar código. `style-src 'self' 'unsafe-inline'` queda solo para navegadores que no conocen las dos directivas nuevas. Si en la portada hay píxeles de medición activos, no se agregan las dos directivas, porque esos scripts pueden insertar estilos. Las páginas de error usan `static/css/errores.css`, y `test_csp_estilos.py` revisa que ninguna plantilla de pantalla traiga un bloque `<style>`.
 - `connect-src 'self'`: el JavaScript solo puede hablar con la propia app. Las llamadas a Anthropic, ElevenLabs y Resend salen del servidor, nunca del navegador.
 - `media-src blob:` es para reproducir el audio de la esfera, que llega como archivo y se reproduce desde la memoria.
 - Las fuentes, los íconos y Chart.js se sirven desde `static/vendor`. **Dentro de la app el navegador no le pide nada a ningún tercero**, lo que prueba `test_terceros_fotos_cache.py`. En las páginas públicas, la CSP suma el dominio de cada proveedor de medición solo si su variable está puesta (ver [02](02-ARQUITECTURA.md#medición-en-las-páginas-públicas)).

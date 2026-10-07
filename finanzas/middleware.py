@@ -54,6 +54,10 @@ class DominioCanonicoMiddleware:
         return self.get_response(request)
 
 
+PIXELES_CON_ESTILOS = ('googletagmanager.com', 'google-analytics.com', 'facebook.net',
+                       'tiktok.com', 'ads-twitter.com', 'twitter.com')
+
+
 class PoliticaContenidoMiddleware:
 
     def __init__(self, get_response):
@@ -84,10 +88,17 @@ class PoliticaContenidoMiddleware:
         def mas(clave):
             return ''.join(' ' + o for o in extra[clave])
 
+        con_pixeles = any(p in o for o in extra['script'] for p in PIXELES_CON_ESTILOS)
+        estilos = [] if con_pixeles or (settings.DEBUG and respuesta.status_code >= 400) else [
+            f"style-src-elem 'self' 'nonce-{request.csp_nonce}'",
+            "style-src-attr 'unsafe-inline'",
+        ]
+
         respuesta['Content-Security-Policy'] = '; '.join([
             "default-src 'self'",
             f"script-src 'self' 'nonce-{request.csp_nonce}'{mas('script')}",
             "style-src 'self' 'unsafe-inline'",
+            *estilos,
             "font-src 'self'",
             f"img-src {IMG_SRC}{mas('imagen')}",
             f"connect-src 'self'{mas('conectar')}",

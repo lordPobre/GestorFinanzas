@@ -11,6 +11,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import PasswordChangeForm, UserCreationForm
 from django.contrib.auth.models import User
 from django.core import signing
+from django.db import transaction
 from django.db.models.fields.files import FieldFile
 from django.http import HttpResponse
 from django.shortcuts import redirect, render
@@ -18,9 +19,10 @@ from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils import timezone
 
+from .. import alta as altas
 from .. import auditoria, legal, marketing, sesiones, verificacion
 from .. import correo as servicio_correo
-from ..models import (Categoria, CodigoRespaldo, Deuda, EventoSeguridad, GastoPendiente, MetaAhorro,
+from ..models import (AltaPendiente, Categoria, CodigoRespaldo, Deuda, EventoSeguridad, GastoPendiente, MetaAhorro,
                      Passkey, Persona, Presupuesto, RespuestaEncuesta, SegundoFactor, SesionActiva,
                      Suscripcion, Transaccion, UserProfile)
 from ..seguridad import (MAX_INTENTOS as MAX_INTENTOS_LOGIN, _ip, esta_bloqueado,
@@ -432,31 +434,14 @@ def registro(request):
             error_correo = error_correo or (
                 'Tienes que aceptar la política de privacidad y los términos de uso.')
 
-        if correo_ocupado and not error_correo and form.is_valid():
-            _avisar_registro_repetido(request, correo)
+        if form.is_valid() and not error_correo:
+            if correo_ocupado:
+                _avisar_registro_repetido(request, correo)
+            else:
+                altas.pedir(request, form.cleaned_data['username'], form.cleaned_data['password1'],
+                            correo, request.POST.get('nombre_completo', '').strip())
             messages.info(request, f'Te mandamos un correo a {correo}. Ábrelo para seguir.')
             return redirect('login')
-
-        if form.is_valid() and not error_correo:
-            user = form.save(commit=False)
-            user.email = correo
-            user.save()
-            login(request, user)
-            profile, _ = UserProfile.objects.get_or_create(usuario=user)
-            profile.nombre_completo = request.POST.get('nombre_completo', '').strip()
-            profile.email = correo
-            profile.politica_version = legal.VERSION
-            profile.politica_aceptada = timezone.now()
-            profile.save()
-            logger.info('Alta de cuenta %s con politica version %s',
-                        user.pk, legal.VERSION)
-            marketing.marcar_registro(request)
-
-            if verificacion.enviar(request, user):
-                messages.info(
-                    request,
-                    f'Te mandamos un correo a {correo} para confirmar la dirección.')
-            return redirect('onboarding')
 
         if error_correo:
             form.add_error(None, error_correo)
@@ -889,6 +874,45 @@ def eliminar_cuenta(request):
     logger.warning('Cuenta eliminada a pedido del titular: id=%s usuario=%s', uid, nombre)
     messages.success(request, 'Tu cuenta y todos tus datos fueron eliminados.')
     return redirect('login')
+
+@limitar(20, 3600, 'Demasiados intentos con enlaces de confirmación. Prueba más tarde.', destino='login')
+def confirmar_alta(request, token):
+    pendiente = altas.buscar(token)
+    if pendiente is None:
+        return render(request, 'registration/alta_confirmar.html', {'valido': False})
+    if request.method != 'POST':
+        return render(request, 'registration/alta_confirmar.html', {'valido': True, 'alta': pendiente})
+
+    with transaction.atomic():
+        pendiente = AltaPendiente.objects.select_for_update().filter(pk=pendiente.pk).first()
+        if pendiente is None:
+            return render(request, 'registration/alta_confirmar.html', {'valido': False})
+        if User.objects.filter(email__iexact=pendiente.correo).exists():
+            pendiente.delete()
+            messages.info(request, 'Ese correo ya tiene una cuenta. Entra con ella.')
+            return redirect('login')
+        if User.objects.filter(username__iexact=pendiente.username).exists():
+            pendiente.delete()
+            messages.warning(request, 'Alguien tomó ese nombre de usuario mientras tanto. '
+                                      'Regístrate de nuevo con otro.')
+            return redirect('registro')
+        user = User.objects.create(username=pendiente.username, email=pendiente.correo,
+                                   password=pendiente.password)
+        profile, _ = UserProfile.objects.get_or_create(usuario=user)
+        profile.nombre_completo = pendiente.nombre_completo
+        profile.email = pendiente.correo
+        profile.politica_version = pendiente.politica_version
+        profile.politica_aceptada = pendiente.creada
+        profile.correo_verificado = True
+        profile.correo_verificado_en = timezone.now()
+        profile.save()
+        pendiente.delete()
+
+    login(request, user)
+    marketing.marcar_registro(request)
+    logger.info('Alta de cuenta %s con politica version %s', user.pk, profile.politica_version)
+    messages.success(request, 'Listo, tu cuenta quedó creada y tu correo confirmado.')
+    return redirect('onboarding')
 
 @limitar(20, 3600, 'Demasiados intentos con enlaces de confirmación. Prueba más tarde.', destino='login')
 def verificar_correo(request, token):

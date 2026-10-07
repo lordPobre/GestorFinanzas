@@ -249,6 +249,12 @@ Al cambiar la foto, `save()` borra la anterior del almacenamiento. Una señal `p
 
 Un aparato con recordatorios: `usuario` (FK, `related_name='suscripciones_push'`), `endpoint` (500, único: la dirección del servicio de avisos del navegador), `p256dh` y `auth` (las claves que entrega el navegador para cifrar los avisos), `agente`, `creada` y `ultima_vez` (último envío aceptado). Hasta 10 por cuenta: al pasar, se borran las más antiguas. Si el servicio responde 404 o 410, la fila se borra.
 
+## Registros sin confirmar (`models/altas.py`)
+
+### `AltaPendiente`
+
+Lo que la persona escribió al registrarse, mientras no abre el enlace del correo: `correo` (con índice), `username`, `password` (ya con hash, como en `User`), `nombre_completo`, `politica_version` (la que aceptó), `token` (64, único: el SHA-256 del enlace, que no se guarda en claro) y `creada`. Al confirmar se crea el `User` con esos datos y la fila se borra. Vence a las 48 horas: `alta.purgar()` borra las vencidas cada vez que alguien se registra, y abrir un enlace vencido borra su fila. Un registro nuevo con el mismo correo reemplaza al anterior.
+
 ## Seguridad (`models/seguridad.py`)
 
 ### `SegundoFactor`
@@ -302,7 +308,7 @@ Se conserva 12 meses (ver [10 · Operación](10-OPERACION.md)).
 
 ## Migraciones
 
-39 migraciones en `finanzas/migrations/`. La numeración salta de `0016` a `0100` a propósito: la `0100_pagocuota` inició el modelo de pagos por periodo y marca un corte con el esquema original. Desde ahí se agrega una por cambio:
+40 migraciones en `finanzas/migrations/`. La numeración salta de `0016` a `0100` a propósito: la `0100_pagocuota` inició el modelo de pagos por periodo y marca un corte con el esquema original. Desde ahí se agrega una por cambio:
 
 | Migración | Qué agrega |
 | --- | --- |
@@ -327,5 +333,6 @@ Se conserva 12 meses (ver [10 · Operación](10-OPERACION.md)).
 | 0120 | `UserProfile.esfera_estado_visto` |
 | 0121 | `Persona.lado`, los seis campos `push_*` de `UserProfile`, `TopeCategoria` y `SuscripcionPush`. Escrita a mano: `makemigrations --check` confirma que calza con los modelos |
 | 0122 | `UserProfile.politica_avisada` |
+| 0123 | `AltaPendiente` |
 
 El CI corre `makemigrations --check`: un cambio de modelo sin su migración deja el build en rojo.

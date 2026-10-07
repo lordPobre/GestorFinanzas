@@ -1,3 +1,4 @@
+from .altas import AltaPendiente
 from .cuotas import Deuda, PagoCuota
 from .encuesta import RespuestaEncuesta
 from .metas import MetaAhorro, AporteMeta
@@ -12,6 +13,7 @@ from .suscripciones import Suscripcion, PagoServicio
 from .sugerencias import SugerenciaDescartada
 
 __all__ = [
+    'AltaPendiente',
     'Transaccion',
     'Categoria',
     'Presupuesto',

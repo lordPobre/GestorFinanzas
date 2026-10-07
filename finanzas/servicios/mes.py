@@ -1,4 +1,5 @@
 import calendar
+import copy
 import time
 from datetime import date
 from decimal import Decimal
@@ -7,6 +8,7 @@ from django.core.cache import cache
 from django.db.models import Sum
 
 from ..models import Deuda, Prestamo, Suscripcion, Transaccion
+from ..rendimiento import recordar
 
 MESES_LARGOS = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio',
                 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre']
@@ -27,7 +29,7 @@ def _decimal(valor):
         return valor
     return Decimal(str(valor or 0))
 
-def resumen_mes(usuario, year, month):
+def _resumen_mes(usuario, year, month):
     """Los números del mes en un solo lugar.
 
     Antes esta lógica vivía dentro de dashboard(), así que el panel de
@@ -171,6 +173,10 @@ def resumen_mes(usuario, year, month):
         'pct_disponible': round(min(100, libre / base * 100)),
         'eventos': eventos,
     }
+
+def resumen_mes(usuario, year, month):
+    return copy.copy(recordar(('resumen_mes', usuario.pk, year, month),
+                              lambda: _resumen_mes(usuario, year, month)))
 
 def salud_financiera(usuario, resumen_actual=None):
     """Puntaje 0-100 del mes en curso, para el bloque del sidebar.

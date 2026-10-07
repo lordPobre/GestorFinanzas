@@ -20,8 +20,8 @@ Inventario de qué dato personal trata la aplicación, con qué finalidad, dónd
 | Datos | Nombre de usuario, correo, contraseña (hash Argon2), nombre y apellido si se ingresan, teléfono, ciudad y país si se ingresan, moneda, fecha de alta, fecha del último acceso, identificador de Google si entra con Google |
 | Finalidad | Identificar a la persona y darle acceso a sus propios datos |
 | Base de licitud | Ejecución del servicio solicitado por el titular |
-| Dónde | Postgres en Railway (`auth_user`, `finanzas_userprofile`) |
-| Conservación | Mientras la cuenta exista. Se borra por completo al eliminarla |
+| Dónde | Postgres en Railway (`auth_user`, `finanzas_userprofile`). Antes de confirmar el correo, el registro espera en `finanzas_altapendiente`, con la contraseña ya con hash |
+| Conservación | Mientras la cuenta exista. Se borra por completo al eliminarla. Un registro sin confirmar, 48 horas |
 | Quién accede | El titular. El administrador, solo si `ADMIN_URL` está habilitado, entrando por el mismo acceso con bloqueo y verificación en dos pasos |
 
 ## 2. Movimientos financieros
@@ -251,6 +251,7 @@ Todos los proveedores están fuera de Chile, lo que constituye transferencia int
 | Sesiones | 8 horas desde la última actividad, 7 días como máximo | Aplicado: `SesionAbsolutaMiddleware` y `limpieza_diaria` |
 | Aparatos conocidos | Mientras la cuenta exista | Aplicado: borrado en cascada |
 | Correo nuevo sin confirmar | 48 horas | Aplicado: el enlace vence |
+| Registro sin confirmar | 48 horas | Aplicado: `alta.purgar` y el enlace vence |
 | Audio de la voz de la esfera | 6 horas | Aplicado: caché |
 | Aparatos con recordatorios | Hasta apagarlos, que el servicio los dé por vencidos o se borre la cuenta | Aplicado: `push_quitar`, borrado ante 404 o 410 y en cascada |
 | Archivo de cartola | No se guarda | Aplicado |

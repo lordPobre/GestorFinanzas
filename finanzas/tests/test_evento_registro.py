@@ -1,4 +1,5 @@
 import os
+import re
 from unittest import mock
 
 from django.contrib.auth.models import User
@@ -25,15 +26,19 @@ class EventoRegistroTests(TestCase):
         sesion[marketing.CLAVE_EVENTO] = True
         sesion.save()
 
-    def test_el_registro_deja_marcado_el_evento(self):
-        self.client.post(reverse('registro'), {
-            'username': 'beto',
-            'password1': 'Clave-segura-2026',
-            'password2': 'Clave-segura-2026',
-            'email_perfil': 'beto@ejemplo.cl',
-            'nombre_completo': 'Beto',
-            'acepta_politica': '1',
-        })
+    def test_el_registro_deja_marcado_el_evento_al_crear_la_cuenta(self):
+        with mock.patch('finanzas.correo.enviar', return_value=True) as enviar:
+            self.client.post(reverse('registro'), {
+                'username': 'beto',
+                'password1': 'Clave-segura-2026',
+                'password2': 'Clave-segura-2026',
+                'email_perfil': 'beto@ejemplo.cl',
+                'nombre_completo': 'Beto',
+                'acepta_politica': '1',
+            })
+        self.assertFalse(self.client.session.get(marketing.CLAVE_EVENTO))
+        token = re.search(r'/registro/crear/([^/\s]+)/', enviar.call_args[0][2]).group(1)
+        self.client.post(reverse('confirmar_alta', args=[token]))
         self.assertTrue(self.client.session.get(marketing.CLAVE_EVENTO))
 
     def test_la_pantalla_siguiente_manda_el_evento(self):

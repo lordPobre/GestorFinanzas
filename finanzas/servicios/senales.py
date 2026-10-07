@@ -1,7 +1,9 @@
 from django.db.models.signals import post_delete, post_save
 from django.dispatch import receiver
 
-from ..models import AbonoPrestamo, Deuda, PagoCuota, Persona, Prestamo, Transaccion
+from ..models import (AbonoPrestamo, Deuda, GastoPendiente, PagoCuota, PagoServicio, Persona, Prestamo,
+                      Suscripcion, Transaccion)
+from ..rendimiento import limpiar
 from .mes import invalidar
 
 
@@ -31,3 +33,14 @@ def _usuario_de(instancia):
 @receiver(post_delete, sender=AbonoPrestamo)
 def _al_cambiar(sender, instance, **kwargs):
     invalidar(_usuario_de(instance))
+
+
+MODELOS_DEL_MES = (Transaccion, Deuda, PagoCuota, Suscripcion, PagoServicio, Persona, Prestamo,
+                   AbonoPrestamo, GastoPendiente)
+
+
+@receiver(post_save)
+@receiver(post_delete)
+def _olvidar_lo_calculado(sender, **kwargs):
+    if sender in MODELOS_DEL_MES:
+        limpiar()

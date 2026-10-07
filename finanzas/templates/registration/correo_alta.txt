@@ -1,0 +1,11 @@
+Hola {{ username }}:
+
+Para crear tu cuenta en Fintora, confirma que este correo es tuyo:
+
+{{ enlace }}
+
+El enlace sirve por {{ horas }} horas. Hasta que lo abras, la cuenta no existe.
+
+Si no te registraste, no hagas nada: en {{ horas }} horas los datos se borran solos.
+
+Fintora

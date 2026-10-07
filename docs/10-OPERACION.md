@@ -110,6 +110,10 @@ El primer lunes de cada mes: descargar la última copia, verificar el hash, rest
 
 `/salud/` prueba la base (`SELECT 1`) y la caché (escribir y leer una clave). Si algo falla, responde 503 con `degradado` y qué parte falló.
 
+### Respuestas lentas
+
+`RendimientoMiddleware` mide cada petición. Si tarda más de `RESPUESTA_LENTA_MS` (1500 ms), deja en el log `Respuesta lenta: GET <ruta>, N ms, M consultas`, con la ruta sin ids. Para una cuenta de personal, cada respuesta trae además la cabecera `Server-Timing`, que se ve en la pestaña Red del navegador. Sirve para decidir D5 y D8 con datos: buscar `Respuesta lenta` en los registros de Railway una vez por semana.
+
 ## Correo
 
 - Proveedor: Resend, con dominio `perseustechnology.dev` verificado y SPF, DKIM y DMARC en `PASS`.

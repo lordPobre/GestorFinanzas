@@ -76,6 +76,10 @@ Tipografía: Manrope para todo el texto y JetBrains Mono para cifras que se comp
 
 ## JavaScript
 
+### Pruebas
+
+`pruebas_js/` tiene pruebas con el ejecutor que trae Node (`node:test`), sin dependencias: cargan el archivo real con `vm` sobre un DOM mínimo escrito en la misma prueba. Hoy cubren `anotar-tope.js` y los avisos de `sw.js`. Se corren con `node --test pruebas_js/*.test.js`, y el CI lo hace en el trabajo `javascript`. La carpeta está fuera de `static/` para que no se publique.
+
 ### Global: `static/js/finapp.js`
 
 Se carga en `base.html`. Marca `window.__finappJsCargado`, para no inicializar dos veces.

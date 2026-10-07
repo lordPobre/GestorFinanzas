@@ -6,7 +6,7 @@ from django.test import TestCase
 from django.urls import reverse
 
 from .. import legal
-from ..models import Transaccion, UserProfile
+from ..models import AltaPendiente, Transaccion, UserProfile
 
 class PaginasLegales(TestCase):
     def test_son_publicas(self):
@@ -40,16 +40,15 @@ class ConsentimientoEnElAlta(TestCase):
     def test_sin_aceptar_no_se_crea_la_cuenta(self):
         self.client.post(self.URL, self._datos())
         self.assertFalse(User.objects.filter(username='nueva').exists())
+        self.assertFalse(AltaPendiente.objects.exists())
 
-    def test_aceptando_se_crea_y_queda_registrado(self):
+    def test_aceptando_queda_registrado_hasta_confirmar_el_correo(self):
         self.client.post(self.URL, self._datos(acepta_politica='1'))
 
-        usuario = User.objects.filter(username='nueva').first()
-        self.assertIsNotNone(usuario)
-
-        perfil = UserProfile.objects.get(usuario=usuario)
-        self.assertEqual(perfil.politica_version, legal.VERSION)
-        self.assertIsNotNone(perfil.politica_aceptada)
+        alta = AltaPendiente.objects.get(correo='nueva@ejemplo.cl')
+        self.assertEqual(alta.politica_version, legal.VERSION)
+        self.assertIsNotNone(alta.creada)
+        self.assertFalse(User.objects.filter(username='nueva').exists())
 
 class OposicionAlAnalisisConIA(TestCase):
     def setUp(self):

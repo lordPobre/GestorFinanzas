@@ -67,6 +67,7 @@ La descarga de datos excluye las credenciales (secreto 2FA, hashes de los códig
 | Sesiones | 8 h sin uso, 7 días como máximo | `SesionAbsolutaMiddleware` y `limpieza_diaria` (`clearsessions`) |
 | Aparatos conocidos | Mientras exista la cuenta | Borrado en cascada |
 | Correo nuevo sin confirmar | 48 h | El enlace vence |
+| Registro sin confirmar | 48 h | `alta.purgar` al registrarse alguien y al abrir un enlace vencido |
 | Audio de la voz | 6 h | Caché del servidor |
 | Aparatos con recordatorios | Hasta apagarlos, que el servicio de avisos diga que el aparato ya no existe o se borre la cuenta | `push_quitar`, borrado ante 404 o 410 y en cascada |
 | Conversación del chat | No se guarda en el servidor | Vive en la pestaña |
@@ -116,6 +117,7 @@ C1, C2 y C3 se resolvieron en la entrega de arreglos (ver [13 · Deuda técnica]
 - **C4. Aviso de la política 1.6.** Correr `avisar_politica` a más tardar el 13 de octubre de 2026, una semana antes de la vigencia (20 de octubre).
 - **C5. Acuerdo con ElevenLabs.** Revisar y descargar su DPA y guardarlo en `legal/dpa/`. El plan gratuito no permite uso comercial: en producción hace falta un plan de pago.
 - **C6. Acuerdos de Sentry y de los proveedores de medición**, si se activan.
+- **C8. Plazo del registro sin confirmar.** El lote 90 guarda hasta 48 horas lo que se escribe al registrarse, antes de que exista la cuenta. Sumarlo a la tabla de plazos de `/privacidad/` en la próxima versión de la política, junto con su aviso.
 
 ## Para un auditor
 

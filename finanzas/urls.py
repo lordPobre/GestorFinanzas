@@ -121,6 +121,7 @@ urlpatterns = [
     path('entrar/face-id/verificar/', passkeys.entrar_verificar, name='passkey_entrar_verificar'),
     path('registro/', cuenta.registro, name='registro'),
     path('registro/confirmar/<str:token>/', cuenta.verificar_correo, name='verificar_correo'),
+    path('registro/crear/<str:token>/', cuenta.confirmar_alta, name='confirmar_alta'),
     path('recuperar/', cuenta.recuperar, name='recuperar'),
     path('recuperar/<uidb64>/<token>/', cuenta.restablecer, name='restablecer'),
 

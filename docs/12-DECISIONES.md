@@ -26,6 +26,7 @@ Las decisiones de diseño que explican por qué el código es como es, en orden 
 | Oct. 2026 | Lotes 81 a 83: la esfera saluda al entrar (migración 0120) y habla solo con **ElevenLabs**; propiedad intelectual en los términos y en la portada |
 | Oct. 2026 | Lotes 86 y 87: **Debo**, topes por categoría y **recordatorios en el teléfono** (migración 0121), con sus pruebas |
 | Oct. 2026 | Lote 88: política **1.6** y su aviso por correo con `avisar_politica` (migración 0122) |
+| Oct. 2026 | Lotes 89 y 90: franja de la política en el Inicio; la cuenta se crea al confirmar el correo (migración 0123), estilos con nonce, medición de respuestas y pruebas de JavaScript |
 
 ## Decisiones vigentes
 
@@ -226,6 +227,28 @@ El salto de `0016` a `0100` es inofensivo y renumerar rompería las bases existe
 **Qué:** al anotar un gasto que llega al 80 % o pasa el tope, aparece el aviso antes de guardar, pero se puede guardar igual.
 
 **Por qué:** el gasto ya ocurrió. Si la app no lo deja anotar, la cifra del mes queda mal.
+
+### D-29 · La cuenta se crea al confirmar el correo
+
+**Qué:** el registro guarda los datos en `AltaPendiente` y crea el `User` recién cuando se abre el enlace y se toca «Crear mi cuenta».
+
+**Por qué:** cierra D14. Un correo nuevo y uno repetido reciben la misma respuesta, así que el registro no sirve para averiguar quién usa Fintora. De paso, toda cuenta nueva tiene el correo confirmado.
+
+**Detalle:** la base guarda el SHA-256 del enlace, no el enlace, y la contraseña ya con hash. El enlace no va firmado porque llevaría el hash de la contraseña dentro del correo.
+
+### D-30 · Estilos: nonce para `<style>`, atributos permitidos
+
+**Qué:** `style-src-elem` pide el nonce y `style-src-attr` mantiene `'unsafe-inline'`.
+
+**Por qué:** una etiqueta `<style>` inyectada puede leer datos de la página con selectores; un atributo `style` no puede. Quitar los atributos exige reescribir casi todas las plantillas. Así se cierra lo más riesgoso sin tocarlas.
+
+**Revisar si:** se reescriben las plantillas para sacar los `style=`. Entonces `style-src-attr` puede pasar a `'none'`.
+
+### D-31 · Medir antes de optimizar
+
+**Qué:** `RendimientoMiddleware` anota las respuestas lentas y `resumen_mes` se calcula una vez por petición.
+
+**Por qué:** D5 y D8 piden cambiar la plantilla base y las consultas del mes. Antes conviene saber qué pantallas son lentas de verdad. Recordar `resumen_mes` dentro de la petición ya evita repetirlo entre el Inicio y la barra lateral, y se olvida apenas cambia un movimiento, una cuota, una suscripción o un préstamo.
 
 ## Procedimientos históricos
 

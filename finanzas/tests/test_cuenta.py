@@ -9,41 +9,6 @@ from .. import verificacion
 from ..models import SesionActiva, UserProfile
 
 
-class ConfirmacionAlRegistrarse(TestCase):
-    URL = '/registro/'
-
-    def setUp(self):
-        cache.clear()
-
-    def _datos(self, **extra):
-        datos = {
-            'username': 'nueva',
-            'email_perfil': 'nueva@ejemplo.cl',
-            'password1': 'contrasena-larga-77',
-            'password2': 'contrasena-larga-77',
-            'nombre_completo': 'Persona Nueva',
-            'acepta_politica': '1',
-        }
-        datos.update(extra)
-        return datos
-
-    def test_el_alta_manda_el_correo_y_deja_sin_confirmar(self):
-        with patch('finanzas.correo.enviar', return_value=True) as enviar:
-            self.client.post(self.URL, self._datos())
-
-        usuario = User.objects.get(username='nueva')
-        perfil = UserProfile.objects.get(usuario=usuario)
-        self.assertFalse(perfil.correo_verificado)
-        self.assertEqual(enviar.call_args[0][0], 'nueva@ejemplo.cl')
-
-    def test_no_confirmar_no_impide_usar_la_app(self):
-        with patch('finanzas.correo.enviar', return_value=True):
-            self.client.post(self.URL, self._datos())
-
-        respuesta = self.client.get(reverse('dashboard'))
-        self.assertEqual(respuesta.status_code, 200)
-
-
 class ElEnlaceDeConfirmacion(TestCase):
     def setUp(self):
         cache.clear()
