@@ -19,7 +19,7 @@ function conectarTipoPrestamo(ids) {
   function paint() {
     var esCuotas = hidden.value === 'CUOTAS';
     var m = Number(monto.value || 0), c = Number((cuotas && cuotas.value) || 0);
-    campo.style.display = esCuotas ? '' : 'none';
+    campo.style.display = esCuotas ? 'block' : 'none';
     if (!m) { out.textContent = '$0'; return; }
     out.textContent = esCuotas && c
       ? '$' + Math.round(m / c).toLocaleString('es-CL') + ' al mes durante ' + c + ' meses'

@@ -27,21 +27,21 @@
         <input type="text" name="nombre" id="id_sub_nombre" value="{{ sub.nombre }}" required autofocus>
       </div>
 
-      <div class="form-row" style="margin-bottom:16px">
-        <div style="flex:1.5">
+      <div class="form-row abajo-16">
+        <div class="flex-15">
           <label class="label" for="id_sub_monto">Monto mensual</label>
           <input type="number" name="monto" id="id_sub_monto" class="mono" value="{{ monto_entero }}" min="1" required>
         </div>
-        <div style="flex:1">
+        <div class="flex-1">
           <label class="label" for="id_sub_dia">Día de cobro</label>
           <input type="number" name="dia_cobro" id="id_sub_dia" class="mono" min="1" max="28" value="{{ sub.dia_cobro }}">
         </div>
       </div>
-      <div class="hint" style="font-size:11px;margin:-8px 0 18px">Del 1 al 28, para que exista en todos los meses.</div>
+      <div class="hint txt-12 pie-dia">Del 1 al 28, para que exista en todos los meses.</div>
 
-      <div class="label" style="margin-bottom:9px">Categoría</div>
+      <div class="label abajo-9">Categoría</div>
       <input type="hidden" name="categoria" id="id_sub_categoria" value="{{ sub.categoria|default:'Suscripciones' }}">
-      <div class="chips" data-field="#id_sub_categoria" style="margin-bottom:18px">
+      <div class="chips abajo-18" data-field="#id_sub_categoria">
         <button type="button" class="chip{% if sub.categoria == 'Suscripciones' or not sub.categoria %} on{% endif %}" data-value="Suscripciones">Suscripciones</button>
         <button type="button" class="chip{% if sub.categoria == 'Ocio' %} on{% endif %}" data-value="Ocio">Entretenimiento</button>
         <button type="button" class="chip{% if sub.categoria == 'Servicios' %} on{% endif %}" data-value="Servicios">Servicios</button>
@@ -49,16 +49,16 @@
       </div>
 
       <div class="preview-box">
-        <div class="label" style="color:var(--amber);margin-bottom:9px">Lo que te costaría</div>
-        <div style="display:flex;justify-content:space-between;align-items:baseline">
-          <span style="font-size:12px;color:var(--text-secondary)">Al año</span>
-          <span class="display" style="font-size:19px;color:var(--purple)" id="subAnual">$0</span>
+        <div class="label tinta-ambar abajo-9">Lo que te costaría</div>
+        <div class="impacto-fila">
+          <span class="txt-13 tinta-sec">Al año</span>
+          <span class="display txt-19 tinta-morada" id="subAnual">$0</span>
         </div>
       </div>
 
       <div class="fo-acciones">
         <button type="submit" class="sec-btn ambar">
-          <i class="fas fa-check" style="font-size:11px"></i>Guardar cambios
+          <i class="fas fa-check ico-11"></i>Guardar cambios
         </button>
         <a href="{% url 'suscripciones' %}" class="sec-btn vidrio">Cancelar</a>
       </div>

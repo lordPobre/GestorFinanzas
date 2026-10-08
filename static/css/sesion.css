@@ -15,6 +15,7 @@
 .aviso-encuesta-titulo { font-weight: 800 !important; font-size: 14px !important; }
 
 .modal-box.caja-380 { max-width: 380px; }
+.modal-box.caja-400 { max-width: 400px; }
 .modal-box.caja-420 { max-width: 420px; }
 .modal-box.caja-460 { max-width: 460px; }
 .modal-box.caja-520 { max-width: 520px; }
@@ -23,6 +24,8 @@
 #montoView { color: var(--coral); }
 #avisoMonto { display: none; }
 #panelSeguridad { display: none; }
+#cajaPlan, #cajaCuota, #cajaPr { display: none; }
+#campoCuotas, #campoCuotasPersona, #campoCuotasPr { display: none; }
 
 .ini-aviso-icono.ins-peligro { background: rgba(226, 92, 92, .14) !important; color: #e25c5c !important; }
 .ini-aviso-icono.ins-alerta { background: rgba(255, 170, 44, .14) !important; color: #ffaa2c !important; }
@@ -39,6 +42,7 @@
 .tinta-verde-texto { color: var(--green-texto) !important; }
 .tinta-agua-texto { color: var(--teal-texto) !important; }
 .tinta-ambar { color: var(--amber) !important; }
+.tinta-morada { color: var(--purple) !important; }
 .tinta-sec { color: var(--text-secondary) !important; }
 .tinta-apagada { color: var(--text-muted) !important; }
 
@@ -46,6 +50,8 @@
 .txt-13 { font-size: 13px !important; }
 .txt-14 { font-size: 14px !important; }
 .txt-15 { font-size: 15px !important; }
+.txt-19 { font-size: 19px !important; }
+.ico-10 { font-size: 10px !important; }
 .ico-11 { font-size: 11px !important; }
 .ico-13 { font-size: 13px !important; }
 .ico-18 { font-size: 18px !important; }
@@ -57,15 +63,29 @@
 .abajo-8 { margin-bottom: 8px !important; }
 .abajo-9 { margin-bottom: 9px !important; }
 .abajo-16 { margin-bottom: 16px !important; }
+.abajo-18 { margin-bottom: 18px !important; }
 .abajo-20 { margin-bottom: 20px !important; }
 .arriba-2 { margin-top: 2px !important; }
 .arriba-5 { margin-top: 5px !important; }
 .arriba-6 { margin-top: 6px !important; }
 .arriba-8 { margin-top: 8px !important; }
+.arriba-12 { margin-top: 12px !important; }
+.izq-auto { margin-left: auto !important; }
+.pie-dia { margin: -8px 0 18px !important; }
 
 .sin-borde { border: none !important; }
 .alto-48 { min-height: 48px !important; }
+.flex-1 { flex: 1 !important; }
 .flex-12 { flex: 1.2 !important; }
 .flex-14 { flex: 1.4 !important; }
+.flex-15 { flex: 1.5 !important; }
+
+.su-marca-gen { background: #ffaa2c24 !important; color: #ffaa2c !important; }
+.fo-desplegar {
+  cursor: pointer !important; display: flex !important; align-items: center !important; gap: 9px !important;
+  padding: 13px 15px !important; border-radius: var(--r-md) !important; background: var(--surface-2) !important;
+  font-size: 13px !important; font-weight: 600 !important;
+}
+.fo-desplegar-cuerpo { padding: 18px 4px 0 !important; }
 
 .sin-transicion *, .sin-transicion *::before, .sin-transicion *::after { transition: none !important; }

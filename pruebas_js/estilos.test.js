@@ -16,6 +16,13 @@ test('los anchos salen del dato, también con coma decimal', () => {
   assert.equal($('#c').style.width, undefined);
 });
 
+test('las cuotas arman sus columnas y un número raro se ignora', () => {
+  const { $ } = montar('<div id="p" data-columnas="6"></div><div id="q" data-columnas="0"></div><div id="r" data-columnas="seis"></div>');
+  assert.equal($('#p').style.gridTemplateColumns, 'repeat(6, minmax(0, 1fr))');
+  assert.equal($('#q').style.gridTemplateColumns, undefined);
+  assert.equal($('#r').style.gridTemplateColumns, undefined);
+});
+
 test('la meta recibe su porcentaje y su color, y un color raro se ignora', () => {
   const { $ } = montar('<a id="m" data-pct-var="65" data-color-var="#53d258"></a><a id="x" data-pct-var="10" data-color-var="red;background:url(x)"></a>');
   assert.equal($('#m').style['--pct'], '65');

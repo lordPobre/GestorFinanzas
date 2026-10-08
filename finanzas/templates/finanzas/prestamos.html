@@ -102,7 +102,7 @@
               {% if not x.esta_pagado %}<i class="fas fa-chevron-right md-flecha" aria-hidden="true"></i>{% endif %}
             </span>
             <span class="sec-meta md-prestamo-meta">{% if x.tipo == 'CUOTAS' %}{% if x.esta_pagado %}{{ x.cuotas_totales }} de {{ x.cuotas_totales }} cuotas pagadas{% else %}Cuota {{ x.cuotas_abonadas|add:1 }} de {{ x.cuotas_totales }} · {{ x.monto_cuota|money }}{% endif %}{% else %}Pago único{% if not x.esta_pagado %} · falta {{ x.monto_pendiente|money }}{% endif %}{% endif %}</span>
-            <span class="md-barra"><span style="width:{{ x.porcentaje }}%"></span></span>
+            <span class="md-barra"><span data-ancho-pct="{{ x.porcentaje }}"></span></span>
           </button>
           {% endfor %}
         </div>
@@ -145,7 +145,7 @@
 
 {% block modals %}
 <div class="modal-overlay" id="modalPersona">
-  <div class="modal-box" style="max-width:400px">
+  <div class="modal-box caja-400">
     <div class="modal-head">
       <div class="modal-title">Agregar persona</div>
       <button class="modal-close" data-close aria-label="Cerrar"><i class="fas fa-xmark"></i></button>
@@ -160,7 +160,7 @@
       <div class="field">
         <label class="label" for="id_contacto_persona">Contacto (opcional)</label>
         <input type="text" name="contacto" id="id_contacto_persona" placeholder="+56 9 1234 5678" inputmode="tel" autocomplete="off">
-        {% if not debo %}<div class="hint" style="margin-top:6px">Con un teléfono puedes enviarle el detalle de lo que te debe por WhatsApp.</div>{% endif %}
+        {% if not debo %}<div class="hint arriba-6">Con un teléfono puedes enviarle el detalle de lo que te debe por WhatsApp.</div>{% endif %}
       </div>
 
       <details class="md-primer" id="detallePrestamo">
@@ -174,18 +174,18 @@
             <label class="label" for="id_desc_persona">Para qué fue</label>
             <input type="text" name="descripcion" id="id_desc_persona" placeholder="Ej: Arriendo de mayo">
           </div>
-          <div class="label" style="margin-bottom:9px">{% if debo %}Cómo se lo vas a devolver{% else %}Cómo te lo va a devolver{% endif %}</div>
+          <div class="label abajo-9">{% if debo %}Cómo se lo vas a devolver{% else %}Cómo te lo va a devolver{% endif %}</div>
           <input type="hidden" name="tipo" id="id_tipo_persona" value="UNICO">
-          <div class="seg" style="margin-bottom:16px" id="segTipoPersona">
+          <div class="seg abajo-16" id="segTipoPersona">
             <button type="button" class="on" data-value="UNICO">Pago único</button>
             <button type="button" data-value="CUOTAS">En cuotas</button>
           </div>
-          <div class="form-row" style="margin-bottom:16px">
-            <div style="flex:1.5">
+          <div class="form-row abajo-16">
+            <div class="flex-15">
               <label class="label" for="id_monto_persona">{% if debo %}Cuánto te prestó{% else %}Monto prestado{% endif %}</label>
               <input type="number" name="monto" id="id_monto_persona" class="mono" placeholder="180000" min="1">
             </div>
-            <div style="flex:1;display:none" id="campoCuotasPersona">
+            <div class="flex-1" id="campoCuotasPersona">
               <label class="label" for="id_cuotas_persona">En cuántas</label>
               <input type="number" name="cuotas_totales" id="id_cuotas_persona" class="mono" min="1" value="3">
             </div>
@@ -204,7 +204,7 @@
 
 {% if persona %}
 <div class="modal-overlay" id="modalContacto">
-  <div class="modal-box" style="max-width:400px">
+  <div class="modal-box caja-400">
     <div class="modal-head">
       <div>
         <div class="modal-title">Contacto</div>
@@ -218,7 +218,7 @@
         <label class="label" for="id_contacto_editar">Teléfono con WhatsApp</label>
         <input type="text" name="contacto" id="id_contacto_editar" value="{{ persona.contacto }}"
                placeholder="+56 9 1234 5678" inputmode="tel" autocomplete="off" maxlength="80">
-        <div class="hint" style="margin-top:6px">Si escribes solo los 9 dígitos del celular, se asume que es de Chile.</div>
+        <div class="hint arriba-6">Si escribes solo los 9 dígitos del celular, se asume que es de Chile.</div>
       </div>
       <button type="submit" class="btn btn-purple btn-block">Guardar</button>
     </form>
@@ -226,7 +226,7 @@
 </div>
 
 <div class="modal-overlay" id="modalElegirAbono">
-  <div class="modal-box" style="max-width:420px">
+  <div class="modal-box caja-420">
     <div class="modal-head">
       <div>
         <div class="modal-title">{% if debo %}¿Qué le pagaste a {{ persona.nombre }}?{% else %}¿Qué te pagó {{ persona.nombre }}?{% endif %}</div>
@@ -264,18 +264,18 @@
         <label class="label" for="id_desc_prestamo">Para qué fue</label>
         <input type="text" name="descripcion" id="id_desc_prestamo" placeholder="Ej: Arriendo de mayo" required>
       </div>
-      <div class="label" style="margin-bottom:9px">{% if debo %}Cómo se lo vas a devolver{% else %}Cómo te lo va a devolver{% endif %}</div>
+      <div class="label abajo-9">{% if debo %}Cómo se lo vas a devolver{% else %}Cómo te lo va a devolver{% endif %}</div>
       <input type="hidden" name="tipo" id="id_tipo_prestamo" value="UNICO">
-      <div class="seg" style="margin-bottom:16px" id="segTipoPrestamo">
+      <div class="seg abajo-16" id="segTipoPrestamo">
         <button type="button" class="on" data-value="UNICO">Pago único</button>
         <button type="button" data-value="CUOTAS">En cuotas</button>
       </div>
-      <div class="form-row" style="margin-bottom:18px">
-        <div style="flex:1.5">
+      <div class="form-row abajo-18">
+        <div class="flex-15">
           <label class="label" for="id_monto_prestamo">{% if debo %}Cuánto te prestó{% else %}Monto prestado{% endif %}</label>
           <input type="number" name="monto" id="id_monto_prestamo" class="mono" placeholder="180000" required>
         </div>
-        <div style="flex:1;display:none" id="campoCuotas">
+        <div class="flex-1" id="campoCuotas">
           <label class="label" for="id_cuotas_prestamo">En cuántas</label>
           <input type="number" name="cuotas_totales" id="id_cuotas_prestamo" class="mono" min="1" value="3">
         </div>
@@ -292,7 +292,7 @@
 {% for x in prestamos %}
 {% if not x.esta_pagado %}
 <div class="modal-overlay" id="abono{{ x.pk }}">
-  <div class="modal-box" style="max-width:400px">
+  <div class="modal-box caja-400">
     <div class="modal-head">
       <div>
         <div class="modal-title">{% if debo %}Registrar un pago{% else %}Registrar abono{% endif %}</div>
@@ -302,15 +302,15 @@
     </div>
     <form method="post" action="{% url 'abonar_prestamo' x.pk %}">
       {% csrf_token %}
-      <div class="chips" style="margin-bottom:16px">
+      <div class="chips abajo-16">
         {% for op in x.montos_sugeridos %}
           <button type="button" class="chip {% if forloop.first %}on{% endif %}" data-monto="{{ op.monto }}">{{ op.label }} · {{ op.monto|money }}</button>
         {% endfor %}
       </div>
       <div class="field">
         <label class="label" for="id_monto_abono_{{ x.pk }}">{% if debo %}Cuánto le pagaste{% else %}Cuánto te pagó{% endif %}</label>
-        <input type="number" name="monto" id="id_monto_abono_{{ x.pk }}" class="input-amount"
-               style="color:var(--green-texto)" value="{{ x.monto_cuota|floatformat:0 }}" max="{{ x.monto_pendiente|floatformat:0 }}" required>
+        <input type="number" name="monto" id="id_monto_abono_{{ x.pk }}" class="input-amount tinta-verde-texto"
+               value="{{ x.monto_cuota|floatformat:0 }}" max="{{ x.monto_pendiente|floatformat:0 }}" required>
       </div>
       <div class="field">
         <label class="label" for="id_nota_abono_{{ x.pk }}">Nota (opcional)</label>

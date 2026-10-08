@@ -18,6 +18,10 @@
       var n = numero(el.dataset.anchoPct);
       if (n !== null) el.style.width = n + '%';
     });
+    cada(raiz, '[data-columnas]', function (el) {
+      var n = numero(el.dataset.columnas);
+      if (n !== null && n >= 1) el.style.gridTemplateColumns = 'repeat(' + Math.round(n) + ', minmax(0, 1fr))';
+    });
     cada(raiz, '[data-pct-var]', function (el) {
       var n = numero(el.dataset.pctVar);
       if (n !== null) el.style.setProperty('--pct', String(n));

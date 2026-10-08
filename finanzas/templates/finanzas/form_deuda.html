@@ -36,13 +36,13 @@
       </div>
 
       <div class="form-row">
-        <div style="flex:1.5">
+        <div class="flex-15">
           <label class="label" for="{{ form.valor_cuota.id_for_label }}">{{ form.valor_cuota.label }}</label>
           {{ form.valor_cuota }}
           <div class="fo-ayuda">{{ form.valor_cuota.help_text }}</div>
           {% for e in form.valor_cuota.errors %}<div class="fo-error">{{ e }}</div>{% endfor %}
         </div>
-        <div style="flex:1">
+        <div class="flex-1">
           <label class="label" for="{{ form.cuotas_totales.id_for_label }}">{{ form.cuotas_totales.label }}</label>
           {{ form.cuotas_totales }}
           {% for e in form.cuotas_totales.errors %}<div class="fo-error">{{ e }}</div>{% endfor %}
@@ -56,7 +56,7 @@
         {% for e in form.fecha_inicio.errors %}<div class="fo-error">{{ e }}</div>{% endfor %}
       </div>
 
-      <div class="preview-box preview-cuota" id="cajaCuota" style="display:none">
+      <div class="preview-box preview-cuota" id="cajaCuota">
         <div class="preview-eyebrow">Quedaría así</div>
         <div class="preview-fila">
           <span class="preview-etiqueta">Total de la compra</span>
@@ -74,7 +74,7 @@
     </form>
 
     {% if editar %}
-    <form method="post" action="{% url 'eliminar_deuda' deuda.pk %}" style="margin-top:12px"
+    <form method="post" action="{% url 'eliminar_deuda' deuda.pk %}" class="arriba-12"
           data-confirm="¿Eliminar {{ deuda.acreedor }}? Se borran también sus pagos registrados.">
       {% csrf_token %}
       <button type="submit" class="sec-btn rojo-suave"><i class="fas fa-trash-can"></i>Eliminar esta compra</button>

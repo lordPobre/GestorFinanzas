@@ -28,29 +28,29 @@
         <input type="text" name="descripcion" id="id_pr_desc" placeholder="Ej: Arriendo de mayo" required autofocus>
       </div>
 
-      <div class="label" style="margin-bottom:9px">Cómo te lo va a devolver</div>
+      <div class="label abajo-9">Cómo te lo va a devolver</div>
       <input type="hidden" name="tipo" id="id_pr_tipo" value="UNICO">
-      <div class="seg" data-field="#id_pr_tipo" id="segTipoPr" style="margin-bottom:16px">
+      <div class="seg abajo-16" data-field="#id_pr_tipo" id="segTipoPr">
         <button type="button" class="on" data-value="UNICO">De una vez</button>
         <button type="button" data-value="CUOTAS">En cuotas</button>
       </div>
 
       <div class="form-row">
-        <div style="flex:1.5">
+        <div class="flex-15">
           <label class="label" for="id_pr_monto">Monto prestado</label>
           <input type="number" name="monto" id="id_pr_monto" class="mono" placeholder="180000" min="1" required>
         </div>
-        <div style="flex:1;display:none" id="campoCuotasPr">
+        <div class="flex-1" id="campoCuotasPr">
           <label class="label" for="id_pr_cuotas">En cuántas</label>
           <input type="number" name="cuotas_totales" id="id_pr_cuotas" class="mono" min="1" value="3">
         </div>
       </div>
 
-      <div class="preview-box" id="cajaPr" style="display:none">
-        <div class="label" style="color:var(--amber);margin-bottom:9px">Te devolvería</div>
-        <div style="display:flex;justify-content:space-between;align-items:baseline">
-          <span style="font-size:12px;color:var(--text-secondary)">Cada cuota</span>
-          <span class="display" style="font-size:19px;color:var(--green)" id="prCuota">$0</span>
+      <div class="preview-box" id="cajaPr">
+        <div class="label tinta-ambar abajo-9">Te devolvería</div>
+        <div class="impacto-fila">
+          <span class="txt-13 tinta-sec">Cada cuota</span>
+          <span class="display txt-19 tinta-verde" id="prCuota">$0</span>
         </div>
       </div>
 

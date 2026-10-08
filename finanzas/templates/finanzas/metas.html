@@ -33,7 +33,7 @@
   {% if metas_datos %}
   <div class="me-lista">
     {% for d in metas_datos %}
-    <article class="me-card{% if forloop.first %} abierta{% endif %}{% if d.meta.esta_completa %} completa{% endif %}" id="meta{{ d.meta.pk }}" data-desplegable data-searchable style="--pct:{{ d.meta.porcentaje|floatformat:'0u' }};--color:{% if d.meta.esta_completa %}#53d258{% else %}{{ d.meta.color }}{% endif %}">
+    <article class="me-card{% if forloop.first %} abierta{% endif %}{% if d.meta.esta_completa %} completa{% endif %}" id="meta{{ d.meta.pk }}" data-desplegable data-searchable data-pct-var="{{ d.meta.porcentaje|floatformat:'0u' }}" data-color-var="{% if d.meta.esta_completa %}#53d258{% else %}{{ d.meta.color }}{% endif %}">
       <div class="me-linea">
       <button type="button" class="me-cab" data-desplegar aria-expanded="{% if forloop.first %}true{% else %}false{% endif %}">
         <span class="me-anillo"><span>{{ d.meta.porcentaje|floatformat:0 }}%</span></span>
@@ -118,7 +118,7 @@
 
 {% block modals %}
 <div class="modal-overlay" id="modalMeta">
-  <div class="modal-box" style="max-width:420px">
+  <div class="modal-box caja-420">
     <div class="modal-head">
       <div>
         <div class="modal-title">Nueva meta</div>
@@ -134,11 +134,11 @@
         {{ form.nombre }}
       </div>
       <div class="form-row">
-        <div style="flex:1.4">
+        <div class="flex-14">
           <label class="label" for="{{ form.monto_meta.id_for_label }}">{{ form.monto_meta.label }}</label>
           {{ form.monto_meta }}
         </div>
-        <div style="flex:1">
+        <div class="flex-1">
           <label class="label" for="{{ form.monto_actual.id_for_label }}">{{ form.monto_actual.label }}</label>
           {{ form.monto_actual }}
         </div>
@@ -146,7 +146,7 @@
       <div class="field">
         <label class="label" for="{{ form.fecha_limite.id_for_label }}">{{ form.fecha_limite.label }}</label>
         {{ form.fecha_limite }}
-        <div class="hint" style="margin-top:6px">{{ form.fecha_limite.help_text }}</div>
+        <div class="hint arriba-6">{{ form.fecha_limite.help_text }}</div>
       </div>
       <button type="submit" class="btn btn-purple btn-block">Crear meta</button>
     </form>
@@ -155,7 +155,7 @@
 
 {% for d in metas_datos %}{% if not d.meta.esta_completa %}
 <div class="modal-overlay" id="modalAporte{{ d.meta.pk }}">
-  <div class="modal-box" style="max-width:380px">
+  <div class="modal-box caja-380">
     <div class="modal-head">
       <div>
         <div class="modal-title">Aportar a {{ d.meta.nombre }}</div>
@@ -167,8 +167,8 @@
       {% csrf_token %}
       <input type="hidden" name="next" value="{% url 'metas' %}">
       {% if d.meta.ahorro_mensual_sugerido or d.promedio_mes %}
-      <div class="label" style="margin-bottom:9px">Montos sugeridos</div>
-      <div class="chips" style="margin-bottom:16px" data-montos="#id_aporte_{{ d.meta.pk }}">
+      <div class="label abajo-9">Montos sugeridos</div>
+      <div class="chips abajo-16" data-montos="#id_aporte_{{ d.meta.pk }}">
         {% if d.meta.ahorro_mensual_sugerido %}
         <button type="button" class="chip" data-monto="{{ d.meta.ahorro_mensual_sugerido|floatformat:0 }}">Lo que necesitas · {{ d.meta.ahorro_mensual_sugerido|money }}</button>
         {% endif %}
@@ -180,7 +180,7 @@
       {% endif %}
       <div class="field">
         <label class="label" for="id_aporte_{{ d.meta.pk }}">Cuánto aportas</label>
-        <input type="number" name="monto" id="id_aporte_{{ d.meta.pk }}" class="input-amount" style="color:var(--green-texto)" min="1" required>
+        <input type="number" name="monto" id="id_aporte_{{ d.meta.pk }}" class="input-amount tinta-verde-texto" min="1" required>
       </div>
       <div class="field">
         <label class="label" for="id_nota_{{ d.meta.pk }}">Nota (opcional)</label>

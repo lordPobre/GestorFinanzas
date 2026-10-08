@@ -89,7 +89,7 @@
     </div>
     {% for g in sugerencias %}
     <div class="su-sugerida">
-      {% marca_de g.nombre as m %}{% if m %}{% include 'finanzas/_marca.html' with clase="sec-ficha su-marca" %}{% else %}<span class="sec-ficha su-marca" style="background:#ffaa2c24;color:#ffaa2c"><i class="fas fa-rotate"></i></span>{% endif %}
+      {% marca_de g.nombre as m %}{% if m %}{% include 'finanzas/_marca.html' with clase="sec-ficha su-marca" %}{% else %}<span class="sec-ficha su-marca su-marca-gen"><i class="fas fa-rotate"></i></span>{% endif %}
       <span class="sec-txt">
         <span class="sec-nombre">{{ g.nombre }}</span>
         <span class="sec-meta">{{ g.monto|money }} · {{ g.meses }} meses seguidos · {{ g.anual|money }} al año</span>
@@ -117,7 +117,7 @@
     <div class="su-fila{% if not s.activa %} pausada{% endif %}{% if s.estado_mes == 'atrasada' %} atrasada{% endif %}" data-desplegable data-searchable>
       <div class="su-linea">
         <button type="button" class="sec-cab" data-desplegar aria-expanded="false">
-          {% marca_de s.nombre as m %}{% if m %}{% include 'finanzas/_marca.html' with clase="sec-ficha su-marca" %}{% else %}<span class="sec-ficha su-marca" style="background:#ffaa2c24;color:#ffaa2c"><i class="fas fa-rotate"></i></span>{% endif %}
+          {% marca_de s.nombre as m %}{% if m %}{% include 'finanzas/_marca.html' with clase="sec-ficha su-marca" %}{% else %}<span class="sec-ficha su-marca su-marca-gen"><i class="fas fa-rotate"></i></span>{% endif %}
           <span class="sec-txt">
             <span class="sec-nombre su-nombre">{{ s.nombre }}</span>
             <span class="sec-meta{% if s.activa and s.periodo_a_pagar %} pendiente{% endif %}">{% if not s.activa %}Pausada · ahorras {{ s.monto_anual|money }} al año{% elif s.estado_mes == 'atrasada' %}{{ s.monto|money }} · atrasada{% else %}{{ s.monto|money }} · se cobra el {{ s.dia_cobro }}{% endif %}</span>
@@ -176,7 +176,7 @@
 
 {% block modals %}
 <div class="modal-overlay" id="modalSub">
-  <div class="modal-box" style="max-width:420px">
+  <div class="modal-box caja-420">
     <div class="modal-head">
       <div>
         <div class="modal-title">Nueva suscripción</div>
@@ -190,20 +190,20 @@
         <label class="label" for="id_sub_nombre">Servicio</label>
         <input type="text" name="nombre" id="id_sub_nombre" placeholder="Ej: Netflix, Spotify, Gimnasio" required>
       </div>
-      <div class="form-row" style="margin-bottom:16px">
-        <div style="flex:1.5">
+      <div class="form-row abajo-16">
+        <div class="flex-15">
           <label class="label" for="id_sub_monto">Monto mensual</label>
           <input type="number" name="monto" id="id_sub_monto" class="mono" placeholder="9900" min="1" required>
         </div>
-        <div style="flex:1">
+        <div class="flex-1">
           <label class="label" for="id_sub_dia">Día de cobro</label>
           <input type="number" name="dia_cobro" id="id_sub_dia" class="mono" min="1" max="28" value="1" aria-describedby="ayudaSubDia">
           <div class="fo-ayuda" id="ayudaSubDia">Del 1 al 28, así se cobra todos los meses, incluso en febrero.</div>
         </div>
       </div>
-      <div class="label" style="margin-bottom:9px">Categoría</div>
+      <div class="label abajo-9">Categoría</div>
       <input type="hidden" name="categoria" id="id_sub_categoria" value="Suscripciones">
-      <div class="chips" data-field="#id_sub_categoria" style="margin-bottom:18px">
+      <div class="chips abajo-18" data-field="#id_sub_categoria">
         <button type="button" class="chip on" data-value="Suscripciones">Suscripciones</button>
         <button type="button" class="chip" data-value="Ocio">Entretenimiento</button>
         <button type="button" class="chip" data-value="Servicios">Servicios</button>
@@ -224,7 +224,7 @@
 
 {% for s in suscripciones %}
 <div class="modal-overlay" id="eliminarSub{{ s.pk }}">
-  <div class="modal-box" style="max-width:400px">
+  <div class="modal-box caja-400">
     <div class="modal-head">
       <div>
         <div class="modal-title">Eliminar {{ s.nombre }}</div>

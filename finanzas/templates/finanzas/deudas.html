@@ -41,7 +41,7 @@
         <i class="fas fa-chevron-down cu-flecha" aria-hidden="true"></i>
       </button>
 
-      <div class="cu-pips" style="grid-template-columns:repeat({{ d.cuotas_totales }},minmax(0,1fr))">
+      <div class="cu-pips" data-columnas="{{ d.cuotas_totales }}">
         {% for m in d.rango_cuotas %}<span class="{{ m.clase }}" title="Cuota {{ m.indice }}"></span>{% endfor %}
       </div>
 
@@ -163,9 +163,9 @@
         </div>
       </div>
 
-      <div class="label" style="margin-bottom:9px">Categoría del gasto</div>
+      <div class="label abajo-9">Categoría del gasto</div>
       {{ form.categoria.as_hidden }}
-      <div class="chips" data-field="#{{ form.categoria.id_for_label }}" style="margin-bottom:18px">
+      <div class="chips abajo-18" data-field="#{{ form.categoria.id_for_label }}">
         {% for value, label in form.fields.categoria.choices %}
           <button type="button" class="chip {% if forloop.first %}on{% endif %}" data-value="{{ value }}">{{ label }}</button>
         {% endfor %}

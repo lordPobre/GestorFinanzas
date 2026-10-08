@@ -12,6 +12,7 @@ from django.test import SimpleTestCase, TestCase
 from django.urls import reverse
 
 from finanzas.models import Transaccion
+from finanzas.tests.test_vistas import BaseDosUsuarios
 
 PLANTILLAS = Path(settings.BASE_DIR) / 'finanzas' / 'templates'
 SCRIPTS = Path(settings.BASE_DIR) / 'static' / 'js'
@@ -27,14 +28,21 @@ SCRIPTS_ACCESO = ('finapp.js', 'dispositivo.js', 'passkeys.js', 'consentimiento.
                   'pantallas/restablecer.js', 'pantallas/verificar.js', 'pantallas/legal.js')
 PANTALLAS_CON_SESION = ('base.html', '_aviso_encuesta.html', '_marca.html', '_esfera.html',
                         'dashboard.html', 'perfil.html', 'form_transaccion.html',
-                        'form_gasto_pendiente.html')
+                        'form_gasto_pendiente.html', 'deudas.html', 'form_deuda.html',
+                        'prestamos.html', 'form_persona.html', 'form_prestamo.html',
+                        'suscripciones.html', 'form_suscripcion.html', 'editar_suscripcion.html',
+                        'metas.html', 'crear_meta.html')
 SCRIPTS_CON_SESION = ('finapp.js', 'tour.js', 'dispositivo.js', 'pantallas/base.js', 'pantallas/base-2.js',
                       'pantallas/base-3.js', 'pantallas/base-4.js', 'pantallas/base-5.js',
                       'pantallas/estilos.js', 'pantallas/anotar.js', 'pantallas/anotar-tope.js',
                       'pantallas/recordatorios.js', 'pantallas/cuenta.js', 'pantallas/secciones.js',
                       'pantallas/saludo-cielo.js', 'pantallas/dashboard.js', 'pantallas/inicio-cifra.js',
                       'pantallas/inicio-movimientos.js', 'pantallas/inicio-esfera.js',
-                      'pantallas/form-transaccion.js', 'pantallas/perfil.js', 'pantallas/perfil-2.js')
+                      'pantallas/form-transaccion.js', 'pantallas/perfil.js', 'pantallas/perfil-2.js',
+                      'pantallas/deudas.js', 'pantallas/form-deuda.js', 'pantallas/prestamos.js',
+                      'pantallas/form-persona.js', 'pantallas/form-prestamo.js',
+                      'pantallas/suscripciones.js', 'pantallas/form-suscripcion.js',
+                      'pantallas/metas.js', 'pantallas/crear-meta.js')
 
 
 def _directivas(respuesta):
@@ -52,7 +60,7 @@ class EstilosEnLaPoliticaTests(TestCase):
     def test_las_etiquetas_style_piden_el_nonce(self):
         ana = User.objects.create_user('ana', 'ana@ejemplo.cl', 'clave-larga-1')
         self.client.force_login(ana)
-        directivas = _directivas(self.client.get(reverse('deudas')))
+        directivas = _directivas(self.client.get(reverse('categorias')))
         self.assertIn("'nonce-", directivas['style-src-elem'])
         self.assertNotIn('unsafe-inline', directivas['style-src-elem'])
         self.assertEqual(directivas['style-src-attr'], "style-src-attr 'unsafe-inline'")
@@ -102,6 +110,40 @@ class EstilosEnLaPoliticaTests(TestCase):
         self.assertNotIn('<style', cuerpo)
 
 
+@mock.patch.dict(os.environ, SIN_MEDICION)
+class CuotasPrestamosSuscripcionesYMetasTests(BaseDosUsuarios):
+
+    def _rutas(self):
+        d = self.de_ana
+        return [
+            reverse('deudas'), reverse('crear_deuda'), reverse('editar_deuda', args=[d['deuda'].pk]),
+            reverse('prestamos'), reverse('prestamos') + '?lado=debo',
+            reverse('detalle_persona', args=[d['persona'].pk]), reverse('crear_persona'),
+            reverse('crear_prestamo', args=[d['persona'].pk]),
+            reverse('suscripciones'), reverse('crear_suscripcion'),
+            reverse('editar_suscripcion', args=[d['sub'].pk]),
+            reverse('metas'), reverse('crear_meta'), reverse('editar_meta', args=[d['meta'].pk]),
+        ]
+
+    def test_no_aplican_ni_traen_atributos_style(self):
+        self.client.force_login(self.ana)
+        for ruta in self._rutas():
+            with self.subTest(ruta=ruta):
+                respuesta = self.client.get(ruta)
+                self.assertEqual(respuesta.status_code, 200)
+                self.assertEqual(_directivas(respuesta)['style-src-attr'], "style-src-attr 'none'")
+                self.assertIsNone(ATRIBUTO_STYLE.search(respuesta.content.decode('utf-8')))
+
+    def test_lo_que_depende_de_los_datos_va_en_atributos_data(self):
+        self.client.force_login(self.ana)
+        self.assertContains(self.client.get(reverse('deudas')), 'data-columnas="6"')
+        persona = self.client.get(reverse('detalle_persona', args=[self.de_ana['persona'].pk]))
+        self.assertContains(persona, 'data-ancho-pct="')
+        metas = self.client.get(reverse('metas'))
+        self.assertContains(metas, 'data-pct-var="0"')
+        self.assertContains(metas, 'data-color-var="#')
+
+
 class PlantillasSinEstiloEnLineaTests(SimpleTestCase):
 
     def test_ninguna_pantalla_trae_un_bloque_style(self):
@@ -121,7 +163,7 @@ class PlantillasSinEstiloEnLineaTests(SimpleTestCase):
                      if SCRIPT_CON_STYLE.search((SCRIPTS / nombre).read_text('utf-8'))]
         self.assertEqual(con_style, [])
 
-    def test_inicio_perfil_y_movimientos_no_traen_atributos_style(self):
+    def test_las_pantallas_con_sesion_ya_limpias_no_traen_atributos_style(self):
         con_style = [nombre for nombre in PANTALLAS_CON_SESION
                      if ATRIBUTO_STYLE.search((PLANTILLAS / 'finanzas' / nombre).read_text('utf-8'))]
         self.assertEqual(con_style, [])

@@ -32,33 +32,32 @@
         <input type="text" name="contacto" id="id_p_contacto" placeholder="Teléfono, email o una nota">
       </div>
 
-      <details style="margin-bottom:20px">
-        <summary style="cursor:pointer;display:flex;align-items:center;gap:9px;padding:13px 15px;
-                        border-radius:var(--r-md);background:var(--surface-2);font-size:12.5px;font-weight:600">
-          <i class="fas fa-plus" style="font-size:10px;color:var(--amber)"></i>
+      <details class="abajo-20">
+        <summary class="fo-desplegar">
+          <i class="fas fa-plus ico-10 tinta-ambar"></i>
           Registrar un préstamo ahora
-          <i class="fas fa-chevron-down" style="font-size:10px;color:var(--text-muted);margin-left:auto"></i>
+          <i class="fas fa-chevron-down ico-10 tinta-apagada izq-auto"></i>
         </summary>
 
-        <div style="padding:18px 4px 0">
+        <div class="fo-desplegar-cuerpo">
           <div class="field">
             <label class="label" for="id_p_desc">Para qué fue</label>
             <input type="text" name="descripcion" id="id_p_desc" placeholder="Ej: Arriendo de mayo">
           </div>
 
-          <div class="label" style="margin-bottom:9px">Cómo te lo va a devolver</div>
+          <div class="label abajo-9">Cómo te lo va a devolver</div>
           <input type="hidden" name="tipo" id="id_p_tipo" value="UNICO">
-          <div class="seg" data-field="#id_p_tipo" id="segTipoPersona" style="margin-bottom:16px">
+          <div class="seg abajo-16" data-field="#id_p_tipo" id="segTipoPersona">
             <button type="button" class="on" data-value="UNICO">De una vez</button>
             <button type="button" data-value="CUOTAS">En cuotas</button>
           </div>
 
           <div class="form-row">
-            <div style="flex:1.5">
+            <div class="flex-15">
               <label class="label" for="id_p_monto">Monto prestado</label>
               <input type="number" name="monto" id="id_p_monto" class="mono" placeholder="180000" min="1">
             </div>
-            <div style="flex:1;display:none" id="campoCuotasPersona">
+            <div class="flex-1" id="campoCuotasPersona">
               <label class="label" for="id_p_cuotas">En cuántas</label>
               <input type="number" name="cuotas_totales" id="id_p_cuotas" class="mono" min="1" value="3">
             </div>

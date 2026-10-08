@@ -248,6 +248,8 @@ El salto de `0016` a `0100` es inofensivo y renumerar rompería las bases existe
 
 **Lote 96:** la plantilla base, Inicio, Mi perfil, anotar y editar un movimiento y la cuenta por pagar quedan sin `style=`. Sus estilos pasan a `static/css/sesion.css`, que carga después de la hoja de cada pantalla. Las reglas que reemplazan un atributo llevan `!important`, porque el atributo ganaba a cualquier selector y así se ven igual; las excepciones son lo que el JavaScript cambia en línea (`#avisoMonto`, `#montoView`, `#panelSeguridad`) y el ancho de los modales, que en el teléfono debe seguir cediendo a `max-width: none !important`. Donde `tema-vidrio.css` agrandaba los textos con `[style*="font-size:…"]`, la clase nueva ya trae el tamaño final. Lo que depende de los datos usa atributos `data-` que lee `estilos.js`, y solo acepta números y colores `#hex`. Estas rutas pasan a `'none'` solo con sesión, porque la ruta de Inicio sin sesión es la portada.
 
+**Lote 103:** Cuotas, Me deben y Debo, Suscripciones y Metas, con sus formularios para crear y editar, quedan sin `style=` y sus rutas se suman a `RUTAS_SIN_ESTILO_CON_SESION`, con las mismas reglas del lote 96. Los cuadros y campos que el JavaScript muestra u oculta (`#cajaPlan`, `#cajaCuota`, `#cajaPr`, `#campoCuotas`, `#campoCuotasPersona`, `#campoCuotasPr`) parten ocultos desde `sesion.css`, sin `!important`, para que el valor en línea del script gane. Por eso `prestamos.js` los muestra con `display: block`: antes borraba el valor y volvía a mandar el atributo, que ya no existe. Las columnas de las cuotas van en `data-columnas`.
+
 ### D-31 · Medir antes de optimizar
 
 **Qué:** `RendimientoMiddleware` anota las respuestas lentas y `resumen_mes` se calcula una vez por petición.

@@ -65,6 +65,10 @@ RUTAS_SIN_ESTILO_EN_LINEA = frozenset({
 RUTAS_SIN_ESTILO_CON_SESION = frozenset({
     'dashboard', 'perfil', 'registrar_transaccion', 'registrar_ingreso',
     'editar_transaccion', 'crear_gasto_pendiente',
+    'deudas', 'crear_deuda', 'editar_deuda',
+    'prestamos', 'detalle_persona', 'crear_persona', 'crear_prestamo',
+    'suscripciones', 'crear_suscripcion', 'editar_suscripcion',
+    'metas', 'crear_meta', 'editar_meta',
 })
 
 
