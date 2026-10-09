@@ -39,6 +39,11 @@ Son 57 archivos en `finanzas/tests/` con 548 pruebas, contadas sobre las entrega
 | `test_acceso_y_montos.py` | 18 | Admin: su login es el de la app, sin sesión manda al acceso, cuenta sin permiso → 404 y evento, el personal entra. Topes de intentos: 5 por usuario+IP, cambiar de IP no salta el tope de la cuenta, una IP contra muchas cuentas se frena, entrar bien no limpia el contador de la IP, con la cuenta bloqueada la contraseña correcta no entra. Eventos de seguridad: acceso y fallo quedan anotados, la descarga de datos los incluye, borrar la cuenta deja la evidencia sin vínculo, la purga borra solo lo de más de un año. El destino se conserva al pasar por 2FA. Las sumas del mes no arrastran error de coma flotante |
 | `test_cabecera.py` | 1 | Las pantallas sueltas traen el perfil que usa la cabecera |
 | `test_cartola_cuentarut.py` | 10 | Lector de CuentaRUT: reconoce el formato, lee todas las filas, completa el año, deduce el signo por la cadena de saldos, une descripciones partidas en dos líneas, quita el número de operación, cuadra contra los totales declarados, avisa si falta una fila, rechaza un PDF sin detalle y no se lo lleva el lector genérico de BancoEstado |
+| `test_cartola_banco_chile.py` | 6 | Lector de Banco de Chile: reconoce el formato antes que otro lector, quita la oficina y el número de la descripción, deduce el signo por la cadena de saldos, cuadra con el saldo inicial y el contable, lee el periodo y la cuenta, avisa si falta una fila y rechaza un PDF sin movimientos |
+| `test_cartola_cmr.py` | 8 | Lector de CMR: reconoce el formato, lee compras, cuotas, pagos y cargos; la cuota va al mes de facturación con su número; el pago del estado anterior no es un gasto; la compra al contado lleva el lugar; cuadra con el Monto Total Facturado y avisa si falta una compra o si no hay total |
+| `test_cartola_ripley.py` | 7 | Lector de Ripley: reconoce el formato, deja fuera las transacciones no facturadas, lee la cuota al inicio de la fila, un monto negativo es un pago, cuadra con los subtotales, avisa una diferencia chica y pide revisar el formato si la diferencia es grande |
+| `test_cartola_confirmar.py` | 4 | Confirmar una cartola: guarda solo lo marcado, con la descripción editada, la suscripción (día de cobro hasta el 28) y el préstamo en Me deben; no duplica una persona que ya existe; sin nada marcado vuelve a importar; sin revisión pendiente pide subirla otra vez |
+| `test_avisar_pagos.py` | 10 | `avisar_pagos`: un aviso del 31 sale el 28 de febrero y el 30 en abril, no antes; una sola vez por periodo y de nuevo al mes siguiente; si el correo no sale se reintenta; `--forzar`, `--seco`, sin nada por pagar y con el aviso apagado |
 | `test_cartola_tabla.py` | 14 | CSV/Excel: detecta extensiones, columnas cargo/abono, monto con saldo, monto con signo, rechazo de columnas desconocidas y de archivos vacíos. La muestra anónima borra nombres y cifras, conserva la estructura y respeta el tope de líneas |
 | `test_conservacion.py` | 19 | Inactividad: quién entra en la lista, la sesión abierta cuenta como actividad, superusuarios fuera, un solo aviso, sin correo no hay aviso, no se borra sin aviso ni durante la gracia, quien vuelve sale de la cola, el borrado se lleva todo, `--seco` no toca nada. Topes de cartola: movimientos, páginas y texto |
 | `test_cuenta.py` | 11 | Confirmación del correo de las cuentas antiguas: el enlace confirma sin iniciar sesión, un token inventado no sirve, cambiar el correo invalida el enlace anterior. Sesiones abiertas: anotar, marcar la actual, cerrar las demás, no cerrar las de otra persona, salir borra la fila |
@@ -90,15 +95,10 @@ Son 57 archivos en `finanzas/tests/` con 548 pruebas, contadas sobre las entrega
 
 ## Qué no tiene pruebas hoy
 
-Estos son los huecos que conviene cubrir primero, ordenados por riesgo:
+Estos son los huecos que conviene cubrir primero, ordenados por riesgo. Reactivar una suscripción en enero, la opción «compra en cuotas» de la cartola y Google con un correo sin confirmar ya tenían prueba en `test_correcciones.py` desde la entrega de arreglos; el lote 106 suma los lectores de Banco de Chile, CMR y Ripley, confirmar una cartola completa y `avisar_pagos`.
 
-1. **Reactivar una suscripción en enero.** Hoy falla (ver [13 · Deuda técnica](13-DEUDA-TECNICA-Y-HOJA-DE-RUTA.md)). Una prueba con la fecha fija en enero lo habría detectado.
-2. **Importar una cartola hasta el final** (`confirmar_cartola`), en especial la opción “compra en cuotas”.
-3. **Vinculación de Google con una cuenta existente sin correo verificado.**
-4. **Lectores de Banco de Chile, CMR y Ripley.** Tienen documento real de referencia, pero no una prueba propia como CuentaRUT.
-5. **`avisar_pagos`**: día efectivo en meses cortos y un solo envío por periodo.
-6. **`respaldar_postgres`** con `--seco` en el CI, contra el Postgres del servicio.
-7. **Frontend**: las pruebas de JavaScript cubren el panel para anotar, lo por pagar en el Inicio, el aviso al anotar, el *service worker*, el chat de ayuda, el tour y la hoja de la esfera. Activar los recordatorios y el audio en un iPhone real se prueban a mano. El patrón de `pruebas_js/` sirve para sumarlos de a uno.
+1. **`respaldar_postgres`** con `--seco` en el CI, contra el Postgres del servicio.
+2. **Frontend**: las pruebas de JavaScript cubren el panel para anotar, lo por pagar en el Inicio, el aviso al anotar, el *service worker*, el chat de ayuda, el tour, la hoja de la esfera, `estilos.js` y el campo de cuotas de Préstamos. Activar los recordatorios y el audio en un iPhone real se prueban a mano. El patrón de `pruebas_js/` sirve para sumarlos de a uno.
 
 ## Cómo se escribe una prueba nueva
 
