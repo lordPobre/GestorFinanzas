@@ -10,6 +10,7 @@ from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
+from ..dinero import suma
 from ..models import PagoServicio, SugerenciaDescartada, Suscripcion, Transaccion
 from ..servicios.detectar_suscripciones import sugerencias
 from ..servicios.esfera import esfera_suscripciones
@@ -65,10 +66,10 @@ def suscripciones(request):
         'duplicadas': duplicadas,
         'ahorro_total': sum(g['ahorro_anual'] for g in duplicadas),
         'pendientes_mes': len(pendientes),
-        'monto_pendiente_mes': round(sum(float(s.monto) for s in pendientes)),
-        'monto_pagado_mes': round(sum(float(s.monto) for s in activas if s.pagada_este_mes)),
+        'monto_pendiente_mes': round(suma(s.monto for s in pendientes)),
+        'monto_pagado_mes': round(suma(s.monto for s in activas if s.pagada_este_mes)),
         'atrasadas': len(atrasadas),
-        'monto_atrasado': round(sum(float(s.monto_atrasado) for s in atrasadas)),
+        'monto_atrasado': round(suma(s.monto_atrasado for s in atrasadas)),
         'sugerencias': sugerencias(request.user, hoy),
     }
     context['esfera'] = esfera_suscripciones(request.user, activas, simbolo_de(request.user))

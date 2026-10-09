@@ -6,6 +6,7 @@ from dateutil.relativedelta import relativedelta
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
 
+from ..dinero import suma
 from .. import encuesta as encuesta_mod
 from .. import legal, push
 from ..models import (Categoria, Deuda, GastoPendiente, MetaAhorro, Presupuesto, Suscripcion,
@@ -85,9 +86,9 @@ def dashboard(request):
     movimientos_mes = list(movimientos_mes)
     for t in movimientos_mes:
         t.nombre_lista, t.meta_lista = textos_movimiento(t)
-    mov_entro = round(sum(float(t.monto) for t in movimientos_mes if t.es_ingreso))
-    mov_salio = round(sum(float(t.monto) for t in movimientos_mes if not t.es_ingreso))
-    mov_cuotas = round(sum(float(t.monto) for t in movimientos_mes if t.es_cuota))
+    mov_entro = round(suma(t.monto for t in movimientos_mes if t.es_ingreso))
+    mov_salio = round(suma(t.monto for t in movimientos_mes if not t.es_ingreso))
+    mov_cuotas = round(suma(t.monto for t in movimientos_mes if t.es_cuota))
     mov_tope = max(mov_entro, mov_salio, 1)
     deuda_total = sum(float(d.monto_restante) for d in todas_las_deudas if not d.esta_saldada)
     metas = MetaAhorro.objects.filter(usuario=request.user)
@@ -162,8 +163,8 @@ def dashboard(request):
         'pendientes': pagos_mes,
         'pendientes_sin_pagar': sin_pagar,
         'pendientes_atrasados': atrasados,
-        'monto_sin_pagar': round(sum(float(i['monto']) for i in sin_pagar)),
-        'monto_ya_pagado': round(sum(float(i['monto']) for i in pagos_mes if i['pagado'])),
+        'monto_sin_pagar': round(suma(i['monto'] for i in sin_pagar)),
+        'monto_ya_pagado': round(suma(i['monto'] for i in pagos_mes if i['pagado'])),
         'mes_al_dia': bool(pagos_mes) and not sin_pagar,
 
         'insights': insights,

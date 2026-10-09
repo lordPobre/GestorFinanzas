@@ -5,6 +5,7 @@ from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, render
 from django.utils import timezone
 
+from ..dinero import suma
 from ..forms import DeudaForm
 from ..models import Deuda, PagoCuota, Transaccion
 from ..servicios.esfera import esfera_cuotas
@@ -28,14 +29,14 @@ def deudas(request):
     context = {
         'deudas': activas,
         'saldadas': sorted(saldadas, key=lambda d: d.fecha_fin_estimada, reverse=True),
-        'total_saldado': round(sum(float(d.monto_total) for d in saldadas)),
+        'total_saldado': round(suma(d.monto_total for d in saldadas)),
         'deudas_activas': len(activas),
-        'total_cuotas_mes': round(sum(float(d.monto_cuota) for d in activas)),
-        'total_restante': round(sum(float(d.monto_restante) for d in lista)),
-        'total_pagado': round(sum(float(d.monto_pagado) for d in lista)),
-        'total_atrasado': round(sum(float(d.monto_atrasado) for d in activas)),
+        'total_cuotas_mes': round(suma(d.monto_cuota for d in activas)),
+        'total_restante': round(suma(d.monto_restante for d in lista)),
+        'total_pagado': round(suma(d.monto_pagado for d in lista)),
+        'total_atrasado': round(suma(d.monto_atrasado for d in activas)),
         'cuotas_atrasadas': sum(len(d.periodos_atrasados) for d in activas),
-        'total_deuda': round(sum(float(d.monto_total) for d in lista)),
+        'total_deuda': round(suma(d.monto_total for d in lista)),
         'se_libera': proximas[0] if proximas else None,
         'form': DeudaForm(),
     }

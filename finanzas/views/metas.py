@@ -8,6 +8,7 @@ from django.db import transaction
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, render
 
+from ..dinero import suma
 from ..forms import MetaAhorroForm
 from ..models import AporteMeta, MetaAhorro
 from ..servicios.mes import MESES_LARGOS
@@ -133,9 +134,9 @@ def metas(request):
     context = {
         'metas_datos': datos,
         'labels_meses': [m['label'] for m in meses],
-        'total_ahorrado': round(sum(float(m.monto_actual) for m in lista)),
-        'total_meta': round(sum(float(m.monto_meta) for m in lista)),
-        'total_faltante': round(sum(float(m.monto_faltante) for m in lista)),
+        'total_ahorrado': round(suma(m.monto_actual for m in lista)),
+        'total_meta': round(suma(m.monto_meta for m in lista)),
+        'total_faltante': round(suma(m.monto_faltante for m in lista)),
         'completas': len([m for m in lista if m.esta_completa]),
         'form': MetaAhorroForm(),
     }
