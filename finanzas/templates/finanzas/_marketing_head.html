@@ -10,4 +10,4 @@
   <meta name="twitter:image" content="{{ sitio }}{% static 'img/og-fintora.png' %}">
   {% if m.google_verificacion %}<meta name="google-site-verification" content="{{ m.google_verificacion }}">{% endif %}
   {% if publica and m.plausible %}<script defer data-domain="{{ m.plausible }}" src="{{ m.plausible_src }}" nonce="{{ csp_nonce }}"></script>{% endif %}
-  {% if pixeles %}<link rel="stylesheet" href="{% static 'css/consentimiento.css' %}?v=52">{% endif %}
+  {% if pixeles %}<link rel="stylesheet" href="{% static 'css/consentimiento.css' %}">{% endif %}

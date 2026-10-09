@@ -5,8 +5,8 @@
 {% block topbar_mes %}{% include 'finanzas/_mes_topbar.html' %}{% endblock %}
 {% block topbar_sub %}Cómo se ordenan tus movimientos{% endblock %}
 {% block search_placeholder %}Filtrar categorías{% endblock %}
-{% block extra_head %}<link rel="stylesheet" href="{% static 'css/categorias.css' %}?v=123">
-<link rel="stylesheet" href="{% static 'css/mes-elegir.css' %}?v=124">{% endblock %}
+{% block extra_head %}<link rel="stylesheet" href="{% static 'css/categorias.css' %}">
+<link rel="stylesheet" href="{% static 'css/mes-elegir.css' %}">{% endblock %}
 
 {% block content %}
 <div class="sec-top">
@@ -286,6 +286,6 @@
 
 {% block extra_js %}
 <script src="{% static 'js/pantallas/categorias.js' %}" nonce="{{ csp_nonce }}"></script>
-<script src="{% static 'js/pantallas/categorias-2.js' %}?v=72" nonce="{{ csp_nonce }}"></script>
-<script src="{% static 'js/pantallas/categorias-topes.js' %}?v=86" nonce="{{ csp_nonce }}" data-simbolo="{{ simbolo_moneda }}"></script>
+<script src="{% static 'js/pantallas/categorias-2.js' %}" nonce="{{ csp_nonce }}"></script>
+<script src="{% static 'js/pantallas/categorias-topes.js' %}" nonce="{{ csp_nonce }}" data-simbolo="{{ simbolo_moneda }}"></script>
 {% endblock %}

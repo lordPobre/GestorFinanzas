@@ -2,7 +2,7 @@
 {% load static %}
 {% load moneda %}
 {% block title %}Plan para tu plata · Fintora{% endblock %}
-{% block extra_head %}<link rel="stylesheet" href="{% static 'css/plan-proyeccion.css' %}?v=70">{% endblock %}
+{% block extra_head %}<link rel="stylesheet" href="{% static 'css/plan-proyeccion.css' %}">{% endblock %}
 
 {% block content %}
 
@@ -275,8 +275,8 @@
 {% block extra_js %}
 {% if plan.tiene_datos and plan.sobra > 0 %}
 {{ plan_json|json_script:"d-plan" }}
-<script src="{% static 'js/pantallas/plan.js' %}?v=70" nonce="{{ csp_nonce }}" data-url-ia="{% url 'plan_ia' %}"></script>
-<script src="{% static 'js/pantallas/plan-proyeccion.js' %}?v=70" nonce="{{ csp_nonce }}"></script>
+<script src="{% static 'js/pantallas/plan.js' %}" nonce="{{ csp_nonce }}" data-url-ia="{% url 'plan_ia' %}"></script>
+<script src="{% static 'js/pantallas/plan-proyeccion.js' %}" nonce="{{ csp_nonce }}"></script>
 <script src="{% static 'js/pantallas/plan-simulador.js' %}" nonce="{{ csp_nonce }}"></script>
 {% endif %}
 {% endblock %}

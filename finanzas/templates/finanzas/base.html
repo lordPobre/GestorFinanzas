@@ -22,11 +22,11 @@
   <link rel="stylesheet" href="{% static 'vendor/fontawesome/css/all.min.css' %}">
   <link rel="stylesheet" href="{% static 'css/finapp.css' %}">
   <link rel="stylesheet" href="{% static 'css/tema-vidrio.css' %}">
-  <link rel="stylesheet" href="{% static 'css/encabezado.css' %}?v=51">
-  <link rel="stylesheet" href="{% static 'css/salud-esfera.css' %}?v=74">
-  <link rel="stylesheet" href="{% static 'css/avisos.css' %}?v=86">
+  <link rel="stylesheet" href="{% static 'css/encabezado.css' %}">
+  <link rel="stylesheet" href="{% static 'css/salud-esfera.css' %}">
+  <link rel="stylesheet" href="{% static 'css/avisos.css' %}">
   {% block extra_head %}{% endblock %}
-  <link rel="stylesheet" href="{% static 'css/sesion.css' %}?v=110">
+  <link rel="stylesheet" href="{% static 'css/sesion.css' %}">
   <script src="{% static 'js/pantallas/base.js' %}" nonce="{{ csp_nonce }}"></script>
 
   <script src="{% static 'js/pantallas/base-2.js' %}" nonce="{{ csp_nonce }}"></script>
@@ -457,19 +457,19 @@
 
 {% block modals %}{% endblock %}
 
-<script src="{% static 'js/pantallas/estilos.js' %}?v=96" nonce="{{ csp_nonce }}"></script>
+<script src="{% static 'js/pantallas/estilos.js' %}" nonce="{{ csp_nonce }}"></script>
 <script src="{% static 'js/finapp.js' %}" nonce="{{ request.csp_nonce }}"></script>
 <script src="{% static 'js/pantallas/anotar.js' %}" nonce="{{ csp_nonce }}" data-marcas="{% static 'data/marcas.json' %}"></script>
-<script src="{% static 'js/pantallas/anotar-tope.js' %}?v=86" nonce="{{ csp_nonce }}"></script>
-<script src="{% static 'js/pantallas/recordatorios.js' %}?v=86" nonce="{{ csp_nonce }}"></script>
+<script src="{% static 'js/pantallas/anotar-tope.js' %}" nonce="{{ csp_nonce }}"></script>
+<script src="{% static 'js/pantallas/recordatorios.js' %}" nonce="{{ csp_nonce }}"></script>
 <script src="{% static 'js/pantallas/cuenta.js' %}" nonce="{{ csp_nonce }}"></script>
 <script src="{% static 'js/pantallas/secciones.js' %}" nonce="{{ csp_nonce }}"></script>
 <script src="{% static 'js/pantallas/base-4.js' %}" nonce="{{ csp_nonce }}" {% if abrir_panel or request.GET.registrar %}data-abrir-panel="1"{% endif %}></script>
 <script src="{% static 'js/tour.js' %}" nonce="{{ request.csp_nonce }}"></script>
 <script src="{% static 'js/pantallas/base-5.js' %}" nonce="{{ csp_nonce }}" data-ruta-inicio="{% url 'dashboard' %}" data-ruta-cuotas="{% url 'deudas' %}" data-ruta-suscripciones="{% url 'suscripciones' %}" data-ruta-prestamos="{% url 'prestamos' %}" data-ruta-metas="{% url 'metas' %}" data-ruta-estadisticas="{% url 'estadisticas' %}" data-ruta-analisis="{% url 'analisis_predictivo' %}" data-ruta-importar="{% url 'importar_cartola' %}" data-ruta-perfil="{% url 'perfil' %}"></script>
-<script src="{% static 'js/pantallas/saludo-cielo.js' %}?v=51" nonce="{{ csp_nonce }}"></script>
+<script src="{% static 'js/pantallas/saludo-cielo.js' %}" nonce="{{ csp_nonce }}"></script>
 {% block extra_js %}{% endblock %}
-<script src="{% static 'js/mantener-lugar.js' %}?v=123" nonce="{{ csp_nonce }}"></script>
+<script src="{% static 'js/mantener-lugar.js' %}" nonce="{{ csp_nonce }}"></script>
 {% marketing_evento %}
 </body>
 </html>
