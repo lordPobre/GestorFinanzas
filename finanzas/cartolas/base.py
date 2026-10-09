@@ -63,6 +63,10 @@ class MovimientoLeido:
     aviso: str = ''
     fecha_compra: date = None
     mover_id: int = None
+    reemplaza_id: int = None
+    reemplaza_seguro: bool = False
+    reemplaza_desc: str = ''
+    reemplaza_fecha: str = ''
 
     @property
     def es_cuota(self):

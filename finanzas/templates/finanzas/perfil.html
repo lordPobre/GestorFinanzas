@@ -203,7 +203,7 @@
             <span class="pf-icono{% if profile.analisis_ia %} azul{% endif %}"><i class="fas fa-brain"></i></span>
             <span class="pf-txt">
               <span class="pf-titulo">Análisis con IA</span>
-              <span class="pf-meta">{% if profile.analisis_ia %}Solo números, nunca nombres ni descripciones{% else %}Apagado. Nada sale del servidor{% endif %}</span>
+              <span class="pf-meta">{% if profile.analisis_ia %}Números y, en los repetidos dudosos, sus descripciones{% else %}Apagado. Nada sale del servidor{% endif %}</span>
             </span>
             <form method="post">
               {% csrf_token %}
@@ -234,6 +234,15 @@
             <span class="pf-txt">
               <span class="pf-titulo">Descargar todos mis datos</span>
               <span class="pf-meta">Perfil, metas, personas y movimientos</span>
+            </span>
+            <i class="fas fa-chevron-right pf-flecha"></i>
+          </a>
+
+          <a href="{% url 'movimientos_repetidos' %}" class="pf-fila">
+            <span class="pf-icono ambar"><i class="fas fa-clone"></i></span>
+            <span class="pf-txt">
+              <span class="pf-titulo">Movimientos repetidos</span>
+              <span class="pf-meta">Encuentra los que quedaron dos veces y bórralos</span>
             </span>
             <i class="fas fa-chevron-right pf-flecha"></i>
           </a>

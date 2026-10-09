@@ -23,6 +23,7 @@
   <div class="sec-chips">
     <span class="chip-vidrio"><b>{{ nuevas }}</b> nuevo{{ nuevas|pluralize:"s" }}</span>
     <span class="chip-vidrio"><b>{{ repetidas }}</b> ya estaba{{ repetidas|pluralize:"n" }}</span>
+    {% if reemplazos %}<span class="chip-vidrio"><b>{{ reemplazos }}</b> reemplaza{{ reemplazos|pluralize:"n" }} uno que ya tenías</span>{% endif %}
   </div>
 </section>
 
@@ -97,15 +98,23 @@
           </span>
         </div>
 
-        {% if f.ya_existe or f.es_cuota or f.es_suscripcion or f.aviso or f.tipo == 'EGRESO' %}
+        {% if f.ya_existe or f.es_cuota or f.es_suscripcion or f.aviso or f.reemplaza_id or f.tipo == 'EGRESO' %}
         <div class="cartola-detalle">
-          {% if f.ya_existe or f.es_cuota or f.es_suscripcion or f.aviso %}
+          {% if f.ya_existe or f.es_cuota or f.es_suscripcion or f.aviso or f.reemplaza_id %}
           <div class="cartola-marcas">
             {% if f.ya_existe %}<span class="sec-badge gris chico">Ya está</span>{% endif %}
+            {% if f.reemplaza_id %}<span class="sec-badge ambar chico">Ya la tenías</span>{% endif %}
             {% if f.es_cuota %}<span class="sec-badge ambar chico">{{ f.texto_cuota }}</span>{% endif %}
             {% if f.es_suscripcion %}<span class="sec-badge azul chico">Se repite cada mes</span>{% endif %}
             {% if f.aviso %}<span class="cartola-nota-fila{% if f.es_cuota %} suave{% endif %}">{{ f.aviso }}</span>{% endif %}
           </div>
+          {% endif %}
+
+          {% if f.reemplaza_id %}
+          <label class="cartola-extra">
+            <input type="checkbox" name="reemplazar_{{ f.i }}"{% if f.reemplaza_seguro %} checked{% endif %}>
+            <span class="cartola-extra-txt">Es la del {{ f.reemplaza_fecha }} «{{ f.reemplaza_desc }}» · reemplazarla</span>
+          </label>
           {% endif %}
 
           {% if f.es_cuota %}

@@ -1,0 +1,76 @@
+{% extends 'finanzas/base.html' %}
+{% load static moneda %}
+{% block title %}Movimientos repetidos · Fintora{% endblock %}
+{% block topbar_sub %}Movimientos repetidos{% endblock %}
+{% block search_placeholder %}Filtrar movimientos{% endblock %}
+{% block extra_head %}<link rel="stylesheet" href="{% static 'css/repetidos.css' %}?v=117">{% endblock %}
+
+{% block content %}
+<div class="sec-top centrado">
+  <a href="{% url 'perfil' %}" class="sec-volver" aria-label="Volver"><i class="fas fa-chevron-left"></i></a>
+  <h1 class="sec-titulo">Repetidos</h1>
+  <span class="sec-hueco" aria-hidden="true"></span>
+</div>
+
+<section class="sec-hero">
+  <span class="sec-label">Movimientos que parecen repetidos</span>
+  <span class="sec-monto">{{ pares|length }}</span>
+  <div class="sec-chips">
+    {% if marcados %}<span class="chip-vidrio"><b>{{ marcados }}</b> listo{{ marcados|pluralize:"s" }} para borrar</span>{% endif %}
+    <span class="chip-vidrio">{% if con_ia %}La IA revisa los dudosos{% else %}Sin IA{% endif %}</span>
+  </div>
+</section>
+
+<section class="sec-hoja fo-hoja fo-form">
+<div class="fo-cuerpo">
+  {% if pares %}
+  <form method="post" class="rp-form">
+    {% csrf_token %}
+    <div class="sec-tip ambar">
+      <span class="sec-tip-icono"><i class="fas fa-clone"></i></span>
+      <span class="sec-tip-txt">
+        <b>Se borra solo lo que esté marcado</b>
+        <span>En cada par queda la primera que anotaste, o la que está unida a una cuota, una cuenta por pagar o una suscripción. Desmarca la que sea otra compra por el mismo monto.</span>
+      </span>
+    </div>
+
+    {% for p in pares %}
+    <div class="rp-par" data-searchable>
+      <div class="rp-fila rp-queda">
+        <span class="rp-icono"><i class="fas fa-check"></i></span>
+        <span class="rp-txt">
+          <span class="rp-titulo">{{ p.queda.descripcion|default:p.queda.get_categoria_display }}</span>
+          <span class="rp-meta">{{ p.queda.fecha|date:"d/m/Y" }} · Se queda</span>
+        </span>
+        <span class="rp-monto{% if p.queda.es_ingreso %} entra{% endif %}">{{ p.queda.monto|money }}</span>
+      </div>
+      <label class="rp-fila rp-borra">
+        <input type="checkbox" name="borrar" value="{{ p.borra.pk }}" class="rp-check"{% if p.marcado %} checked{% endif %} aria-label="Borrar esta copia">
+        <span class="rp-txt">
+          <span class="rp-titulo">{{ p.borra.descripcion|default:p.borra.get_categoria_display }}</span>
+          <span class="rp-meta">{{ p.borra.fecha|date:"d/m/Y" }}{% if p.dias %} · {{ p.dias }} día{{ p.dias|pluralize:"s" }} después{% else %} · el mismo día{% endif %}</span>
+          {% if p.por_ia %}<span class="sec-badge azul chico">La IA dice que es la misma</span>{% elif not p.marcado %}<span class="sec-badge gris chico">Revísala: no es seguro</span>{% endif %}
+        </span>
+        <span class="rp-monto{% if p.borra.es_ingreso %} entra{% endif %}">{{ p.borra.monto|money }}</span>
+      </label>
+    </div>
+    {% endfor %}
+
+    <div class="rp-pie">
+      <button type="submit" class="sec-btn ambar">Borrar las repetidas</button>
+    </div>
+  </form>
+  {% else %}
+  <div class="sec-vacio">
+    <span class="sec-vacio-icono"><i class="fas fa-circle-check"></i></span>
+    <span class="sec-vacio-titulo">No hay movimientos repetidos</span>
+    <span class="sec-vacio-txt">Busco pares con el mismo monto, a menos de tres días y con descripciones parecidas.</span>
+  </div>
+  {% endif %}
+
+  <div class="hint nota-pie">
+    {% if con_ia %}Los pares claros los decide la app. En los dudosos, la IA recibe solo las fechas, el monto, la categoría y las dos descripciones de ese par.{% else %}Con el análisis con IA activado y la política de privacidad al día, la IA también revisa los pares dudosos.{% endif %}
+  </div>
+</div>
+</section>
+{% endblock %}

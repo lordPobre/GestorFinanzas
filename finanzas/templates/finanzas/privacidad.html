@@ -101,7 +101,7 @@
   <tr><td>Mostrarte tus propios números y proyecciones</td><td>Ejecución del servicio que pediste</td></tr>
   <tr><td>Identificarte al entrar</td><td>Ejecución del servicio</td></tr>
   <tr><td>Enviarte el aviso mensual de cobros</td><td>Tu consentimiento, revocable desde el perfil</td></tr>
-  <tr><td>Interpretar tu diagnóstico y explicar tu plan para tu plata con IA</td><td>Tu consentimiento, revocable desde el perfil</td></tr>
+  <tr><td>Interpretar tu diagnóstico, explicar tu plan para tu plata y revisar movimientos que parecen repetidos, con IA</td><td>Tu consentimiento, revocable desde el perfil</td></tr>
   <tr><td>Responder tus preguntas en el chat de ayuda</td><td>Tu consentimiento: el chat se usa solo si escribes en él</td></tr>
   <tr><td>Responderte por correo lo que el chat no supo</td><td>Tu consentimiento, al dejar tu correo en el formulario</td></tr>
   <tr><td>Entrar con Face ID o huella</td><td>Tu consentimiento, por dispositivo y revocable desde el perfil</td></tr>
@@ -165,10 +165,35 @@
   hecha con tus propios números: no es asesoría financiera, de inversión ni
   crediticia.
 </p>
+<h3>Movimientos repetidos</h3>
 <p>
-  Puedes apagar las dos cosas en <em>Perfil → Análisis con IA</em>. Apagado, el
-  análisis y el plan siguen funcionando con los números del motor propio y nada
-  sale del servidor.
+  Al importar una cartola y en <em>Perfil → Movimientos repetidos</em>, la app
+  busca en el servidor movimientos con el mismo monto y fechas cercanas. Los
+  pares claros los decide ella sola. Si un par es dudoso, el análisis con IA
+  está activado y aceptaste esta versión de la política, se le pregunta a la
+  API de Anthropic si los dos son el mismo movimiento.
+</p>
+<div class="legal-par">
+  <div class="legal-par-si">
+    <div class="legal-par-etq"><i class="fas fa-arrow-up-right-from-square"></i>Lo que se envía, exactamente</div>
+    <p>Por cada par dudoso: las dos fechas, el monto, si es gasto o ingreso, la
+    categoría y las dos descripciones, identificado solo como P1, P2, etc.</p>
+  </div>
+  <div class="legal-par-no">
+    <div class="legal-par-etq"><i class="fas fa-lock"></i>Lo que no se envía</div>
+    <p>Tu nombre, tu usuario, tu correo, el resto de tus movimientos, los nombres
+    de las personas que te deben ni ningún identificador de tu cuenta.</p>
+  </div>
+</div>
+<p>
+  La respuesta, sí o no, se guarda 30 días en el servidor para no preguntar dos
+  veces por el mismo par. Se guarda sin las descripciones. Nada se borra solo:
+  tú confirmas qué se reemplaza y qué se borra.
+</p>
+<p>
+  Puedes apagar todo esto en <em>Perfil → Análisis con IA</em>. Apagado, el
+  análisis, el plan y la búsqueda de repetidos siguen funcionando con el motor
+  propio y nada sale del servidor.
 </p>
 <h3>La voz de la esfera</h3>
 <p>
@@ -282,7 +307,7 @@
   </div>
   <div class="legal-proveedor">
     <div class="legal-proveedor-cabeza"><b>Anthropic</b><span class="legal-pais"><i class="fas fa-location-dot"></i>Estados Unidos</span></div>
-    <p>Los agregados numéricos del análisis y los montos del plan para tu plata, si tienes el análisis con IA activado, y el texto de lo que escribas en el chat de ayuda</p>
+    <p>Los agregados numéricos del análisis, los montos del plan para tu plata y las fechas, montos, categorías y descripciones de los pares de movimientos que parecen repetidos, si tienes el análisis con IA activado, y el texto de lo que escribas en el chat de ayuda</p>
   </div>
   <div class="legal-proveedor">
     <div class="legal-proveedor-cabeza"><b>ElevenLabs</b><span class="legal-pais"><i class="fas fa-location-dot"></i>Estados Unidos</span></div>
@@ -365,7 +390,7 @@
   <tr><td>Llevártelos a otro servicio</td><td>El mismo archivo, en formato JSON. También hay exportación a Excel y CSV</td></tr>
   <tr><td>Corregir lo que esté mal</td><td>Cada dato se edita desde su propia pantalla</td></tr>
   <tr><td>Borrarlos</td><td>Perfil → Seguridad → Eliminar mi cuenta</td></tr>
-  <tr><td>Oponerte al análisis, al plan y a la voz con IA</td><td>Perfil → Análisis con IA, apagado</td></tr>
+  <tr><td>Oponerte al análisis, al plan, a la voz y a la revisión de repetidos con IA</td><td>Perfil → Análisis con IA, apagado</td></tr>
   <tr><td>Oponerte al correo mensual</td><td>Perfil → Aviso mensual, apagado</td></tr>
   <tr><td>Reclamar</td><td>Escribe a {{ correo_contacto }}. Si no queda resuelto, puedes recurrir a la Agencia de Protección de Datos Personales</td></tr>
 </table>

@@ -1,7 +1,7 @@
 from django.shortcuts import render
 
-VERSION = '1.7'
-VIGENTE_DESDE = '30 de octubre de 2026'
+VERSION = '1.8'
+VIGENTE_DESDE = '9 de noviembre de 2026'
 
 RESPONSABLE = 'Carlos López Figueroa, Valparaíso, Chile'
 CORREO_CONTACTO = 'soporte@perseustechnology.dev'
@@ -13,10 +13,11 @@ INFORME_OBSERVATORY = f'https://developer.mozilla.org/es/observatory/analyze?hos
 INFORME_INTERNET_NL = f'https://internet.nl/site/{DOMINIO}/'
 
 CAMBIOS = (
-    ('Registro sin confirmar',
-     'Al crear una cuenta, tu nombre de usuario, tu correo y tu contraseña cifrada quedan '
-     'guardados hasta que abres el enlace que te mandamos, como máximo 48 horas. Si no lo '
-     'abres, se borran solos y no queda ninguna cuenta.'),
+    ('Movimientos repetidos con IA',
+     'Si tienes el análisis con IA activado, cuando dos movimientos tienen el mismo monto y '
+     'fechas cercanas pero no está claro si son el mismo, se envían a Anthropic las fechas, el '
+     'monto, la categoría y las descripciones de ese par para que lo revise. No se envía nada '
+     'más de tu cuenta, y nada se borra sin que lo confirmes.'),
 )
 
 MESES_INACTIVIDAD = 12

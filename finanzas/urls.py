@@ -6,7 +6,8 @@ from . import google_login, legal
 from .views import recordatorios
 from .views import voz as vistas_voz
 from .views import (actividad, analisis, cartola, categorias, cuenta, cuotas, descargas,
-                    encuesta, estadisticas, landing, metas, movimientos, passkeys, plan, prestamos, sistema, suscripciones)
+                    encuesta, estadisticas, landing, metas, movimientos, passkeys, plan, prestamos, repetidos,
+                    sistema, suscripciones)
 
 
 class RedireccionPermanente(HttpResponseRedirect):
@@ -44,6 +45,7 @@ urlpatterns = [
     path('cuotas/<int:deuda_id>/eliminar/', cuotas.eliminar_deuda, name='eliminar_deuda'),
 
     path('movimientos/nuevo/', movimientos.registrar_transaccion, name='registrar_transaccion'),
+    path('movimientos/repetidos/', repetidos.repetidos, name='movimientos_repetidos'),
     path('movimientos/nuevo-ingreso/', movimientos.registrar_ingreso, name='registrar_ingreso'),
     path('movimientos/<int:transaccion_id>/editar/', movimientos.editar_transaccion, name='editar_transaccion'),
     path('movimientos/<int:transaccion_id>/eliminar/', movimientos.eliminar_transaccion, name='eliminar_transaccion'),

@@ -469,6 +469,7 @@
 <script src="{% static 'js/pantallas/base-5.js' %}" nonce="{{ csp_nonce }}" data-ruta-inicio="{% url 'dashboard' %}" data-ruta-cuotas="{% url 'deudas' %}" data-ruta-suscripciones="{% url 'suscripciones' %}" data-ruta-prestamos="{% url 'prestamos' %}" data-ruta-metas="{% url 'metas' %}" data-ruta-estadisticas="{% url 'estadisticas' %}" data-ruta-analisis="{% url 'analisis_predictivo' %}" data-ruta-importar="{% url 'importar_cartola' %}" data-ruta-perfil="{% url 'perfil' %}"></script>
 <script src="{% static 'js/pantallas/saludo-cielo.js' %}?v=51" nonce="{{ csp_nonce }}"></script>
 {% block extra_js %}{% endblock %}
+<script src="{% static 'js/mantener-lugar.js' %}?v=119" nonce="{{ csp_nonce }}"></script>
 {% marketing_evento %}
 </body>
 </html>
