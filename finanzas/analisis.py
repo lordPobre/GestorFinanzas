@@ -4,6 +4,7 @@ from datetime import date
 from dateutil.relativedelta import relativedelta
 from django.db.models import Sum
 
+from .dinero import suma
 from .models import Deuda, Transaccion
 
 NOMBRES_MESES = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun',
@@ -58,8 +59,8 @@ def analizar_finanzas(usuario):
     ingreso_mensual = _promedio_con_respaldo(usuario, 'INGRESO')
     gasto_mensual = _promedio_con_respaldo(usuario, 'EGRESO', solo_gastos_unicos=True)
 
-    deuda_total_restante = sum(float(d.monto_restante) for d in deudas_activas)
-    cuota_mensual_total = sum(float(d.monto_cuota) for d in deudas_activas)
+    deuda_total_restante = float(suma(d.monto_restante for d in deudas_activas))
+    cuota_mensual_total = float(suma(d.monto_cuota for d in deudas_activas))
 
     if ingreso_mensual > 0:
         dti = (cuota_mensual_total / ingreso_mensual) * 100
@@ -122,7 +123,7 @@ def analizar_finanzas(usuario):
         tendencia = 'estable'
 
     cuotas_atrasadas = sum(len(d.periodos_atrasados) for d in deudas_activas)
-    monto_atrasado = sum(float(d.monto_atrasado) for d in deudas_activas)
+    monto_atrasado = float(suma(d.monto_atrasado for d in deudas_activas))
 
     return {
         'ingreso_mensual': round(ingreso_mensual),

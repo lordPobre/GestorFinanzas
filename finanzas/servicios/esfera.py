@@ -2,6 +2,7 @@ from datetime import date
 
 from django.core.exceptions import ObjectDoesNotExist
 
+from ..dinero import suma
 from ..templatetags.moneda import money
 from .mes import MESES_LARGOS
 
@@ -95,10 +96,10 @@ def esfera_cuotas(usuario, activas, simbolo='$'):
         texto = 'No tienes compras en cuotas pendientes.'
         return {'estado': 'verde', 'etiqueta': 'Sin cuotas', 'texto': texto, 'frase': texto}
 
-    restante = sum(float(d.monto_restante) for d in activas)
-    del_mes = sum(float(d.monto_cuota) for d in activas)
+    restante = float(suma(d.monto_restante for d in activas))
+    del_mes = float(suma(d.monto_cuota for d in activas))
     atrasadas = sum(len(d.periodos_atrasados) for d in activas)
-    monto_atrasado = sum(float(d.monto_atrasado) for d in activas)
+    monto_atrasado = float(suma(d.monto_atrasado for d in activas))
     pronto = sum(1 for d in activas if d.urgencia not in ('vencida', 'normal'))
     n = len(activas)
     compras = _plural(n, 'compra', 'compras')
@@ -133,7 +134,7 @@ def esfera_me_deben(usuario, personas, simbolo='$'):
         texto = 'Nadie te debe plata ahora.'
         return {'estado': 'verde', 'etiqueta': 'Nadie te debe', 'texto': texto, 'frase': texto}
 
-    total = sum(float(p.total_pendiente) for p in deudores)
+    total = float(suma(p.total_pendiente for p in deudores))
     n = len(deudores)
     texto = (f'{n} {_plural(n, "persona te debe", "personas te deben")} '
              f'{money(total, simbolo)} en total.')
@@ -156,8 +157,8 @@ def esfera_debo(usuario, personas, simbolo='$'):
         texto = 'No le debes plata a nadie.'
         return {'estado': 'verde', 'etiqueta': 'No debes nada', 'texto': texto, 'frase': texto}
 
-    total = sum(float(p.total_pendiente) for p in acreedores)
-    mes = sum(float(p.cobro_del_mes) for p in acreedores)
+    total = float(suma(p.total_pendiente for p in acreedores))
+    mes = float(suma(p.cobro_del_mes for p in acreedores))
     n = len(acreedores)
     texto = (f'Le debes {money(total, simbolo)} a {n} {_plural(n, "persona", "personas")}. '
              f'Este mes pagas {money(mes, simbolo)}.')
@@ -183,7 +184,7 @@ def esfera_suscripciones(usuario, activas, simbolo='$'):
         return {'estado': 'verde', 'etiqueta': 'Sin suscripciones', 'texto': texto, 'frase': texto}
 
     orden = sorted(activas, key=lambda s: float(s.monto), reverse=True)
-    total = sum(float(s.monto) for s in activas)
+    total = float(suma(s.monto for s in activas))
     n = len(activas)
     atrasadas = [s for s in activas if s.periodos_atrasados]
     pendientes = [s for s in activas if not s.pagada_este_mes]
@@ -199,14 +200,14 @@ def esfera_suscripciones(usuario, activas, simbolo='$'):
 
     if atrasadas:
         k = len(atrasadas)
-        monto = sum(float(s.monto_atrasado) for s in atrasadas)
+        monto = float(suma(s.monto_atrasado for s in atrasadas))
         estado, etiqueta = 'rojo', _plural(k, 'Una atrasada', 'Atrasadas')
         texto += f' {_plural(k, "Una está atrasada", f"{k} están atrasadas")}.'
         nombres = ', '.join(s.nombre for s in atrasadas[:3])
         frase += f' {_plural(k, "Tienes atrasada", "Tienes atrasadas")} {nombres}, por {_hablado(monto, usuario)}.'
     elif pendientes:
         k = len(pendientes)
-        monto = sum(float(s.monto) for s in pendientes)
+        monto = float(suma(s.monto for s in pendientes))
         estado, etiqueta = 'amarillo', 'Falta pagar'
         texto += f' Te falta pagar {money(monto, simbolo)} este mes.'
         frase += f' Este mes te falta pagar {_hablado(monto, usuario)} en {k} {_plural(k, "suscripción", "suscripciones")}.'
@@ -227,8 +228,8 @@ def esfera_metas(usuario, metas, simbolo='$'):
         return {'estado': 'neutro', 'etiqueta': 'Sin metas', 'texto': texto, 'frase': texto}
 
     hoy = date.today()
-    ahorrado = sum(float(m.monto_actual) for m in metas)
-    objetivo = sum(float(m.monto_meta) for m in metas)
+    ahorrado = float(suma(m.monto_actual for m in metas))
+    objetivo = float(suma(m.monto_meta for m in metas))
     pct = min(100, round(ahorrado / objetivo * 100)) if objetivo else 0
     vencidas = [m for m in metas if not m.esta_completa and m.fecha_limite and m.fecha_limite < hoy]
 

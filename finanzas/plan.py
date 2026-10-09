@@ -2,6 +2,7 @@ import math
 import re
 from datetime import date
 
+from .dinero import suma
 from .analisis import analizar_finanzas
 from .models import Deuda, MetaAhorro, Suscripcion
 
@@ -83,7 +84,7 @@ def suscripciones_repetidas(usuario):
                  if any(_calza((s.nombre or '').lower(), p) for p in palabras)]
         if len(items) < 2:
             continue
-        mensual = round(sum(float(s.monto) for s in items))
+        mensual = round(suma(s.monto for s in items))
         grupos.append({
             'titulo': f'Tienes {len(items)} {etiqueta}',
             'items': [{'nombre': s.nombre, 'monto': round(float(s.monto))} for s in items],
@@ -107,7 +108,7 @@ def armar_plan(usuario):
 
     metas_fondo = [m for m in MetaAhorro.objects.filter(usuario=usuario)
                    if any(p in (m.nombre or '').lower() for p in PALABRAS_FONDO)]
-    llevas = round(sum(float(m.monto_actual) for m in metas_fondo))
+    llevas = round(suma(m.monto_actual for m in metas_fondo))
     meta = round((a['gasto_mensual'] + a['cuota_mensual_total']) * 3)
 
     sobra = max(0, a['flujo_libre'])

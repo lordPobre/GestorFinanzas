@@ -3,6 +3,7 @@ from datetime import date
 
 from django.urls import reverse
 
+from ..dinero import suma
 from ..models import Deuda, GastoPendiente, Prestamo, Suscripcion, Transaccion
 
 
@@ -130,7 +131,7 @@ def calendario_del_mes(year, month, hoy, eventos_por_dia):
                     'eventos': eventos,
                     'tiene_pagos': bool(eventos),
                     'todo_pagado': bool(eventos) and all(e['estado'] == 'pagado' for e in eventos),
-                    'total_dia': sum(float(e['monto']) for e in eventos),
+                    'total_dia': float(suma(e['monto'] for e in eventos)),
                 })
         calendario_datos.append(fila)
     dias_con_pago = [d for semana in calendario_datos for d in semana if d and d['tiene_pagos']]

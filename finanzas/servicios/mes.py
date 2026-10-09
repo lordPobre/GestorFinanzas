@@ -190,7 +190,7 @@ def salud_financiera(usuario, resumen_actual=None):
     mismas consultas.
     """
     hoy = date.today()
-    r = resumen_actual if resumen_actual is not None else resumen_mes(usuario, hoy.year, hoy.month)
+    r = resumen_actual if resumen_actual is not None else numeros_mes(usuario, hoy.year, hoy.month)
     if r['ingresos'] <= 0:
         return {'salud_score': None, 'salud_label': '', 'salud_nota': '', 'salud_estado': 'neutro'}
 
@@ -275,11 +275,9 @@ def invalidar(usuario_id):
 
 def numeros_mes(usuario, year, month):
     hoy = date.today()
-    if (year, month) == (hoy.year, hoy.month):
-        r = resumen_mes(usuario, year, month)
-        return {k: r[k] for k in CLAVES_NUMEROS}
-
     clave = f'mes:{usuario.pk}:{_version(usuario.pk)}:{year * 100 + month}'
+    if (year, month) == (hoy.year, hoy.month):
+        clave += f':{hoy.isoformat()}'
     datos = cache.get(clave)
     if datos is None:
         r = resumen_mes(usuario, year, month)
