@@ -104,11 +104,14 @@ class MesesCerradosEnCache(TestCase):
                              cuotas_totales=6, fecha_inicio=self.pasado)
         self.assertGreater(mes.numeros_mes(self.ana, self.pasado.year, self.pasado.month)['total_cuotas_mes'], 0)
 
-    def test_el_mes_en_curso_nunca_sale_de_la_cache(self):
+    def test_el_mes_en_curso_se_guarda_el_dia_y_se_renueva_con_cada_cambio(self):
         hoy = date.today()
         with patch('finanzas.servicios.mes.resumen_mes', wraps=mes.resumen_mes) as calculo:
             mes.numeros_mes(self.ana, hoy.year, hoy.month)
             mes.numeros_mes(self.ana, hoy.year, hoy.month)
+            self.assertEqual(calculo.call_count, 1)
+            self._gasto('700', fecha=hoy)
+            self.assertEqual(mes.numeros_mes(self.ana, hoy.year, hoy.month)['gastos'], 700)
         self.assertEqual(calculo.call_count, 2)
 
     def test_la_cache_es_de_cada_usuario(self):

@@ -56,7 +56,15 @@ def texto_post(request, campo, modelo, nombre_campo=None, defecto=''):
     texto = ' '.join(str(request.POST.get(campo, defecto) or '').split())
     return texto[:largo] if largo else texto
 
+def _opciones_de_categorias(usuario):
+    from ..models import Transaccion
+    propias = list(Categoria.objects.filter(usuario=usuario, activa=True).only('slug', 'nombre', 'tipo'))
+    egreso = list(Transaccion.CATEGORIAS_EGRESO) + [(p.slug, p.nombre) for p in propias if p.tipo == 'EGRESO']
+    ingreso = list(Transaccion.CATEGORIAS_INGRESO) + [(p.slug, p.nombre) for p in propias if p.tipo == 'INGRESO']
+    return egreso, ingreso
+
 def contadores(usuario, resumen_actual=None):
+    cats_egreso, cats_ingreso = _opciones_de_categorias(usuario)
     cuotas_activas = Deuda.objects.filter(
         usuario=usuario, cuotas_pagadas__lt=F('cuotas_totales')).count()
     personas = (Persona.objects.filter(usuario=usuario, lado='ME_DEBE')
@@ -73,10 +81,10 @@ def contadores(usuario, resumen_actual=None):
 
         'form_registro': TransaccionForm(initial={'tipo': 'EGRESO', 'fecha': hoy}),
         'hoy_iso': hoy.isoformat(),
-        'cats_egreso': Categoria.opciones(usuario, 'EGRESO'),
-        'cats_ingreso': Categoria.opciones(usuario, 'INGRESO'),
-        'cats_egreso_json': [list(c) for c in Categoria.opciones(usuario, 'EGRESO')],
-        'cats_ingreso_json': [list(c) for c in Categoria.opciones(usuario, 'INGRESO')],
+        'cats_egreso': cats_egreso,
+        'cats_ingreso': cats_ingreso,
+        'cats_egreso_json': [list(x) for x in cats_egreso],
+        'cats_ingreso_json': [list(x) for x in cats_ingreso],
 
         'topes_json': topes_para_anotar(usuario, hoy),
 
