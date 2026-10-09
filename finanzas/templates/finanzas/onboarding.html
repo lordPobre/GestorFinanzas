@@ -13,16 +13,17 @@
 <link rel="stylesheet" href="{% static 'vendor/fontawesome/css/all.min.css' %}">
 <link rel="stylesheet" href="{% static 'css/finapp.css' %}">
 <link rel="stylesheet" href="{% static 'css/tema-vidrio.css' %}">
+  <link rel="stylesheet" href="{% static 'css/sesion.css' %}">
 </head>
 <body class="ob-pagina">
 
 <div class="ob ob-vidrio">
 
-  <div style="display:flex;justify-content:center;align-items:center;gap:11px;margin-bottom:26px">
-    <span class="brand-mark" style="width:44px;height:44px;border-radius:15px">
+  <div class="ob-marca">
+    <span class="brand-mark ob-marca-icono">
       {% include "finanzas/marca_icono.html" %}
     </span>
-    <span style="font-family:'Manrope',sans-serif;font-size:20px;font-weight:800;letter-spacing:-.02em;color:var(--text-primary)">Fintora</span>  </div>
+    <span class="ob-marca-nombre">Fintora</span>  </div>
 
   <div class="pasos" id="pasos">
     <span class="on"></span><span></span><span></span>
@@ -41,8 +42,8 @@
 
         <div class="field">
           <label class="label" for="ingreso_monto">¿Cuánto entra al mes?</label>
-          <input type="number" name="ingreso_monto" id="ingreso_monto" class="input-amount"
-                 style="color:var(--green)" placeholder="0" min="0" autofocus>
+          <input type="number" name="ingreso_monto" id="ingreso_monto" class="input-amount tinta-verde"
+                 placeholder="0" min="0" autofocus>
           <div class="atajos" data-atajos="#ingreso_monto">
             <button type="button" class="chip" data-monto="500000">$500.000</button>
             <button type="button" class="chip" data-monto="800000">$800.000</button>
@@ -56,7 +57,7 @@
         </div>
 
         <button type="button" class="btn btn-purple btn-block" data-siguiente>Continuar</button>
-        <button type="button" class="btn btn-glass btn-block" style="margin-top:9px" data-siguiente>
+        <button type="button" class="btn btn-glass btn-block arriba-9" data-siguiente>
           Prefiero hacerlo después
         </button>
       </div>
@@ -76,17 +77,17 @@
         </div>
 
         <div class="form-row">
-          <div style="flex:1.5">
+          <div class="flex-15">
             <label class="label" for="deuda_cuota">Valor de la cuota</label>
             <input type="number" name="deuda_cuota" id="deuda_cuota" class="mono" placeholder="49000" min="0">
           </div>
-          <div style="flex:1">
+          <div class="flex-1">
             <label class="label" for="deuda_cuotas">En cuántas</label>
             <input type="number" name="deuda_cuotas" id="deuda_cuotas" class="mono" min="1" value="12">
           </div>
         </div>
 
-        <div class="preview-box preview-cuota" id="cajaCuotaOb" style="display:none">
+        <div class="preview-box preview-cuota" id="cajaCuotaOb">
           <div class="preview-eyebrow">Serían</div>
           <div class="preview-fila">
             <span class="preview-etiqueta">Total de la compra</span>
@@ -94,11 +95,11 @@
           </div>
         </div>
 
-        <div style="display:flex;gap:9px">
+        <div class="fila-9">
           <button type="button" class="btn btn-glass" data-atras>Atrás</button>
-          <button type="button" class="btn btn-purple" style="flex:1" data-siguiente>Continuar</button>
+          <button type="button" class="btn btn-purple flex-1" data-siguiente>Continuar</button>
         </div>
-        <button type="button" class="btn btn-glass btn-block" style="margin-top:9px" data-siguiente>
+        <button type="button" class="btn btn-glass btn-block arriba-9" data-siguiente>
           No tengo cuotas
         </button>
       </div>
@@ -114,27 +115,27 @@
 
         <div class="field">
           <label class="label" for="presupuesto">Tu límite mensual</label>
-          <input type="number" name="presupuesto" id="presupuesto" class="input-amount"
-                 style="color:var(--amber)" placeholder="0" min="0">
-          <div class="hint" style="font-size:11px;margin-top:9px" id="notaPresupuesto">
+          <input type="number" name="presupuesto" id="presupuesto" class="input-amount tinta-ambar"
+                 placeholder="0" min="0">
+          <div class="hint txt-12 arriba-9" id="notaPresupuesto">
             Puedes cambiarlo cuando quieras desde tu perfil.
           </div>
         </div>
 
-        <div style="display:flex;gap:9px">
+        <div class="fila-9">
           <button type="button" class="btn btn-glass" data-atras>Atrás</button>
-          <button type="submit" class="btn btn-purple" style="flex:1">
-            <i class="fas fa-check" style="font-size:11px"></i>Entrar a Fintora
+          <button type="submit" class="btn btn-purple flex-1">
+            <i class="fas fa-check ico-11"></i>Entrar a Fintora
           </button>
         </div>
-        <button type="submit" class="btn btn-glass btn-block" style="margin-top:9px">
+        <button type="submit" class="btn btn-glass btn-block arriba-9">
           Saltar y entrar
         </button>
       </div>
     </div>
   </form>
 
-  <div style="text-align:center;font-size:11.5px;color:var(--text-muted);margin-top:18px">
+  <div class="texto-centro txt-12 tinta-apagada arriba-18">
     Todo lo que pongas acá se puede cambiar después.
   </div>
 </div>

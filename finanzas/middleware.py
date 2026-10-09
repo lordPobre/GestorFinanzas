@@ -57,31 +57,8 @@ class DominioCanonicoMiddleware:
 PIXELES_CON_ESTILOS = ('googletagmanager.com', 'google-analytics.com', 'facebook.net',
                        'tiktok.com', 'ads-twitter.com', 'twitter.com')
 
-RUTAS_SIN_ESTILO_EN_LINEA = frozenset({
-    'login', 'verificar_codigo', 'registro', 'confirmar_alta', 'verificar_correo',
-    'recuperar', 'restablecer', 'privacidad', 'terminos', 'seguridad',
-})
-
-RUTAS_SIN_ESTILO_CON_SESION = frozenset({
-    'dashboard', 'perfil', 'registrar_transaccion', 'registrar_ingreso',
-    'editar_transaccion', 'crear_gasto_pendiente',
-    'deudas', 'crear_deuda', 'editar_deuda',
-    'prestamos', 'detalle_persona', 'crear_persona', 'crear_prestamo',
-    'suscripciones', 'crear_suscripcion', 'editar_suscripcion',
-    'metas', 'crear_meta', 'editar_meta',
-    'categorias', 'estadisticas', 'analisis_predictivo', 'plan_plata',
-    'importar_cartola', 'revisar_cartola',
-    'configurar_2fa', 'passkeys', 'sesiones_activas', 'actividad_cuenta', 'eliminar_cuenta',
-})
-
-
-def _atributos_style(request, respuesta):
-    nombre = getattr(getattr(request, 'resolver_match', None), 'url_name', None)
-    usuario = getattr(request, 'user', None)
-    con_sesion = usuario is not None and usuario.is_authenticated
-    sin_estilo = (nombre in RUTAS_SIN_ESTILO_EN_LINEA
-                  or (con_sesion and nombre in RUTAS_SIN_ESTILO_CON_SESION))
-    if sin_estilo and respuesta.status_code < 400:
+def _atributos_style(respuesta):
+    if respuesta.status_code < 400:
         return "style-src-attr 'none'"
     return "style-src-attr 'unsafe-inline'"
 
@@ -119,7 +96,7 @@ class PoliticaContenidoMiddleware:
         con_pixeles = any(p in o for o in extra['script'] for p in PIXELES_CON_ESTILOS)
         estilos = [] if con_pixeles or (settings.DEBUG and respuesta.status_code >= 400) else [
             f"style-src-elem 'self' 'nonce-{request.csp_nonce}'",
-            _atributos_style(request, respuesta),
+            _atributos_style(respuesta),
         ]
 
         respuesta['Content-Security-Policy'] = '; '.join([

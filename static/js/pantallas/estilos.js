@@ -2,6 +2,7 @@
   'use strict';
 
   var HEX = /^#[0-9a-f]{3,8}$/i;
+  var COLOR = /^(#[0-9a-f]{3,8}|var\(--[a-z0-9-]+\)|rgba?\(\s*\d{1,3}\s*,\s*\d{1,3}\s*,\s*\d{1,3}\s*(,\s*(0|1|0?\.\d+)\s*)?\))$/i;
 
   function numero(valor) {
     var n = parseFloat(String(valor || '').replace(',', '.'));
@@ -18,6 +19,10 @@
       var n = numero(el.dataset.anchoPct);
       if (n !== null) el.style.width = n + '%';
     });
+    cada(raiz, '[data-alto-pct]', function (el) {
+      var n = numero(el.dataset.altoPct);
+      if (n !== null) el.style.height = n + '%';
+    });
     cada(raiz, '[data-columnas]', function (el) {
       var n = numero(el.dataset.columnas);
       if (n !== null && n >= 1) el.style.gridTemplateColumns = 'repeat(' + Math.round(n) + ', minmax(0, 1fr))';
@@ -30,11 +35,11 @@
       if (HEX.test(el.dataset.colorVar)) el.style.setProperty('--color', el.dataset.colorVar);
     });
     cada(raiz, '[data-fondo]', function (el) {
-      if (HEX.test(el.dataset.fondo)) el.style.background = el.dataset.fondo;
-      if (HEX.test(el.dataset.tinta || '')) el.style.color = el.dataset.tinta;
+      if (COLOR.test(el.dataset.fondo)) el.style.background = el.dataset.fondo;
+      if (COLOR.test(el.dataset.tinta || '')) el.style.color = el.dataset.tinta;
     });
     cada(raiz, '[data-color]', function (el) {
-      if (HEX.test(el.dataset.color)) el.style.color = el.dataset.color;
+      if (COLOR.test(el.dataset.color)) el.style.color = el.dataset.color;
     });
     cada(raiz, '[data-color-cat]', function (el) {
       var color = el.dataset.colorCat;

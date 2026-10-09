@@ -55,13 +55,14 @@ Lo que queda por mejorar y lo que se resolvió: la entrega de arreglos del 28 de
 | SD4 | Las fotos guardaban la ubicación del EXIF | Se vuelven a guardar sin EXIF | 80 |
 | SD5 | Google sin PKCE ni `nonce` | Agregados | 80 |
 
-## Resuelto en los lotes 86 a 95
+## Resuelto en los lotes 86 a 105
 
 | # | Qué era | Cómo quedó | Lote |
 | --- | --- | --- | --- |
 | D14 | Un registro nuevo entraba a la app y uno con correo repetido volvía al acceso | La cuenta se crea al confirmar el correo. Los dos casos responden igual | 90 |
 | C7 | Los recordatorios se sumaron a la política 1.5 ya publicada | Política 1.6, avisada por correo y con franja en el Inicio | 88 y 89 |
 | D10 | Las reglas ampliadas de `ruff` (S, B, DJ, UP) solo informaban | Los 37 avisos corregidos o justificados en `per-file-ignores`; las cuatro familias están en `select` y el trabajo `estilo-ampliado` se quitó | 91 |
+| D13 | Los atributos `style` seguían permitidos (`style-src-attr 'unsafe-inline'`) | Las etiquetas `<style>` piden nonce y ninguna pantalla usa atributos `style`: `style-src-attr 'none'` en toda respuesta que no sea un error. Los estilos están en `sesion.css`, `acceso.css` y `portada.css`, y lo que depende de los datos va en atributos `data-` que aplica `estilos.js` | 90, 92, 96, 103 a 105 |
 | D7 | Las pruebas de JavaScript cubrían solo el aviso al anotar y el *service worker* | 67 pruebas en `pruebas_js/`: el panel para anotar, lo por pagar en el Inicio, el chat de ayuda, el tour y la esfera. Activar los recordatorios queda a mano | 93 y 95 |
 
 ## Pendiente
@@ -74,7 +75,6 @@ Lo que queda por mejorar y lo que se resolvió: la entrega de arreglos del 28 de
 | D9 | La lectura de una cartola ocurre dentro de la petición, con el límite de 60 s de gunicorn | Los topes evitan que se cuelgue, pero una cartola cerca del tope puede cortarse. Pasarla a una cola (`django-q2` sobre Postgres, con un segundo servicio que corra `qcluster`) cuando los registros muestren cortes reales |
 | D11 | La cobertura mínima está en 74 % (lote 94; `views/movimientos.py` ya está al 100 %) | Subirla 5 puntos por lote, empezando por los módulos con menos cobertura en `coverage report` |
 | D12 | `finapp.css` (unos 165 KB) tiene los ajustes de teléfono de varias pantallas agrupados en la sección de la barra inferior, y encima van `tema-vidrio.css` y diez hojas por pantalla | Funciona, pero el orden de carga decide qué regla gana (el lote 70 lo sufrió). Reordenar una sección a la vez, comparando capturas (ver `docs/ESTILOS.md`) |
-| D13 | Los atributos `style` siguen permitidos (`style-src-attr 'unsafe-inline'`) en parte de las pantallas con sesión | Las etiquetas `<style>` piden nonce (lote 90), el acceso y las legales están en `'none'` (lote 92) y, con sesión, también Inicio, Mi perfil y los movimientos (lote 96) y Cuotas, Me deben y Debo, Suscripciones y Metas (lote 103), y Categorías, Estadísticas, Análisis, el Plan, la cartola y las pantallas de seguridad (lote 104). Siguen la portada, la encuesta y la bienvenida (`onboarding.html`): sacar sus `style=` y sumar sus rutas. La portada comparte la ruta de Inicio, así que necesita su propia condición sin sesión |
 | D15 | DNSSEC y la inscripción en HSTS *preload* | DNSSEC se activa en Cloudflare y en Registrar.eu. El *preload* es difícil de revertir: solo cuando todos los subdominios funcionen por HTTPS |
 | D16 | La voz depende del plan de ElevenLabs | El plan gratuito no permite uso comercial ni voces de Voice Library. En producción hace falta un plan de pago, y su DPA (C5 en [07](07-PRIVACIDAD-Y-CUMPLIMIENTO.md#pendientes-de-cumplimiento)) |
 | D17 | `esfera_salud.py` y `esfera.py` calculan el color de Inicio por separado | Hoy usan los mismos tramos. Si uno cambia, el otro tiene que cambiar igual |

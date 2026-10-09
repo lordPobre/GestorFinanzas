@@ -13,10 +13,10 @@
         <span class="label" data-contador>Encuesta</span>
         <button type="button" class="encuesta-omitir" data-omitir hidden>Omitir</button>
       </div>
-      <div class="progress-bar encuesta-progreso"><div class="progress-fill" data-progreso style="width:100%"></div></div>
+      <div class="progress-bar encuesta-progreso"><div class="progress-fill" data-progreso></div></div>
 
       {% if error %}
-      <div class="badge badge-coral" style="margin-bottom:18px">Faltan respuestas obligatorias: facilidad, secciones y recomendación.</div>
+      <div class="badge badge-coral abajo-18">Faltan respuestas obligatorias: facilidad, secciones y recomendación.</div>
       {% endif %}
 
       <section class="encuesta-paso" data-paso>
@@ -42,7 +42,7 @@
         <h2 class="encuesta-titulo">¿Qué tan fácil te resulta usar la app?</h2>
         <p class="hint">Piensa en tareas del día a día: registrar un gasto, pagar una cuota, revisar el mes.</p>
         <div class="encuesta-cuerpo">
-          <div class="encuesta-escala" style="--cols:5">
+          <div class="encuesta-escala cols-5">
             {% for v in escala5 %}<label class="chip"><input type="radio" name="facilidad" value="{{ v }}">{{ v }}</label>{% endfor %}
           </div>
           <div class="encuesta-extremos"><span>Muy difícil</span><span>Muy fácil</span></div>
@@ -66,14 +66,14 @@
           {% for i, s in secciones %}
           <div class="encuesta-fila" data-seccion="{{ s }}">
             <div class="encuesta-fila-nombre">{{ s }}</div>
-            <div class="encuesta-escala" style="--cols:5">
+            <div class="encuesta-escala cols-5">
               {% for v in escala5 %}<label class="chip" aria-label="{{ s }}: {{ v }} de 5"><input type="radio" name="nota_{{ i }}" value="{{ v }}">{{ v }}</label>{% endfor %}
             </div>
           </div>
           {% endfor %}
           <div class="encuesta-fila">
             <span></span>
-            <div class="encuesta-extremos" style="margin-top:0"><span>Nada conforme</span><span>Muy conforme</span></div>
+            <div class="encuesta-extremos arriba-0"><span>Nada conforme</span><span>Muy conforme</span></div>
           </div>
         </div>
       </section>
@@ -106,7 +106,7 @@
         <h2 class="encuesta-titulo">¿Qué tan probable es que recomiendes la app?</h2>
         <p class="hint">A un amigo o familiar que quiera ordenar sus finanzas.</p>
         <div class="encuesta-cuerpo">
-          <div class="encuesta-escala" style="--cols:11">
+          <div class="encuesta-escala cols-11">
             {% for v in escala10 %}<label class="chip"><input type="radio" name="recomienda" value="{{ v }}">{{ v }}</label>{% endfor %}
           </div>
           <div class="encuesta-extremos"><span>Nada probable</span><span>Muy probable</span></div>

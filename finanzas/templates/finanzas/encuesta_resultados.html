@@ -5,20 +5,20 @@
 <div class="res-cabecera">
   <div>
     <div class="page-title">Resultados de la encuesta</div>
-    <div class="hint" style="margin-top:6px">{{ total }} respuesta{{ total|pluralize }}</div>
+    <div class="hint arriba-6">{{ total }} respuesta{{ total|pluralize }}</div>
   </div>
-  <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
-    <div class="seg" style="padding:3px">
+  <div class="fila-10 alinear-centro envolver">
+    <div class="seg relleno-3">
       {% for g in grupos %}<a href="{{ g.url }}" class="{% if g.on %}on{% endif %}">{{ g.texto }}</a>{% endfor %}
     </div>
-    <a href="{{ url_csv }}" class="btn btn-glass btn-sm"><i class="fas fa-download" style="font-size:10px"></i>CSV</a>
+    <a href="{{ url_csv }}" class="btn btn-glass btn-sm"><i class="fas fa-download ico-10"></i>CSV</a>
   </div>
 </div>
 
 {% if not total %}
-<div class="glass card-lg" style="text-align:center">
-  <div style="font-weight:800">Todavía no hay respuestas</div>
-  <div class="hint" style="margin-top:4px">Cuando alguien complete la encuesta, sus resultados aparecen aquí.</div>
+<div class="glass card-lg texto-centro">
+  <div class="peso-800">Todavía no hay respuestas</div>
+  <div class="hint arriba-4">Cuando alguien complete la encuesta, sus resultados aparecen aquí.</div>
 </div>
 {% else %}
 
@@ -29,17 +29,17 @@
   </div>
   <div class="glass res-kpi">
     <div class="label">Puntaje de recomendación</div>
-    <div class="res-kpi-valor" style="color:{{ nps.color }}">{{ nps.valor }}<small>de -100 a +100</small></div>
+    <div class="res-kpi-valor" data-color="{{ nps.color }}">{{ nps.valor }}<small>de -100 a +100</small></div>
     <div class="res-kpi-nota">% promotores menos % críticos</div>
   </div>
   <div class="glass res-kpi">
     <div class="label">Facilidad de uso</div>
-    <div class="res-kpi-valor" style="color:{{ facilidad.color }}">{{ facilidad.prom }}<small>de 5</small></div>
+    <div class="res-kpi-valor" data-color="{{ facilidad.color }}">{{ facilidad.prom }}<small>de 5</small></div>
     <div class="res-kpi-nota">{{ facilidad.faciles }} la encuentra fácil (4–5)</div>
   </div>
   <div class="glass res-kpi">
     <div class="label">Sección peor evaluada</div>
-    <div class="res-kpi-valor" style="color:var(--coral)">{% if peor %}{{ peor.nombre }}<small>{{ peor.prom }}</small>{% else %}–{% endif %}</div>
+    <div class="res-kpi-valor tinta-coral">{% if peor %}{{ peor.nombre }}<small>{{ peor.prom }}</small>{% else %}–{% endif %}</div>
     <div class="res-kpi-nota">prioridad para mejorar</div>
   </div>
 </div>
@@ -48,20 +48,20 @@
   <div class="glass card-lg">
     <div class="res-titulo"><span>Recomendación (0–10)</span><span class="res-dato">Puntaje {{ nps.valor }}</span></div>
     <div class="res-apilada">
-      <div style="background:var(--coral);width:{{ nps.ancho_criticos }}"></div>
-      <div style="background:#6a6a6a;width:{{ nps.ancho_neutros }}"></div>
-      <div style="background:var(--green);width:{{ nps.ancho_promotores }}"></div>
+      <div data-ancho-pct="{{ nps.ancho_criticos }}" class="fondo-coral"></div>
+      <div data-ancho-pct="{{ nps.ancho_neutros }}" class="fondo-gris"></div>
+      <div data-ancho-pct="{{ nps.ancho_promotores }}" class="fondo-verde"></div>
     </div>
     <div class="res-apilada-leyenda">
-      <span style="color:var(--coral)">Críticos (0–6) · {{ nps.criticos }}</span>
-      <span style="color:var(--text-secondary)">Neutros (7–8) · {{ nps.neutros }}</span>
-      <span style="color:var(--green)">Promotores (9–10) · {{ nps.promotores }}</span>
+      <span class="tinta-coral">Críticos (0–6) · {{ nps.criticos }}</span>
+      <span class="tinta-sec">Neutros (7–8) · {{ nps.neutros }}</span>
+      <span class="tinta-verde">Promotores (9–10) · {{ nps.promotores }}</span>
     </div>
     <div class="res-histograma">
       {% for b in nps.barras %}
       <div class="res-columna" title="{{ b.n }} dieron {{ b.valor }}">
         <span>{{ b.n }}</span>
-        <i style="background:{{ b.color }};height:{{ b.alto }}"></i>
+        <i data-fondo="{{ b.color }}" data-alto-pct="{{ b.alto }}"></i>
       </div>
       {% endfor %}
     </div>
@@ -76,7 +76,7 @@
       {% for f in facilidad.filas %}
       <div class="res-fila-facil">
         <span class="res-fila-etiqueta">{{ f.etiqueta }}</span>
-        <div class="res-pista"><i style="background:{{ f.color }};width:{{ f.ancho }}"></i></div>
+        <div class="res-pista"><i data-fondo="{{ f.color }}" data-ancho-pct="{{ f.ancho }}"></i></div>
         <span class="res-fila-cifra">{{ f.n }} <em>· {{ f.pct }}</em></span>
       </div>
       {% endfor %}
@@ -87,7 +87,7 @@
     <div class="res-titulo">
       <span>Conformidad por sección (1–5)</span>
       <span class="res-leyenda">
-        {% for l in leyenda_notas %}<span><i style="background:{{ l.color }}"></i>{{ l.texto }}</span>{% endfor %}
+        {% for l in leyenda_notas %}<span><i data-fondo="{{ l.color }}"></i>{{ l.texto }}</span>{% endfor %}
       </span>
     </div>
     <div class="res-filas">
@@ -95,16 +95,16 @@
       <div class="res-fila-seccion">
         <span class="res-fila-nombre">{{ s.nombre }}</span>
         <div class="res-pista res-pista-partida">
-          {% for p in s.partes %}<i title="{{ p.titulo }}" style="background:{{ p.color }};width:{{ p.ancho }}"></i>{% endfor %}
+          {% for p in s.partes %}<i title="{{ p.titulo }}" data-fondo="{{ p.color }}" data-ancho-pct="{{ p.ancho }}"></i>{% endfor %}
         </div>
-        <span class="res-fila-cifra"><strong style="color:{{ s.color }}">{{ s.prom }}</strong> <em>{{ s.n }} resp.</em></span>
+        <span class="res-fila-cifra"><strong data-color="{{ s.color }}">{{ s.prom }}</strong> <em>{{ s.n }} resp.</em></span>
       </div>
       {% endfor %}
     </div>
   </div>
 </div>
 
-<div class="glass card-lg" style="margin-top:12px">
+<div class="glass card-lg arriba-12">
   <div class="res-titulo">
     <span>Respuestas escritas</span>
     <form method="get" class="res-buscar">
@@ -113,22 +113,22 @@
       <input type="search" name="q" value="{{ busqueda }}" placeholder="Buscar palabra…" aria-label="Buscar en las respuestas">
     </form>
   </div>
-  <div class="chips" style="margin-top:16px">
-    {% for t in pestanas %}<a href="{{ t.url }}" class="chip {% if t.on %}on{% endif %}" style="white-space:nowrap">{{ t.texto }}<span style="margin-left:6px;opacity:.7;font-size:11px">{{ t.n }}</span></a>{% endfor %}
+  <div class="chips arriba-16">
+    {% for t in pestanas %}<a href="{{ t.url }}" class="chip {% if t.on %}on{% endif %} sin-salto">{{ t.texto }}<span class="izq-6 opaco-70 txt-12">{{ t.n }}</span></a>{% endfor %}
   </div>
-  <div class="hint" style="font-size:12px;margin-top:14px">{{ pregunta_actual }}</div>
+  <div class="hint txt-13 arriba-14">{{ pregunta_actual }}</div>
   <div class="res-comentarios">
     {% for c in comentarios %}
     <div class="res-comentario">
       <div class="res-comentario-texto">{{ c.texto|linebreaksbr }}</div>
-      <span class="res-comentario-nota" style="background:{{ c.fondo }};color:{{ c.color }}">Recomienda {{ c.recomienda }}</span>
+      <span class="res-comentario-nota" data-fondo="{{ c.fondo }}" data-tinta="{{ c.color }}">Recomienda {{ c.recomienda }}</span>
       <div class="res-comentario-meta">{{ c.creada|date:"j M Y" }} · usa la app hace {{ c.antiguedad }} · facilidad {{ c.facilidad }}/5</div>
     </div>
     {% empty %}
     <div class="res-comentario hint">No hay respuestas con ese filtro.</div>
     {% endfor %}
   </div>
-  {% if restantes %}<a href="{{ url_mas }}" class="btn btn-glass btn-sm" style="margin-top:12px">Ver más ({{ restantes }})</a>{% endif %}
+  {% if restantes %}<a href="{{ url_mas }}" class="btn btn-glass btn-sm arriba-12">Ver más ({{ restantes }})</a>{% endif %}
 </div>
 {% endif %}
 {% endblock %}

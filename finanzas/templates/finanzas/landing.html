@@ -23,6 +23,7 @@
   <link rel="stylesheet" href="{% static 'css/finapp.css' %}">
   <link rel="stylesheet" href="{% static 'css/landing-telefono.css' %}">
   <link rel="stylesheet" href="{% static 'css/landing-esfera.css' %}">
+<link rel="stylesheet" href="{% static 'css/portada.css' %}">
   <script src="{% static 'js/pantallas/landing.js' %}" nonce="{{ csp_nonce }}"></script>
   <script type="application/ld+json" nonce="{{ csp_nonce }}">{"@context":"https://schema.org","@graph":[{"@type":"Organization","@id":"https://fintora.cl/#organizacion","name":"Fintora","url":"https://fintora.cl/","logo":"https://fintora.cl/static/img/icon-512.png","sameAs":["https://www.instagram.com/fintora.cl/","https://x.com/fintoracl"]},{"@type":"WebApplication","name":"Fintora","url":"https://fintora.cl/","applicationCategory":"FinanceApplication","operatingSystem":"Web, iOS, Android","inLanguage":"es-CL","description":"Anota gastos, compras en cuotas, lo que te deben y tus suscripciones, y mira cuánto puedes gastar este mes. Gratis y sin pedir la clave del banco.","offers":{"@type":"Offer","price":"0","priceCurrency":"CLP"},"publisher":{"@id":"https://fintora.cl/#organizacion"}},{"@type":"FAQPage","mainEntity":[{"@type":"Question","name":"¿Cuánto cuesta?","acceptedAnswer":{"@type":"Answer","text":"Nada. Crear la cuenta y usar la app es gratis."}},{"@type":"Question","name":"¿Tengo que conectar mi banco?","acceptedAnswer":{"@type":"Answer","text":"No. Fintora no se conecta a tu banco y nunca te va a pedir la clave. Lo que ve es lo que tú anotas o decides subir."}},{"@type":"Question","name":"¿Qué pasa con la cartola que subo?","acceptedAnswer":{"@type":"Answer","text":"Se lee en memoria para sacar los movimientos y las cuotas, y el PDF se descarta ahí mismo. No queda guardado en ninguna parte."}},{"@type":"Question","name":"¿Cómo la instalo en el teléfono?","acceptedAnswer":{"@type":"Answer","text":"En iPhone: abre Fintora en Safari, toca el botón Compartir (el cuadrado con la flecha hacia arriba, abajo al centro), baja y elige “Agregar a inicio”. Luego toca “Agregar”. En Android: abre Fintora en Chrome, toca el menú de los tres puntos arriba a la derecha y elige “Instalar app” o “Agregar a pantalla principal”. El ícono de Fintora queda en tu pantalla de inicio y se abre como cualquier otra app, sin pasar por la tienda."}},{"@type":"Question","name":"¿Puedo llevarme mis datos?","acceptedAnswer":{"@type":"Answer","text":"Sí. Desde tu perfil descargas todo en Excel, CSV o JSON cuando quieras."}},{"@type":"Question","name":"¿Puedo borrar mi cuenta?","acceptedAnswer":{"@type":"Answer","text":"Sí, cuando quieras y desde tu perfil. Se borra la cuenta junto con todo lo que anotaste."}}]}]}</script>
 </head>
@@ -182,7 +183,7 @@
   <div class="lp-cifra-grid">
     <p data-lp-revelar><b>Lo que te queda libre de verdad.</b> <span>Lo que entró, menos tus gastos, las cuotas y lo que todavía tienes por pagar.</span></p>
     <div class="lp-ecuacion" data-lp-hijos>
-      <div class="lp-chip"><span class="lp-op-in"></span><div class="lp-chip-etq">Entró</div><div class="lp-mono lp-chip-monto" style="color:var(--green)">$1.250.000</div></div><span class="lp-op">−</span><div class="lp-chip"><span class="lp-op-in">−</span><div class="lp-chip-etq">Gastos</div><div class="lp-mono lp-chip-monto" style="color:var(--text-primary)">$512.800</div></div><span class="lp-op">−</span><div class="lp-chip"><span class="lp-op-in">−</span><div class="lp-chip-etq">Cuotas</div><div class="lp-mono lp-chip-monto" style="color:var(--amber)">$186.900</div></div><span class="lp-op">−</span><div class="lp-chip"><span class="lp-op-in">−</span><div class="lp-chip-etq">Por pagar</div><div class="lp-mono lp-chip-monto" style="color:var(--coral)">$138.000</div></div><span class="lp-op">=</span>
+      <div class="lp-chip"><span class="lp-op-in"></span><div class="lp-chip-etq">Entró</div><div class="lp-mono lp-chip-monto lp-tinta-verde">$1.250.000</div></div><span class="lp-op">−</span><div class="lp-chip"><span class="lp-op-in">−</span><div class="lp-chip-etq">Gastos</div><div class="lp-mono lp-chip-monto lp-tinta-texto">$512.800</div></div><span class="lp-op">−</span><div class="lp-chip"><span class="lp-op-in">−</span><div class="lp-chip-etq">Cuotas</div><div class="lp-mono lp-chip-monto lp-tinta-ambar">$186.900</div></div><span class="lp-op">−</span><div class="lp-chip"><span class="lp-op-in">−</span><div class="lp-chip-etq">Por pagar</div><div class="lp-mono lp-chip-monto lp-tinta-coral">$138.000</div></div><span class="lp-op">=</span>
       <div class="lp-chip lp-chip-total"><span class="lp-op-in">=</span><div class="lp-chip-etq">Libre</div><div class="lp-mono lp-chip-monto">$412.300</div></div>
     </div>
   </div>
@@ -272,7 +273,7 @@
         <div class="lp-demo-cartola">
           <div class="lp-d-pdf">
             <span class="lp-d-pdf-tag">PDF</span>
-            <div class="lp-d-pdf-lineas"><span style="width:86%"></span><span style="width:64%"></span><span style="width:78%"></span><span style="width:52%"></span><span style="width:72%"></span><span style="width:60%"></span><span style="width:70%"></span></div>
+            <div class="lp-d-pdf-lineas"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
             <div class="lp-d-pdf-scan"></div>
             <div class="lp-d-pdf-nombre">cartola-septiembre.pdf</div>
           </div>
@@ -314,46 +315,46 @@
 <section class="lp-privacidad">
   <div class="lp-priv-grid">
     <div data-lp-hijos>
-      <div style="display:inline-flex;align-items:stretch;transform:rotate(-2.5deg);transform-origin:left center;color:var(--green);font-family:'JetBrains Mono',monospace">
-                <span style="display:inline-flex;align-items:center;justify-content:center;width:38px;border:2px solid var(--green);border-right:none;border-radius:10px 0 0 10px;font-size:13px"><i class="fas fa-fingerprint"></i></span>
-                <span style="display:flex;flex-direction:column;justify-content:center;padding:6px 14px 6px 12px;border:2px solid var(--green);border-radius:0 10px 10px 0;box-shadow:inset 0 0 0 3px var(--fondo-privacidad),inset 0 0 0 4px rgba(83,210,88,.55)">
-                  <span style="font-size:12px;font-weight:600;letter-spacing:.22em">PRIVACIDAD</span>
-                  <span style="font-size:11px;font-weight:600;letter-spacing:.14em">SIN CLAVE DEL BANCO</span>
+      <div class="lp-sello">
+                <span class="lp-sello-icono"><i class="fas fa-fingerprint"></i></span>
+                <span class="lp-sello-texto">
+                  <span class="lp-sello-titulo">PRIVACIDAD</span>
+                  <span class="lp-sello-sub">SIN CLAVE DEL BANCO</span>
                 </span>
               </div>
       <h2>Lo que hacemos con tus datos cabe en una boleta.</h2>
       <p>Fintora no se conecta a tu banco. Todo lo que ve es lo que tú anotas o decides subir, y la cartola se lee en memoria y se descarta ahí mismo.</p>
-      <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:28px">
-        <a href="https://www.ssllabs.com/ssltest/analyze.html?d=fintora.cl" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:12px;padding:8px 16px 8px 8px;border-radius:16px;border:1px solid var(--line);background:rgba(255,255,255,.03);color:var(--text-primary);text-decoration:none">
-          <span style="display:inline-flex;align-items:center;justify-content:center;min-width:44px;height:44px;padding:0 8px;border-radius:12px;background:rgba(83,210,88,.12);color:var(--green);font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:600">A+</span>
-          <span style="display:flex;flex-direction:column;line-height:1.3"><span style="font-size:14px;font-weight:800">SSL Labs</span><span style="font-size:12px;color:var(--text-muted)">Conexión cifrada</span></span>
-          <i class="fas fa-arrow-up-right-from-square" style="font-size:11px;color:var(--text-muted)"></i>
+      <div class="lp-informes">
+        <a href="https://www.ssllabs.com/ssltest/analyze.html?d=fintora.cl" target="_blank" rel="noopener" class="lp-informe">
+          <span class="lp-informe-nota">A+</span>
+          <span class="lp-informe-txt"><span class="lp-informe-nombre">SSL Labs</span><span class="lp-informe-detalle">Conexión cifrada</span></span>
+          <i class="fas fa-arrow-up-right-from-square lp-informe-flecha"></i>
         </a>
-        <a href="https://developer.mozilla.org/es/observatory/analyze?host=fintora.cl" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:12px;padding:8px 16px 8px 8px;border-radius:16px;border:1px solid var(--line);background:rgba(255,255,255,.03);color:var(--text-primary);text-decoration:none">
-          <span style="display:inline-flex;align-items:center;justify-content:center;min-width:44px;height:44px;padding:0 8px;border-radius:12px;background:rgba(83,210,88,.12);color:var(--green);font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:600">A</span>
-          <span style="display:flex;flex-direction:column;line-height:1.3"><span style="font-size:14px;font-weight:800">Mozilla Observatory</span><span style="font-size:12px;color:var(--text-muted)">Cabeceras de seguridad</span></span>
-          <i class="fas fa-arrow-up-right-from-square" style="font-size:11px;color:var(--text-muted)"></i>
+        <a href="https://developer.mozilla.org/es/observatory/analyze?host=fintora.cl" target="_blank" rel="noopener" class="lp-informe">
+          <span class="lp-informe-nota">A</span>
+          <span class="lp-informe-txt"><span class="lp-informe-nombre">Mozilla Observatory</span><span class="lp-informe-detalle">Cabeceras de seguridad</span></span>
+          <i class="fas fa-arrow-up-right-from-square lp-informe-flecha"></i>
         </a>
       </div>
-      <a href="{% url 'seguridad' %}" style="display:inline-flex;align-items:center;gap:8px;margin-top:18px;color:var(--amber);font-size:14px;font-weight:800;text-decoration:none">Cómo se protege tu cuenta<i class="fas fa-arrow-right" style="font-size:11px"></i></a>
+      <a href="{% url 'seguridad' %}" class="lp-enlace-seguridad">Cómo se protege tu cuenta<i class="fas fa-arrow-right lp-ico-11"></i></a>
     </div>
     <div class="lp-boleta" data-lp-revelar>
-      <div style="padding:36px 34px 30px;background:#f3efe6;color:var(--tinta-ambar);font-family:'JetBrains Mono',monospace;font-size:13px;line-height:1.5;-webkit-mask:radial-gradient(circle 7px at 50% 0,#0000 98%,#000) 50% 0/18px 100% repeat-x;mask:radial-gradient(circle 7px at 50% 0,#0000 98%,#000) 50% 0/18px 100% repeat-x">
-                <div style="text-align:center;font-size:15px;font-weight:600;letter-spacing:.12em">FINTORA</div>
-                <div style="text-align:center;font-size:12px;letter-spacing:.08em;opacity:.8;margin-top:4px">BOLETA DE PRIVACIDAD</div>
-                <div style="margin:20px 0 16px;border-top:1.5px dashed rgba(26,18,0,.35)"></div>
-                <div style="display:flex;flex-direction:column;gap:11px">
-                  <div style="display:flex;align-items:baseline;gap:8px"><span style="">Claves del banco pedidas</span><span style="flex:1;border-bottom:1.5px dotted rgba(26,18,0,.35);transform:translateY(-4px)"></span><span style="font-weight:700;">0</span></div>
-                  <div style="display:flex;align-items:baseline;gap:8px"><span style="">Cartolas guardadas</span><span style="flex:1;border-bottom:1.5px dotted rgba(26,18,0,.35);transform:translateY(-4px)"></span><span style="font-weight:700;">0</span></div>
-                  <div style="display:flex;align-items:baseline;gap:8px"><span style="">Datos de tu cuenta compartidos</span><span style="flex:1;border-bottom:1.5px dotted rgba(26,18,0,.35);transform:translateY(-4px)"></span><span style="font-weight:700;">0</span></div>
-                  <div style="display:flex;align-items:baseline;gap:8px"><span style="">Face ID y dos pasos</span><span style="flex:1;border-bottom:1.5px dotted rgba(26,18,0,.35);transform:translateY(-4px)"></span><span style="font-weight:700;">incluido</span></div>
-                  <div style="display:flex;align-items:baseline;gap:8px"><span style="">Excel · CSV · JSON</span><span style="flex:1;border-bottom:1.5px dotted rgba(26,18,0,.35);transform:translateY(-4px)"></span><span style="font-weight:700;">cuando quieras</span></div>
-                  <div style="display:flex;align-items:baseline;gap:8px"><span style="">Borrar tu cuenta</span><span style="flex:1;border-bottom:1.5px dotted rgba(26,18,0,.35);transform:translateY(-4px)"></span><span style="font-weight:700;">cuando quieras</span></div>
+      <div class="lp-boleta-papel">
+                <div class="lp-boleta-titulo">FINTORA</div>
+                <div class="lp-boleta-sub">BOLETA DE PRIVACIDAD</div>
+                <div class="lp-boleta-corte"></div>
+                <div class="lp-boleta-lineas">
+                  <div class="lp-boleta-linea"><span>Claves del banco pedidas</span><span class="lp-boleta-puntos"></span><span class="lp-boleta-valor">0</span></div>
+                  <div class="lp-boleta-linea"><span>Cartolas guardadas</span><span class="lp-boleta-puntos"></span><span class="lp-boleta-valor">0</span></div>
+                  <div class="lp-boleta-linea"><span>Datos de tu cuenta compartidos</span><span class="lp-boleta-puntos"></span><span class="lp-boleta-valor">0</span></div>
+                  <div class="lp-boleta-linea"><span>Face ID y dos pasos</span><span class="lp-boleta-puntos"></span><span class="lp-boleta-valor">incluido</span></div>
+                  <div class="lp-boleta-linea"><span>Excel · CSV · JSON</span><span class="lp-boleta-puntos"></span><span class="lp-boleta-valor">cuando quieras</span></div>
+                  <div class="lp-boleta-linea"><span>Borrar tu cuenta</span><span class="lp-boleta-puntos"></span><span class="lp-boleta-valor">cuando quieras</span></div>
                 </div>
-                <div style="margin:18px 0 14px;border-top:1.5px dashed rgba(26,18,0,.35)"></div>
-                <div style="display:flex;justify-content:space-between;align-items:baseline;font-size:17px;font-weight:600"><span>TOTAL</span><span>$0</span></div>
-                <div style="margin-top:22px;height:44px;background:repeating-linear-gradient(90deg,var(--tinta-ambar) 0 2px,transparent 2px 4px,var(--tinta-ambar) 4px 5px,transparent 5px 8px,var(--tinta-ambar) 8px 11px,transparent 11px 13px)"></div>
-                <div style="margin-top:12px;text-align:center;font-size:12px;opacity:.8">Gracias por no darnos tu clave.</div>
+                <div class="lp-boleta-corte-fin"></div>
+                <div class="lp-boleta-total"><span>TOTAL</span><span>$0</span></div>
+                <div class="lp-boleta-barras"></div>
+                <div class="lp-boleta-pie">Gracias por no darnos tu clave.</div>
               </div>
     </div>
   </div>

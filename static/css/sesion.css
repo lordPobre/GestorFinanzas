@@ -28,6 +28,10 @@
 #campoCuotas, #campoCuotasPersona, #campoCuotasPr { display: none; }
 #cajaIA, #iaContenido, #iaBloqueRecs, #iaBloqueProy, #iaBloqueMotiv { display: none; }
 #btnListo { pointer-events: none; opacity: .45; }
+#cajaCuotaOb { display: none; }
+[data-progreso] { width: 100%; }
+.encuesta-escala.cols-5 { --cols: 5; }
+.encuesta-escala.cols-11 { --cols: 11; }
 
 .ini-aviso-icono.ins-peligro { background: rgba(226, 92, 92, .14) !important; color: #e25c5c !important; }
 .ini-aviso-icono.ins-alerta { background: rgba(255, 170, 44, .14) !important; color: #ffaa2c !important; }
@@ -63,9 +67,16 @@
 .peso-500 { font-weight: 500 !important; }
 .peso-600 { font-weight: 600 !important; }
 .peso-700 { font-weight: 700 !important; }
+.peso-800 { font-weight: 800 !important; }
 .linea-155 { line-height: 1.55 !important; }
+.opaco-70 { opacity: .7 !important; }
 .opaco-75 { opacity: .75 !important; }
 .texto-der { text-align: right !important; }
+.texto-centro { text-align: center !important; }
+.sin-salto { white-space: nowrap !important; }
+.fondo-coral { background: var(--coral) !important; }
+.fondo-gris { background: #6a6a6a !important; }
+.fondo-verde { background: var(--green) !important; }
 
 .sin-margen { margin: 0 !important; }
 .abajo-0 { margin-bottom: 0 !important; }
@@ -82,7 +93,9 @@
 .abajo-16 { margin-bottom: 16px !important; }
 .abajo-18 { margin-bottom: 18px !important; }
 .abajo-20 { margin-bottom: 20px !important; }
+.arriba-0 { margin-top: 0 !important; }
 .arriba-2 { margin-top: 2px !important; }
+.arriba-4 { margin-top: 4px !important; }
 .arriba-5 { margin-top: 5px !important; }
 .arriba-6 { margin-top: 6px !important; }
 .arriba-7 { margin-top: 7px !important; }
@@ -90,8 +103,10 @@
 .arriba-9 { margin-top: 9px !important; }
 .arriba-12 { margin-top: 12px !important; }
 .arriba-14 { margin-top: 14px !important; }
+.arriba-16 { margin-top: 16px !important; }
 .arriba-18 { margin-top: 18px !important; }
 .arriba-20 { margin-top: 20px !important; }
+.izq-6 { margin-left: 6px !important; }
 .izq-7 { margin-left: 7px !important; }
 .der-5 { margin-right: 5px !important; }
 .margen-titulo { margin: 0 0 6px !important; }
@@ -127,6 +142,7 @@
 .sin-desborde { overflow: hidden !important; }
 .relleno-vacio { padding: 26px 20px !important; text-align: center !important; }
 .relleno-36 { padding: 36px 12px !important; }
+.relleno-3 { padding: 3px !important; }
 .enlace-plano { text-decoration: none !important; color: inherit !important; }
 
 .su-marca-gen { background: #ffaa2c24 !important; color: #ffaa2c !important; }
@@ -145,6 +161,9 @@
   background: var(--coral-tenue) !important; border: 1px solid var(--coral-borde) !important;
   font-size: 13px !important; color: var(--text-secondary) !important; line-height: 1.5 !important;
 }
+.ob-marca { display: flex !important; justify-content: center !important; align-items: center !important; gap: 11px !important; margin-bottom: 26px !important; }
+.ob-marca-icono { width: 44px !important; height: 44px !important; border-radius: 15px !important; }
+.ob-marca-nombre { font-family: 'Manrope', sans-serif !important; font-size: 20px !important; font-weight: 800 !important; letter-spacing: -.02em !important; color: var(--text-primary) !important; }
 .btn-coral-lleno { background: var(--coral) !important; color: var(--tinta-coral) !important; }
 
 .swatch { width: 32px !important; height: 32px !important; border-radius: 50% !important; cursor: pointer !important; border: 2px solid transparent; }

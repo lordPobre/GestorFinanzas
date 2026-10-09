@@ -242,7 +242,7 @@ El salto de `0016` a `0100` es inofensivo y renumerar rompería las bases existe
 
 **Por qué:** una etiqueta `<style>` inyectada puede leer datos de la página con selectores; un atributo `style` no puede. Quitar los atributos exige reescribir casi todas las plantillas. Así se cierra lo más riesgoso sin tocarlas.
 
-**Revisar si:** se reescriben las plantillas para sacar los `style=`. Entonces `style-src-attr` puede pasar a `'none'`.
+**Revisar si:** se reescriben las plantillas para sacar los `style=`. Entonces `style-src-attr` puede pasar a `'none'` (hecho en el lote 105).
 
 **Lote 92:** el acceso y las legales ya no tienen `style=` y pasan a `style-src-attr 'none'`. La lista de rutas está en `RUTAS_SIN_ESTILO_EN_LINEA`, en `middleware.py`. Las demás pantallas siguen con `'unsafe-inline'` hasta que se limpien.
 
@@ -251,6 +251,8 @@ El salto de `0016` a `0100` es inofensivo y renumerar rompería las bases existe
 **Lote 103:** Cuotas, Me deben y Debo, Suscripciones y Metas, con sus formularios para crear y editar, quedan sin `style=` y sus rutas se suman a `RUTAS_SIN_ESTILO_CON_SESION`, con las mismas reglas del lote 96. Los cuadros y campos que el JavaScript muestra u oculta (`#cajaPlan`, `#cajaCuota`, `#cajaPr`, `#campoCuotas`, `#campoCuotasPersona`, `#campoCuotasPr`) parten ocultos desde `sesion.css`, sin `!important`, para que el valor en línea del script gane. Por eso `prestamos.js` los muestra con `display: block`: antes borraba el valor y volvía a mandar el atributo, que ya no existe. Las columnas de las cuotas van en `data-columnas`.
 
 **Lote 104:** Categorías, Estadísticas, Análisis, el Plan, la cartola y las pantallas de seguridad del perfil (dos pasos, códigos de respaldo, Face ID, sesiones, actividad y eliminar la cuenta) quedan sin `style=`, y sus rutas se suman a `RUTAS_SIN_ESTILO_CON_SESION`. Con sesión, solo la bienvenida y la encuesta siguen con `'unsafe-inline'`. Lo que el JavaScript cambia en línea parte de reglas sin `!important`: el borde de los colores y el fondo de los íconos al crear o editar una categoría (`.swatch`, `.icono-op` y su clase `on`), el botón «Listo» de los códigos de respaldo (`#btnListo`) y los bloques de la explicación con IA (`#cajaIA`, `#iaContenido`, `#iaBloque…`). Los íconos que los scripts escriben con `innerHTML` usan clases, y el color de un ícono va en `data-color`.
+
+**Lote 105:** la portada, la encuesta y sus resultados, y la bienvenida quedan sin `style=`. Con eso ninguna pantalla los usa y `style-src-attr` pasa a `'none'` en toda respuesta que no sea un error, con o sin sesión: las listas `RUTAS_SIN_ESTILO_EN_LINEA` y `RUTAS_SIN_ESTILO_CON_SESION` se quitan. La portada no carga `sesion.css` ni `tema-vidrio.css`, así que sus clases van en `static/css/portada.css`, con los tamaños tal como estaban; la bienvenida carga `sesion.css`. La escala de la encuesta pasa de `style="--cols:…"` a las clases `cols-5` y `cols-11`, y la regla de `finapp.css` que buscaba `[style*="--cols:11"]` usa la clase. Los resultados de la encuesta traen colores como `var(--text-muted)` o `rgba(…)`, por eso `estilos.js` los acepta en `data-fondo`, `data-tinta` y `data-color`, solo con esa forma. Para que nada nuevo traiga atributos `style`, la prueba revisa todas las plantillas de pantalla y todos los scripts, no una lista.
 
 ### D-31 · Medir antes de optimizar
 

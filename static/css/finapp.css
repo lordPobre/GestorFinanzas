@@ -3263,7 +3263,7 @@ input[type=date]::-webkit-datetime-edit-fields-wrapper { padding: 0; }
   .res-fila-seccion .res-pista { grid-column: 1 / -1; grid-row: 2; }
   .encuesta-fila { grid-template-columns: minmax(0, 1fr); gap: 8px; }
   .encuesta-fila > span:empty { display: none; }
-  .encuesta-escala[style*="--cols:11"] { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+  .encuesta-escala.cols-11 { grid-template-columns: repeat(6, minmax(0, 1fr)); }
 }
 
 .auth {

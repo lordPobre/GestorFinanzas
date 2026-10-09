@@ -20,41 +20,7 @@ SIN_MEDICION = {clave: '' for clave in ('GA4_ID', 'META_PIXEL_ID', 'TIKTOK_PIXEL
                                           'X_EVENTO_REGISTRO', 'PLAUSIBLE_DOMINIO', 'PLAUSIBLE_SCRIPT')}
 ATRIBUTO_STYLE = re.compile(r'\sstyle\s*=')
 SCRIPT_CON_STYLE = re.compile(r'''style\s*=\s*["']|setAttribute\(\s*["']style''')
-LEGALES = ('legal_base.html', 'privacidad.html', 'terminos.html', 'seguridad.html',
-           'marca_icono.html', '_consentimiento.html', '_marketing_head.html')
-SCRIPTS_ACCESO = ('finapp.js', 'dispositivo.js', 'passkeys.js', 'consentimiento.js',
-                  'pantallas/auth-base.js', 'pantallas/auth-base-2.js', 'pantallas/auth-vitrina.js',
-                  'pantallas/login.js', 'pantallas/login-2.js', 'pantallas/registro.js',
-                  'pantallas/restablecer.js', 'pantallas/verificar.js', 'pantallas/legal.js')
-PANTALLAS_CON_SESION = ('base.html', '_aviso_encuesta.html', '_marca.html', '_esfera.html',
-                        'dashboard.html', 'perfil.html', 'form_transaccion.html',
-                        'form_gasto_pendiente.html', 'deudas.html', 'form_deuda.html',
-                        'prestamos.html', 'form_persona.html', 'form_prestamo.html',
-                        'suscripciones.html', 'form_suscripcion.html', 'editar_suscripcion.html',
-                        'metas.html', 'crear_meta.html', 'categorias.html', 'estadisticas.html',
-                        'analisis.html', 'plan.html', '_plan_ia.html', '_mes_nav.html',
-                        'importar_cartola.html', 'revisar_cartola.html', 'configurar_2fa.html',
-                        'codigos_respaldo.html', 'passkeys.html', 'sesiones.html', 'actividad.html',
-                        'eliminar_cuenta.html')
-SCRIPTS_CON_SESION = ('finapp.js', 'tour.js', 'dispositivo.js', 'pantallas/base.js', 'pantallas/base-2.js',
-                      'pantallas/base-3.js', 'pantallas/base-4.js', 'pantallas/base-5.js',
-                      'pantallas/estilos.js', 'pantallas/anotar.js', 'pantallas/anotar-tope.js',
-                      'pantallas/recordatorios.js', 'pantallas/cuenta.js', 'pantallas/secciones.js',
-                      'pantallas/saludo-cielo.js', 'pantallas/dashboard.js', 'pantallas/inicio-cifra.js',
-                      'pantallas/inicio-movimientos.js', 'pantallas/inicio-esfera.js',
-                      'pantallas/form-transaccion.js', 'pantallas/perfil.js', 'pantallas/perfil-2.js',
-                      'pantallas/deudas.js', 'pantallas/form-deuda.js', 'pantallas/prestamos.js',
-                      'pantallas/form-persona.js', 'pantallas/form-prestamo.js',
-                      'pantallas/suscripciones.js', 'pantallas/form-suscripcion.js',
-                      'pantallas/metas.js', 'pantallas/crear-meta.js',
-                      'pantallas/categorias.js', 'pantallas/categorias-2.js', 'pantallas/categorias-topes.js',
-                      'pantallas/estadisticas.js', 'pantallas/estadisticas-2.js',
-                      'pantallas/analisis.js', 'pantallas/analisis-2.js',
-                      'pantallas/plan.js', 'pantallas/plan-proyeccion.js', 'pantallas/plan-simulador.js',
-                      'pantallas/importar-cartola.js', 'pantallas/revisar-cartola.js',
-                      'pantallas/configurar-2fa.js', 'pantallas/codigos-respaldo.js',
-                      'pantallas/passkeys.js', 'passkeys.js')
-
+SCRIPTS_FUERA_DE_LA_PAGINA = ('sw.js',)
 
 def _directivas(respuesta):
     politica = respuesta.headers['Content-Security-Policy']
@@ -91,9 +57,21 @@ class EstilosEnLaPoliticaTests(TestCase):
                 self.assertIn("'nonce-", directivas['style-src-elem'])
                 self.assertEqual(directivas['style-src-attr'], "style-src-attr 'none'")
 
-    def test_la_portada_sin_sesion_sigue_aceptando_atributos_style(self):
-        directivas = _directivas(self.client.get(reverse('dashboard')))
-        self.assertEqual(directivas['style-src-attr'], "style-src-attr 'unsafe-inline'")
+    def test_la_portada_sin_sesion_tampoco_aplica_atributos_style(self):
+        respuesta = self.client.get(reverse('dashboard'))
+        self.assertEqual(_directivas(respuesta)['style-src-attr'], "style-src-attr 'none'")
+        self.assertContains(respuesta, 'css/portada.css')
+        self.assertIsNone(ATRIBUTO_STYLE.search(respuesta.content.decode('utf-8')))
+
+    def test_la_bienvenida_y_la_encuesta_no_aplican_atributos_style(self):
+        ana = User.objects.create_user('ana', 'ana@ejemplo.cl', 'clave-larga-1', is_staff=True)
+        self.client.force_login(ana)
+        for nombre in ('onboarding', 'encuesta', 'encuesta_resultados'):
+            with self.subTest(pagina=nombre):
+                respuesta = self.client.get(reverse(nombre))
+                self.assertEqual(respuesta.status_code, 200)
+                self.assertEqual(_directivas(respuesta)['style-src-attr'], "style-src-attr 'none'")
+                self.assertIsNone(ATRIBUTO_STYLE.search(respuesta.content.decode('utf-8')))
 
     def test_el_acceso_y_las_legales_no_aplican_atributos_style(self):
         for nombre in ('login', 'registro', 'recuperar', 'privacidad', 'terminos', 'seguridad'):
@@ -178,26 +156,15 @@ class PlantillasSinEstiloEnLineaTests(SimpleTestCase):
                      if not p.name.startswith('correo_') and '<style' in p.read_text('utf-8')]
         self.assertEqual(con_style, [])
 
-    def test_el_acceso_y_las_legales_no_traen_atributos_style(self):
-        archivos = [p for p in (PLANTILLAS / 'registration').glob('*.html') if not _es_correo(p)]
-        archivos += [PLANTILLAS / 'finanzas' / nombre for nombre in LEGALES]
-        con_style = [str(p.relative_to(PLANTILLAS)) for p in archivos
-                     if ATRIBUTO_STYLE.search(p.read_text('utf-8'))]
+    def test_ninguna_plantilla_de_pantalla_trae_atributos_style(self):
+        con_style = [str(p.relative_to(PLANTILLAS)) for p in PLANTILLAS.rglob('*.html')
+                     if not _es_correo(p) and ATRIBUTO_STYLE.search(p.read_text('utf-8'))]
         self.assertEqual(con_style, [])
 
-    def test_los_scripts_del_acceso_no_escriben_atributos_style(self):
-        con_style = [nombre for nombre in SCRIPTS_ACCESO
-                     if SCRIPT_CON_STYLE.search((SCRIPTS / nombre).read_text('utf-8'))]
-        self.assertEqual(con_style, [])
-
-    def test_las_pantallas_con_sesion_ya_limpias_no_traen_atributos_style(self):
-        con_style = [nombre for nombre in PANTALLAS_CON_SESION
-                     if ATRIBUTO_STYLE.search((PLANTILLAS / 'finanzas' / nombre).read_text('utf-8'))]
-        self.assertEqual(con_style, [])
-
-    def test_los_scripts_de_esas_pantallas_no_escriben_atributos_style(self):
-        con_style = [nombre for nombre in SCRIPTS_CON_SESION
-                     if SCRIPT_CON_STYLE.search((SCRIPTS / nombre).read_text('utf-8'))]
+    def test_ningun_script_de_la_pagina_escribe_atributos_style(self):
+        con_style = [str(p.relative_to(SCRIPTS)) for p in SCRIPTS.rglob('*.js')
+                     if str(p.relative_to(SCRIPTS)) not in SCRIPTS_FUERA_DE_LA_PAGINA
+                     and SCRIPT_CON_STYLE.search(p.read_text('utf-8'))]
         self.assertEqual(con_style, [])
 
     def test_el_logo_de_una_marca_lleva_sus_colores_en_datos(self):

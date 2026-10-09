@@ -36,6 +36,15 @@ test('el logo de una marca toma su fondo y su tinta', () => {
   assert.equal($('#s').style.color, '#000000');
 });
 
+test('la barra de una encuesta toma su alto, y los colores aceptan var() y rgba()', () => {
+  const { $ } = montar('<i id="b" data-alto-pct="41.5%" data-fondo="var(--surface-2)" data-tinta="rgba(83,210,88,.14)"></i><i id="m" data-fondo="url(x)" data-tinta="var(--x);color:red"></i>');
+  assert.equal($('#b').style.height, '41.5%');
+  assert.equal($('#b').style.background, 'var(--surface-2)');
+  assert.equal($('#b').style.color, 'rgba(83,210,88,.14)');
+  assert.equal($('#m').style.background, undefined);
+  assert.equal($('#m').style.color, undefined);
+});
+
 test('un ícono toma solo su color y un color raro se ignora', () => {
   const { $ } = montar('<i id="c" data-color="#53d258"></i><i id="d" data-color="verde"></i>');
   assert.equal($('#c').style.color, '#53d258');
