@@ -213,4 +213,6 @@
   font-weight: 600 !important; letter-spacing: .34em !important; text-align: center !important; margin-bottom: 14px !important;
 }
 
+.cu-lista > .sec-vacio { grid-column: 1 / -1; }
+
 .sin-transicion *, .sin-transicion *::before, .sin-transicion *::after { transition: none !important; }
