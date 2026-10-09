@@ -25,14 +25,14 @@
 <div class="av-invita" data-politica-pendiente>
   <div class="av-invita-txt">
     <b>Cambió la política de privacidad</b>
-    <span>La versión {{ politica_version }} rige desde el {{ politica_vigente }}. Agrega cuánto se guarda un registro sin confirmar: 48 horas.</span>
+    <span>La versión {{ politica_version }} rige desde el {{ politica_vigente }}.{% for titulo, texto in politica_cambios %} <b>{{ titulo }}:</b> {{ texto }}{% endfor %}</span>
   </div>
   <div class="av-invita-acciones">
     <a href="{% url 'privacidad' %}" class="sec-btn vidrio">Leer la política</a>
     <form method="post" action="{% url 'perfil' %}">
       {% csrf_token %}
       <input type="hidden" name="accion" value="aceptar_politica">
-      <input type="hidden" name="next" value="{% url 'dashboard' %}">
+      <input type="hidden" name="next" value="{{ request.get_full_path }}">
       <button type="submit" class="sec-btn ambar">Aceptar</button>
     </form>
   </div>

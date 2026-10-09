@@ -249,5 +249,6 @@ def dashboard(request):
     context['politica_pendiente'] = context['profile'].politica_version != legal.VERSION
     context['politica_version'] = legal.VERSION
     context['politica_vigente'] = legal.VIGENTE_DESDE
+    context['politica_cambios'] = legal.CAMBIOS
     context['mostrar_encuesta'] = encuesta_mod.debe_mostrar(request)
     return render(request, 'finanzas/dashboard.html', context)
