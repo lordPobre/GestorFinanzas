@@ -5,7 +5,7 @@
 {% block title %}Préstamos · Fintora{% endblock %}
 
 {% block extra_head %}<link rel="stylesheet" href="{% static 'css/inicio-esfera.css' %}">
-<link rel="stylesheet" href="{% static 'css/prestamos-acciones.css' %}?v=86">{% endblock %}
+<link rel="stylesheet" href="{% static 'css/prestamos-acciones.css' %}?v=125">{% endblock %}
 
 {% block content %}
 
@@ -95,6 +95,7 @@
         </div>
         <div class="md-prestamos">
           {% for x in prestamos %}
+          <div class="md-prestamo-fila" data-searchable>
           <button type="button" class="md-prestamo{% if x.esta_pagado %} saldado{% endif %}" {% if not x.esta_pagado %}data-open="#abono{{ x.pk }}" aria-label="Registrar abono de {{ x.descripcion }}"{% endif %}>
             <span class="md-prestamo-cab">
               <span class="md-prestamo-nombre">{{ x.descripcion }}</span>
@@ -104,6 +105,12 @@
             <span class="sec-meta md-prestamo-meta">{% if x.tipo == 'CUOTAS' %}{% if x.esta_pagado %}{{ x.cuotas_totales }} de {{ x.cuotas_totales }} cuotas pagadas{% else %}Cuota {{ x.cuotas_abonadas|add:1 }} de {{ x.cuotas_totales }} · {{ x.monto_cuota|money }}{% endif %}{% else %}Pago único{% if not x.esta_pagado %} · falta {{ x.monto_pendiente|money }}{% endif %}{% endif %}</span>
             <span class="md-barra"><span data-ancho-pct="{{ x.porcentaje }}"></span></span>
           </button>
+          <form method="post" action="{% url 'eliminar_prestamo' x.pk %}"
+                data-confirm="¿Eliminar «{{ x.descripcion }}»?{% if x.abonos.all %} Se borran también sus abonos.{% endif %} {{ persona.nombre }} sigue en la lista.">
+            {% csrf_token %}
+            <button type="submit" class="md-borrar-prestamo" title="Eliminar este préstamo" aria-label="Eliminar el préstamo {{ x.descripcion }}"><i class="fas fa-trash-can"></i></button>
+          </form>
+          </div>
           {% endfor %}
         </div>
         {% else %}

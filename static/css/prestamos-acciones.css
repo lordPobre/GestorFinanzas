@@ -31,3 +31,13 @@
 @media (max-width: 720px) {
   .sec-top + .pr-lados { margin-top: 18px; max-width: none; }
 }
+
+.md-prestamo-fila { display: flex; align-items: stretch; gap: 8px; min-width: 0; }
+.md-prestamo-fila > .md-prestamo { flex: 1; min-width: 0; }
+.md-prestamo-fila > form { display: flex; flex-shrink: 0; margin: 0; }
+.md-borrar-prestamo {
+  display: flex; align-items: center; justify-content: center; width: 44px; min-height: 44px;
+  border-radius: 14px; border: 1px solid rgba(255, 255, 255, .08); background: rgba(255, 255, 255, .04);
+  color: rgba(245, 245, 245, .6); font-size: 13px; cursor: pointer;
+}
+.md-borrar-prestamo:hover, .md-borrar-prestamo:focus-visible { background: rgba(255, 120, 110, .14); border-color: rgba(255, 138, 138, .3); color: var(--coral-texto); }

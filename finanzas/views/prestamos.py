@@ -5,6 +5,7 @@ from django.contrib.auth.decorators import login_required
 from django.db import transaction
 from django.http import Http404, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 
@@ -219,8 +220,9 @@ def eliminar_persona(request, persona_id):
 @login_required(login_url='/login/')
 def eliminar_prestamo(request, prestamo_id):
     prestamo = get_object_or_404(Prestamo, id=prestamo_id, persona__usuario=request.user)
-    persona_id = prestamo.persona.id
+    detalle = reverse('detalle_persona', kwargs={'persona_id': prestamo.persona_id})
     if request.method == 'POST':
+        descripcion = prestamo.descripcion
         prestamo.delete()
-        messages.success(request, 'Préstamo eliminado.')
-    return redirect('detalle_persona', persona_id=persona_id)
+        messages.success(request, f'Eliminaste «{descripcion}».')
+    return redirigir(request, detalle)
