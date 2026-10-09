@@ -5,9 +5,9 @@ from django.urls import path, reverse
 from . import google_login, legal
 from .views import recordatorios
 from .views import voz as vistas_voz
-from .views import (actividad, analisis, cartola, categorias, cuenta, cuotas, descargas,
-                    encuesta, estadisticas, landing, metas, movimientos, passkeys, plan, prestamos, repetidos,
-                    sistema, suscripciones)
+from .views import (actividad, analisis, cartola, categorias, cuenta, cuotas, descargas, encuesta,
+                    estadisticas, landing, metas, movimientos, passkeys, plan, por_pagar,
+                    prestamos, repetidos, sistema, suscripciones)
 
 
 class RedireccionPermanente(HttpResponseRedirect):
@@ -37,6 +37,7 @@ urlpatterns = [
     path('inicio/voz/', vistas_voz.hablar, name='voz_esfera'),
     path('ayuda/contacto/', landing.ayuda_contacto, name='ayuda_contacto'),
 
+    path('por-pagar/', por_pagar.por_pagar, name='por_pagar'),
     path('cuotas/', cuotas.deudas, name='deudas'),
     path('cuotas/nueva/', cuotas.crear_deuda, name='crear_deuda'),
     path('cuotas/<int:deuda_id>/editar/', cuotas.editar_deuda, name='editar_deuda'),

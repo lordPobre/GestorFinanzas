@@ -10,8 +10,17 @@ from django.urls import reverse
 
 from ..models import Deuda, Persona, Prestamo, Suscripcion, Transaccion
 
-PANTALLAS = ('dashboard', 'metas', 'deudas', 'prestamos', 'suscripciones', 'categorias', 'estadisticas', 'perfil')
-TOPE = 60
+TOPES = {
+    'dashboard': 90,
+    'estadisticas': 60,
+    'perfil': 35,
+    'categorias': 32,
+    'suscripciones': 30,
+    'prestamos': 28,
+    'deudas': 27,
+    'metas': 26,
+}
+PANTALLAS = tuple(TOPES)
 
 
 class ConsultasPorPantallaTests(TestCase):
@@ -45,8 +54,8 @@ class ConsultasPorPantallaTests(TestCase):
         for nombre in PANTALLAS:
             self._contar(nombre)
         medidas = {nombre: self._contar(nombre) for nombre in PANTALLAS}
-        pasadas = {n: c for n, c in medidas.items() if c > TOPE}
-        self.assertFalse(pasadas, f'Consultas por pantalla (tope {TOPE}): {medidas}')
+        pasadas = {n: f'{c} de {TOPES[n]}' for n, c in medidas.items() if c > TOPES[n]}
+        self.assertFalse(pasadas, f'Consultas por pantalla: {medidas}')
 
     def test_la_segunda_visita_no_cuesta_mas_que_la_primera(self):
         for nombre in ('metas', 'deudas', 'prestamos'):

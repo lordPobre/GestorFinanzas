@@ -56,6 +56,9 @@
         <a href="{% url 'dashboard' %}" data-label="Inicio" class="nav-item {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
           <i class="fas fa-house"></i><span>Inicio</span>
         </a>
+        <a href="{% url 'por_pagar' %}" data-label="Por pagar" class="nav-item {% if request.resolver_match.url_name == 'por_pagar' %}active{% endif %}">
+          <i class="fas fa-list-check"></i><span>Por pagar</span>
+        </a>
         <a href="{% url 'deudas' %}" data-label="Cuotas" class="nav-item {% if request.resolver_match.url_name == 'deudas' %}active{% endif %}">
           <i class="fas fa-credit-card"></i><span>Cuotas</span>
           {% if cuotas_activas %}<span class="nav-count">{{ cuotas_activas }}</span>{% endif %}
@@ -189,8 +192,8 @@
   <a href="{% url 'dashboard' %}" data-label="Inicio" class="nav-item {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
     <i class="fas fa-house"></i><span>Inicio</span>
   </a>
-  <a href="{% url 'deudas' %}" data-label="Cuotas" class="nav-item {% if request.resolver_match.url_name == 'deudas' %}active{% endif %}">
-    <i class="fas fa-credit-card"></i><span>Cuotas</span>
+  <a href="{% url 'por_pagar' %}" data-label="Por pagar" class="nav-item {% if request.resolver_match.url_name == 'por_pagar' %}active{% endif %}">
+    <i class="fas fa-list-check"></i><span>Por pagar</span>
   </a>
   <a href="{% url 'prestamos' %}" data-label="Préstamos" class="nav-item {% if request.resolver_match.url_name == 'prestamos' %}active{% endif %}">
     <i class="fas fa-hand-holding-dollar"></i><span>Préstamos</span>
@@ -220,6 +223,9 @@
       <button class="modal-close" data-close aria-label="Cerrar"><i class="fas fa-xmark"></i></button>
     </div>
     <div class="hoja-grid">
+      <a href="{% url 'deudas' %}" class="hoja-item">
+        <span class="icon-tile orange"><i class="fas fa-credit-card"></i></span><span>Cuotas</span>
+        {% if cuotas_activas %}<span class="nav-count">{{ cuotas_activas }}</span>{% endif %}</a>
       <a href="{% url 'metas' %}" class="hoja-item">
         <span class="icon-tile orange"><i class="fas fa-bullseye"></i></span><span>Metas</span></a>
       <a href="{% url 'suscripciones' %}" class="hoja-item">

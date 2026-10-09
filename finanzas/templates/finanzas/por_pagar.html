@@ -1,0 +1,83 @@
+{% extends 'finanzas/base.html' %}
+{% load static moneda %}
+{% block title %}Por pagar · Fintora{% endblock %}
+{% block topbar_mes %}{% include 'finanzas/_mes_topbar.html' %}{% endblock %}
+{% block search_placeholder %}Buscar un pago{% endblock %}
+{% block extra_head %}<link rel="stylesheet" href="{% static 'css/mes-elegir.css' %}">
+<link rel="stylesheet" href="{% static 'css/por-pagar.css' %}">{% endblock %}
+
+{% block content %}
+<div class="sec-top">
+  <h1 class="sec-titulo">Por pagar</h1>
+  {% include 'finanzas/_mes_elegir.html' %}
+</div>
+
+<section class="sec-hero pp-hero">
+  <span class="sec-label">{% if falta > 0 %}Te falta pagar {% if mes_sel.es_actual %}este mes{% else %}en {{ nombre_mes|lower }}{% endif %}{% else %}Está todo pagado{% endif %}</span>
+  <span class="sec-monto">{{ falta|money }}</span>
+  {% if total > 0 %}<span class="pp-sub">Ya pagaste {{ pagado|money }} de {{ total|money }}</span>{% endif %}
+</section>
+
+<section class="sec-hoja pp-hoja">
+  {% if secciones %}
+  <div class="pp-filtros" role="group" aria-label="Qué pagos ver" data-pp-filtros>
+    <button type="button" class="on" data-pp-filtro="todo" aria-pressed="true">Todo <b>{{ n_pendientes }}</b></button>
+    {% for f in filtros %}{% if f.cuantos %}
+    <button type="button" data-pp-filtro="{{ f.clave }}" aria-pressed="false">{{ f.nombre }} <b>{{ f.cuantos }}</b></button>
+    {% endif %}{% endfor %}
+  </div>
+
+  {% for clave, titulo, lista in secciones %}
+  <div class="pp-grupo" data-pp-grupo>
+    <span class="pp-grupo-titulo{% if clave == 'atrasado' %} rojo{% endif %}">{{ titulo }}</span>
+    {% for i in lista %}
+    <div class="pp-fila{% if clave == 'atrasado' %} atrasada{% endif %}{% if i.pagado %} pagada{% endif %}" data-pp-tipo="{{ i.filtro }}" data-searchable>
+      <span class="pp-icono {{ i.filtro }}"><i class="fas {{ i.icono_lista }}"></i></span>
+      <span class="pp-txt">
+        <span class="pp-nombre">{{ i.nombre }}</span>
+        <span class="pp-meta">{{ i.detalle }} · {% if i.pagado %}pagado{% if i.fecha_pago %} el {{ i.fecha_pago|date:"j b" }}{% endif %}{% elif clave == 'atrasado' %}venció el {{ i.fecha|date:"j b" }}{% else %}{{ i.fecha|date:"l j"|lower }}{% endif %}</span>
+      </span>
+      <span class="pp-lado">
+        <b class="pp-monto">{{ i.monto|money }}</b>
+        {% if not i.pagado %}
+        <form method="post" action="{{ i.url_pagar }}">
+          {% csrf_token %}
+          <input type="hidden" name="next" value="{{ request.get_full_path }}">
+          <input type="hidden" name="periodo" value="{{ i.periodo }}">
+          <button type="submit" class="pp-pagar" aria-label="Marcar {{ i.nombre }} como pagado">Pagar</button>
+        </form>
+        {% elif i.url_anular %}
+        <form method="post" action="{{ i.url_anular }}" data-confirm="¿Marcar {{ i.nombre }} como no pagado?">
+          {% csrf_token %}
+          <input type="hidden" name="next" value="{{ request.get_full_path }}">
+          <input type="hidden" name="periodo" value="{{ i.periodo }}">
+          <button type="submit" class="pp-deshacer" aria-label="Deshacer el pago de {{ i.nombre }}">Deshacer</button>
+        </form>
+        {% endif %}
+      </span>
+    </div>
+    {% endfor %}
+  </div>
+  {% endfor %}
+  <div class="sec-vacio chico" data-pp-vacio hidden><span class="sec-vacio-txt">Nada de este tipo {% if mes_sel.es_actual %}este mes{% else %}en {{ nombre_mes|lower }}{% endif %}.</span></div>
+  {% else %}
+  <div class="sec-vacio">
+    <span class="sec-vacio-icono"><i class="fas fa-circle-check"></i></span>
+    <span class="sec-vacio-titulo">Nada por pagar {% if mes_sel.es_actual %}este mes{% else %}en {{ nombre_mes|lower }}{% endif %}</span>
+    <span class="sec-vacio-txt">Aquí aparecen tus cuotas, suscripciones, cuentas y lo que les debes a otras personas.</span>
+  </div>
+  {% endif %}
+
+  <div class="pp-atajos">
+    <a href="{% url 'deudas' %}" class="sec-chico">Cuotas</a>
+    <a href="{% url 'suscripciones' %}" class="sec-chico">Suscripciones</a>
+    <a href="{% url 'prestamos' %}?lado=debo" class="sec-chico">Lo que debo a personas</a>
+  </div>
+</section>
+{% endblock %}
+
+{% block modals %}{% include 'finanzas/_mes_modal.html' %}{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/pantallas/por-pagar.js' %}" nonce="{{ csp_nonce }}"></script>
+{% endblock %}
