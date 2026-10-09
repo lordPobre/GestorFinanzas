@@ -4,8 +4,8 @@
     "builder": "NIXPACKS"
   },
   "deploy": {
-    "startCommand": "python manage.py enviar_recordatorios --hilos 8",
-    "cronSchedule": "0 12 * * *",
+    "startCommand": "python manage.py enviar_recordatorios --hilos 8 --a-las 9",
+    "cronSchedule": "0 * * * *",
     "restartPolicyType": "NEVER"
   }
 }

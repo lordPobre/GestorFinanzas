@@ -58,6 +58,7 @@ class UserProfile(models.Model):
     push_resumen   = models.BooleanField(default=False)
     push_montos    = models.BooleanField(default=False)
     push_ultimo_dia = models.DateField(null=True, blank=True)
+    zona_horaria = models.CharField(max_length=64, default='America/Santiago')
 
     esfera_estado_visto = models.CharField(max_length=12, blank=True)
 

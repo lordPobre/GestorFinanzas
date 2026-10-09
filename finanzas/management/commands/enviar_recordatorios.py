@@ -1,5 +1,6 @@
 import logging
 from concurrent.futures import ThreadPoolExecutor
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from django.contrib.auth.models import User
 from django.core.management.base import BaseCommand
@@ -22,12 +23,16 @@ class Command(BaseCommand):
                             help='Manda aunque ya se haya enviado hoy.')
         parser.add_argument('--hilos', type=int, default=1,
                             help='Cuentas que se atienden a la vez (por defecto 1).')
+        parser.add_argument('--a-las', type=int, default=None, dest='a_las',
+                            help='Solo a quienes en su zona horaria sean esa hora (0 a 23).')
 
     def handle(self, *args, **opciones):
         if not push.disponible():
             self.stdout.write(self.style.WARNING('Falta VAPID_PRIVADA: no se manda nada.'))
             return
-        hoy = timezone.localdate()
+        hoy_servidor = timezone.localdate()
+        ahora = timezone.now()
+        a_las = opciones.get('a_las')
         forzar = opciones['forzar']
         hilos = max(1, opciones['hilos'])
         if connection.vendor == 'sqlite':
@@ -36,6 +41,12 @@ class Command(BaseCommand):
 
         def atender(usuario):
             try:
+                hoy = hoy_servidor
+                if a_las is not None:
+                    local = self._ahora_de(usuario, ahora)
+                    if local.hour != a_las:
+                        return None
+                    hoy = local.date()
                 return self._atender(usuario, hoy, forzar)
             finally:
                 if hilos > 1:
@@ -52,6 +63,16 @@ class Command(BaseCommand):
         enviados = sum(n for _, n in hechos)
         self.stdout.write(self.style.SUCCESS(
             f'Recordatorios: {enviados} avisos a {personas} persona{"s" if personas != 1 else ""}.'))
+
+    def _ahora_de(self, usuario, ahora):
+        zona = 'America/Santiago'
+        perfil = UserProfile.objects.filter(usuario=usuario).only('zona_horaria').first()
+        if perfil and perfil.zona_horaria:
+            zona = perfil.zona_horaria
+        try:
+            return ahora.astimezone(ZoneInfo(zona))
+        except (ZoneInfoNotFoundError, ValueError):
+            return ahora.astimezone(ZoneInfo('America/Santiago'))
 
     def _atender(self, usuario, hoy, forzar):
         perfil, _ = UserProfile.objects.get_or_create(usuario=usuario)

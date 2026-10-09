@@ -190,7 +190,7 @@
             {% endfor %}
             <div class="pf-push-pie">
               {% if n_push %}
-              <span class="pf-meta">Salen a las 9:00. Los recibe{{ n_push|pluralize:"n" }} {{ n_push }} aparato{{ n_push|pluralize:"s" }}.</span>
+              <span class="pf-meta">Salen a las 9:00, hora de tu teléfono. Los recibe{{ n_push|pluralize:"n" }} {{ n_push }} aparato{{ n_push|pluralize:"s" }}.</span>
               <button type="button" class="sec-chico" data-push-probar="{% url 'push_probar' %}">Probar aviso</button>
               {% else %}
               <span class="pf-meta">Activa los recordatorios en este aparato para empezar a recibirlos. Lo que elijas aquí vale para todos tus aparatos.</span>

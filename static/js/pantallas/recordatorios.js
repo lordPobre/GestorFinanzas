@@ -37,7 +37,11 @@
       }).then(function (s) {
         return s || reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: bytes(clave) });
       });
-    }).then(function (sub) { return enviar(url, sub.toJSON()); });
+    }).then(function (sub) {
+      var datos = sub.toJSON();
+      try { datos.zona = Intl.DateTimeFormat().resolvedOptions().timeZone || ''; } catch (e) { datos.zona = ''; }
+      return enviar(url, datos);
+    });
   }
   function desactivar(url) {
     return actual().then(function (s) {

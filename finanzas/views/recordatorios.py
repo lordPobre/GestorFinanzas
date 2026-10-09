@@ -1,4 +1,5 @@
 import json
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from django.contrib.auth.decorators import login_required
 from django.core.cache import cache
@@ -6,7 +7,7 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 
 from .. import push
-from ..models import SuscripcionPush
+from ..models import SuscripcionPush, UserProfile
 
 MAX_APARATOS = 10
 SEGUNDOS_ENTRE_PRUEBAS = 30
@@ -30,6 +31,17 @@ def opciones_de(perfil):
                     else 'Apagado: el aviso no muestra la cifra en la pantalla bloqueada')
         filas.append({'campo': campo, 'titulo': titulo, 'nota': nota, 'activo': activo})
     return filas
+
+
+def zona_valida(texto):
+    texto = str(texto or '').strip()
+    if not texto or len(texto) > 64 or '/' not in texto:
+        return ''
+    try:
+        ZoneInfo(texto)
+    except (ZoneInfoNotFoundError, ValueError):
+        return ''
+    return texto
 
 
 def _json(request):
@@ -62,6 +74,9 @@ def suscribir(request):
                   .order_by('-creada').values_list('pk', flat=True)[MAX_APARATOS:])
     if sobran:
         SuscripcionPush.objects.filter(pk__in=sobran).delete()
+    zona = zona_valida(datos.get('zona'))
+    if zona:
+        UserProfile.objects.filter(usuario=request.user).update(zona_horaria=zona)
     return JsonResponse({'ok': True})
 
 
