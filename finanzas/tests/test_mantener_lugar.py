@@ -41,7 +41,7 @@ class VueltaAlMismoLugarTests(TestCase):
         self.assertContains(r, 'data-sin-recargar="eliminar"')
         self.assertContains(r, 'js/pantallas/movimientos-hoja.js')
         self.assertContains(r, reverse('movimientos_repetidos'))
-        self.assertNotContains(r, 'name="next" value="/">')
+        self.assertContains(r, 'name="next" value="/?year=2026&amp;month=8"')
 
     def test_categorias_vuelve_al_mes_elegido(self):
         cat = Categoria.objects.create(usuario=self.ana, nombre='Mascotas')
