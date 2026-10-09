@@ -11,10 +11,10 @@
   <span class="sec-hueco" aria-hidden="true"></span>
 </div>
 
-<section class="sec-hero">
+<section class="sec-hero ses-hero">
+  <span class="fo-icono azul"><i class="fas fa-laptop"></i></span>
   <span class="sec-label">Tu cuenta está abierta en</span>
-  <span class="sec-monto">{{ sesiones|length }}</span>
-  <div class="sec-chips"><span class="chip-vidrio">aparato{{ sesiones|length|pluralize:"s" }}</span></div>
+  <div class="ses-cifra"><span class="ses-numero">{{ sesiones|length }}</span><span class="ses-unidad">aparato{{ sesiones|length|pluralize:"s" }}</span></div>
 </section>
 
 <section class="sec-hoja fo-hoja fo-form fo-azul">
@@ -82,7 +82,7 @@
   </form>
   {% endif %}
 
-  <div class="hint nota-pie">
+  <div class="hint nota-pie ses-nota">
     La hora de «visto» se refresca cada {{ minutos_refresco }} minutos de uso,
     no en cada pantalla: así la lista no cuesta una escritura por clic. Las
     sesiones caducan solas a las 8 horas sin actividad.
