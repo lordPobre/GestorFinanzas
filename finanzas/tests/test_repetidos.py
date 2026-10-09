@@ -175,7 +175,7 @@ class PantallaRepetidosTests(_ConUsuario):
         self.assertTrue(Transaccion.objects.filter(pk=ajeno.pk).exists())
 
 
-class IaRepetidosTests(SimpleTestCase):
+class IaRepetidosTests(TestCase):
 
     def setUp(self):
         cache.clear()
