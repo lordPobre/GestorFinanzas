@@ -1,0 +1,18 @@
+<div class="modal-overlay hoja-overlay" id="modalMes">
+  <div class="modal-box hoja-box caja-400">
+    <div class="modal-head">
+      <div class="modal-title">Elige el mes</div>
+      <button class="modal-close" data-close aria-label="Cerrar"><i class="fas fa-xmark"></i></button>
+    </div>
+    <div class="ini-meses mes-lista">
+      {% for o in mes_sel.opciones %}
+      {% if o.elegido %}
+      <span class="ini-mes-opcion on" aria-current="true"><i class="fas fa-check"></i><span>{{ o.nombre }}</span></span>
+      {% else %}
+      <a href="?mes={{ o.valor }}" class="ini-mes-opcion"><i aria-hidden="true"></i><span>{{ o.nombre }}</span></a>
+      {% endif %}
+      {% endfor %}
+    </div>
+    {% if not mes_sel.es_actual %}<a href="?" class="btn btn-purple btn-block mes-volver">Volver a este mes</a>{% endif %}
+  </div>
+</div>

@@ -3,10 +3,11 @@
 {% load humanize moneda %}
 {% block search_placeholder %}Filtrar categorías{% endblock %}
 {% block title %}Estadísticas · Fintora{% endblock %}
+{% block topbar_mes %}{% include 'finanzas/_mes_topbar.html' %}{% endblock %}
 
 {% block extra_head %}
 <script src="{% static 'vendor/chart/chart.umd.min.js' %}"></script>
-<link rel="stylesheet" href="{% static 'css/mes-elegir.css' %}?v=112">
+<link rel="stylesheet" href="{% static 'css/mes-elegir.css' %}?v=116">
 {% endblock %}
 
 {% block content %}
@@ -114,8 +115,11 @@
 
 {% endblock %}
 
+{% block modals %}
+{% include 'finanzas/_mes_modal.html' %}
+{% endblock %}
+
 {% block extra_js %}
 <script src="{% static 'js/pantallas/estadisticas.js' %}" nonce="{{ csp_nonce }}"></script>
 <script src="{% static 'js/pantallas/estadisticas-2.js' %}" nonce="{{ csp_nonce }}"></script>
-<script src="{% static 'js/pantallas/mes-elegir.js' %}?v=112" nonce="{{ csp_nonce }}"></script>
 {% endblock %}

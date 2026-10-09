@@ -80,4 +80,6 @@ class PantallasConMesTests(TestCase):
         gastado = {c['slug']: c['gastado'] for c in r.context['de_gasto']}
         self.assertEqual(gastado.get('Transporte'), 15000)
         self.assertEqual(gastado.get('Comida'), 0)
-        self.assertContains(r, 'data-mes-elegir')
+        self.assertContains(r, 'id="modalMes"')
+        self.assertContains(r, 'class="topbar-mes"')
+        self.assertContains(r, f'href="?mes={self.valor(self.este)}"')

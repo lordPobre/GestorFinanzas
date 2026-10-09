@@ -1,22 +1,4 @@
-<div class="mes-elegir-fila">
-  <form class="mes-nav mes-elegir" method="get">
-    {% if mes_sel.anterior %}
-    <a href="?mes={{ mes_sel.anterior.valor }}" class="mes-flecha" title="Ver {{ mes_sel.anterior.nombre }}" aria-label="Ver {{ mes_sel.anterior.nombre }}"><i class="fas fa-chevron-left"></i></a>
-    {% else %}
-    <span class="mes-flecha apagada" aria-hidden="true"><i class="fas fa-chevron-left"></i></span>
-    {% endif %}
-    <label class="mes-actual mes-elegir-caja">
-      <select name="mes" class="mes-elegir-select" data-mes-elegir aria-label="Elegir el mes">
-        {% for o in mes_sel.opciones %}<option value="{{ o.valor }}"{% if o.elegido %} selected{% endif %}>{{ o.nombre }}</option>{% endfor %}
-      </select>
-      <i class="fas fa-chevron-down" aria-hidden="true"></i>
-    </label>
-    {% if mes_sel.siguiente %}
-    <a href="?mes={{ mes_sel.siguiente.valor }}" class="mes-flecha" title="Ver {{ mes_sel.siguiente.nombre }}" aria-label="Ver {{ mes_sel.siguiente.nombre }}"><i class="fas fa-chevron-right"></i></a>
-    {% else %}
-    <span class="mes-flecha apagada" aria-hidden="true"><i class="fas fa-chevron-right"></i></span>
-    {% endif %}
-    <noscript><button type="submit" class="mes-hoy mes-elegir-ir">Ver</button></noscript>
-  </form>
-  {% if mes_sel.es_actual %}<span class="mes-ahora">ahora</span>{% else %}<a href="?" class="mes-hoy">Volver a hoy</a>{% endif %}
+<div class="mes-tel">
+  <button type="button" class="ini-top-mes" data-open="#modalMes" aria-label="Elegir el mes">{{ mes_sel.nombre }}<i class="fas fa-chevron-down"></i></button>
+  {% if not mes_sel.es_actual %}<a href="?" class="topbar-mes-hoy">Hoy</a>{% endif %}
 </div>

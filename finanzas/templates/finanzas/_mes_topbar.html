@@ -1,0 +1,6 @@
+<div class="topbar-mes">
+  {% if mes_sel.anterior %}<a href="?mes={{ mes_sel.anterior.valor }}" class="topbar-mes-flecha" title="Ver {{ mes_sel.anterior.nombre }}" aria-label="Ver {{ mes_sel.anterior.nombre }}"><i class="fas fa-chevron-left"></i></a>{% else %}<span class="topbar-mes-flecha apagada" aria-hidden="true"><i class="fas fa-chevron-left"></i></span>{% endif %}
+  <button type="button" class="topbar-mes-nombre mes-abrir" data-open="#modalMes" aria-label="Elegir el mes">{{ mes_sel.nombre }}<i class="fas fa-chevron-down"></i></button>
+  {% if not mes_sel.es_actual %}<a href="?" class="topbar-mes-hoy">Hoy</a>{% endif %}
+  {% if mes_sel.siguiente %}<a href="?mes={{ mes_sel.siguiente.valor }}" class="topbar-mes-flecha" title="Ver {{ mes_sel.siguiente.nombre }}" aria-label="Ver {{ mes_sel.siguiente.nombre }}"><i class="fas fa-chevron-right"></i></a>{% else %}<span class="topbar-mes-flecha apagada" aria-hidden="true"><i class="fas fa-chevron-right"></i></span>{% endif %}
+</div>

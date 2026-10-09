@@ -98,10 +98,10 @@ def plata(txt):
 def texto_de_pdf(binario):
     try:
         from pypdf import PdfReader
-    except ImportError as err:
+    except ImportError as e:
         raise ErrorCartola(
             'Falta la librería para leer PDF. Instálala con: pip install --user pypdf'
-        ) from err
+        ) from e
 
     try:
         lector = PdfReader(binario)
@@ -126,8 +126,8 @@ def texto_de_pdf(binario):
         return '\n'.join(piezas)
     except ErrorCartola:
         raise
-    except Exception as err:
-        raise ErrorCartola('No se pudo abrir el PDF. ¿Seguro que es la cartola?') from err
+    except Exception as e:
+        raise ErrorCartola('No se pudo abrir el PDF. ¿Seguro que es la cartola?') from e
 
 
 def resolver_signos(filas, saldo_inicial):
@@ -200,7 +200,14 @@ def _leer(texto, banco=''):
         parser = BANCOS.get(banco)
         if not parser:
             raise ErrorCartola('Ese banco todavía no está soportado.')
-        return _topar(parser().parsear(texto))
+        try:
+            leida = parser().parsear(texto)
+        except ErrorCartola as elegido:
+            try:
+                return _leer(texto)
+            except ErrorCartola:
+                raise elegido from None
+        return _topar(leida)
 
     for parser in BANCOS.values():
         if parser().reconoce(texto):

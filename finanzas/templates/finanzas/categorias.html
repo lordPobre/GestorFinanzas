@@ -2,10 +2,11 @@
 {% load static %}
 {% load humanize moneda %}
 {% block title %}Categorías · Fintora{% endblock %}
+{% block topbar_mes %}{% include 'finanzas/_mes_topbar.html' %}{% endblock %}
 {% block topbar_sub %}Cómo se ordenan tus movimientos{% endblock %}
 {% block search_placeholder %}Filtrar categorías{% endblock %}
 {% block extra_head %}<link rel="stylesheet" href="{% static 'css/categorias.css' %}?v=86">
-<link rel="stylesheet" href="{% static 'css/mes-elegir.css' %}?v=112">{% endblock %}
+<link rel="stylesheet" href="{% static 'css/mes-elegir.css' %}?v=116">{% endblock %}
 
 {% block content %}
 <div class="sec-top">
@@ -89,6 +90,8 @@
 {% endblock %}
 
 {% block modals %}
+{% include 'finanzas/_mes_modal.html' %}
+
 <div class="modal-overlay" id="modalCat">
   <div class="modal-box caja-420">
     <div class="modal-head">
@@ -258,5 +261,4 @@
 <script src="{% static 'js/pantallas/categorias.js' %}" nonce="{{ csp_nonce }}"></script>
 <script src="{% static 'js/pantallas/categorias-2.js' %}?v=72" nonce="{{ csp_nonce }}"></script>
 <script src="{% static 'js/pantallas/categorias-topes.js' %}?v=86" nonce="{{ csp_nonce }}" data-simbolo="{{ simbolo_moneda }}"></script>
-<script src="{% static 'js/pantallas/mes-elegir.js' %}?v=112" nonce="{{ csp_nonce }}"></script>
 {% endblock %}
