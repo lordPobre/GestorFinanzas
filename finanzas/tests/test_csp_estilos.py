@@ -31,7 +31,11 @@ PANTALLAS_CON_SESION = ('base.html', '_aviso_encuesta.html', '_marca.html', '_es
                         'form_gasto_pendiente.html', 'deudas.html', 'form_deuda.html',
                         'prestamos.html', 'form_persona.html', 'form_prestamo.html',
                         'suscripciones.html', 'form_suscripcion.html', 'editar_suscripcion.html',
-                        'metas.html', 'crear_meta.html')
+                        'metas.html', 'crear_meta.html', 'categorias.html', 'estadisticas.html',
+                        'analisis.html', 'plan.html', '_plan_ia.html', '_mes_nav.html',
+                        'importar_cartola.html', 'revisar_cartola.html', 'configurar_2fa.html',
+                        'codigos_respaldo.html', 'passkeys.html', 'sesiones.html', 'actividad.html',
+                        'eliminar_cuenta.html')
 SCRIPTS_CON_SESION = ('finapp.js', 'tour.js', 'dispositivo.js', 'pantallas/base.js', 'pantallas/base-2.js',
                       'pantallas/base-3.js', 'pantallas/base-4.js', 'pantallas/base-5.js',
                       'pantallas/estilos.js', 'pantallas/anotar.js', 'pantallas/anotar-tope.js',
@@ -42,7 +46,14 @@ SCRIPTS_CON_SESION = ('finapp.js', 'tour.js', 'dispositivo.js', 'pantallas/base.
                       'pantallas/deudas.js', 'pantallas/form-deuda.js', 'pantallas/prestamos.js',
                       'pantallas/form-persona.js', 'pantallas/form-prestamo.js',
                       'pantallas/suscripciones.js', 'pantallas/form-suscripcion.js',
-                      'pantallas/metas.js', 'pantallas/crear-meta.js')
+                      'pantallas/metas.js', 'pantallas/crear-meta.js',
+                      'pantallas/categorias.js', 'pantallas/categorias-2.js', 'pantallas/categorias-topes.js',
+                      'pantallas/estadisticas.js', 'pantallas/estadisticas-2.js',
+                      'pantallas/analisis.js', 'pantallas/analisis-2.js',
+                      'pantallas/plan.js', 'pantallas/plan-proyeccion.js', 'pantallas/plan-simulador.js',
+                      'pantallas/importar-cartola.js', 'pantallas/revisar-cartola.js',
+                      'pantallas/configurar-2fa.js', 'pantallas/codigos-respaldo.js',
+                      'pantallas/passkeys.js', 'passkeys.js')
 
 
 def _directivas(respuesta):
@@ -63,7 +74,7 @@ class EstilosEnLaPoliticaTests(TestCase):
         directivas = _directivas(self.client.get(reverse('categorias')))
         self.assertIn("'nonce-", directivas['style-src-elem'])
         self.assertNotIn('unsafe-inline', directivas['style-src-elem'])
-        self.assertEqual(directivas['style-src-attr'], "style-src-attr 'unsafe-inline'")
+        self.assertEqual(directivas['style-src-attr'], "style-src-attr 'none'")
 
     def test_inicio_perfil_y_movimientos_no_aplican_atributos_style(self):
         ana = User.objects.create_user('ana', 'ana@ejemplo.cl', 'clave-larga-1')
@@ -142,6 +153,22 @@ class CuotasPrestamosSuscripcionesYMetasTests(BaseDosUsuarios):
         metas = self.client.get(reverse('metas'))
         self.assertContains(metas, 'data-pct-var="0"')
         self.assertContains(metas, 'data-color-var="#')
+
+
+@mock.patch.dict(os.environ, SIN_MEDICION)
+class AnalisisCartolaYSeguridadTests(BaseDosUsuarios):
+
+    RUTAS = ('categorias', 'estadisticas', 'analisis_predictivo', 'plan_plata', 'importar_cartola',
+             'configurar_2fa', 'passkeys', 'sesiones_activas', 'actividad_cuenta', 'eliminar_cuenta')
+
+    def test_no_aplican_ni_traen_atributos_style(self):
+        self.client.force_login(self.ana)
+        for nombre in self.RUTAS:
+            with self.subTest(ruta=nombre):
+                respuesta = self.client.get(reverse(nombre))
+                self.assertEqual(respuesta.status_code, 200)
+                self.assertEqual(_directivas(respuesta)['style-src-attr'], "style-src-attr 'none'")
+                self.assertIsNone(ATRIBUTO_STYLE.search(respuesta.content.decode('utf-8')))
 
 
 class PlantillasSinEstiloEnLineaTests(SimpleTestCase):

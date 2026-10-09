@@ -17,13 +17,13 @@
 <section class="sec-hoja fo-hoja fo-form fo-rojo">
 <div class="fo-cuerpo">
 
-  <div class="glass card-lg borde-coral" style="margin-bottom:16px">
-    <div style="display:flex;gap:14px;align-items:flex-start;margin-bottom:18px">
-      <span class="icon-tile coral" style="width:42px;height:42px;border-radius:15px;font-size:16px;flex-shrink:0">
+  <div class="glass card-lg borde-coral abajo-16">
+    <div class="fila-14 alinear-inicio abajo-18">
+      <span class="icon-tile coral tile-42">
         <i class="fas fa-triangle-exclamation"></i>
       </span>
       <div>
-        <div class="page-title" style="margin:0 0 6px">Esto no se puede deshacer</div>
+        <div class="page-title margen-titulo">Esto no se puede deshacer</div>
         <div class="hint">
           Al eliminar la cuenta se borra todo de inmediato y para siempre.
           No hay copia que puedas pedirnos después.
@@ -31,43 +31,43 @@
       </div>
     </div>
 
-    <div class="label" style="margin-bottom:10px">Se va a borrar</div>
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:9px;margin-bottom:18px">
-      <div class="preview-box" style="margin:0">
-        <div class="mono" style="font-size:19px">{{ resumen.movimientos }}</div>
-        <div style="font-size:11.5px;color:var(--text-secondary)">movimientos</div>
+    <div class="label abajo-10">Se va a borrar</div>
+    <div class="rejilla-130 abajo-18">
+      <div class="preview-box sin-margen">
+        <div class="mono txt-19">{{ resumen.movimientos }}</div>
+        <div class="txt-12 tinta-sec">movimientos</div>
       </div>
-      <div class="preview-box" style="margin:0">
-        <div class="mono" style="font-size:19px">{{ resumen.cuotas }}</div>
-        <div style="font-size:11.5px;color:var(--text-secondary)">compras en cuotas</div>
+      <div class="preview-box sin-margen">
+        <div class="mono txt-19">{{ resumen.cuotas }}</div>
+        <div class="txt-12 tinta-sec">compras en cuotas</div>
       </div>
-      <div class="preview-box" style="margin:0">
-        <div class="mono" style="font-size:19px">{{ resumen.personas }}</div>
-        <div style="font-size:11.5px;color:var(--text-secondary)">personas que te deben</div>
+      <div class="preview-box sin-margen">
+        <div class="mono txt-19">{{ resumen.personas }}</div>
+        <div class="txt-12 tinta-sec">personas que te deben</div>
       </div>
-      <div class="preview-box" style="margin:0">
-        <div class="mono" style="font-size:19px">{{ resumen.metas }}</div>
-        <div style="font-size:11.5px;color:var(--text-secondary)">metas de ahorro</div>
+      <div class="preview-box sin-margen">
+        <div class="mono txt-19">{{ resumen.metas }}</div>
+        <div class="txt-12 tinta-sec">metas de ahorro</div>
       </div>
-      <div class="preview-box" style="margin:0">
-        <div class="mono" style="font-size:19px">{{ resumen.suscripciones }}</div>
-        <div style="font-size:11.5px;color:var(--text-secondary)">suscripciones</div>
+      <div class="preview-box sin-margen">
+        <div class="mono txt-19">{{ resumen.suscripciones }}</div>
+        <div class="txt-12 tinta-sec">suscripciones</div>
       </div>
     </div>
 
-    <div class="hint" style="margin-bottom:0">
+    <div class="hint abajo-0">
       Tu perfil, tu foto, tus categorías propias, tu presupuesto y la
       verificación en dos pasos se van con la cuenta.
     </div>
   </div>
 
-  <div class="glass card" style="margin-bottom:16px;display:flex;gap:13px;align-items:flex-start">
+  <div class="glass card abajo-16 fila-13 alinear-inicio">
     <span class="icono-aviso ambar">
       <i class="fas fa-download"></i>
     </span>
     <div>
-      <div class="row-title" style="margin-bottom:3px">Antes de irte, llévate tus datos</div>
-      <div class="row-meta" style="margin-bottom:11px">
+      <div class="row-title abajo-3">Antes de irte, llévate tus datos</div>
+      <div class="row-meta abajo-11">
         Un archivo con todo lo que la app guarda de ti. Después de eliminar la
         cuenta ya no se puede generar.
       </div>
@@ -88,20 +88,20 @@
       {% if tiene_password %}
       <label class="label" for="password">Tu contraseña</label>
       <input type="password" name="password" id="password" autocomplete="current-password" required>
-      <div class="hint" style="font-size:11.5px;margin-top:7px">
+      <div class="hint txt-12 arriba-7">
         Se pide otra vez: tener la sesión abierta no basta para borrar tu historial.
       </div>
       {% else %}
       <label class="label" for="password">Tu nombre de usuario</label>
       <input type="text" name="password" id="password" autocomplete="off"
              placeholder="{{ request.user.username }}" required>
-      <div class="hint" style="font-size:11.5px;margin-top:7px">
+      <div class="hint txt-12 arriba-7">
         Entraste con Google, así que no hay contraseña que comprobar.
       </div>
       {% endif %}
     </div>
 
-    <div style="display:flex;gap:10px;flex-wrap:wrap">
+    <div class="fila-10 envolver">
       <button type="submit" class="btn btn-red">Eliminar mi cuenta para siempre</button>
       <a href="{% url 'perfil' %}" class="btn btn-glass">Cancelar</a>
     </div>

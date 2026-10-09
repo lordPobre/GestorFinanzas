@@ -48,10 +48,10 @@
     {% for r in ranking %}
     <div class="es-cat" data-searchable data-cat-total="{{ r.total|floatformat:'0u' }}" data-cat-color="{{ r.color }}">
       <div class="es-cat-cab">
-        <span class="es-cat-nombre"><i style="background:{{ r.color }}"></i>{{ r.label }}</span>
+        <span class="es-cat-nombre"><i data-fondo="{{ r.color }}"></i>{{ r.label }}</span>
         <span class="es-cat-monto">{{ r.total|money }}</span>
       </div>
-      <div class="es-cat-barra"><span style="width:{{ r.ancho }}%;background:{{ r.color }}"></span></div>
+      <div class="es-cat-barra"><span data-ancho-pct="{{ r.ancho }}" data-fondo="{{ r.color }}"></span></div>
       {% if r.delta != None %}
       <span class="es-cat-delta {% if r.subio %}sube{% else %}baja{% endif %}">{% if r.subio %}+{% endif %}{{ r.delta }}% que el mes pasado</span>
       {% else %}

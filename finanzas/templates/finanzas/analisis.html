@@ -48,23 +48,23 @@
     </span>
   </button>
 
-  <div class="an-ia-caja" id="cajaIA" style="display:none" data-spot>
+  <div class="an-ia-caja" id="cajaIA" data-spot>
     <div class="an-ia-cab">
       <span class="an-ia-icono"><i></i><i></i><i></i></span>
       <b>En palabras simples</b>
     </div>
     <div class="hint an-ia-estado" id="iaEstado">Leyendo tus números…</div>
-    <div id="iaContenido" style="display:none">
+    <div id="iaContenido">
       <div class="ia-diag" id="iaDiagnostico"></div>
-      <div id="iaBloqueRecs" style="margin-top:18px;display:none">
+      <div id="iaBloqueRecs" class="arriba-18">
         <div class="ia-label">Qué hacer</div>
-        <div style="display:flex;flex-direction:column;gap:10px" id="iaRecs"></div>
+        <div class="columna-10" id="iaRecs"></div>
       </div>
-      <div id="iaBloqueProy" style="margin-top:18px;display:none">
+      <div id="iaBloqueProy" class="arriba-18">
         <div class="ia-label">Si mantienes el ritmo</div>
         <div class="ia-proy" id="iaProyeccion"></div>
       </div>
-      <div id="iaBloqueMotiv" class="ia-cierre" style="margin-top:18px;display:none">
+      <div id="iaBloqueMotiv" class="ia-cierre arriba-18">
         <div class="ia-cierre-txt" id="iaMotivacional"></div>
       </div>
     </div>
@@ -81,7 +81,7 @@
   <h2 class="sec-subtitulo">Tu riesgo con las deudas</h2>
   <div class="an-riesgo nivel-{{ analisis.riesgo_nivel }}">
     <div class="an-riesgo-cab">
-      <span class="an-riesgo-anillo" style="--pct:{{ analisis.riesgo_score }}"><span>{{ analisis.riesgo_score }}</span></span>
+      <span class="an-riesgo-anillo" data-pct-var="{{ analisis.riesgo_score }}"><span>{{ analisis.riesgo_score }}</span></span>
       <span class="sec-txt">
         <span class="sec-nombre">Riesgo {{ analisis.riesgo_nivel }}</span>
         <span class="sec-meta">{{ analisis.dti }}% de lo que entra va a cuotas{% if analisis.fecha_libre_deudas %} · sales de deuda en {{ analisis.fecha_libre_deudas|date:"F Y" }}{% endif %}</span>
@@ -126,8 +126,8 @@
     <div class="an-mes{% if f.es_mes_actual %} actual{% endif %}">
       <span class="an-mes-nombre">{{ f.mes }}</span>
       <span class="an-mes-barra">
-        {% if f.pagado %}<span class="pagado" style="width:{% widthratio f.pagado f.total 100 %}%"></span>{% endif %}
-        {% if f.pendiente %}<span class="pendiente" style="width:{% widthratio f.pendiente f.total 100 %}%"></span>{% endif %}
+        {% if f.pagado %}<span class="pagado" data-ancho-pct="{% widthratio f.pagado f.total 100 %}"></span>{% endif %}
+        {% if f.pendiente %}<span class="pendiente" data-ancho-pct="{% widthratio f.pendiente f.total 100 %}"></span>{% endif %}
       </span>
       <span class="an-mes-monto">{{ f.total|money }}</span>
       {% if f.es_mes_actual %}<span class="sec-badge ambar">Ahora</span>{% elif f.es_pasado and f.pendiente %}<span class="sec-badge rojo">Impago</span>{% elif f.es_pasado %}<span class="sec-badge verde">Al día</span>{% else %}<span class="sec-badge gris">Viene</span>{% endif %}

@@ -33,6 +33,9 @@
       if (HEX.test(el.dataset.fondo)) el.style.background = el.dataset.fondo;
       if (HEX.test(el.dataset.tinta || '')) el.style.color = el.dataset.tinta;
     });
+    cada(raiz, '[data-color]', function (el) {
+      if (HEX.test(el.dataset.color)) el.style.color = el.dataset.color;
+    });
     cada(raiz, '[data-color-cat]', function (el) {
       var color = el.dataset.colorCat;
       if (!HEX.test(color)) return;

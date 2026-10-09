@@ -69,6 +69,9 @@ RUTAS_SIN_ESTILO_CON_SESION = frozenset({
     'prestamos', 'detalle_persona', 'crear_persona', 'crear_prestamo',
     'suscripciones', 'crear_suscripcion', 'editar_suscripcion',
     'metas', 'crear_meta', 'editar_meta',
+    'categorias', 'estadisticas', 'analisis_predictivo', 'plan_plata',
+    'importar_cartola', 'revisar_cartola',
+    'configurar_2fa', 'passkeys', 'sesiones_activas', 'actividad_cuenta', 'eliminar_cuenta',
 })
 
 

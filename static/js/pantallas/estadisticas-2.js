@@ -64,9 +64,9 @@
     });
   } else if (cuotasEl) {
     cuotasEl.parentElement.innerHTML =
-      '<div class="empty" style="padding:36px 12px">' +
-      '<i class="fas fa-credit-card" style="font-size:24px"></i>' +
-      '<div class="empty-title" style="font-size:14px">Sin cuotas activas</div>' +
-      '<div class="empty-text" style="font-size:11.5px">No tienes compras a plazo por pagar.</div></div>';
+      '<div class="empty relleno-36">' +
+      '<i class="fas fa-credit-card ico-24"></i>' +
+      '<div class="empty-title txt-14">Sin cuotas activas</div>' +
+      '<div class="empty-text txt-12">No tienes compras a plazo por pagar.</div></div>';
   }
 })();

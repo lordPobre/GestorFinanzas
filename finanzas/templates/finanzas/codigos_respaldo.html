@@ -21,7 +21,7 @@
     
 
         <div class="aviso-2fa">
-      <i class="fas fa-triangle-exclamation" style="font-size:12px;flex-shrink:0;margin-top:2px"></i>
+      <i class="fas fa-triangle-exclamation ico-12 sin-encoger arriba-2"></i>
       <div>Esta es la única vez que los verás. Cópialos ahora.</div>
     </div>
 
@@ -29,12 +29,12 @@
       {% for c in codigos %}<span class="codigo-respaldo">{{ c }}</span>{% endfor %}
     </div>
 
-    <div style="display:flex;gap:9px;margin:18px 0">
-      <button type="button" class="btn btn-glass" style="flex:1" id="btnCopiar">
-        <i class="fas fa-copy" style="font-size:11px"></i>Copiar todos
+    <div class="fila-9 margen-v-18">
+      <button type="button" class="btn btn-glass flex-1" id="btnCopiar">
+        <i class="fas fa-copy ico-11"></i>Copiar todos
       </button>
-      <button type="button" class="btn btn-glass" style="flex:1" id="btnDescargar">
-        <i class="fas fa-download" style="font-size:11px"></i>Descargar
+      <button type="button" class="btn btn-glass flex-1" id="btnDescargar">
+        <i class="fas fa-download ico-11"></i>Descargar
       </button>
     </div>
 
@@ -43,8 +43,8 @@
       <span>Ya los guardé en un lugar seguro</span>
     </label>
 
-    <a href="{% url 'perfil' %}" class="btn btn-purple btn-block" id="btnListo"
-       style="margin-top:14px;pointer-events:none;opacity:.45">Continuar</a>
+    <a href="{% url 'perfil' %}" class="btn btn-purple btn-block arriba-14" id="btnListo"
+      >Continuar</a>
   </div>
 </div>
 </section>

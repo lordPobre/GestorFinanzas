@@ -9,9 +9,9 @@
   document.getElementById('btnCopiar').addEventListener('click', function () {
     var b = this;
     navigator.clipboard.writeText(texto).then(function () {
-      b.innerHTML = '<i class="fas fa-check" style="font-size:11px"></i>Copiados';
+      b.innerHTML = '<i class="fas fa-check ico-11"></i>Copiados';
       setTimeout(function () {
-        b.innerHTML = '<i class="fas fa-copy" style="font-size:11px"></i>Copiar todos';
+        b.innerHTML = '<i class="fas fa-copy ico-11"></i>Copiar todos';
       }, 2000);
     });
   });

@@ -54,7 +54,7 @@
 
   btn.addEventListener('click', function () {
     btn.disabled = true;
-    btn.innerHTML = '<i class="fas fa-circle-notch fa-spin" style="font-size:11px"></i>Pensando…';
+    btn.innerHTML = '<i class="fas fa-circle-notch fa-spin ico-11"></i>Pensando…';
     caja.style.display = 'block';
     contenido.style.display = 'none';
     estado.style.display = 'block';
@@ -76,7 +76,7 @@
       })
       .finally(function () {
         btn.disabled = false;
-        btn.innerHTML = '<i class="fas fa-wand-magic-sparkles" style="font-size:11px"></i>Explicarlo con IA';
+        btn.innerHTML = '<i class="fas fa-wand-magic-sparkles ico-11"></i>Explicarlo con IA';
       });
   });
 })();

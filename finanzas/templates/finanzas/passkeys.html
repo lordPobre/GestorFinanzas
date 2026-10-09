@@ -19,12 +19,12 @@
 <section class="sec-hoja fo-hoja fo-form fo-verde">
 <div class="fo-cuerpo">
 
-  <div class="glass card" style="margin-bottom:16px;display:flex;gap:13px;align-items:flex-start">
-    <span class="icono-aviso ambar" style="font-size:14px">
+  <div class="glass card abajo-16 fila-13 alinear-inicio">
+    <span class="icono-aviso ambar txt-14">
       <i class="fas fa-fingerprint"></i>
     </span>
     <div>
-      <div class="row-title" style="margin-bottom:3px">Entra sin escribir la contraseña</div>
+      <div class="row-title abajo-3">Entra sin escribir la contraseña</div>
       <div class="row-meta">
         Tu teléfono o tablet revisa tu cara o tu huella y le confirma a Fintora que eres tú.
         Tu cara y tu huella nunca salen del dispositivo. Si no te reconoce, entras con
@@ -34,20 +34,20 @@
   </div>
 
   {% if not tiene_2fa %}
-  <a href="{% url 'configurar_2fa' %}" class="glass card" style="margin-bottom:16px;display:flex;gap:13px;align-items:center;text-decoration:none;color:inherit">
+  <a href="{% url 'configurar_2fa' %}" class="glass card abajo-16 fila-13 alinear-centro enlace-plano">
     <span class="icono-aviso coral">
       <i class="fas fa-shield-halved"></i>
     </span>
     <div class="row-main">
-      <div class="row-title" style="margin-bottom:3px">Activa también la verificación en dos pasos</div>
+      <div class="row-title abajo-3">Activa también la verificación en dos pasos</div>
       <div class="row-meta">Si Face ID o la huella fallan, hoy basta la contraseña para entrar. Con el código, la contraseña sola no alcanza.</div>
     </div>
-    <i class="fas fa-chevron-right" style="font-size:10px;color:var(--text-muted);flex-shrink:0"></i>
+    <i class="fas fa-chevron-right ico-10 tinta-apagada sin-encoger"></i>
   </a>
   {% endif %}
 
   {% if passkeys %}
-  <div class="glass" style="border-radius:24px;overflow:hidden;margin-bottom:16px">
+  <div class="glass redondo-24 sin-desborde abajo-16">
     {% for p in passkeys %}
     <div class="fila-lista">
       <span class="icon-tile green"><i class="fas fa-fingerprint"></i></span>
@@ -58,7 +58,7 @@
           · {% if p.ultimo_uso %}último uso {{ p.ultimo_uso|naturaltime }}{% else %}sin usar todavía{% endif %}
         </div>
       </div>
-      <form method="post" style="margin:0;flex-shrink:0">
+      <form method="post" class="sin-margen sin-encoger">
         {% csrf_token %}
         <input type="hidden" name="accion" value="eliminar">
         <input type="hidden" name="id" value="{{ p.pk }}">
@@ -69,36 +69,36 @@
   </div>
   {% endif %}
 
-  <div class="glass card" data-solo-pc style="margin-bottom:16px;display:flex;gap:13px;align-items:flex-start">
-    <span class="icono-aviso ambar" style="font-size:14px">
+  <div class="glass card abajo-16 fila-13 alinear-inicio" data-solo-pc>
+    <span class="icono-aviso ambar txt-14">
       <i class="fas fa-mobile-screen"></i>
     </span>
     <div>
-      <div class="row-title" style="margin-bottom:3px">Se activa desde tu celular o tablet</div>
+      <div class="row-title abajo-3">Se activa desde tu celular o tablet</div>
       <div class="row-meta">Abre Fintora en el teléfono o la tablet, entra a Mi perfil, pestaña Seguridad, y vincúlalo ahí. En el computador entras con tu contraseña{% if tiene_2fa %} y el código{% endif %}.{% if passkeys %} Desde aquí puedes quitar los que ya vinculaste.{% endif %}</div>
     </div>
   </div>
 
-  <form id="formPasskey" class="glass card" style="margin-bottom:16px" data-spot data-solo-movil>
+  <form id="formPasskey" class="glass card abajo-16" data-spot data-solo-movil>
     {% csrf_token %}
-    <div class="modal-title" style="font-size:15px;font-weight:500">
+    <div class="modal-title txt-15 peso-500">
       {% if passkeys %}Vincular otro dispositivo{% else %}Vincular este dispositivo{% endif %}
     </div>
-    <div class="hint" style="font-size:11.5px;margin:3px 0 20px">
+    <div class="hint txt-12 margen-sub">
       Hazlo desde el teléfono o la tablet con que quieres entrar. Te pedirá tu cara o tu huella para confirmar.
     </div>
 
-    <div id="sinSoporte" class="row-meta" style="margin-bottom:16px" hidden>
+    <div id="sinSoporte" class="row-meta abajo-16" hidden>
       Este navegador no permite entrar con Face ID o huella. Prueba desde Safari en iPhone o iPad, o Chrome en Android.
     </div>
 
-    <div class="form-row" style="flex-wrap:wrap">
-      <div style="flex:1;min-width:200px;margin-bottom:16px">
+    <div class="form-row envolver">
+      <div class="flex-1 ancho-min-200 abajo-16">
         <label class="label" for="nombrePasskey">Nombre del dispositivo</label>
         <input type="text" id="nombrePasskey" maxlength="60" value="{{ nombre_sugerido }}" autocomplete="off">
       </div>
       {% if pide_password %}
-      <div style="flex:1;min-width:200px;margin-bottom:16px">
+      <div class="flex-1 ancho-min-200 abajo-16">
         <label class="label" for="passPasskey">Tu contraseña actual</label>
         <input type="password" id="passPasskey" autocomplete="current-password" placeholder="••••••••" required>
       </div>
@@ -106,9 +106,9 @@
     </div>
 
     <div id="avisoPasskey" role="status" hidden
-         style="margin-top:4px;padding:12px 14px;border-radius:14px;background:var(--coral-tenue);border:1px solid var(--coral-borde);font-size:12px;color:var(--text-secondary);line-height:1.5"></div>
+         class="aviso-coral"></div>
 
-    <button type="submit" id="btnPasskey" class="btn btn-amber" style="margin-top:20px">
+    <button type="submit" id="btnPasskey" class="btn btn-amber arriba-20">
       <i class="fas fa-fingerprint"></i>Vincular con Face ID o huella
     </button>
   </form>

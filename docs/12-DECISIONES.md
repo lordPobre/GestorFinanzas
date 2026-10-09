@@ -250,6 +250,8 @@ El salto de `0016` a `0100` es inofensivo y renumerar rompería las bases existe
 
 **Lote 103:** Cuotas, Me deben y Debo, Suscripciones y Metas, con sus formularios para crear y editar, quedan sin `style=` y sus rutas se suman a `RUTAS_SIN_ESTILO_CON_SESION`, con las mismas reglas del lote 96. Los cuadros y campos que el JavaScript muestra u oculta (`#cajaPlan`, `#cajaCuota`, `#cajaPr`, `#campoCuotas`, `#campoCuotasPersona`, `#campoCuotasPr`) parten ocultos desde `sesion.css`, sin `!important`, para que el valor en línea del script gane. Por eso `prestamos.js` los muestra con `display: block`: antes borraba el valor y volvía a mandar el atributo, que ya no existe. Las columnas de las cuotas van en `data-columnas`.
 
+**Lote 104:** Categorías, Estadísticas, Análisis, el Plan, la cartola y las pantallas de seguridad del perfil (dos pasos, códigos de respaldo, Face ID, sesiones, actividad y eliminar la cuenta) quedan sin `style=`, y sus rutas se suman a `RUTAS_SIN_ESTILO_CON_SESION`. Con sesión, solo la bienvenida y la encuesta siguen con `'unsafe-inline'`. Lo que el JavaScript cambia en línea parte de reglas sin `!important`: el borde de los colores y el fondo de los íconos al crear o editar una categoría (`.swatch`, `.icono-op` y su clase `on`), el botón «Listo» de los códigos de respaldo (`#btnListo`) y los bloques de la explicación con IA (`#cajaIA`, `#iaContenido`, `#iaBloque…`). Los íconos que los scripts escriben con `innerHTML` usan clases, y el color de un ícono va en `data-color`.
+
 ### D-31 · Medir antes de optimizar
 
 **Qué:** `RendimientoMiddleware` anota las respuestas lentas y `resumen_mes` se calcula una vez por petición.

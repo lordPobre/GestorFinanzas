@@ -36,6 +36,13 @@ test('el logo de una marca toma su fondo y su tinta', () => {
   assert.equal($('#s').style.color, '#000000');
 });
 
+test('un ícono toma solo su color y un color raro se ignora', () => {
+  const { $ } = montar('<i id="c" data-color="#53d258"></i><i id="d" data-color="verde"></i>');
+  assert.equal($('#c').style.color, '#53d258');
+  assert.equal($('#c').style.background, undefined);
+  assert.equal($('#d').style.color, undefined);
+});
+
 test('el ícono de categoría usa el color con transparencia de fondo', () => {
   const { $ } = montar('<span id="i" data-color-cat="#ffaa2c"></span><span id="j" data-color-cat="naranja"></span>');
   assert.equal($('#i').style.background, '#ffaa2c29');
