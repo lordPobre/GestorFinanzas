@@ -5,16 +5,15 @@
 {% block topbar_mes %}{% include 'finanzas/_mes_topbar.html' %}{% endblock %}
 {% block topbar_sub %}Cómo se ordenan tus movimientos{% endblock %}
 {% block search_placeholder %}Filtrar categorías{% endblock %}
-{% block extra_head %}<link rel="stylesheet" href="{% static 'css/categorias.css' %}?v=86">
-<link rel="stylesheet" href="{% static 'css/mes-elegir.css' %}?v=116">{% endblock %}
+{% block extra_head %}<link rel="stylesheet" href="{% static 'css/categorias.css' %}?v=123">
+<link rel="stylesheet" href="{% static 'css/mes-elegir.css' %}?v=124">{% endblock %}
 
 {% block content %}
 <div class="sec-top">
   <h1 class="sec-titulo">Categorías</h1>
+  {% include 'finanzas/_mes_elegir.html' %}
   <button type="button" class="sec-accion ct-nueva" data-open="#modalCat" aria-label="Nueva categoría"><i class="fas fa-plus"></i><span>Nueva categoría</span></button>
 </div>
-
-{% include 'finanzas/_mes_elegir.html' %}
 
 <section class="sec-hero ct-hero">
   <span class="ct-intro">Los montos son de {{ nombre_mes }}. Las que vienen con la app no se borran, pero puedes crear las tuyas.</span>
@@ -37,6 +36,20 @@
           <span class="ct-monto"><b>{{ c.gastado|money }}</b>{% if c.tope %}<span class="ct-tope-de">de {{ c.tope.tope|money }}</span>{% else %}<span data-ct-pct></span>{% endif %}</span>
           {% if c.propia %}<button type="button" class="ct-editar" data-open="#modalEdit{{ c.obj.pk }}" aria-label="Editar {{ c.label }}" title="Editar {{ c.label }}"><i class="fas fa-pen"></i></button>{% endif %}
           {% if c.tope %}<span class="ct-barra"><span class="ct-barra-tope {{ c.tope.tono }}" data-ancho-pct="{{ c.tope.ancho }}"></span></span>{% else %}<span class="ct-barra"><span data-ct-barra data-fondo="{{ c.color }}"></span></span>{% endif %}
+          {% if c.movs %}
+          <details class="ct-movs" id="movs-{{ c.slug }}" data-recordar>
+            <summary><span>Ver {{ c.movs|length }} movimiento{{ c.movs|length|pluralize:"s" }} {{ del_mes }}</span><i class="fas fa-chevron-down ct-flecha"></i></summary>
+            <div class="ct-movs-lista">
+              {% for t in c.movs %}
+              <a href="{% if t.es_cuota %}{% url 'deudas' %}{% else %}{% url 'editar_transaccion' t.pk %}{% endif %}" class="ct-mov">
+                <span class="ct-mov-fecha">{{ t.fecha|date:"d/m" }}</span>
+                <span class="ct-mov-desc">{{ t.descripcion|default:"Sin descripción" }}{% if t.por_pagar %}<em>Sin pagar</em>{% endif %}{% if t.es_cuota %}<em>Cuota</em>{% endif %}</span>
+                <span class="ct-mov-monto">{{ t.monto|money }}</span>
+              </a>
+              {% endfor %}
+            </div>
+          </details>
+          {% endif %}
         </div>
         {% endif %}{% empty %}
         <div class="ct-vacio">Todavía no hay categorías.</div>
@@ -57,6 +70,20 @@
           <span class="ct-monto verde"><b>{{ c.gastado|money }}</b><span data-ct-pct></span></span>
           {% if c.propia %}<button type="button" class="ct-editar" data-open="#modalEdit{{ c.obj.pk }}" aria-label="Editar {{ c.label }}" title="Editar {{ c.label }}"><i class="fas fa-pen"></i></button>{% endif %}
           <span class="ct-barra"><span data-ct-barra data-fondo="{{ c.color }}"></span></span>
+          {% if c.movs %}
+          <details class="ct-movs" id="movs-{{ c.slug }}" data-recordar>
+            <summary><span>Ver {{ c.movs|length }} movimiento{{ c.movs|length|pluralize:"s" }} {{ del_mes }}</span><i class="fas fa-chevron-down ct-flecha"></i></summary>
+            <div class="ct-movs-lista">
+              {% for t in c.movs %}
+              <a href="{% if t.es_cuota %}{% url 'deudas' %}{% else %}{% url 'editar_transaccion' t.pk %}{% endif %}" class="ct-mov">
+                <span class="ct-mov-fecha">{{ t.fecha|date:"d/m" }}</span>
+                <span class="ct-mov-desc">{{ t.descripcion|default:"Sin descripción" }}{% if t.por_pagar %}<em>Sin pagar</em>{% endif %}{% if t.es_cuota %}<em>Cuota</em>{% endif %}</span>
+                <span class="ct-mov-monto verde">{{ t.monto|money }}</span>
+              </a>
+              {% endfor %}
+            </div>
+          </details>
+          {% endif %}
         </div>
         {% endif %}{% empty %}
         <div class="ct-vacio">Todavía no hay categorías.</div>

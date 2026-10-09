@@ -17,6 +17,9 @@ span.topbar-mes-flecha.apagada { cursor: default; }
 .mes-lista { max-height: min(56vh, 460px); overflow-y: auto; overscroll-behavior: contain; padding-right: 2px; }
 .mes-volver { margin-top: 14px; }
 @media (max-width: 720px) {
-  .mes-tel { display: flex; align-items: center; gap: 10px; margin: 2px 0 18px; }
-  .mes-tel .ini-top-mes { color: var(--text-primary); }
+  .mes-tel { display: flex; align-items: center; flex-shrink: 0; }
+  .sec-top > .mes-tel { margin-right: auto; }
+  .sec-top:has(> .mes-tel) > .sec-titulo, .sec-top:has(> .mes-tel) > .sec-titulo-caja { min-width: 0; }
+  .mes-tel .ini-top-mes { min-height: 40px; padding: 0 14px; color: var(--text-primary); }
+  .mes-tel .ini-top-mes.otro { color: #ffc978; border-color: rgba(255, 187, 86, .45); }
 }

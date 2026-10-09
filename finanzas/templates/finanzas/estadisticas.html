@@ -7,7 +7,7 @@
 
 {% block extra_head %}
 <script src="{% static 'vendor/chart/chart.umd.min.js' %}"></script>
-<link rel="stylesheet" href="{% static 'css/mes-elegir.css' %}?v=116">
+<link rel="stylesheet" href="{% static 'css/mes-elegir.css' %}?v=124">
 {% endblock %}
 
 {% block content %}
@@ -17,9 +17,8 @@
     <span class="sec-eyebrow"><i class="fas fa-chart-pie"></i>Planificar</span>
     <h1 class="sec-titulo" data-tour="graficos">Estadísticas</h1>
   </div>
+  {% include 'finanzas/_mes_elegir.html' %}
 </div>
-
-{% include 'finanzas/_mes_elegir.html' %}
 
 <section class="sec-hero es-hero" data-dona>
   <div class="es-dona" data-dona-anillo>

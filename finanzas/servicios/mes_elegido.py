@@ -47,6 +47,7 @@ def selector_mes(usuario, year, month, hoy=None):
     return {
         'opciones': opciones,
         'nombre': nombre_mes_es(year, month),
+        'corto': f'{MESES_LARGOS[month - 1][:3].capitalize()} {year}',
         'es_actual': es_actual,
         'anterior': _opcion(anterior) if anterior >= inicio else None,
         'siguiente': _opcion(siguiente) if siguiente <= este else None,

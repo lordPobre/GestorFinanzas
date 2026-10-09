@@ -1,4 +1,3 @@
 <div class="mes-tel">
-  <button type="button" class="ini-top-mes" data-open="#modalMes" aria-label="Elegir el mes">{{ mes_sel.nombre }}<i class="fas fa-chevron-down"></i></button>
-  {% if not mes_sel.es_actual %}<a href="?" class="topbar-mes-hoy">Hoy</a>{% endif %}
+  <button type="button" class="ini-top-mes{% if not mes_sel.es_actual %} otro{% endif %}" data-open="#modalMes" aria-label="Elegir el mes. Ahora: {{ mes_sel.nombre }}">{{ mes_sel.corto }}<i class="fas fa-chevron-down"></i></button>
 </div>

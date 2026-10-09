@@ -8,7 +8,7 @@ from django.shortcuts import get_object_or_404, render
 from django.views.decorators.http import require_POST
 
 from ..models import Categoria, TopeCategoria, Transaccion
-from ..servicios.mes import nombre_mes_es
+from ..servicios.mes import MESES_LARGOS, nombre_mes_es
 from ..servicios.mes_elegido import mes_pedido, selector_mes
 from ..servicios.topes import estado_tope, gastado_por_categoria, promedio_tres_meses
 from ..templatetags.moneda import money
@@ -31,6 +31,10 @@ def categorias(request):
             usuario=request.user, fecha__gte=inicio, fecha__lte=fin,
         ).values('categoria').annotate(total=Sum('monto'))
     }
+    movs_mes = {}
+    for t in Transaccion.objects.filter(
+            usuario=request.user, fecha__gte=inicio, fecha__lte=fin).order_by('-fecha', '-id'):
+        movs_mes.setdefault(t.categoria, []).append(t)
     usos = {
         x['categoria']: x['n']
         for x in Transaccion.objects.filter(usuario=request.user)
@@ -54,6 +58,7 @@ def categorias(request):
             'obj': obj,
             'tope': estado_tope(topes[slug], gasto_mes.get(slug, 0)) if slug in topes else None,
             'promedio': promedios.get(slug, 0),
+            'movs': movs_mes.get(slug, []),
         }
 
     de_gasto, de_ingreso = [], []
@@ -82,6 +87,7 @@ def categorias(request):
         'iconos': Categoria.ICONOS,
         'nombre_mes': nombre_mes_es(year, month),
         'mes_sel': selector_mes(request.user, year, month, hoy),
+        'del_mes': 'de este mes' if (year, month) == (hoy.year, hoy.month) else f'de {MESES_LARGOS[month - 1]}',
     }
     context.update(contadores(request.user))
     return render(request, 'finanzas/categorias.html', context)

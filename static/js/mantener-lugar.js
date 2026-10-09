@@ -56,6 +56,8 @@
       modal: modal && modal.id ? modal.id : '',
       dentro: dentro ? dentro.scrollTop : 0,
       filtro: filtro ? filtro.getAttribute('data-mov-filtro') : '',
+      abiertos: Array.prototype.slice.call(document.querySelectorAll('details[data-recordar][open]'))
+        .map(function (d) { return d.id; }).filter(Boolean),
       pestanas: pestanas().map(function (grupo) {
         var botones = Array.prototype.slice.call(grupo.querySelectorAll('button'));
         return botones.findIndex(function (b) { return b.classList.contains('on'); });
@@ -82,10 +84,6 @@
 
     if (esFormulario()) {
       if (!previo || !previo.largo) return campo ? normal(campo.value) : '';
-      var objetivo = campo ? (campo.value || '').trim() : '';
-      var alOrigen = !campo || objetivo.charAt(0) === '?' ||
-        soloRuta(normal(objetivo)) === soloRuta(previo.ruta);
-      if (!alOrigen) return normal(objetivo);
       if (campo) campo.value = previo.ruta; else agregarNext(form, previo.ruta);
       return previo.ruta;
     }
@@ -154,6 +152,11 @@
     if (!grupo || indice < 0) return;
     var boton = grupo.querySelectorAll('button')[indice];
     if (boton && !boton.classList.contains('on')) boton.click();
+  });
+
+  (lugar.abiertos || []).forEach(function (id) {
+    var d = document.getElementById(id);
+    if (d) d.open = true;
   });
 
   function bajar() { window.scrollTo(0, lugar.y); }
