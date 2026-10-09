@@ -88,14 +88,19 @@ def editar_transaccion(request, transaccion_id):
 @login_required(login_url='/login/')
 def eliminar_transaccion(request, transaccion_id):
     t = get_object_or_404(Transaccion, id=transaccion_id, usuario=request.user)
+    es_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
     if request.method == 'POST':
         if t.es_cuota:
             PagoCuota.objects.filter(transaccion=t).delete()
             t.delete()
+            if es_ajax:
+                return JsonResponse({'ok': True})
             messages.success(request, 'Pago de la cuota anulado. Vuelve a quedar por pagar.')
             return redirigir(request)
         GastoPendiente.objects.filter(transaccion=t).delete()
         t.delete()
+        if es_ajax:
+            return JsonResponse({'ok': True})
         messages.success(request, 'Movimiento eliminado.')
     return redirigir(request)
 

@@ -4,7 +4,7 @@ from datetime import date
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db.models import Count, Sum
-from django.shortcuts import get_object_or_404, redirect, render
+from django.shortcuts import get_object_or_404, render
 from django.views.decorators.http import require_POST
 
 from ..models import Categoria, TopeCategoria, Transaccion
@@ -12,7 +12,7 @@ from ..servicios.mes import nombre_mes_es
 from ..servicios.mes_elegido import mes_pedido, selector_mes
 from ..servicios.topes import estado_tope, gastado_por_categoria, promedio_tres_meses
 from ..templatetags.moneda import money
-from .comun import contadores, monto_post, simbolo_de
+from .comun import contadores, monto_post, redirigir, simbolo_de
 
 
 def _de_la_lista(valor, opciones, defecto):
@@ -89,12 +89,12 @@ def categorias(request):
 @login_required(login_url='/login/')
 def crear_categoria(request):
     if request.method != 'POST':
-        return redirect('categorias')
+        return redirigir(request, 'categorias')
 
     nombre = request.POST.get('nombre', '').strip()
     if not nombre:
         messages.warning(request, 'Ponle un nombre a la categoría.')
-        return redirect('categorias')
+        return redirigir(request, 'categorias')
 
     Categoria.objects.create(
         usuario=request.user, nombre=nombre,
@@ -103,7 +103,7 @@ def crear_categoria(request):
         icono=_de_la_lista(request.POST.get('icono'), Categoria.ICONOS, 'fa-tag'),
     )
     messages.success(request, 'Categoría "' + nombre + '" creada.')
-    return redirect('categorias')
+    return redirigir(request, 'categorias')
 
 @login_required(login_url='/login/')
 @require_POST
@@ -112,22 +112,22 @@ def guardar_tope(request):
     opciones = dict(Categoria.opciones(request.user, 'EGRESO'))
     if slug not in opciones:
         messages.warning(request, 'Elige una categoría de gasto.')
-        return redirect('categorias')
+        return redirigir(request, 'categorias')
     nombre = opciones[slug]
     if request.POST.get('quitar'):
         TopeCategoria.objects.filter(usuario=request.user, categoria=slug).delete()
         messages.success(request, f'Quitaste el tope de {nombre}.')
-        return redirect('categorias')
+        return redirigir(request, 'categorias')
     monto = monto_post(request)
     if monto <= 0:
         messages.warning(request, 'Escribe un monto mayor que cero.')
-        return redirect('categorias')
+        return redirigir(request, 'categorias')
     TopeCategoria.objects.update_or_create(
         usuario=request.user, categoria=slug,
         defaults={'monto': monto, 'avisar': request.POST.get('avisar') == '1'},
     )
     messages.success(request, f'Tope de {nombre}: {money(monto, simbolo_de(request.user))} al mes.')
-    return redirect('categorias')
+    return redirigir(request, 'categorias')
 
 @login_required(login_url='/login/')
 def editar_categoria(request, cat_id):
@@ -140,7 +140,7 @@ def editar_categoria(request, cat_id):
         cat.icono = _de_la_lista(request.POST.get('icono'), Categoria.ICONOS, cat.icono)
         cat.save(update_fields=['nombre', 'color', 'icono'])
         messages.success(request, 'Categoría actualizada.')
-    return redirect('categorias')
+    return redirigir(request, 'categorias')
 
 @login_required(login_url='/login/')
 def eliminar_categoria(request, cat_id):
@@ -159,4 +159,4 @@ def eliminar_categoria(request, cat_id):
                 + ' movimiento(s) pasaron a Otros.')
         else:
             messages.success(request, '"' + nombre + '" eliminada.')
-    return redirect('categorias')
+    return redirigir(request, 'categorias')

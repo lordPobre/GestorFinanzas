@@ -369,13 +369,14 @@
       <div>
         <div class="modal-title">{{ nombre_mes }}</div>
         <div class="modal-sub">Toca uno para editarlo. Deslízalo para borrarlo.</div>
+        <a href="{% url 'movimientos_repetidos' %}" class="ini-link">Buscar repetidos<i class="fas fa-chevron-right"></i></a>
       </div>
       <button class="modal-close" data-close aria-label="Cerrar"><i class="fas fa-xmark"></i></button>
     </div>
     {% if movimientos_mes %}
     <div class="mv-resumen">
-      <div class="mv-cifra"><span>Entró</span><b class="verde">{{ mov_entro|money }}</b></div>
-      <div class="mv-cifra"><span>Salió</span><b>{{ mov_salio|money }}</b></div>
+      <div class="mv-cifra"><span>Entró</span><b class="verde" data-mov-entro>{{ mov_entro|money }}</b></div>
+      <div class="mv-cifra"><span>Salió</span><b data-mov-salio>{{ mov_salio|money }}</b></div>
       <div class="mv-barra" aria-hidden="true"><span class="unicos" data-ancho-pct="{{ mov_pct_unicos }}"></span><span class="cuotas" data-ancho-pct="{{ mov_pct_cuotas }}"></span></div>
       <div class="mv-leyenda">
         <span><i class="unicos"></i>Únicos</span>
@@ -397,21 +398,21 @@
       <div class="swipe swipe-fila swipe-mov mv-fila{% if t.por_pagar %} sin-pagar{% endif %}" data-mov-tipo="{% if t.es_ingreso %}ingreso{% elif t.es_cuota %}cuota{% else %}unico{% endif %}" data-monto="{{ t.monto|floatformat:'0u' }}">
         <div class="swipe-acciones">
           {% if t.por_pagar %}
-          <form method="post" action="{% url 'pagar_gasto' t.pk %}" class="sin-margen">
+          <form method="post" action="{% url 'pagar_gasto' t.pk %}" class="sin-margen" data-sin-recargar="pagar">
             {% csrf_token %}
-            <input type="hidden" name="next" value="{% url 'dashboard' %}">
+            <input type="hidden" name="next" value="{{ request.get_full_path }}">
             <button type="submit" class="swipe-btn editar" title="Marcar como pagado"><i class="fas fa-check"></i><span>Pagué</span></button>
           </form>
           {% elif t.es_gasto_unico %}
-          <form method="post" action="{% url 'anular_pago_gasto' t.pk %}" class="sin-margen" data-confirm="¿Marcar este gasto como no pagado?">
+          <form method="post" action="{% url 'anular_pago_gasto' t.pk %}" class="sin-margen" data-confirm="¿Marcar este gasto como no pagado?" data-sin-recargar="deshacer">
             {% csrf_token %}
-            <input type="hidden" name="next" value="{% url 'dashboard' %}">
+            <input type="hidden" name="next" value="{{ request.get_full_path }}">
             <button type="submit" class="swipe-btn editar" title="{{ t.texto_estado_pago }}"><i class="fas fa-rotate-left"></i><span>Deshacer</span></button>
           </form>
           {% endif %}
-          <form method="post" action="{% url 'eliminar_transaccion' t.pk %}" class="sin-margen" data-confirm="{% if t.es_cuota %}¿Anular el pago de {{ t.descripcion }}? La cuota vuelve a quedar por pagar.{% else %}¿Eliminar {{ t.descripcion|default:t.get_categoria_display }}?{% endif %}">
+          <form method="post" action="{% url 'eliminar_transaccion' t.pk %}" class="sin-margen" data-confirm="{% if t.es_cuota %}¿Anular el pago de {{ t.descripcion }}? La cuota vuelve a quedar por pagar.{% else %}¿Eliminar {{ t.descripcion|default:t.get_categoria_display }}?{% endif %}" data-sin-recargar="eliminar">
             {% csrf_token %}
-            <input type="hidden" name="next" value="{% url 'dashboard' %}">
+            <input type="hidden" name="next" value="{{ request.get_full_path }}">
             <button type="submit" class="swipe-btn borrar" title="Eliminar"><i class="fas fa-trash-can"></i><span>Eliminar</span></button>
           </form>
         </div>
@@ -589,6 +590,7 @@
 {% block extra_js %}
 <script src="{% static 'js/pantallas/dashboard.js' %}" nonce="{{ csp_nonce }}"></script>
 <script src="{% static 'js/pantallas/inicio-cifra.js' %}" nonce="{{ csp_nonce }}"></script>
-<script src="{% static 'js/pantallas/inicio-movimientos.js' %}" nonce="{{ csp_nonce }}"></script>
+<script src="{% static 'js/pantallas/inicio-movimientos.js' %}?v=121" nonce="{{ csp_nonce }}"></script>
+<script src="{% static 'js/pantallas/movimientos-hoja.js' %}?v=121" nonce="{{ csp_nonce }}"></script>
 <script src="{% static 'js/pantallas/inicio-esfera.js' %}" nonce="{{ csp_nonce }}"></script>
 {% endblock %}
