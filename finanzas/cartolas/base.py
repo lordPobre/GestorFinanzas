@@ -98,10 +98,10 @@ def plata(txt):
 def texto_de_pdf(binario):
     try:
         from pypdf import PdfReader
-    except ImportError:
+    except ImportError as err:
         raise ErrorCartola(
             'Falta la librería para leer PDF. Instálala con: pip install --user pypdf'
-        )
+        ) from err
 
     try:
         lector = PdfReader(binario)
@@ -126,8 +126,8 @@ def texto_de_pdf(binario):
         return '\n'.join(piezas)
     except ErrorCartola:
         raise
-    except Exception:
-        raise ErrorCartola('No se pudo abrir el PDF. ¿Seguro que es la cartola?')
+    except Exception as err:
+        raise ErrorCartola('No se pudo abrir el PDF. ¿Seguro que es la cartola?') from err
 
 
 def resolver_signos(filas, saldo_inicial):

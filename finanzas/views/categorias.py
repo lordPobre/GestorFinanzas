@@ -9,6 +9,7 @@ from django.views.decorators.http import require_POST
 
 from ..models import Categoria, TopeCategoria, Transaccion
 from ..servicios.mes import nombre_mes_es
+from ..servicios.mes_elegido import mes_pedido, selector_mes
 from ..servicios.topes import estado_tope, gastado_por_categoria, promedio_tres_meses
 from ..templatetags.moneda import money
 from .comun import contadores, monto_post, simbolo_de
@@ -20,8 +21,9 @@ def _de_la_lista(valor, opciones, defecto):
 @login_required(login_url='/login/')
 def categorias(request):
     hoy = date.today()
-    _, ultimo = calendar.monthrange(hoy.year, hoy.month)
-    inicio, fin = date(hoy.year, hoy.month, 1), date(hoy.year, hoy.month, ultimo)
+    year, month = mes_pedido(request, hoy)
+    _, ultimo = calendar.monthrange(year, month)
+    inicio, fin = date(year, month, 1), date(year, month, ultimo)
 
     gastado = {
         x['categoria']: float(x['total'])
@@ -36,7 +38,7 @@ def categorias(request):
     }
 
     topes = {t.categoria: t for t in TopeCategoria.objects.filter(usuario=request.user)}
-    gasto_mes = gastado_por_categoria(request.user, hoy.year, hoy.month) if topes else {}
+    gasto_mes = gastado_por_categoria(request.user, year, month) if topes else {}
     promedios = promedio_tres_meses(request.user, hoy)
 
     mapa = Categoria.mapa(request.user)
@@ -78,7 +80,8 @@ def categorias(request):
         'sin_usar': [c for c in de_gasto + de_ingreso if c['usos'] == 0],
         'paleta': Categoria.PALETA,
         'iconos': Categoria.ICONOS,
-        'nombre_mes': nombre_mes_es(hoy.year, hoy.month),
+        'nombre_mes': nombre_mes_es(year, month),
+        'mes_sel': selector_mes(request.user, year, month, hoy),
     }
     context.update(contadores(request.user))
     return render(request, 'finanzas/categorias.html', context)

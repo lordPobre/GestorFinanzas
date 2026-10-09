@@ -1,0 +1,23 @@
+.mes-elegir-fila { display: flex; align-items: center; gap: 12px; margin: 2px 0 18px; }
+.mes-elegir-fila .mes-nav.mes-elegir { margin: 0; width: 100%; max-width: 340px; flex: 0 1 340px; }
+.mes-elegir .mes-flecha { width: 40px; height: 40px; }
+.mes-elegir .mes-elegir-caja { position: relative; padding: 0; cursor: pointer; }
+.mes-elegir-select {
+  appearance: none; -webkit-appearance: none;
+  width: 100%; min-height: 40px; padding: 0 34px; border: 0; border-radius: inherit;
+  background: transparent; color: inherit; cursor: pointer;
+  font-family: 'Manrope', sans-serif; font-size: 14px; font-weight: 700; letter-spacing: -.02em;
+  text-align: center; text-align-last: center;
+}
+.mes-elegir-select:focus { outline: none; }
+.mes-elegir-select:focus-visible { box-shadow: 0 0 0 2px var(--amber); }
+.mes-elegir-select option { color: #151412; background: #fff; }
+.mes-elegir-caja > i { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); font-size: 10px; opacity: .7; pointer-events: none; }
+.mes-flecha.apagada { opacity: .32; pointer-events: none; }
+.mes-elegir-fila > .mes-ahora, .mes-elegir-fila > .mes-hoy { flex: 0 0 auto; }
+@media (max-width: 720px) {
+  .mes-elegir-fila { flex-direction: column; gap: 8px; margin: 0 0 14px; }
+  .mes-elegir-fila .mes-nav.mes-elegir { max-width: none; flex: 1 1 auto; }
+  .mes-elegir .mes-flecha { width: 46px; height: 46px; }
+  .mes-elegir-select { min-height: 46px; font-size: 15px; }
+}

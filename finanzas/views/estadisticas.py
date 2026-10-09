@@ -9,12 +9,14 @@ from django.shortcuts import render
 
 from ..models import Categoria, Deuda, Transaccion
 from ..servicios.mes import MESES_LARGOS, numeros_mes, resumen_mes
+from ..servicios.mes_elegido import mes_pedido, selector_mes
 from .comun import contadores
 
 
 @login_required(login_url='/login/')
 def estadisticas(request):
     hoy = date.today()
+    year, month = mes_pedido(request, hoy)
     activas = [d for d in Deuda.objects.filter(usuario=request.user)
                                         .prefetch_related('pagos') if not d.esta_saldada]
 
@@ -50,8 +52,8 @@ def estadisticas(request):
         ).values('categoria').annotate(total=Sum('monto'))
         return {x['categoria'] or 'Otros': float(x['total']) for x in qs}
 
-    actual = por_categoria(hoy.year, hoy.month)
-    anterior_f = date(hoy.year, hoy.month, 1) - relativedelta(months=1)
+    actual = por_categoria(year, month)
+    anterior_f = date(year, month, 1) - relativedelta(months=1)
     anterior = por_categoria(anterior_f.year, anterior_f.month)
     maximo = max(actual.values()) if actual else 1
     mapa = Categoria.mapa(request.user)
@@ -86,6 +88,7 @@ def estadisticas(request):
         'peor_gasto': round(gastos[peor]) if peor is not None else 0,
         'tasa_ahorro': tasa_ahorro,
         'ranking': ranking,
+        'mes_sel': selector_mes(request.user, year, month, hoy),
     }
     context.update(contadores(request.user, resumen_actual=resumen_actual))
     return render(request, 'finanzas/estadisticas.html', context)

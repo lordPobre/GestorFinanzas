@@ -4,13 +4,16 @@
 {% block title %}Categorías · Fintora{% endblock %}
 {% block topbar_sub %}Cómo se ordenan tus movimientos{% endblock %}
 {% block search_placeholder %}Filtrar categorías{% endblock %}
-{% block extra_head %}<link rel="stylesheet" href="{% static 'css/categorias.css' %}?v=86">{% endblock %}
+{% block extra_head %}<link rel="stylesheet" href="{% static 'css/categorias.css' %}?v=86">
+<link rel="stylesheet" href="{% static 'css/mes-elegir.css' %}?v=112">{% endblock %}
 
 {% block content %}
 <div class="sec-top">
   <h1 class="sec-titulo">Categorías</h1>
   <button type="button" class="sec-accion ct-nueva" data-open="#modalCat" aria-label="Nueva categoría"><i class="fas fa-plus"></i><span>Nueva categoría</span></button>
 </div>
+
+{% include 'finanzas/_mes_elegir.html' %}
 
 <section class="sec-hero ct-hero">
   <span class="ct-intro">Los montos son de {{ nombre_mes }}. Las que vienen con la app no se borran, pero puedes crear las tuyas.</span>
@@ -255,4 +258,5 @@
 <script src="{% static 'js/pantallas/categorias.js' %}" nonce="{{ csp_nonce }}"></script>
 <script src="{% static 'js/pantallas/categorias-2.js' %}?v=72" nonce="{{ csp_nonce }}"></script>
 <script src="{% static 'js/pantallas/categorias-topes.js' %}?v=86" nonce="{{ csp_nonce }}" data-simbolo="{{ simbolo_moneda }}"></script>
+<script src="{% static 'js/pantallas/mes-elegir.js' %}?v=112" nonce="{{ csp_nonce }}"></script>
 {% endblock %}

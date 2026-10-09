@@ -6,6 +6,7 @@
 
 {% block extra_head %}
 <script src="{% static 'vendor/chart/chart.umd.min.js' %}"></script>
+<link rel="stylesheet" href="{% static 'css/mes-elegir.css' %}?v=112">
 {% endblock %}
 
 {% block content %}
@@ -17,6 +18,8 @@
   </div>
 </div>
 
+{% include 'finanzas/_mes_elegir.html' %}
+
 <section class="sec-hero es-hero" data-dona>
   <div class="es-dona" data-dona-anillo>
     <div class="es-dona-centro"><span>Gastaste</span><b data-dona-total>$0</b></div>
@@ -27,11 +30,11 @@
     <span class="es-titular">{{ r.label }} es tu mayor gasto</span>
     <span class="es-nota" data-dona-nota></span>
     {% if r.delta != None %}
-    <span class="sec-badge {% if r.subio %}rojo{% else %}verde{% endif %}">{% if r.subio %}{{ r.delta }}% más{% else %}{{ r.delta|cut:"-" }}% menos{% endif %} que el mes pasado</span>
+    <span class="sec-badge {% if r.subio %}rojo{% else %}verde{% endif %}">{% if r.subio %}{{ r.delta }}% más{% else %}{{ r.delta|cut:"-" }}% menos{% endif %} que {{ mes_sel.ref_anterior }}</span>
     {% endif %}
     {% endwith %}
     {% else %}
-    <span class="es-titular">Sin gastos este mes</span>
+    <span class="es-titular">Sin gastos {{ mes_sel.en_mes }}</span>
     <span class="es-nota">Registra un gasto y aquí verás en qué se te va.</span>
     {% endif %}
   </div>
@@ -53,15 +56,15 @@
       </div>
       <div class="es-cat-barra"><span data-ancho-pct="{{ r.ancho }}" data-fondo="{{ r.color }}"></span></div>
       {% if r.delta != None %}
-      <span class="es-cat-delta {% if r.subio %}sube{% else %}baja{% endif %}">{% if r.subio %}+{% endif %}{{ r.delta }}% que el mes pasado</span>
+      <span class="es-cat-delta {% if r.subio %}sube{% else %}baja{% endif %}">{% if r.subio %}+{% endif %}{{ r.delta }}% que {{ mes_sel.ref_anterior }}</span>
       {% else %}
-      <span class="es-cat-delta nueva">Nueva este mes</span>
+      <span class="es-cat-delta nueva">Nueva {{ mes_sel.en_mes }}</span>
       {% endif %}
     </div>
     {% empty %}
     <div class="sec-vacio">
       <span class="sec-vacio-icono"><i class="fas fa-chart-pie"></i></span>
-      <span class="sec-vacio-titulo">Sin gastos este mes</span>
+      <span class="sec-vacio-titulo">Sin gastos {{ mes_sel.en_mes }}</span>
       <span class="sec-vacio-txt">Registra un gasto y aquí verás en qué se te va.</span>
     </div>
     {% endfor %}
@@ -114,4 +117,5 @@
 {% block extra_js %}
 <script src="{% static 'js/pantallas/estadisticas.js' %}" nonce="{{ csp_nonce }}"></script>
 <script src="{% static 'js/pantallas/estadisticas-2.js' %}" nonce="{{ csp_nonce }}"></script>
+<script src="{% static 'js/pantallas/mes-elegir.js' %}?v=112" nonce="{{ csp_nonce }}"></script>
 {% endblock %}
