@@ -20,7 +20,7 @@ Durante las pruebas, `core/settings.py` quita `RESEND_API_KEY` del entorno, así
 
 | Trabajo | Qué hace | Si falla |
 | --- | --- | --- |
-| `pruebas` | Levanta Postgres 18. Instala con `--require-hashes`, corre `ruff check` (con las reglas S, B, DJ y UP desde el lote 91), `makemigrations --check`, `coverage run manage.py test` y `coverage report` | Build en rojo. La cobertura mínima es 55 % (`fail_under` en `pyproject.toml`) |
+| `pruebas` | Levanta Postgres 18. Instala con `--require-hashes`, corre `ruff check` (con las reglas S, B, DJ y UP desde el lote 91), `makemigrations --check`, `coverage run manage.py test` y `coverage report`. Desde el lote 107 instala el cliente de Postgres 18, migra la base del servicio y corre `respaldar_postgres --seco`: hace la copia, la verifica y no la sube | Build en rojo. La cobertura mínima es 55 % (`fail_under` en `pyproject.toml`) |
 | `despliegue` | `check --deploy --fail-level WARNING` con `DEBUG=False` | Build en rojo: significa que falta un ajuste de seguridad de producción |
 | `dependencias` | `pip-audit --strict` sobre `requirements.txt` y `requirements-dev.txt` | Build en rojo: hay una dependencia con una vulnerabilidad conocida |
 | `javascript` | `node --test pruebas_js/*.test.js` con Node 22 | Build en rojo |
@@ -77,6 +77,7 @@ Son 57 archivos en `finanzas/tests/` con 548 pruebas, contadas sobre las entrega
 | `test_topes.py` | 21 | Tonos en 80 y 100 %, lo que queda y lo que se pasó. Poner, cambiar y quitar un tope; categorías de ingreso, ajenas y montos en cero rechazados; borrar una categoría borra su tope. Promedio de los 3 meses anteriores, lo que recibe el panel de anotar y un recordatorio por nivel y por mes |
 | `test_debo.py` | 28 | Día de pago en meses cortos y a fin de mes. Lo que falta del mes con abonos parciales o de más. La cuota en «Por pagar» solo del mes en curso y de la cuenta. Resta de «Puedes gastar» sin contarse dos veces. Marcar pagada solo por POST, solo en Debo y solo lo propio. Pestañas, alta en Debo, WhatsApp solo para cobrar y el botón de pago en Inicio |
 | `test_aviso_politica.py` | 8 | `avisar_politica`: una vez por cuenta y por versión, el correo trae la versión, la fecha, los cambios y los enlaces, `--seco` no envía, un correo que no sale deja la cuenta pendiente, sin correo o inactiva no se avisa, usa el correo del perfil si la cuenta no tiene, `--limite` |
+| `test_recordatorios_hilos.py` | 1 | `enviar_recordatorios --hilos 3` atiende a todas las cuentas una sola vez y marca el día. Usa `TransactionTestCase` para que los hilos vean los datos |
 | `test_franja_politica.py` | 5 | La franja del Inicio sale a quien no aceptó la versión vigente y no a quien sí, aceptar desde ella vuelve al Inicio y la quita, y `next` no lleva fuera del sitio |
 | `test_alta.py` | 12 | Registrarse no crea la cuenta y manda el enlace; clave y enlace no quedan en claro; un correo con cuenta recibe la misma respuesta; un registro nuevo reemplaza el enlace anterior. Abrir el enlace no crea nada; confirmar crea la cuenta con el correo verificado, la política y la sesión; el enlace sirve una vez, vence a las 48 h y uno inventado no sirve; correo o usuario tomados mientras tanto no duplican; `purgar` borra solo lo vencido |
 | `test_rendimiento.py` | 6 | El inicio calcula el mes una sola vez por petición, fuera de una petición no se recuerda nada, un cambio en los datos borra lo recordado, cada llamada recibe su copia. Las respuestas lentas quedan en el log y `Server-Timing` solo lo ve el personal |
@@ -97,8 +98,7 @@ Son 57 archivos en `finanzas/tests/` con 548 pruebas, contadas sobre las entrega
 
 Estos son los huecos que conviene cubrir primero, ordenados por riesgo. Reactivar una suscripción en enero, la opción «compra en cuotas» de la cartola y Google con un correo sin confirmar ya tenían prueba en `test_correcciones.py` desde la entrega de arreglos; el lote 106 suma los lectores de Banco de Chile, CMR y Ripley, confirmar una cartola completa y `avisar_pagos`.
 
-1. **`respaldar_postgres`** con `--seco` en el CI, contra el Postgres del servicio.
-2. **Frontend**: las pruebas de JavaScript cubren el panel para anotar, lo por pagar en el Inicio, el aviso al anotar, el *service worker*, el chat de ayuda, el tour, la hoja de la esfera, `estilos.js` y el campo de cuotas de Préstamos. Activar los recordatorios y el audio en un iPhone real se prueban a mano. El patrón de `pruebas_js/` sirve para sumarlos de a uno.
+1. **Frontend**: las pruebas de JavaScript cubren el panel para anotar, lo por pagar en el Inicio, el aviso al anotar, el *service worker*, el chat de ayuda, el tour, la hoja de la esfera, `estilos.js` y el campo de cuotas de Préstamos. Activar los recordatorios y el audio en un iPhone real se prueban a mano. El patrón de `pruebas_js/` sirve para sumarlos de a uno.
 
 ## Cómo se escribe una prueba nueva
 

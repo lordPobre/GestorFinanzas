@@ -63,6 +63,7 @@ Lo que queda por mejorar y lo que se resolvió: la entrega de arreglos del 28 de
 | C7 | Los recordatorios se sumaron a la política 1.5 ya publicada | Política 1.6, avisada por correo y con franja en el Inicio | 88 y 89 |
 | D10 | Las reglas ampliadas de `ruff` (S, B, DJ, UP) solo informaban | Los 37 avisos corregidos o justificados en `per-file-ignores`; las cuatro familias están en `select` y el trabajo `estilo-ampliado` se quitó | 91 |
 | D13 | Los atributos `style` seguían permitidos (`style-src-attr 'unsafe-inline'`) | Las etiquetas `<style>` piden nonce y ninguna pantalla usa atributos `style`: `style-src-attr 'none'` en toda respuesta que no sea un error. Los estilos están en `sesion.css`, `acceso.css` y `portada.css`, y lo que depende de los datos va en atributos `data-` que aplica `estilos.js` | 90, 92, 96, 103 a 105 |
+| D19 | `enviar_recordatorios` mandaba en serie, con hasta 10 segundos de espera por aparato | `--hilos` atiende varias cuentas a la vez, cada una con su conexión a la base. Railway lo corre con `--hilos 8` | 107 |
 | D7 | Las pruebas de JavaScript cubrían solo el aviso al anotar y el *service worker* | 67 pruebas en `pruebas_js/`: el panel para anotar, lo por pagar en el Inicio, el chat de ayuda, el tour y la esfera. Activar los recordatorios queda a mano | 93 y 95 |
 
 ## Pendiente
@@ -79,7 +80,6 @@ Lo que queda por mejorar y lo que se resolvió: la entrega de arreglos del 28 de
 | D16 | La voz depende del plan de ElevenLabs | El plan gratuito no permite uso comercial ni voces de Voice Library. En producción hace falta un plan de pago, y su DPA (C5 en [07](07-PRIVACIDAD-Y-CUMPLIMIENTO.md#pendientes-de-cumplimiento)) |
 | D17 | `esfera_salud.py` y `esfera.py` calculan el color de Inicio por separado | Hoy usan los mismos tramos. Si uno cambia, el otro tiene que cambiar igual |
 | D18 | En el computador, el aviso abre Fintora pero no trae el botón «Marcar pagada» (propuesta 2c) | Las acciones dentro del aviso dependen del navegador. Hoy hay que entrar a la app para pagar |
-| D19 | `enviar_recordatorios` manda en serie, con hasta 10 segundos de espera por aparato | Con pocas cuentas sobra. Con cientos de aparatos puede tardar minutos: mandar en paralelo o por tandas |
 | D20 | Los recordatorios salen a la misma hora para todos (12:00 UTC) | Se corren una hora con el horario de verano y no sirven a quien vive en otro huso |
 
 ## Hoja de ruta sugerida

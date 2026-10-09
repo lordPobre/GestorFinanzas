@@ -62,6 +62,17 @@ jobs:
       - name: Cobertura
         run: coverage report
 
+      - name: Cliente de Postgres 18
+        run: |
+          sudo apt-get install -y postgresql-common
+          sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y
+          sudo apt-get install -y postgresql-client-18
+
+      - name: Respaldo de prueba
+        run: |
+          python manage.py migrate --noinput
+          python manage.py respaldar_postgres --seco
+
   despliegue:
     runs-on: ubuntu-latest
     timeout-minutes: 10
