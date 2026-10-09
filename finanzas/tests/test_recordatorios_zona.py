@@ -1,5 +1,5 @@
 import json
-from datetime import datetime, timezone as tz
+from datetime import UTC, datetime
 from io import StringIO
 from unittest.mock import patch
 
@@ -29,7 +29,7 @@ class HoraLocalTests(TestCase):
         self.perfil, _ = UserProfile.objects.get_or_create(usuario=self.ana)
 
     def test_la_hora_se_calcula_en_la_zona_de_cada_persona(self):
-        ahora = datetime(2026, 1, 15, 12, 0, tzinfo=tz.utc)
+        ahora = datetime(2026, 1, 15, 12, 0, tzinfo=UTC)
         self.assertEqual(Command()._ahora_de(self.ana, ahora).hour, 9)
         self.perfil.zona_horaria = 'Europe/Madrid'
         self.perfil.save()
@@ -38,7 +38,7 @@ class HoraLocalTests(TestCase):
     def test_una_zona_rota_cae_en_santiago(self):
         self.perfil.zona_horaria = 'Marte/Olympus'
         self.perfil.save()
-        ahora = datetime(2026, 7, 15, 13, 0, tzinfo=tz.utc)
+        ahora = datetime(2026, 7, 15, 13, 0, tzinfo=UTC)
         self.assertEqual(Command()._ahora_de(self.ana, ahora).hour, 9)
 
     def test_con_a_las_solo_atiende_a_quien_le_toca(self):
@@ -46,7 +46,7 @@ class HoraLocalTests(TestCase):
         with patch('finanzas.push.disponible', return_value=True), \
              patch.object(Command, '_atender', lambda s, u, hoy, f: atendidos.append((u.pk, hoy)) or (False, 0)), \
              patch('finanzas.management.commands.enviar_recordatorios.User.objects') as usuarios, \
-             patch('django.utils.timezone.now', return_value=datetime(2026, 1, 15, 12, 0, tzinfo=tz.utc)):
+             patch('django.utils.timezone.now', return_value=datetime(2026, 1, 15, 12, 0, tzinfo=UTC)):
             usuarios.filter.return_value.distinct.return_value = [self.ana]
             call_command('enviar_recordatorios', '--a-las', '8', stdout=StringIO())
             self.assertEqual(atendidos, [])
