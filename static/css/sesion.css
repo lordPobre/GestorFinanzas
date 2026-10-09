@@ -216,3 +216,17 @@
 .cu-lista > .sec-vacio { grid-column: 1 / -1; }
 
 .sin-transicion *, .sin-transicion *::before, .sin-transicion *::after { transition: none !important; }
+
+.tfa-icono { position: relative; font-size: 24px; }
+.tfa-icono-sello {
+  position: absolute; right: -5px; bottom: -5px; width: 24px; height: 24px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center; font-size: 10px;
+  background: #ffaa2c; color: #1a1200; border: 2px solid #151412;
+}
+.tfa-icono.verde .tfa-icono-sello { background: #6ee873; color: #0c1f0d; }
+.sec-hero.tfa-hero { flex-direction: column; align-items: center; text-align: center; gap: 16px; margin-top: 22px; margin-bottom: 28px; }
+@media (max-width: 720px) {
+  .sec-hero.tfa-hero { margin-bottom: 0; }
+}
+.tfa-paso-titulo { margin: 4px 0 4px; font-size: 15px; font-weight: 700; line-height: 1.3; letter-spacing: -.01em; }
+.tfa-paso-sub { font-size: 13px; line-height: 1.55; color: var(--text-secondary); text-wrap: pretty; }

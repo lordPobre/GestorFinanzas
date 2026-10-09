@@ -11,9 +11,8 @@
   <span class="sec-hueco" aria-hidden="true"></span>
 </div>
 
-<section class="sec-hero fo-hero">
-  <span class="fo-icono ambar"><i class="fas fa-shield-halved"></i></span>
-  <span class="fo-quien">Verificación en dos pasos</span>
+<section class="sec-hero fo-hero tfa-hero">
+  <span class="fo-icono tfa-icono {% if factor.activo %}verde{% else %}ambar{% endif %}"><i class="fas fa-mobile-screen-button"></i><span class="tfa-icono-sello"><i class="fas fa-{% if factor.activo %}check{% else %}lock{% endif %}"></i></span></span>
   <div class="sec-chips">{% if factor.activo %}<span class="chip-vidrio al-dia">Activa</span>{% else %}<span class="chip-vidrio">Recomendado</span>{% endif %}</div>
 </section>
 
@@ -58,16 +57,24 @@
 
   {% else %}
   
-  <div class="txt-13 tinta-sec linea-155 abajo-20 ancho-max-460">
-    Una contraseña robada deja de bastar: al entrar pediremos también un código
-    que solo existe en tu teléfono y cambia cada 30 segundos.
+  <div class="glass card abajo-4 fila-13 alinear-inicio">
+    <span class="icono-aviso ambar txt-14">
+      <i class="fas fa-shield-halved"></i>
+    </span>
+    <div>
+      <div class="row-title abajo-3">Verificación en dos pasos</div>
+      <div class="row-meta">
+        Una contraseña robada deja de bastar: al entrar pediremos también un código
+        que solo existe en tu teléfono y cambia cada 30 segundos.
+      </div>
+    </div>
   </div>
 
   <div class="tfa-paso abajo-12">
     <span class="tfa-numero">1</span>
     <div>
-      <div class="txt-14 peso-600 abajo-5">Instala una app de autenticación</div>
-      <div class="txt-13 tinta-tenue linea-155">
+      <div class="tfa-paso-titulo">Instala una app de autenticación</div>
+      <div class="tfa-paso-sub">
         Google Authenticator, Microsoft Authenticator, Authy o 1Password.
         Cualquiera sirve, y son gratis.
       </div>
@@ -77,8 +84,8 @@
   <div class="tfa-paso abajo-12">
     <span class="tfa-numero">2</span>
     <div class="flex-1 ancho-min-0">
-      <div class="txt-14 peso-600 abajo-4">Escanea este código</div>
-      <div class="txt-13 tinta-tenue abajo-15">
+      <div class="tfa-paso-titulo">Escanea este código</div>
+      <div class="tfa-paso-sub abajo-15">
         Desde la app, con la cámara.
       </div>
 
@@ -113,8 +120,8 @@
   <div class="tfa-paso">
     <span class="tfa-numero">3</span>
     <div class="flex-1 ancho-min-0">
-      <div class="txt-14 peso-600 abajo-4">Escribe el código que aparece</div>
-      <div class="txt-13 tinta-tenue abajo-15">
+      <div class="tfa-paso-titulo">Escribe el código que aparece</div>
+      <div class="tfa-paso-sub abajo-15">
         Seis dígitos. Cambian cada 30 segundos.
       </div>
 
