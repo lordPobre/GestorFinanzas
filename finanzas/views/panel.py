@@ -14,7 +14,7 @@ from ..models import (Categoria, Deuda, GastoPendiente, MetaAhorro, Presupuesto,
 from ..servicios.cuotas import mis_cuotas_detalle, proyecciones_deuda_activas
 from ..servicios.esfera import estado_esfera
 from ..servicios.esfera_bienvenida import bienvenida_esfera
-from ..servicios.mes import MESES_LARGOS, nombre_mes_es, numeros_mes, resumen_mes
+from ..servicios.mes import MESES_LARGOS, nombre_mes_es, numeros_mes, resumen_mes, salud_financiera
 from ..servicios.panel import desglose_categorias, insights_panel, primeros_pasos, serie_seis_meses
 from ..servicios.pendientes import calendario_del_mes, pendientes_del_mes
 from ..servicios.ritmo import ritmo_del_mes
@@ -227,6 +227,9 @@ def dashboard(request):
     context['esfera'] = estado_esfera(
         request.user, r, presupuesto, month, (year, month) == (hoy.year, hoy.month),
         simbolo_de(request.user))
+    if (year, month) != (hoy.year, hoy.month):
+        context.update(salud_financiera(request.user, resumen_actual=r))
+    context['salud_estado_mes'] = context.get('salud_estado') or 'neutro'
     if request.session.pop('bienvenida_esfera', False) and (year, month) == (hoy.year, hoy.month):
         perfil = context['profile']
         estado = context['esfera']['estado']

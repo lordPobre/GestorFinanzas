@@ -37,6 +37,14 @@
   .salud-info { align-items: center; }
 }
 
+.sidebar-foot.health.habla { cursor: pointer; transition: background .2s; }
+.sidebar-foot.health.habla:hover { background: rgba(255, 255, 255, .06); }
+.sidebar-foot.health.habla:focus-visible { outline: 2px solid var(--amber-claro); outline-offset: 3px; }
+.sidebar-foot.health.cargando .salud-esfera { animation-duration: 1.1s; opacity: .8; }
+.sidebar-foot.health.hablando .salud-esfera { animation: seHabla .7s ease-in-out infinite; }
+.sidebar-foot.health.hablando .se-brillo { opacity: .75; }
+@keyframes seHabla { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.12); } }
+
 @media (prefers-reduced-motion: reduce) {
-  .salud-esfera, .se-nucleo i { animation: none; }
+  .salud-esfera, .se-nucleo i, .sidebar-foot.health.hablando .salud-esfera { animation: none; }
 }

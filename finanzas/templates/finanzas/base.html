@@ -102,7 +102,7 @@
 
     {% block sidebar_foot %}
       {% estado_salud as salud_estado %}
-      <div class="sidebar-foot health" data-spot data-tour="salud" data-estado="{{ salud_estado|default:'neutro' }}" title="Salud del mes{% if salud_score != None %}: {{ salud_score }}/100 · {{ salud_label }}{% endif %}">
+      <div class="sidebar-foot health" data-spot data-tour="salud" data-estado="{% firstof salud_estado_mes salud_estado 'neutro' %}" title="Salud del mes{% if salud_score != None %}: {{ salud_score }}/100 · {{ salud_label }}{% endif %}">
         <span class="salud-esfera" aria-hidden="true"><span class="se-brillo"></span><span class="se-nucleo"><i class="b1"></i><i class="b2"></i><i class="b3"></i><i class="b4"></i><span class="se-luz"></span><span class="se-reflejo"></span><span class="se-borde"></span></span></span>
         <div class="salud-info">
           <span class="salud-cifra">{% if salud_score != None %}{{ salud_score }}{% else %}–{% endif %}<small> / 100</small></span>
@@ -475,6 +475,7 @@
 <script src="{% static 'js/pantallas/base-5.js' %}" nonce="{{ csp_nonce }}" data-ruta-inicio="{% url 'dashboard' %}" data-ruta-cuotas="{% url 'deudas' %}" data-ruta-suscripciones="{% url 'suscripciones' %}" data-ruta-prestamos="{% url 'prestamos' %}" data-ruta-metas="{% url 'metas' %}" data-ruta-estadisticas="{% url 'estadisticas' %}" data-ruta-analisis="{% url 'analisis_predictivo' %}" data-ruta-importar="{% url 'importar_cartola' %}" data-ruta-perfil="{% url 'perfil' %}"></script>
 <script src="{% static 'js/pantallas/saludo-cielo.js' %}" nonce="{{ csp_nonce }}"></script>
 {% block extra_js %}{% endblock %}
+<script src="{% static 'js/pantallas/esfera-escritorio.js' %}" nonce="{{ csp_nonce }}"></script>
 <script src="{% static 'js/mantener-lugar.js' %}" nonce="{{ csp_nonce }}"></script>
 {% marketing_evento %}
 </body>
