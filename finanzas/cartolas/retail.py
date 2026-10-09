@@ -3,6 +3,7 @@ from datetime import datetime
 from decimal import Decimal
 
 from .base import Cartola, ErrorCartola, MovimientoLeido, plata, registrar
+from .ciclo import ajustar_al_ciclo
 from .universal import CIFRA, MES_LETRAS, MESES
 
 FECHA_NUM = re.compile(r'\b(\d{1,2})[/.-](\d{1,2})[/.-](\d{2,4})\b')
@@ -80,8 +81,7 @@ class Retail:
             saldo_final=total,
         )
         self._verificar(cartola, suma, total)
-        return cartola
-
+        return ajustar_al_ciclo(cartola, texto, self._cierre(texto))
 
     def _verificar(self, cartola, suma, total):
         n = len(cartola.movimientos)
@@ -118,7 +118,6 @@ class Retail:
             f'La suma de las filas se aleja en {diferencia:,.0f} del total facturado. '
             f'Falta o sobra alguna compra: revísalas una por una.'
         ).replace(',', '.')
-
 
     def _fila(self, linea, fecha_fact):
         bajo = linea.lower()
@@ -199,7 +198,6 @@ class Retail:
             except ValueError:
                 return None
 
-
     def _total(self, texto):
         m = TOTAL.search(texto)
         return plata(m.group(1)) if m else None
@@ -216,6 +214,13 @@ class Retail:
             except (ValueError, TypeError):
                 continue
         return None
+
+    def _cierre(self, texto):
+        m = FECHA_FACT.search(texto)
+        if not m:
+            return None
+        d, mes, a = (int(x) for x in re.split(r'[/.-]', m.group(1)))
+        return self._armar(d, mes, a)
 
     def _contrato(self, texto):
         m = CONTRATO.search(texto)
@@ -287,8 +292,7 @@ class LectorRipley(Retail):
             saldo_final=self._facturado(texto),
         )
         self._verificar_ripley(cartola, firmado, self._subtotales(texto))
-        return cartola
-
+        return ajustar_al_ciclo(cartola, texto, self._cierre(texto))
 
     def _fila(self, linea, fecha_fact):
         bajo = linea.lower()
@@ -361,7 +365,6 @@ class LectorRipley(Retail):
             return None, '', ''
         return fecha, linea[:m.start()], linea[m.end():]
 
-
     def _fecha_estado(self, texto):
         m = FECHA_ESTADO.search(texto)
         if not m:
@@ -369,6 +372,11 @@ class LectorRipley(Retail):
         d, mes, a = m.groups()
         n = MES_LETRAS.get(mes[:3].lower())
         return self._armar(int(d), n, int(a)) if n else None
+
+    def _cierre(self, texto):
+        if FECHA_ESTADO.search(texto):
+            return self._fecha_estado(texto)
+        return super()._cierre(texto)
 
     def _facturado(self, texto):
         m = FACTURADO.search(texto)

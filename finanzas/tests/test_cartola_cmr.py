@@ -56,7 +56,7 @@ class CMRTests(SimpleTestCase):
         cartola = self.leer()
         self.assertTrue(cartola.cuadra, cartola.nota_cuadre)
         self.assertEqual(cartola.saldo_final, Decimal('116970'))
-        self.assertEqual(cartola.periodo, 'Septiembre 2026')
+        self.assertTrue(cartola.periodo.startswith('Septiembre 2026 · ciclo del'))
         self.assertEqual(cartola.cuenta, '…1234')
 
     def test_avisa_cuando_falta_una_compra(self):

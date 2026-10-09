@@ -58,7 +58,7 @@ class RipleyTests(SimpleTestCase):
         self.assertTrue(cartola.cuadra, cartola.nota_cuadre)
         self.assertIn('subtotales', cartola.nota_cuadre)
         self.assertEqual(cartola.saldo_final, Decimal('68450'))
-        self.assertEqual(cartola.periodo, 'Septiembre 2026')
+        self.assertTrue(cartola.periodo.startswith('Septiembre 2026 · ciclo del'))
         self.assertEqual(cartola.cuenta, '…4321')
 
     def test_una_diferencia_chica_se_avisa(self):

@@ -61,6 +61,8 @@ class MovimientoLeido:
     es_suscripcion: bool = False
     ya_existe: bool = False
     aviso: str = ''
+    fecha_compra: date = None
+    mover_id: int = None
 
     @property
     def es_cuota(self):
@@ -96,10 +98,10 @@ def plata(txt):
 def texto_de_pdf(binario):
     try:
         from pypdf import PdfReader
-    except ImportError as e:
+    except ImportError:
         raise ErrorCartola(
             'Falta la librería para leer PDF. Instálala con: pip install --user pypdf'
-        ) from e
+        )
 
     try:
         lector = PdfReader(binario)
@@ -124,8 +126,8 @@ def texto_de_pdf(binario):
         return '\n'.join(piezas)
     except ErrorCartola:
         raise
-    except Exception as e:
-        raise ErrorCartola('No se pudo abrir el PDF. ¿Seguro que es la cartola?') from e
+    except Exception:
+        raise ErrorCartola('No se pudo abrir el PDF. ¿Seguro que es la cartola?')
 
 
 def resolver_signos(filas, saldo_inicial):
@@ -198,14 +200,7 @@ def _leer(texto, banco=''):
         parser = BANCOS.get(banco)
         if not parser:
             raise ErrorCartola('Ese banco todavía no está soportado.')
-        try:
-            leida = parser().parsear(texto)
-        except ErrorCartola as elegido:
-            try:
-                return _leer(texto)
-            except ErrorCartola:
-                raise elegido from None
-        return _topar(leida)
+        return _topar(parser().parsear(texto))
 
     for parser in BANCOS.values():
         if parser().reconoce(texto):

@@ -9,6 +9,7 @@ from django.shortcuts import redirect, render
 
 from ..cartolas import BANCOS, enriquecer, leer_cartola
 from ..cartolas.base import ErrorCartola
+from ..cartolas.ciclo import reubicar_anteriores
 from ..models import Categoria, Deuda, PagoCuota, Persona, Prestamo, Suscripcion, Transaccion
 from .comun import contadores
 from ..seguridad import limitar
@@ -41,6 +42,8 @@ def _a_dict(cartola):
             'es_suscripcion': m.es_suscripcion,
             'ya_existe': m.ya_existe,
             'aviso': m.aviso,
+            'fecha_compra': m.fecha_compra.isoformat() if m.fecha_compra else '',
+            'mover_id': m.mover_id,
         } for m in cartola.movimientos],
     }
 
@@ -82,6 +85,7 @@ def importar_cartola(request):
             cartola = leer_cartola(archivo, request.POST.get('banco', ''),
                                    archivo.name)
             enriquecer(cartola, request.user)
+            reubicar_anteriores(cartola, request.user)
         except ErrorCartola as e:
             messages.error(request, str(e))
             muestra = getattr(e, 'muestra', '')
@@ -135,7 +139,7 @@ def revisar_cartola(request):
         'suma_egresos': sum(f['monto_dec'] for f in nuevas if f['tipo'] == 'EGRESO'),
         'cartola_cats_egreso': Transaccion.CATEGORIAS_EGRESO,
         'cartola_cats_ingreso': Transaccion.CATEGORIAS_INGRESO,
-        'personas': Persona.objects.filter(usuario=request.user, lado='ME_DEBE'),
+        'personas': Persona.objects.filter(usuario=request.user),
     }
     ctx.update(contadores(request.user))
     return render(request, 'finanzas/revisar_cartola.html', ctx)
@@ -152,7 +156,7 @@ def confirmar_cartola(request):
         return redirect('importar_cartola')
 
     movs = datos['movimientos']
-    creados = subs = deudas = prestamos = 0
+    creados = movidos = subs = deudas = prestamos = 0
     validas = {tipo: {slug for slug, _ in Categoria.opciones(request.user, tipo)}
               | set(Transaccion.COLORES_CATEGORIA)
               for tipo in ('INGRESO', 'EGRESO')}
@@ -170,6 +174,17 @@ def confirmar_cartola(request):
             monto = Decimal(m['monto'])
             fecha = date.fromisoformat(m['fecha'])
             es_cuota = m['cuota_total'] > 1
+
+            anterior = None
+            if m.get('mover_id'):
+                anterior = Transaccion.objects.filter(
+                    pk=m['mover_id'], usuario=request.user).first()
+            if anterior is not None:
+                anterior.fecha = fecha
+                anterior.fecha_pago = fecha
+                anterior.save()
+                movidos += 1
+                continue
 
             tx = Transaccion.objects.create(
                 usuario=request.user,
@@ -218,13 +233,13 @@ def confirmar_cartola(request):
                 persona = None
                 pk = (request.POST.get(f'deben_persona_{i}') or '').strip()
                 if pk.isdigit():
-                    persona = Persona.objects.filter(pk=int(pk), usuario=request.user,
-                                                     lado='ME_DEBE').first()
+                    persona = Persona.objects.filter(pk=int(pk),
+                                                     usuario=request.user).first()
                 if persona is None:
                     nombre = (request.POST.get(f'deben_nombre_{i}') or '').strip()[:80]
                     if nombre:
                         persona, _ = Persona.objects.get_or_create(
-                            usuario=request.user, nombre=nombre, lado='ME_DEBE')
+                            usuario=request.user, nombre=nombre)
                 if persona is not None:
                     restantes = (m['cuota_total'] - m['cuota_actual'] + 1
                                  if es_cuota else 1)
@@ -240,11 +255,15 @@ def confirmar_cartola(request):
 
     request.session.pop(SESION, None)
 
-    if not creados:
+    if not creados and not movidos:
         messages.info(request, 'No marcaste ningún movimiento.')
         return redirect('importar_cartola')
 
-    partes = [f'{creados} movimiento{"s" if creados != 1 else ""}']
+    partes = []
+    if creados:
+        partes.append(f'{creados} movimiento{"s" if creados != 1 else ""}')
+    if movidos:
+        partes.append(f'{movidos} movido{"s" if movidos != 1 else ""} al mes de su ciclo')
     if subs:
         partes.append(f'{subs} suscripción{"es" if subs != 1 else ""}')
     if deudas:

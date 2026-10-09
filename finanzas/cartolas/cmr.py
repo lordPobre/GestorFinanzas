@@ -2,6 +2,7 @@ import re
 from datetime import datetime
 
 from .base import Cartola, ErrorCartola, MovimientoLeido, plata, registrar
+from .ciclo import ajustar_al_ciclo
 
 FILA = re.compile(
     r'^(.*?)\s*'
@@ -86,8 +87,7 @@ class CMR:
                 'que estén todas las compras. Revísalas antes de guardar.'
             )
 
-        return cartola
-
+        return ajustar_al_ciclo(cartola, texto, fecha_fact)
 
     def _fila(self, linea, fecha_fact):
         m = FILA.match(linea)
