@@ -3,7 +3,7 @@ from django.test import SimpleTestCase, TestCase
 from django.urls import reverse
 
 from ..ia_plan import _nombrar, _prompt
-from ..plan import _calza, etiqueta_mes, meses_sin_extra, simular
+from ..plan import _calza, etiqueta_mes, meses_sin_extra, promedio_tipico, simular
 from ..views.comun import get_or_create_profile
 from ..views.plan import _entero
 
@@ -69,6 +69,32 @@ class AyudasTests(SimpleTestCase):
     def test_las_claves_se_cambian_por_el_nombre(self):
         texto = _nombrar('Empieza por [D1] y sigue con [D9].', {'D1': 'Tarjeta Ripley'})
         self.assertEqual(texto, 'Empieza por «Tarjeta Ripley» y sigue con una de tus deudas.')
+
+
+class MesTipicoTests(SimpleTestCase):
+
+    def test_meses_vacios_no_bajan_el_ingreso(self):
+        cerrados = [{'INGRESO': 2900000, 'EGRESO': 900000}, {}, {}]
+        ingreso, gasto, base = promedio_tipico(cerrados, {}, 9, 31)
+        self.assertEqual(ingreso, 2900000)
+        self.assertEqual(gasto, 900000)
+        self.assertEqual(base, 1)
+
+    def test_cuenta_el_ingreso_del_mes_actual(self):
+        cerrados = [{'EGRESO': 800000}, {'EGRESO': 600000}, {}]
+        ingreso, gasto, base = promedio_tipico(cerrados, {'INGRESO': 2900000, 'EGRESO': 100000}, 9, 31)
+        self.assertEqual(ingreso, 2900000)
+        self.assertEqual(gasto, 700000)
+        self.assertEqual(base, 2)
+
+    def test_el_gasto_a_medias_del_mes_no_cuenta_si_hay_historial(self):
+        _, gasto, _ = promedio_tipico([{'EGRESO': 500000}], {'EGRESO': 50000}, 9, 30)
+        self.assertEqual(gasto, 500000)
+
+    def test_sin_historial_proyecta_el_gasto_del_mes(self):
+        _, gasto, base = promedio_tipico([{}, {}, {}], {'INGRESO': 1000000, 'EGRESO': 90000}, 9, 30)
+        self.assertEqual(gasto, 300000)
+        self.assertEqual(base, 0)
 
 
 class VistasTests(TestCase):

@@ -22,7 +22,8 @@
 .pp-icono.servicio { background: rgba(251, 146, 60, .2); color: #fdba74; }
 .pp-icono.cuenta { background: rgba(129, 140, 248, .2); color: #a5b4fc; }
 .pp-icono.debo { background: rgba(110, 232, 115, .18); color: #6ee873; }
-.pp-fila.atrasada .pp-icono { background: rgba(255, 138, 138, .18); color: #ff8a8a; }
+.pp-icono .marca-glifo { width: 22px; height: 22px; }
+.pp-fila.atrasada .pp-icono:not(.marca-app) { background: rgba(255, 138, 138, .18); color: #ff8a8a; }
 .pp-txt { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .pp-nombre { font-size: 15px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .pp-meta { font-size: 13px; color: rgba(245, 245, 245, .62); }

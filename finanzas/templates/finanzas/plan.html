@@ -31,6 +31,7 @@
   <span class="sec-label">Este mes no te sobra</span>
   <span class="sec-monto rojo">{{ plan.falta|money }}</span>
   <div class="sec-chips"><span class="chip-vidrio">te falta cada mes</span></div>
+  <span class="pl-hero-nota">En un mes normal entran {{ plan.ingreso|money }}, gastas {{ plan.gasto|money }} y pagas {{ plan.compromisos|money }} en cuotas y préstamos.</span>
 </section>
 <section class="sec-hoja">
   <div class="sec-tip rojo">
@@ -40,6 +41,9 @@
       <span>Cuando te sobre plata, aquí podrás repartirla entre ahorro y deudas. Revisa en qué se va en Estadísticas.</span>
     </span>
   </div>
+  {% if plan.pocos_datos %}
+  <span class="sec-mas-nota">Calculado con {% if plan.meses_base %}{{ plan.meses_base }} mes{{ plan.meses_base|pluralize:"es" }} cerrado{{ plan.meses_base|pluralize }}{% else %}lo que llevas de este mes{% endif %}. Se ajusta solo a medida que anotes.</span>
+  {% endif %}
   <a href="{% url 'estadisticas' %}" class="sec-btn vidrio">Ver estadísticas</a>
 </section>
 
@@ -47,7 +51,7 @@
 <section class="sec-hero pl-hero">
   <span class="sec-label">Te sobran al mes</span>
   <span class="sec-monto">{{ plan.sobra|money }}</span>
-  <span class="pl-hero-nota">Lo que entra menos tus gastos y cuotas. Abajo decides cómo repartirlo.</span>
+  <span class="pl-hero-nota">En un mes normal entran {{ plan.ingreso|money }}, gastas {{ plan.gasto|money }} y pagas {{ plan.compromisos|money }} en cuotas y préstamos. Abajo decides cómo repartir lo que sobra.</span>
   <div class="pl-reparto" aria-label="Así queda lo que te sobra">
     <div class="pl-reparto-barra">
       <span id="planBarAhorro"></span>
@@ -66,6 +70,20 @@
 </section>
 
 <section class="sec-hoja pl-hoja">
+
+  {% if plan.limitado %}
+  <div class="sec-tip ambar">
+    <span class="sec-tip-icono"><i class="fas fa-wallet"></i></span>
+    <span class="sec-tip-txt">
+      <b>Este mes te quedan {{ plan.tope_mes|money }}</b>
+      <span>Ya descontamos lo que gastaste y lo que falta pagar. Lo que apartes este mes no debería pasar de eso.</span>
+    </span>
+  </div>
+  {% endif %}
+
+  {% if plan.pocos_datos %}
+  <span class="sec-mas-nota">Calculado con {% if plan.meses_base %}{{ plan.meses_base }} mes{{ plan.meses_base|pluralize:"es" }} cerrado{{ plan.meses_base|pluralize }}{% else %}lo que llevas de este mes{% endif %}. Se ajusta solo a medida que anotes.</span>
+  {% endif %}
 
   <div class="pl-bloque">
     <div class="sec-cab estatica">

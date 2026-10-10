@@ -1,5 +1,5 @@
 {% extends 'finanzas/base.html' %}
-{% load static moneda %}
+{% load static moneda marcas %}
 {% block title %}Por pagar · Fintora{% endblock %}
 {% block topbar_mes %}{% include 'finanzas/_mes_topbar.html' %}{% endblock %}
 {% block search_placeholder %}Buscar un pago{% endblock %}
@@ -35,7 +35,7 @@
     <span class="pp-grupo-titulo{% if clave == 'atrasado' %} rojo{% endif %}">{{ titulo }}</span>
     {% for i in lista %}
     <div class="pp-fila{% if clave == 'atrasado' %} atrasada{% endif %}{% if i.pagado %} pagada{% endif %}" data-pp-tipo="{{ i.filtro }}" data-searchable>
-      <span class="pp-icono {{ i.filtro }}"><i class="fas {{ i.icono_lista }}"></i></span>
+      {% marca_de i.nombre as m %}{% if m %}{% include 'finanzas/_marca.html' with clase="pp-icono" %}{% else %}<span class="pp-icono {{ i.filtro }}"><i class="fas {{ i.icono_lista }}"></i></span>{% endif %}
       <span class="pp-txt">
         <span class="pp-nombre">{{ i.nombre }}</span>
         <span class="pp-meta">{{ i.detalle }} · {% if i.pagado %}pagado{% if i.fecha_pago %} el {{ i.fecha_pago|date:"j b" }}{% endif %}{% elif clave == 'atrasado' %}venció el {{ i.fecha|date:"j b" }}{% else %}{{ i.fecha|date:"l j"|lower }}{% endif %}</span>
