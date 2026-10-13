@@ -34,7 +34,7 @@
   <span class="sec-label">{% if analisis.flujo_libre >= 0 %}Cada mes te sobran{% else %}Cada mes te faltan{% endif %}</span>
   <span class="sec-monto">{% if analisis.flujo_libre >= 0 %}+{% endif %}{{ analisis.flujo_libre|money }}</span>
   <div class="sec-chips">
-    <span class="chip-vidrio">Con tus últimos 3 meses</span>
+    <span class="chip-vidrio">En un mes normal</span>
   </div>
 </section>
 
@@ -72,11 +72,12 @@
 
   <h2 class="sec-subtitulo">Por qué ese número</h2>
   <div class="an-tabla">
-    <div><span>Entra al mes</span><b class="verde">+{{ analisis.ingreso_mensual|money }}</b></div>
-    <div><span>Gastas al mes</span><b class="rojo">−{{ analisis.gasto_mensual|money }}</b></div>
-    <div><span>Cuotas al mes</span><b class="rojo">−{{ analisis.cuota_mensual_total|money }}</b></div>
+    <div><span>Entra en un mes normal</span><b class="verde">+{{ analisis.ingreso_mensual|money }}</b></div>
+    <div><span>Gastas en un mes normal</span><b class="rojo">−{{ analisis.gasto_mensual|money }}</b></div>
+    <div><span>Cuotas y deudas este mes</span><b class="rojo">−{{ analisis.compromisos_mes|money }}</b></div>
     <div class="total"><span>{% if analisis.flujo_libre >= 0 %}Te sobran{% else %}Te faltan{% endif %}</span><b class="{% if analisis.flujo_libre >= 0 %}verde{% else %}rojo{% endif %}">{{ analisis.flujo_libre|money }}</b></div>
   </div>
+  <span class="sec-mas-nota">{% if analisis.pocos_datos %}Calculado con {% if analisis.meses_base %}{{ analisis.meses_base }} mes{{ analisis.meses_base|pluralize:"es" }} cerrado{{ analisis.meses_base|pluralize }}{% else %}lo que llevas de este mes{% endif %}. Se ajusta solo a medida que anotes.{% else %}Promedio de tus últimos {{ analisis.meses_base }} meses cerrados con movimientos. Las cuotas son las reales de este mes.{% endif %}</span>
 
   <h2 class="sec-subtitulo">Tu riesgo con las deudas</h2>
   <div class="an-riesgo nivel-{{ analisis.riesgo_nivel }}">

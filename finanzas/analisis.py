@@ -1,54 +1,13 @@
-import calendar
 from datetime import date
 
 from dateutil.relativedelta import relativedelta
-from django.db.models import Sum
 
 from .dinero import suma
-from .models import Deuda, Transaccion
+from .models import Deuda
+from .plan import mes_tipico
 
 NOMBRES_MESES = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun',
                  'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic']
-
-
-def _promedio_mensual(usuario, tipo, meses=3, solo_gastos_unicos=False):
-    hoy = date.today()
-    total = 0.0
-    contados = 0
-
-    for i in range(1, meses + 1):
-        f = date(hoy.year, hoy.month, 1) - relativedelta(months=i)
-        _, ult = calendar.monthrange(f.year, f.month)
-        qs = Transaccion.objects.filter(
-            usuario=usuario, tipo=tipo,
-            fecha__gte=date(f.year, f.month, 1),
-            fecha__lte=date(f.year, f.month, ult),
-        )
-        if solo_gastos_unicos:
-            qs = qs.filter(es_cuota=False)
-        total += float(qs.aggregate(t=Sum('monto'))['t'] or 0)
-        contados += 1
-
-    if contados == 0:
-        return 0.0
-    return total / contados
-
-
-def _promedio_con_respaldo(usuario, tipo, solo_gastos_unicos=False):
-    promedio = _promedio_mensual(usuario, tipo, 3, solo_gastos_unicos)
-    if promedio > 0:
-        return promedio
-
-    hoy = date.today()
-    _, ult = calendar.monthrange(hoy.year, hoy.month)
-    qs = Transaccion.objects.filter(
-        usuario=usuario, tipo=tipo,
-        fecha__gte=date(hoy.year, hoy.month, 1),
-        fecha__lte=date(hoy.year, hoy.month, ult),
-    )
-    if solo_gastos_unicos:
-        qs = qs.filter(es_cuota=False)
-    return float(qs.aggregate(t=Sum('monto'))['t'] or 0)
 
 
 def analizar_finanzas(usuario):
@@ -56,8 +15,10 @@ def analizar_finanzas(usuario):
 
     deudas_activas = [d for d in deudas if not d.esta_saldada]
 
-    ingreso_mensual = _promedio_con_respaldo(usuario, 'INGRESO')
-    gasto_mensual = _promedio_con_respaldo(usuario, 'EGRESO', solo_gastos_unicos=True)
+    tipico = mes_tipico(usuario)
+    ingreso_mensual = float(tipico['ingreso'])
+    gasto_mensual = float(tipico['gasto'])
+    compromisos_mes = float(tipico['compromisos'])
 
     deuda_total_restante = float(suma(d.monto_restante for d in deudas_activas))
     cuota_mensual_total = float(suma(d.monto_cuota for d in deudas_activas))
@@ -67,7 +28,7 @@ def analizar_finanzas(usuario):
     else:
         dti = 0.0 if cuota_mensual_total == 0 else 100.0
 
-    flujo_libre = ingreso_mensual - gasto_mensual - cuota_mensual_total
+    flujo_libre = float(tipico['flujo'])
 
     meses_restantes = 0
     fecha_libre_deudas = None
@@ -129,6 +90,9 @@ def analizar_finanzas(usuario):
         'ingreso_mensual': round(ingreso_mensual),
         'gasto_mensual': round(gasto_mensual),
         'cuota_mensual_total': round(cuota_mensual_total),
+        'compromisos_mes': round(compromisos_mes),
+        'meses_base': tipico['meses_base'],
+        'pocos_datos': tipico['meses_base'] < 2,
         'deuda_total_restante': round(deuda_total_restante),
         'flujo_libre': round(flujo_libre),
         'dti': round(dti, 1),
