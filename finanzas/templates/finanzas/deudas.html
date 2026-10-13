@@ -4,7 +4,8 @@
 {% block search_placeholder %}Filtrar compras en cuotas{% endblock %}
 {% block title %}Cuotas · Fintora{% endblock %}
 
-{% block extra_head %}<link rel="stylesheet" href="{% static 'css/inicio-esfera.css' %}">{% endblock %}
+{% block extra_head %}<link rel="stylesheet" href="{% static 'css/inicio-esfera.css' %}">
+<link rel="stylesheet" href="{% static 'css/cuotas-fin.css' %}">{% endblock %}
 
 {% block content %}
 
@@ -21,7 +22,7 @@
   <span class="sec-monto">{{ total_cuotas_mes|money }}</span>
   <div class="sec-chips">
     <span class="chip-vidrio">Te faltan {{ total_restante|money }}</span>
-    {% if se_libera %}<span class="chip-vidrio">Terminas {{ se_libera.fecha_fin_estimada|date:"b Y" }}</span>{% endif %}
+    {% if termina_todo %}<span class="chip-vidrio">Terminas todo {{ termina_todo|date:"b Y" }}</span>{% endif %}
   </div>
   {% include 'finanzas/_esfera.html' %}
 </section>
@@ -63,6 +64,16 @@
           <button type="submit" class="sec-btn azul">Pagar cuota de {{ d.monto_cuota|money }}</button>
         </form>
         {% endif %}
+        {% if d.fecha_fin_estimada %}{% with faltan=d.periodos_pendientes|length %}
+        <div class="cf-fin{% if d.fecha_fin_estimada == termina_todo %} ultima{% endif %}">
+          <span class="cf-fin-icono"><i class="fas fa-flag-checkered"></i></span>
+          <span class="cf-fin-txt">
+            <span class="cf-fin-etiqueta">Última cuota</span>
+            <span class="cf-fin-mes">{{ d.fecha_fin_estimada|date:"F Y" }}</span>
+          </span>
+          <span class="cf-fin-nota">{% if faltan %}{{ faltan }} cuota{{ faltan|pluralize:"s" }} más{% endif %}{% if d.fecha_fin_estimada == termina_todo and deudas|length > 1 %}<b>La última en terminar</b>{% endif %}</span>
+        </div>
+        {% endwith %}{% endif %}
         <span class="sec-mas-nota">Te queda {{ d.monto_restante|money }} de {{ d.monto_total|money }} · {{ d.get_categoria_display }}</span>
         <div class="sec-mas-fila">
           {% if d.cuotas_pagadas > 0 %}

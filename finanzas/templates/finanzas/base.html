@@ -195,10 +195,10 @@
   <a href="{% url 'por_pagar' %}" data-label="Por pagar" class="nav-item {% if request.resolver_match.url_name == 'por_pagar' %}active{% endif %}">
     <i class="fas fa-list-check"></i><span>Por pagar</span>
   </a>
-  <a href="{% url 'prestamos' %}" data-label="Préstamos" class="nav-item {% if request.resolver_match.url_name == 'prestamos' %}active{% endif %}">
-    <i class="fas fa-hand-holding-dollar"></i><span>Préstamos</span>
+  <a href="{% url 'deudas' %}" data-label="Cuotas" class="nav-item {% if request.resolver_match.url_name == 'deudas' %}active{% endif %}">
+    <i class="fas fa-credit-card"></i><span>Cuotas</span>
   </a>
-  <button type="button" class="nav-item {% if not request.resolver_match.url_name in 'dashboard deudas prestamos estadisticas' %}active{% endif %}" data-open="#modalMas" data-label="Más">
+  <button type="button" class="nav-item {% if not request.resolver_match.url_name in 'dashboard por_pagar deudas' %}active{% endif %}" data-open="#modalMas" data-label="Más">
     <i class="fas fa-grip"></i><span>Más</span>
   </button>
 </nav>
@@ -223,9 +223,9 @@
       <button class="modal-close" data-close aria-label="Cerrar"><i class="fas fa-xmark"></i></button>
     </div>
     <div class="hoja-grid">
-      <a href="{% url 'deudas' %}" class="hoja-item">
-        <span class="icon-tile orange"><i class="fas fa-credit-card"></i></span><span>Cuotas</span>
-        {% if cuotas_activas %}<span class="nav-count">{{ cuotas_activas }}</span>{% endif %}</a>
+      <a href="{% url 'prestamos' %}" class="hoja-item">
+        <span class="icon-tile green"><i class="fas fa-hand-holding-dollar"></i></span><span>Me deben</span>
+        {% if prestamos_activos %}<span class="nav-count">{{ prestamos_activos }}</span>{% endif %}</a>
       <a href="{% url 'metas' %}" class="hoja-item">
         <span class="icon-tile orange"><i class="fas fa-bullseye"></i></span><span>Metas</span></a>
       <a href="{% url 'suscripciones' %}" class="hoja-item">

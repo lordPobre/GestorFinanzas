@@ -23,8 +23,7 @@ def deudas(request):
     ))
     saldadas = [d for d in lista if d.esta_saldada]
 
-    proximas = [d for d in activas if d.dias_para_vencer is not None]
-    proximas.sort(key=lambda d: d.fecha_fin_estimada)
+    con_fin = sorted((d for d in activas if d.fecha_fin_estimada), key=lambda d: d.fecha_fin_estimada)
 
     context = {
         'deudas': activas,
@@ -37,7 +36,7 @@ def deudas(request):
         'total_atrasado': round(suma(d.monto_atrasado for d in activas)),
         'cuotas_atrasadas': sum(len(d.periodos_atrasados) for d in activas),
         'total_deuda': round(suma(d.monto_total for d in lista)),
-        'se_libera': proximas[0] if proximas else None,
+        'termina_todo': con_fin[-1].fecha_fin_estimada if con_fin else None,
         'form': DeudaForm(),
     }
     context['esfera'] = esfera_cuotas(request.user, activas, simbolo_de(request.user))

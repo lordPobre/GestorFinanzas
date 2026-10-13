@@ -1063,7 +1063,7 @@ body:has(.ini-hero) .fab-group { display: none !important; }
 
   .bottomnav {
     left: 50%; right: auto; bottom: calc(26px + var(--safe-b)); transform: translateX(-50%);
-    width: auto; height: 60px; padding: 0 8px; gap: 4px; justify-content: center; border-radius: 100px;
+    width: max-content; max-width: calc(100vw - 20px); height: 60px; padding: 0 8px; gap: 4px; justify-content: center; border-radius: 100px;
     background: rgba(55, 50, 44, .6);
     -webkit-backdrop-filter: blur(30px) saturate(180%); backdrop-filter: blur(30px) saturate(180%);
     border: 1px solid rgba(255, 255, 255, .14);
@@ -1087,8 +1087,14 @@ body:has(.ini-hero) .fab-group { display: none !important; }
     --barra-borde: max(16px, calc(50% - 230px));
   }
   body:has(.fab-group .fab):not(:has(.ini-hero)):not(:has(.ca-form)):not(:has(.rv-hoja)):not(:has(.fo-form)) .bottomnav {
-    left: var(--barra-borde); right: var(--barra-borde); transform: none;
+    left: var(--barra-borde); right: var(--barra-borde); width: auto; max-width: none; transform: none;
     justify-content: space-between; padding: 0 62px 0 8px;
+  }
+  body:has(.fab-group .fab):not(:has(.ini-hero)):not(:has(.ca-form)):not(:has(.rv-hoja)):not(:has(.fo-form)) .bottomnav .nav-item {
+    flex: 1 1 0; width: auto; min-width: 0;
+  }
+  body:has(.fab-group .fab):not(:has(.ini-hero)):not(:has(.ca-form)):not(:has(.rv-hoja)):not(:has(.fo-form)) .bottomnav .nav-item.active {
+    flex: 0 0 auto; padding: 0 16px; white-space: nowrap;
   }
   body:has(.fab-group .fab):not(:has(.ini-hero)):not(:has(.ca-form)):not(:has(.rv-hoja)):not(:has(.fo-form)) .fab-group {
     right: calc(var(--barra-borde) + 7px); bottom: calc(33px + var(--safe-b)); z-index: 60;

@@ -1,0 +1,16 @@
+.cf-fin {
+  display: flex; align-items: center; gap: 12px; min-width: 0; padding: 12px 14px; border-radius: 16px;
+  background: rgba(255, 255, 255, .05); border: 1px solid rgba(255, 255, 255, .08);
+}
+.cf-fin.ultima { background: rgba(75, 140, 255, .1); border-color: rgba(141, 180, 255, .26); }
+.cf-fin-icono {
+  width: 34px; height: 34px; flex-shrink: 0; border-radius: 12px;
+  display: flex; align-items: center; justify-content: center; font-size: 13px;
+  background: rgba(75, 140, 255, .18); color: #8db4ff;
+}
+.cf-fin-txt { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.cf-fin-etiqueta { font-size: 12px; font-weight: 700; color: var(--text-muted); }
+.cf-fin-mes { font-size: 17px; font-weight: 800; letter-spacing: -.02em; text-transform: capitalize; }
+.cf-fin.ultima .cf-fin-mes { color: #8db4ff; }
+.cf-fin-nota { flex-shrink: 0; display: flex; flex-direction: column; align-items: flex-end; gap: 2px; font-size: 13px; font-weight: 600; color: var(--text-muted); text-align: right; }
+.cf-fin-nota b { font-size: 12px; font-weight: 800; color: #8db4ff; }
