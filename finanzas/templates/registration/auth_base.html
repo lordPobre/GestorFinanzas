@@ -23,6 +23,7 @@
   <link rel="stylesheet" href="{% static 'css/finapp.css' %}">
   <link rel="stylesheet" href="{% static 'css/tema-vidrio.css' %}">
   <link rel="stylesheet" href="{% static 'css/acceso.css' %}">
+  {% block extra_css %}{% endblock %}
 
   <script src="{% static 'js/pantallas/auth-base.js' %}" nonce="{{ csp_nonce }}"></script>
 
@@ -36,7 +37,9 @@
 </div>
 {% endif %}
 
-<div class="auth">
+<div class="auth{% block auth_clase %}{% endblock %}">
+
+  {% block movil %}{% endblock %}
 
   <div class="auth-marca">
     <a href="{% url 'dashboard' %}" class="auth-marca-link" title="Ir a la página de Fintora">

@@ -2,7 +2,41 @@
 {% load static %}
 {% block title %}Entrar · Fintora{% endblock %}
 
+{% block auth_clase %} lm{% if form.errors or bloqueado %} abierto{% endif %}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/landing-esfera.css' %}">
+<link rel="stylesheet" href="{% static 'css/login-esfera.css' %}">
+{% endblock %}
+
+{% block movil %}
+<div class="lm-hero" data-lm-hero>
+  <div class="lm-centro">
+    <span class="lm-esfera" data-lm-esfera aria-hidden="true">
+      <span class="lpo amarillo">
+        <span class="lpo-brillo"></span>
+        <span class="lpo-nucleo"><i class="b1"></i><i class="b2"></i><i class="b3"></i><i class="b4"></i><span class="lpo-luz"></span><span class="lpo-reflejo"></span><span class="lpo-borde"></span></span>
+        <span class="lm-f">{% include "finanzas/marca_icono.html" %}</span>
+      </span>
+    </span>
+    <div class="lm-textos">
+      <h1 class="lm-nombre">Fintora</h1>
+      <p class="lm-sub">Sigue donde lo dejaste.</p>
+    </div>
+  </div>
+  <div class="lm-abajo">
+    <p class="lm-pie"><i class="fas fa-lock"></i><span>Tus datos quedan en tu cuenta. Nada se comparte.</span></p>
+    <button type="button" class="auth-btn ambar lm-entrar" data-lm-abrir aria-expanded="false">Entrar</button>
+    <p class="lm-cambio">¿No tienes cuenta? <a href="{% url 'registro' %}">Crear una</a></p>
+  </div>
+</div>
+<div class="lm-fondo" data-lm-cerrar></div>
+{% endblock %}
+
 {% block card %}
+<button type="button" class="lm-asa" data-lm-cerrar aria-label="Cerrar"><span></span></button>
+<button type="button" class="lm-cerrar" data-lm-cerrar aria-label="Cerrar"><i class="fas fa-xmark"></i></button>
+
 <div class="auth-cab">
   <h2 class="auth-h">Entra a tu cuenta</h2>
   <p class="auth-sub">Sigue donde lo dejaste.</p>
@@ -119,4 +153,5 @@
 <script src="{% static 'js/passkeys.js' %}" nonce="{{ csp_nonce }}"></script>
 <script src="{% static 'js/pantallas/login.js' %}" nonce="{{ csp_nonce }}" data-url-opciones="{% url 'passkey_entrar_opciones' %}" data-url-verificar="{% url 'passkey_entrar_verificar' %}"></script>
 <script src="{% static 'js/pantallas/login-2.js' %}" nonce="{{ csp_nonce }}"></script>
+<script src="{% static 'js/pantallas/login-esfera.js' %}" nonce="{{ csp_nonce }}"></script>
 {% endblock %}
