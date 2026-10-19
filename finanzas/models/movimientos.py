@@ -9,12 +9,6 @@ class VinculoCategoria(models.Model):
     class Meta:
         abstract = True
 
-    @classmethod
-    def from_db(cls, db, field_names, values):
-        obj = super().from_db(db, field_names, values)
-        obj._categoria_vinculada = obj.__dict__.get('categoria')
-        return obj
-
     def save(self, *args, **kwargs):
         campos = kwargs.get('update_fields')
         if campos is None or 'categoria' in campos:
@@ -25,6 +19,12 @@ class VinculoCategoria(models.Model):
                     kwargs['update_fields'] = [*campos, 'categoria_ref']
             self._categoria_vinculada = self.categoria
         super().save(*args, **kwargs)
+
+    @classmethod
+    def from_db(cls, db, field_names, values):
+        obj = super().from_db(db, field_names, values)
+        obj._categoria_vinculada = obj.__dict__.get('categoria')
+        return obj
 
 
 class Transaccion(VinculoCategoria):
