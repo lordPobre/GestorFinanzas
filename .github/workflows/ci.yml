@@ -7,27 +7,12 @@ on:
 
 concurrency:
   group: ci-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   pruebas:
     runs-on: ubuntu-latest
     timeout-minutes: 20
-
-    services:
-      postgres:
-        image: public.ecr.aws/docker/library/postgres:18
-        env:
-          POSTGRES_USER: fintora
-          POSTGRES_PASSWORD: fintora
-          POSTGRES_DB: fintora
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U fintora"
-          --health-interval 5s
-          --health-timeout 5s
-          --health-retries 10
 
     env:
       SECRET_KEY: clave-solo-para-pruebas-de-integracion-continua-no-sirve-en-produccion
@@ -39,6 +24,20 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+
+      - name: Postgres 18
+        run: |
+          sudo systemctl stop postgresql || true
+          sudo apt-get install -y postgresql-common
+          sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y
+          sudo apt-get install -y postgresql-18 postgresql-client-18
+          sudo pg_ctlcluster 18 main stop || true
+          sudo pg_conftool 18 main set port 5432
+          sudo pg_ctlcluster 18 main start
+          sudo -u postgres psql -v ON_ERROR_STOP=1 -c "CREATE ROLE fintora LOGIN SUPERUSER PASSWORD 'fintora';"
+          sudo -u postgres createdb -O fintora fintora
+          pg_isready -h localhost -p 5432
+          echo "/usr/lib/postgresql/18/bin" >> "$GITHUB_PATH"
 
       - uses: actions/setup-python@v5
         with:
@@ -62,13 +61,6 @@ jobs:
       - name: Cobertura
         run: coverage report
 
-      - name: Cliente de Postgres 18
-        run: |
-          sudo apt-get install -y postgresql-common
-          sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y
-          sudo apt-get install -y postgresql-client-18
-          echo "/usr/lib/postgresql/18/bin" >> "$GITHUB_PATH"
-
       - name: Respaldo de prueba
         run: |
           python manage.py migrate --noinput
@@ -77,21 +69,6 @@ jobs:
   navegador:
     runs-on: ubuntu-latest
     timeout-minutes: 15
-
-    services:
-      postgres:
-        image: public.ecr.aws/docker/library/postgres:18
-        env:
-          POSTGRES_USER: fintora
-          POSTGRES_PASSWORD: fintora
-          POSTGRES_DB: fintora
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U fintora"
-          --health-interval 5s
-          --health-timeout 5s
-          --health-retries 10
 
     env:
       SECRET_KEY: clave-solo-para-pruebas-de-integracion-continua-no-sirve-en-produccion
@@ -104,6 +81,20 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+
+      - name: Postgres 18
+        run: |
+          sudo systemctl stop postgresql || true
+          sudo apt-get install -y postgresql-common
+          sudo /usr/share/postgresql-common/pgdg/apt.postgresql.org.sh -y
+          sudo apt-get install -y postgresql-18 postgresql-client-18
+          sudo pg_ctlcluster 18 main stop || true
+          sudo pg_conftool 18 main set port 5432
+          sudo pg_ctlcluster 18 main start
+          sudo -u postgres psql -v ON_ERROR_STOP=1 -c "CREATE ROLE fintora LOGIN SUPERUSER PASSWORD 'fintora';"
+          sudo -u postgres createdb -O fintora fintora
+          pg_isready -h localhost -p 5432
+          echo "/usr/lib/postgresql/18/bin" >> "$GITHUB_PATH"
 
       - uses: actions/setup-python@v5
         with:
