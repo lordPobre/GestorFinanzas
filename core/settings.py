@@ -308,6 +308,20 @@ def limpiar_evento_sentry(evento, pista):
     return evento
 
 
+RUTAS_SIN_TRAZA = ('/salud/', '/static/', '/media/', '/sw.js', '/favicon')
+
+
+def muestreo_sentry(contexto):
+    entorno = contexto.get('wsgi_environ') or {}
+    if entorno.get('PATH_INFO', '').startswith(RUTAS_SIN_TRAZA):
+        return 0.0
+    try:
+        tasa = float(os.environ.get('SENTRY_TRACES', '0.05'))
+    except ValueError:
+        return 0.0
+    return min(max(tasa, 0.0), 1.0)
+
+
 SENTRY_DSN = os.environ.get('SENTRY_DSN', '').strip()
 if SENTRY_DSN and not _SOLO_ESTATICOS:
     import sentry_sdk
@@ -320,7 +334,8 @@ if SENTRY_DSN and not _SOLO_ESTATICOS:
         max_request_body_size='never',
         include_local_variables=False,
         before_send=limpiar_evento_sentry,
-        traces_sample_rate=0.0,
+        before_send_transaction=limpiar_evento_sentry,
+        traces_sampler=muestreo_sentry,
         environment=ENTORNO,
         release=os.environ.get('RAILWAY_GIT_COMMIT_SHA', '')[:12] or None,
     )

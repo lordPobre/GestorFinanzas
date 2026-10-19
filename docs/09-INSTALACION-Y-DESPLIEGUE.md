@@ -71,6 +71,7 @@ Para probar Face ID en local hace falta `localhost` (WebAuthn exige un contexto 
 | `PG_MAJOR` | En el servicio de respaldo | Versión mayor de Postgres para instalar un `pg_dump` compatible |
 | `RESPALDOS_DIR` | | Carpeta del respaldo SQLite |
 | `SENTRY_DSN` | | Monitoreo de errores |
+| `SENTRY_TRACES` | | Parte de las peticiones que se mide en Sentry, de 0 a 1. Por defecto `0.05`. `/salud/` y los estáticos nunca se miden |
 | `LOG_DIR` | | Carpeta para `seguridad.log` |
 
 ## Producción en Railway
@@ -123,6 +124,7 @@ pip-compile --generate-hashes --allow-unsafe --output-file requirements-dev.txt 
 
 - Se suben los `.in` y los `.txt` en el mismo commit. El CI instala con `--require-hashes`.
 - Los `.in` están en la raíz del repositorio, junto a los `.txt`.
+- `playwright` es solo de desarrollo. Después de instalarlo, `python -m playwright install chromium` baja el navegador para las pruebas.
 - `defusedxml` es dependencia de producción desde el lote 79: si falta, `check --deploy` da error.
 
 ## Migraciones

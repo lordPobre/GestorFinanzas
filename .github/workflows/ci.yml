@@ -74,6 +74,53 @@ jobs:
           python manage.py migrate --noinput
           python manage.py respaldar_postgres --seco
 
+  navegador:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    services:
+      postgres:
+        image: public.ecr.aws/docker/library/postgres:18
+        env:
+          POSTGRES_USER: fintora
+          POSTGRES_PASSWORD: fintora
+          POSTGRES_DB: fintora
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U fintora"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      SECRET_KEY: clave-solo-para-pruebas-de-integracion-continua-no-sirve-en-produccion
+      DEBUG: "True"
+      ALLOWED_HOSTS: localhost,127.0.0.1,testserver
+      DATABASE_URL: postgres://fintora:fintora@localhost:5432/fintora
+      DB_SSL: "0"
+      PROXIES_CONFIABLES: "0"
+      PRUEBAS_NAVEGADOR: "1"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version-file: .python-version
+          cache: pip
+
+      - name: Instalar dependencias
+        run: |
+          python -m pip install --upgrade pip
+          pip install --require-hashes -r requirements.txt -r requirements-dev.txt
+
+      - name: Chromium para Playwright
+        run: python -m playwright install --with-deps chromium
+
+      - name: Pruebas en navegador
+        run: python manage.py test finanzas.tests.test_navegador --verbosity 2
+
   despliegue:
     runs-on: ubuntu-latest
     timeout-minutes: 10

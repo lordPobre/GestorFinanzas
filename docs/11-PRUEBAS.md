@@ -10,17 +10,21 @@ ruff check .
 python manage.py check --deploy        # con DEBUG=False
 python manage.py makemigrations --check --dry-run
 node --test pruebas_js/*.test.js        # JavaScript, con Node 22
+PRUEBAS_NAVEGADOR=1 python manage.py test finanzas.tests.test_navegador   # en Chromium
 ```
+
+Las pruebas en navegador usan Playwright con Chromium. La primera vez hay que bajar el navegador con `python -m playwright install chromium`. Sin `PRUEBAS_NAVEGADOR=1` se saltan, así que `python manage.py test` sigue igual.
 
 Durante las pruebas, `core/settings.py` quita `RESEND_API_KEY` del entorno, así que no sale ningún correo aunque tengas la clave en `.env`. Las llamadas a Anthropic, Google y ElevenLabs siempre se simulan con `unittest.mock`.
 
 ## Integración continua
 
-`.github/workflows/ci.yml` corre en cada push a `main` y en cada pull request. Tiene seis trabajos:
+`.github/workflows/ci.yml` corre en cada push a `main` y en cada pull request. Tiene siete trabajos:
 
 | Trabajo | Qué hace | Si falla |
 | --- | --- | --- |
 | `pruebas` | Levanta Postgres 18. Instala con `--require-hashes`, corre `ruff check` (con las reglas S, B, DJ y UP desde el lote 91), `makemigrations --check`, `coverage run manage.py test` y `coverage report`. Desde el lote 107 instala el cliente de Postgres 18, migra la base del servicio y corre `respaldar_postgres --seco`: hace la copia, la verifica y no la sube | Build en rojo. La cobertura mínima es 55 % (`fail_under` en `pyproject.toml`) |
+| `navegador` | Levanta Postgres 18, instala Chromium con Playwright y corre `test_navegador` con `PRUEBAS_NAVEGADOR=1`: un servidor de verdad y un navegador de verdad. Entra en el computador y en el teléfono (abre y cierra la hoja del login), anota un gasto con el teclado y paga una cuota | Build en rojo |
 | `despliegue` | `check --deploy --fail-level WARNING` con `DEBUG=False` | Build en rojo: significa que falta un ajuste de seguridad de producción |
 | `dependencias` | `pip-audit --strict` sobre `requirements.txt` y `requirements-dev.txt` | Build en rojo: hay una dependencia con una vulnerabilidad conocida |
 | `javascript` | `node --test pruebas_js/*.test.js` con Node 22 | Build en rojo |

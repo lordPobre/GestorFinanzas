@@ -3,3 +3,4 @@ ruff
 coverage
 pip-tools
 pip-audit
+playwright

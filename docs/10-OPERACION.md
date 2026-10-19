@@ -118,6 +118,7 @@ El primer lunes de cada mes: descargar la última copia, verificar el hash, rest
 | Costo | Panel de Railway | Límite y alerta de gasto |
 | Voz | Deploy Logs: `ElevenLabs devolvió …` | Ninguna automática. 401 = clave mala; 404 = *voice ID* malo; 400 `free_users_not_allowed` o 402 `paid_plan_required` = voz que pide plan de pago; 402 `quota_exceeded` = sin créditos |
 | IA | Deploy Logs: `IA <función>: <modelo> respondió en …` y `respondió sin el formato pedido` | Ninguna automática. Los fallos de la API llegan a Sentry. Muchas respuestas sin formato después de cambiar un modelo o un prompt = volver al anterior |
+| Rendimiento | Sentry → Performance: el 5 % de las peticiones (`SENTRY_TRACES`), con la ruta, las consultas y su duración, sin datos personales | Ninguna automática. Revisar cada mes las pantallas más lentas |
 | IP real | `/perfil/diagnostico-ip/`, solo personal | Revisar al cambiar algo delante de Railway (por ejemplo, poner Cloudflare como proxy) |
 
 `/salud/` prueba la base (`SELECT 1`) y la caché (escribir y leer una clave). Si algo falla, responde 503 con `degradado` y qué parte falló.
