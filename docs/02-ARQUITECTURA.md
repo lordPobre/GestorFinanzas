@@ -13,7 +13,7 @@ Fintora es un monolito Django que renderiza HTML en el servidor. No hay API púb
 | Archivos estáticos | WhiteNoise, con manifiesto y compresión en producción |
 | Fotos de perfil | Cloudflare R2 (API S3, `django-storages`) con URL firmada de 6 h. Sin credenciales, al disco |
 | Correo | API HTTP de Resend |
-| IA | API de Anthropic: `claude-sonnet-4-6` para el análisis y el plan, y `claude-haiku-4-5` para el chat de ayuda |
+| IA | API de Anthropic: `claude-sonnet-4-6` para el análisis, el plan y los repetidos, y `claude-haiku-4-5` para el chat de ayuda. Cada uno se cambia con su variable `IA_MODELO_*` |
 | Voz | API de ElevenLabs para la esfera (`voz.py`). Modelo `eleven_multilingual_v2` por defecto |
 | Acceso | Contraseña (Argon2), TOTP (`pyotp`), WebAuthn (`webauthn`) y Google OAuth/OIDC |
 | Lectura de cartolas | `pypdf` 6 y `openpyxl` 3.1, con `defusedxml` para abrir los Excel |
@@ -47,7 +47,10 @@ finanzas/
   templates/finanzas/, templates/registration/
   templatetags/       moneda.py (dinero), voz.py (textos firmados para la voz), esfera_salud.py, marketing.py, correo_marca.py
   analisis.py         motor determinístico del diagnóstico
-  ia.py               interpretación con Claude
+  ia_cliente.py       cliente de Anthropic: modelo por función, herramientas y registro de uso
+  ia.py               interpretación del análisis con Claude
+  ia_plan.py          explicación del plan con Claude
+  ia_repetidos.py     revisión con Claude de los movimientos repetidos dudosos
   chat_ayuda.py       chat de la landing
   seguridad.py        topes de intentos y de peticiones (tabla Contador)
   redirecciones.py    destinos `next` solo del propio dominio
@@ -144,6 +147,15 @@ Encima del resumen se calculan dos cosas:
 - Asigna un puntaje de riesgo de 0 a 100 con factores explicados: DTI sobre 20, 35 o 45 %; flujo negativo o menor al 10 %; deudas sin ingresos anotados; cinco o más compras a plazo. El nivel resultante es *saludable*, *moderado*, *alto* o *crítico*.
 
 La IA (`ia.py`) solo recibe esos agregados y los redacta en lenguaje natural. Ver [07 · Privacidad](07-PRIVACIDAD-Y-CUMPLIMIENTO.md#inteligencia-artificial).
+
+## Llamadas a la IA
+
+Las cuatro funciones con IA (análisis, plan, repetidos y chat de ayuda) pasan por `ia_cliente.py`:
+
+- **Modelo.** `ia_cliente.modelo(función)` lee `IA_MODELO_ANALISIS`, `IA_MODELO_PLAN`, `IA_MODELO_REPETIDOS` o `IA_MODELO_AYUDA`. Si la variable no está, usa el modelo por defecto de la tabla de arriba.
+- **Instrucciones y datos por separado.** El rol y las reglas van en el parámetro `system`. El mensaje solo lleva los datos, entre etiquetas (`<datos>`, `<plan>` o `<pares>`), y las reglas dicen que lo de adentro es información y no instrucciones. En repetidos, a las descripciones se les quitan `<` y `>`.
+- **Respuesta estructurada.** Análisis, plan y repetidos piden la respuesta con una herramienta (`tool_choice` forzado y `input_schema`): `entregar_diagnostico`, `entregar_explicacion` y `marcar_iguales`. `ia_cliente.datos_de` lee el bloque `tool_use`. Si no viene o le faltan campos, la respuesta se descarta y la pantalla sigue con los números del motor. El chat de ayuda responde en texto.
+- **Registro de uso.** `ia_cliente.llamar` mide cada llamada y deja en el log la función, el modelo, los milisegundos y los tokens de entrada y salida. Además suma al mes en la tabla `Contador`, con claves `ia-uso:AAAA-MM:función:modelo:campo`: llamadas, fallidas, sin formato, tokens y milisegundos. Las filas vencen a los 400 días. `python manage.py uso_ia` muestra el resumen del mes con el costo estimado (ver [10 · Operación](10-OPERACION.md#uso_ia)).
 
 ## Suscripciones: cómo aparecen solas cada mes
 

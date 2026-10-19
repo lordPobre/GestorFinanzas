@@ -7,6 +7,7 @@ from types import SimpleNamespace
 from unittest import mock
 
 from django.contrib.auth.models import User
+from django.core.cache import cache
 from django.test import SimpleTestCase, TestCase
 
 from .. import ia
@@ -126,16 +127,24 @@ ANALISIS = {
 }
 
 
-def _respuesta(texto):
-    return SimpleNamespace(content=[SimpleNamespace(type='text', text=texto)])
+def _respuesta(datos=None, texto=None):
+    if texto is not None:
+        return SimpleNamespace(content=[SimpleNamespace(type='text', text=texto)])
+    return SimpleNamespace(content=[SimpleNamespace(type='tool_use', name='entregar_diagnostico', input=datos)],
+                           usage=SimpleNamespace(input_tokens=500, output_tokens=200))
 
 
-class InterpretacionConIA(SimpleTestCase):
+class InterpretacionConIA(TestCase):
+
+    def setUp(self):
+        cache.clear()
 
     def test_prompt_lleva_los_numeros(self):
         prompt = ia._construir_prompt(ANALISIS)
         self.assertIn('$1,000,000', prompt)
         self.assertIn('- DTI: bajo el 30%', prompt)
+        self.assertTrue(prompt.startswith('<datos>'))
+        self.assertNotIn('Eres', prompt)
 
     def test_sin_clave_no_llama(self):
         with mock.patch.dict(os.environ, {'ANTHROPIC_API_KEY': ''}):
@@ -153,17 +162,27 @@ class InterpretacionConIA(SimpleTestCase):
                 crear.side_effect = error
             else:
                 crear.return_value = respuesta
+            self.crear = crear
             return ia.interpretar_con_ia(ANALISIS)
 
-    def test_respuesta_valida_en_bloque_de_codigo(self):
-        datos = self._llamar(_respuesta('```json\n{"diagnostico": "ok", "recomendaciones": []}\n```'))
+    def test_respuesta_valida_con_herramienta(self):
+        datos = self._llamar(_respuesta({'diagnostico': 'ok', 'recomendaciones': []}))
         self.assertEqual(datos['diagnostico'], 'ok')
+        pedido = self.crear.call_args.kwargs
+        self.assertIn('Eres un asesor financiero', pedido['system'])
+        self.assertEqual(pedido['tool_choice'], {'type': 'tool', 'name': 'entregar_diagnostico'})
+        self.assertEqual(pedido['model'], 'claude-sonnet-4-6')
+
+    def test_el_modelo_sale_de_la_variable_de_entorno(self):
+        with mock.patch.dict(os.environ, {'IA_MODELO_ANALISIS': 'claude-haiku-4-5'}):
+            self._llamar(_respuesta({'diagnostico': 'ok', 'recomendaciones': []}))
+        self.assertEqual(self.crear.call_args.kwargs['model'], 'claude-haiku-4-5')
 
     def test_respuesta_sin_claves(self):
-        self.assertIsNone(self._llamar(_respuesta('{"otra": 1}')))
+        self.assertIsNone(self._llamar(_respuesta({'otra': 1})))
 
-    def test_respuesta_que_no_es_json(self):
-        self.assertIsNone(self._llamar(_respuesta('hola')))
+    def test_respuesta_en_texto_no_sirve(self):
+        self.assertIsNone(self._llamar(_respuesta(texto='{"diagnostico": "ok", "recomendaciones": []}')))
 
     def test_falla_la_api(self):
         self.assertIsNone(self._llamar(error=RuntimeError('caida')))
@@ -188,5 +207,7 @@ class AnalisisFinanciero(TestCase):
                                        categoria='Comida', fecha=fecha)
         resultado = analizar_finanzas(ana)
         self.assertIsInstance(resultado, dict)
+        if resultado.get('tiene_datos'):
+            self.assertIn('DATOS FINANCIEROS', ia._construir_prompt(resultado))
         if resultado.get('tiene_datos'):
             self.assertIn('DATOS FINANCIEROS', ia._construir_prompt(resultado))

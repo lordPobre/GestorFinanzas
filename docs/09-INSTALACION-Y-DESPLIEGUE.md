@@ -22,7 +22,7 @@ Con `DEBUG=True` no hace falta nada más:
 - La base es `db.sqlite3` en modo WAL.
 - Las fotos van a `media/`.
 - Sin `RESEND_API_KEY` los correos no salen: se anota un error en el log y la vista avisa. Para ver el enlace de confirmación o de recuperación, búscalo en la consola.
-- Sin `ANTHROPIC_API_KEY`, el análisis muestra solo el motor propio y el chat de ayuda pasa directo al formulario.
+- Sin `ANTHROPIC_API_KEY`, el análisis y el plan muestran solo el motor propio, los repetidos dudosos quedan para que la persona decida y el chat de ayuda pasa directo al formulario.
 - Sin `GOOGLE_CLIENT_ID`, el botón de Google no aparece.
 - Sin `ELEVENLABS_API_KEY` y `ELEVENLABS_VOZ`, la esfera se ve pero no habla.
 - Sin las variables de medición, las páginas públicas no cargan analítica ni muestran el aviso de cookies.
@@ -49,7 +49,9 @@ Para probar Face ID en local hace falta `localhost` (WebAuthn exige un contexto 
 | `SESION_MAXIMA_HORAS` | | Duración máxima de una sesión desde que se entró. Por defecto 168 |
 | `CSP_IMG_EXTRA` | | Orígenes extra de imágenes para la CSP, separados por espacio |
 | `RESEND_API_KEY`, `CORREO_FROM` | Para correo | Clave de Resend y remitente, con el dominio verificado en Resend. De `CORREO_FROM` solo se usa la dirección: el nombre visible siempre es «Fintora» |
-| `ANTHROPIC_API_KEY` | Para IA | Análisis y chat de ayuda |
+| `ANTHROPIC_API_KEY` | Para IA | Análisis, plan, movimientos repetidos y chat de ayuda |
+| `IA_MODELO_ANALISIS`, `IA_MODELO_PLAN`, `IA_MODELO_REPETIDOS` | | Modelo de Anthropic para cada función. `claude-sonnet-4-6` por defecto |
+| `IA_MODELO_AYUDA` | | Modelo del chat de ayuda. `claude-haiku-4-5` por defecto |
 | `CHAT_AYUDA_TOPE_DIARIO` | | Tope diario global de llamadas del chat (300 por defecto) |
 | `CHAT_AYUDA_TOPE_IP` | | Preguntas por día por IP o red /64 (30 por defecto) |
 | `ELEVENLABS_API_KEY`, `ELEVENLABS_VOZ` | Para la voz | Clave de ElevenLabs (basta el permiso *Text to Speech*) y el *voice ID*. Con el plan gratuito solo sirven las voces predeterminadas, como Sarah (`EXAVITQu4vr4xnSDxMaL`) |

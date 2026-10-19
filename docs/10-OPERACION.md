@@ -69,6 +69,17 @@ python manage.py avisar_politica                   # a todas
 
 En producción se corre dentro del servicio web: `railway ssh` (con el proyecto y el servicio web elegidos) y ahí el comando. Necesita `RESEND_API_KEY` y `SITE_URL`, que ese servicio ya tiene.
 
+### `uso_ia`
+
+Se corre a mano. Muestra, por función y modelo, las llamadas del mes a la API de Anthropic: cuántas hubo, cuántas fallaron, cuántas llegaron sin el formato pedido, los tokens de entrada y salida, la demora promedio y el costo estimado. El costo se calcula con US$3 y US$15 por millón de tokens de entrada y salida para Sonnet, y US$1 y US$5 para Haiku. Un modelo fuera de esa lista aparece como «sin precio conocido».
+
+```bash
+python manage.py uso_ia                # el mes en curso
+python manage.py uso_ia --mes 2026-10  # otro mes
+```
+
+En producción se corre dentro del servicio web con `railway ssh`.
+
 ### `limpiar_avatares_huerfanos`
 
 Lista los archivos de `avatares/` que ningún perfil referencia. Con `--borrar`, los elimina. Si todos parecen huérfanos, aborta: eso indica un problema de rutas, no archivos sobrantes.
@@ -106,6 +117,7 @@ El primer lunes de cada mes: descargar la última copia, verificar el hash, rest
 | Tareas | Panel de Railway: cada corrida de un servicio programado queda con su salida y su código de salida | Una corrida fallida queda en rojo |
 | Costo | Panel de Railway | Límite y alerta de gasto |
 | Voz | Deploy Logs: `ElevenLabs devolvió …` | Ninguna automática. 401 = clave mala; 404 = *voice ID* malo; 400 `free_users_not_allowed` o 402 `paid_plan_required` = voz que pide plan de pago; 402 `quota_exceeded` = sin créditos |
+| IA | Deploy Logs: `IA <función>: <modelo> respondió en …` y `respondió sin el formato pedido` | Ninguna automática. Los fallos de la API llegan a Sentry. Muchas respuestas sin formato después de cambiar un modelo o un prompt = volver al anterior |
 | IP real | `/perfil/diagnostico-ip/`, solo personal | Revisar al cambiar algo delante de Railway (por ejemplo, poner Cloudflare como proxy) |
 
 `/salud/` prueba la base (`SELECT 1`) y la caché (escribir y leer una clave). Si algo falla, responde 503 con `degradado` y qué parte falló.
@@ -126,7 +138,7 @@ El primer lunes de cada mes: descargar la última copia, verificar el hash, rest
 | --- | --- |
 | Semanal | Revisar y fusionar los PR de Dependabot con el CI en verde |
 | Mensual | Simulacro de restauración. Revisar Sentry y los eventos `bloqueo` y `admin_denegado` en el admin |
-| Mensual | Revisar el consumo de la API de Anthropic, el tope diario del chat y los créditos de ElevenLabs |
+| Mensual | Revisar el consumo de la API de Anthropic con `uso_ia` y en su consola, el tope diario del chat y los créditos de ElevenLabs |
 | Trimestral | Volver a pasar SSL Labs y Mozilla Observatory, y actualizar `legal.REVISION_SEGURIDAD` y la tabla del `README.md` |
 | Trimestral | Revisar `docs/CARTOLAS-COBERTURA.md` y los formatos que fallaron (las muestras anónimas que hayan llegado) |
 | Anual | Rotar `SECRET_KEY` (cierra todas las sesiones, obliga a volver a vincular Face ID y hace que todos los aparatos cuenten como nuevos: avisar antes), las credenciales de R2 y las claves de API, incluida la de ElevenLabs. Anotar la fecha de cada rotación |

@@ -2,10 +2,10 @@ import logging
 import os
 from datetime import date
 
+from . import ia_cliente
 
 log = logging.getLogger('finanzas')
 
-MODELO = 'claude-haiku-4-5'
 MAX_MENSAJES = 12
 MAX_LARGO = 600
 SIN_RESPUESTA = 'SIN_RESPUESTA'
@@ -81,20 +81,16 @@ def _hay_cupo():
 
 
 def responder(mensajes):
-    api_key = os.environ.get('ANTHROPIC_API_KEY', '').strip()
-    if not api_key or not mensajes:
+    if not mensajes:
         return None
-    try:
-        import anthropic
-    except ImportError:
-        log.warning('Chat de ayuda no disponible: el paquete anthropic no está instalado.')
+    cliente = ia_cliente.cliente('Chat de ayuda')
+    if cliente is None:
         return None
     if not _hay_cupo():
         log.warning('Chat de ayuda: se llegó al tope diario.')
         return None
     try:
-        cliente = anthropic.Anthropic(api_key=api_key)
-        respuesta = cliente.messages.create(model=MODELO, max_tokens=400, system=SISTEMA, messages=mensajes)
+        respuesta = ia_cliente.llamar(cliente, 'ayuda', max_tokens=400, system=SISTEMA, messages=mensajes)
     except Exception:
         log.exception('Falló la llamada del chat de ayuda.')
         return None
