@@ -13,6 +13,9 @@ def _usuario_de(instancia):
         uid = Deuda.objects.filter(pk=instancia.deuda_id).values_list('usuario_id', flat=True).first()
     if uid is None and getattr(instancia, 'persona_id', None):
         uid = Persona.objects.filter(pk=instancia.persona_id).values_list('usuario_id', flat=True).first()
+    if uid is None and getattr(instancia, 'suscripcion_id', None):
+        uid = (Suscripcion.objects.filter(pk=instancia.suscripcion_id)
+               .values_list('usuario_id', flat=True).first())
     if uid is None and getattr(instancia, 'prestamo_id', None):
         uid = (Prestamo.objects.filter(pk=instancia.prestamo_id)
                .values_list('persona__usuario_id', flat=True).first())
@@ -31,6 +34,10 @@ def _usuario_de(instancia):
 @receiver(post_delete, sender=Prestamo)
 @receiver(post_save, sender=AbonoPrestamo)
 @receiver(post_delete, sender=AbonoPrestamo)
+@receiver(post_save, sender=Suscripcion)
+@receiver(post_delete, sender=Suscripcion)
+@receiver(post_save, sender=PagoServicio)
+@receiver(post_delete, sender=PagoServicio)
 def _al_cambiar(sender, instance, **kwargs):
     invalidar(_usuario_de(instance))
 

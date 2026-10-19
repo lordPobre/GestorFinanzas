@@ -5,10 +5,11 @@ from datetime import date
 from decimal import Decimal
 
 from django.core.cache import cache
-from django.db.models import Sum
+from django.db.models import Count, F, IntegerField, OuterRef, Q, Subquery, Sum
+from django.db.models.functions import Cast, Coalesce, ExtractMonth, ExtractYear, Mod
 
 from .. import fechas
-from ..models import Deuda, Prestamo, Suscripcion, Transaccion
+from ..models import Deuda, PagoCuota, Prestamo, Suscripcion, Transaccion
 from ..rendimiento import recordar
 
 MESES_LARGOS = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio',
@@ -29,6 +30,34 @@ def _decimal(valor):
     if isinstance(valor, Decimal):
         return valor
     return Decimal(str(valor or 0))
+
+def deudas_del_mes(usuario, year, month, con_atrasos=False):
+    anio = Cast(ExtractYear('fecha_inicio'), IntegerField())
+    mes_inicio = Cast(ExtractMonth('fecha_inicio'), IntegerField())
+    qs = Deuda.objects.filter(usuario=usuario).annotate(
+        inicio_idx=anio * 12 + mes_inicio - 1,
+        inicio_periodo=anio * 100 + mes_inicio,
+    ).annotate(fin_idx=F('inicio_idx') + F('cuotas_totales') - 1)
+    indice = year * 12 + month - 1
+    en_el_mes = Q(inicio_idx__lte=indice, fin_idx__gte=indice)
+    if not con_atrasos:
+        return qs.filter(en_el_mes)
+    qs = qs.annotate(fin_periodo=(F('fin_idx') / 12) * 100 + Mod(F('fin_idx'), 12) + 1)
+    pagadas = (PagoCuota.objects
+               .filter(deuda=OuterRef('pk'), periodo__gte=OuterRef('inicio_periodo'),
+                       periodo__lte=OuterRef('fin_periodo'))
+               .order_by().values('deuda').annotate(n=Count('pk')).values('n'))
+    qs = qs.annotate(pagadas_en_plazo=Coalesce(Subquery(pagadas, output_field=IntegerField()), 0))
+    return qs.filter(en_el_mes | Q(inicio_idx__lt=indice, pagadas_en_plazo__lt=F('cuotas_totales')))
+
+
+def suscripciones_del_mes(usuario, year, month, hoy):
+    if year * 100 + month > hoy.year * 100 + hoy.month:
+        return Suscripcion.objects.none()
+    _, ultimo = calendar.monthrange(year, month)
+    return Suscripcion.objects.filter(usuario=usuario, fecha_inicio__lte=date(year, month, ultimo)).filter(
+        Q(fecha_cancelada__isnull=True) | Q(fecha_cancelada__gte=date(year, month, 1)))
+
 
 def _resumen_mes(usuario, year, month):
     """Los números del mes en un solo lugar.
@@ -59,7 +88,8 @@ def _resumen_mes(usuario, year, month):
 
     periodo = year * 100 + month
 
-    deudas = Deuda.objects.filter(usuario=usuario).prefetch_related('pagos')
+    es_mes_actual = (year, month) == (hoy.year, hoy.month)
+    deudas = deudas_del_mes(usuario, year, month, con_atrasos=es_mes_actual).prefetch_related('pagos')
     cuotas_pagadas = cero
     cuotas_pendientes = cero
     eventos = {}
@@ -92,7 +122,7 @@ def _resumen_mes(usuario, year, month):
 
     servicios_pagados = cero
     servicios_pendientes = cero
-    for s in Suscripcion.objects.filter(usuario=usuario).prefetch_related('pagos'):
+    for s in suscripciones_del_mes(usuario, year, month, hoy).prefetch_related('pagos'):
         if periodo not in s.periodos_programados:
             continue
         monto = _decimal(s.monto)
@@ -267,6 +297,10 @@ def _version(usuario_id):
         version = time.time_ns()
         cache.set(clave, version, None)
     return version
+
+
+def version_de(usuario_id):
+    return _version(usuario_id)
 
 
 def invalidar(usuario_id):

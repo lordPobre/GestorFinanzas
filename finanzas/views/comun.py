@@ -1,5 +1,6 @@
 from decimal import Decimal, InvalidOperation
 
+from django.core.cache import cache
 from django.db.models import F
 from django.shortcuts import redirect
 from django.urls import NoReverseMatch, reverse
@@ -8,7 +9,7 @@ from .. import fechas
 from ..forms import TransaccionForm
 from ..models import Categoria, Deuda, Persona, Suscripcion, UserProfile
 from ..redirecciones import destino_seguro
-from ..servicios.mes import salud_financiera
+from ..servicios.mes import salud_financiera, version_de
 from ..servicios.topes import topes_para_anotar
 
 
@@ -63,19 +64,36 @@ def _opciones_de_categorias(usuario):
     ingreso = list(Transaccion.CATEGORIAS_INGRESO) + [(p.slug, p.nombre) for p in propias if p.tipo == 'INGRESO']
     return egreso, ingreso
 
-def contadores(usuario, resumen_actual=None):
-    cats_egreso, cats_ingreso = _opciones_de_categorias(usuario)
-    cuotas_activas = Deuda.objects.filter(
-        usuario=usuario, cuotas_pagadas__lt=F('cuotas_totales')).count()
+SEGUNDOS_CONTEOS = 26 * 60 * 60
+
+
+def _conteos(usuario, hoy):
+    clave = f'contadores:{usuario.pk}:{version_de(usuario.pk)}:{hoy.isoformat()}'
+    datos = cache.get(clave)
+    if datos is not None:
+        return datos
     personas = (Persona.objects.filter(usuario=usuario, lado='ME_DEBE')
                 .prefetch_related('prestamos__abonos'))
-    prestamos_activos = sum(len(p.prestamos_activos) for p in personas)
-    total_por_cobrar = round(sum(p.total_pendiente for p in personas))
+    datos = {
+        'cuotas_activas': Deuda.objects.filter(
+            usuario=usuario, cuotas_pagadas__lt=F('cuotas_totales')).count(),
+        'prestamos_activos': sum(len(p.prestamos_activos) for p in personas),
+        'total_por_cobrar': round(sum(p.total_pendiente for p in personas)),
+        'subs_pendientes': sum(
+            1 for s in Suscripcion.objects.filter(usuario=usuario, activa=True)
+                                          .prefetch_related('pagos')
+            if not s.pagada_este_mes
+        ),
+    }
+    cache.set(clave, datos, SEGUNDOS_CONTEOS)
+    return datos
+
+
+def contadores(usuario, resumen_actual=None):
+    cats_egreso, cats_ingreso = _opciones_de_categorias(usuario)
     hoy = fechas.hoy()
     datos = {
-        'cuotas_activas': cuotas_activas,
-        'prestamos_activos': prestamos_activos,
-        'total_por_cobrar': total_por_cobrar,
+        **_conteos(usuario, hoy),
 
         'profile': get_or_create_profile(usuario),
 
@@ -87,12 +105,6 @@ def contadores(usuario, resumen_actual=None):
         'cats_ingreso_json': [list(x) for x in cats_ingreso],
 
         'topes_json': topes_para_anotar(usuario, hoy),
-
-        'subs_pendientes': sum(
-            1 for s in Suscripcion.objects.filter(usuario=usuario, activa=True)
-                                          .prefetch_related('pagos')
-            if not s.pagada_este_mes
-        ),
     }
     datos.update(salud_financiera(usuario, resumen_actual=resumen_actual))
     return datos
