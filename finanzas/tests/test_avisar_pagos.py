@@ -11,14 +11,6 @@ from finanzas import correo
 from finanzas.models import GastoPendiente, UserProfile
 
 
-def _dia_fijo(fecha):
-    class Fijo(date):
-        @classmethod
-        def today(cls):
-            return cls(fecha.year, fecha.month, fecha.day)
-    return Fijo
-
-
 class AvisarPagosTests(TestCase):
 
     def setUp(self):
@@ -32,10 +24,8 @@ class AvisarPagosTests(TestCase):
                                       fecha_vencimiento=fecha)
 
     def _correr(self, hoy, *args, sale=True):
-        fijo = _dia_fijo(hoy)
         salida = StringIO()
-        with mock.patch('finanzas.management.commands.avisar_pagos.date', fijo), \
-                mock.patch('finanzas.models.perfil.date', fijo), \
+        with mock.patch('finanzas.fechas.hoy', return_value=hoy), \
                 mock.patch.object(correo, 'enviar', return_value=sale) as enviar:
             call_command('avisar_pagos', *args, stdout=salida)
         return enviar, salida.getvalue()

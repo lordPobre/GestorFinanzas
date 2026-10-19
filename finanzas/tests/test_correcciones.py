@@ -38,8 +38,7 @@ class ReactivarSuscripcion(Base):
             usuario=self.ana, nombre='Spotify', monto=Decimal('5000'), dia_cobro=5,
             activa=False, fecha_inicio=date(2026, 6, 1), fecha_cancelada=date(2026, 10, 1))
         self.client.force_login(self.ana)
-        with patch('finanzas.views.suscripciones.date', EneroDe2027), \
-                patch('finanzas.servicios.suscripciones.date', EneroDe2027):
+        with patch('finanzas.fechas.hoy', return_value=EneroDe2027.today()):
             respuesta = self.client.post(reverse('cancelar_suscripcion', args=[sub.pk]))
         self.assertEqual(respuesta.status_code, 302)
         sub.refresh_from_db()

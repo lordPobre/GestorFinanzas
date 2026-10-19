@@ -2,6 +2,7 @@ import re
 from datetime import date
 from decimal import Decimal
 
+from .. import fechas
 from .base import Cartola, ErrorCartola, MovimientoLeido, plata, registrar
 
 MES_ABREV = {
@@ -197,7 +198,7 @@ class BancoEstadoCuentaRut:
             if ref:
                 candidatos += [ref.year, ref.year - 1, ref.year + 1]
         if not candidatos:
-            candidatos = [date.today().year, date.today().year - 1]
+            candidatos = [fechas.hoy().year, fechas.hoy().year - 1]
 
         vistos, opciones = set(), []
         for anio in candidatos:

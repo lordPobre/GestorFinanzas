@@ -8,6 +8,7 @@ from django.db import transaction
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, render
 
+from .. import fechas
 from ..dinero import suma
 from ..forms import MetaAhorroForm
 from ..models import AporteMeta, MetaAhorro
@@ -94,7 +95,7 @@ def eliminar_meta(request, meta_id):
 
 @login_required(login_url='/login/')
 def metas(request):
-    hoy = date.today()
+    hoy = fechas.hoy()
     lista = list(MetaAhorro.objects.filter(usuario=request.user)
                                    .prefetch_related('aportes'))
 

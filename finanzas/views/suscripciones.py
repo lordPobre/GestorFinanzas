@@ -10,6 +10,7 @@ from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
+from .. import fechas
 from ..dinero import suma
 from ..models import PagoServicio, SugerenciaDescartada, Suscripcion, Transaccion
 from ..servicios.detectar_suscripciones import sugerencias
@@ -93,7 +94,7 @@ def crear_suscripcion(request):
 
         Suscripcion.objects.create(
             usuario=request.user, nombre=nombre, monto=monto,
-            dia_cobro=dia, categoria=categoria, fecha_inicio=date.today(),
+            dia_cobro=dia, categoria=categoria, fecha_inicio=fechas.hoy(),
         )
         generar_cobros_suscripciones(request.user)
         messages.success(
@@ -200,7 +201,7 @@ def cancelar_suscripcion(request, sub_id):
     if request.method == 'POST':
         if sub.activa:
             sub.activa = False
-            sub.fecha_cancelada = date.today()
+            sub.fecha_cancelada = fechas.hoy()
             sub.save(update_fields=['activa', 'fecha_cancelada'])
             messages.success(
                 request,
@@ -209,7 +210,7 @@ def cancelar_suscripcion(request, sub_id):
         else:
             sub.activa = True
             sub.fecha_cancelada = None
-            hoy = date.today()
+            hoy = fechas.hoy()
             anterior = date(hoy.year, hoy.month, 1) - relativedelta(months=1)
             sub.ultimo_mes_generado = anterior.year * 100 + anterior.month
             sub.save(update_fields=['activa', 'fecha_cancelada', 'ultimo_mes_generado'])

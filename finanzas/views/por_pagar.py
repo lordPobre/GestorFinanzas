@@ -1,8 +1,9 @@
-from datetime import date, timedelta
+from datetime import timedelta
 
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
 
+from .. import fechas
 from ..dinero import suma
 from ..servicios.mes import nombre_mes_es
 from ..servicios.mes_elegido import mes_pedido, selector_mes
@@ -25,7 +26,7 @@ def _filtro_de(tipo):
 
 @login_required(login_url='/login/')
 def por_pagar(request):
-    hoy = date.today()
+    hoy = fechas.hoy()
     year, month = mes_pedido(request, hoy)
     es_actual = (year, month) == (hoy.year, hoy.month)
     items = pendientes_del_mes(request.user, year, month)

@@ -1,5 +1,4 @@
 import json
-from datetime import date
 
 from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
@@ -7,6 +6,7 @@ from django.http import JsonResponse
 from django.shortcuts import redirect, render
 from django.views.decorators.http import require_POST
 
+from .. import fechas
 from .. import chat_ayuda, correo, legal
 from ..seguridad import _ip, limitar, red, sumar
 from .panel import dashboard
@@ -30,7 +30,7 @@ def ayuda_chat(request):
     mensajes = chat_ayuda.limpiar(datos.get('mensajes') if isinstance(datos, dict) else None)
     if not mensajes:
         return JsonResponse({'ok': False}, status=400)
-    usados, _ = sumar(f'chat-ip:{red(_ip(request))}:{date.today().isoformat()}', 26 * 3600)
+    usados, _ = sumar(f'chat-ip:{red(_ip(request))}:{fechas.hoy().isoformat()}', 26 * 3600)
     if usados > chat_ayuda.tope_por_ip():
         return JsonResponse({'ok': True, 'sin_respuesta': True})
     texto = chat_ayuda.responder(mensajes)

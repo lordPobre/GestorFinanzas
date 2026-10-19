@@ -3,6 +3,7 @@ from datetime import date
 
 from django.urls import reverse
 
+from .. import fechas
 from ..dinero import suma
 from ..models import Deuda, GastoPendiente, Prestamo, Suscripcion, Transaccion
 
@@ -88,7 +89,7 @@ def pendientes_del_mes(usuario, year, month):
             'periodo': periodo,
         })
 
-    hoy = date.today()
+    hoy = fechas.hoy()
     if (year, month) == (hoy.year, hoy.month):
         for pr in (Prestamo.objects.filter(persona__usuario=usuario, persona__lado='LE_DEBO')
                    .select_related('persona').prefetch_related('abonos')):

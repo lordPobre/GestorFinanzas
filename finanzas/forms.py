@@ -1,8 +1,9 @@
-from datetime import date, timedelta
+from datetime import timedelta
 from decimal import Decimal
 
 from django import forms
 
+from . import fechas
 from .models import Categoria, Deuda, MetaAhorro, Transaccion
 
 
@@ -46,7 +47,7 @@ class DeudaForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.fields['categoria'].choices = Deuda.CATEGORIAS_CUOTAS
         if not self.instance.pk:
-            self.fields['fecha_inicio'].initial = date.today()
+            self.fields['fecha_inicio'].initial = fechas.hoy()
         else:
             self.fields['valor_cuota'].initial = self.instance.monto_cuota
 
@@ -109,7 +110,7 @@ class TransaccionForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.fields['descripcion'].required = False
         if not self.instance.pk and not self.initial.get('fecha'):
-            self.fields['fecha'].initial = date.today()
+            self.fields['fecha'].initial = fechas.hoy()
 
         self._usuario = usuario or getattr(self.instance, 'usuario_id', None) and self.instance.usuario
         if self._usuario:
@@ -151,7 +152,7 @@ class TransaccionForm(forms.ModelForm):
         return datos
 
     def _validar_fecha(self, fecha, tipo):
-        if not fecha or fecha <= date.today():
+        if not fecha or fecha <= fechas.hoy():
             return
 
         if tipo != 'INGRESO':
@@ -160,7 +161,7 @@ class TransaccionForm(forms.ModelForm):
                            'Si es una cuenta por pagar, regístrala como gasto pendiente.')
             return
 
-        if fecha > date.today() + timedelta(days=self.DIAS_FUTURO_INGRESO):
+        if fecha > fechas.hoy() + timedelta(days=self.DIAS_FUTURO_INGRESO):
             self.add_error('fecha', 'Como máximo un año hacia adelante.')
 
 class MetaAhorroForm(forms.ModelForm):
@@ -194,7 +195,7 @@ class MetaAhorroForm(forms.ModelForm):
 
     def clean_fecha_limite(self):
         fecha = self.cleaned_data.get('fecha_limite')
-        if fecha and fecha <= date.today():
+        if fecha and fecha <= fechas.hoy():
             raise forms.ValidationError('La fecha tiene que ser futura.')
         return fecha
 

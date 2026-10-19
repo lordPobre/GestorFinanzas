@@ -7,6 +7,7 @@ from decimal import Decimal
 from django.core.cache import cache
 from django.db.models import Sum
 
+from .. import fechas
 from ..models import Deuda, Prestamo, Suscripcion, Transaccion
 from ..rendimiento import recordar
 
@@ -39,7 +40,7 @@ def _resumen_mes(usuario, year, month):
     _, ultimo_dia = calendar.monthrange(year, month)
     fecha_inicio = date(year, month, 1)
     fecha_fin = date(year, month, ultimo_dia)
-    hoy = date.today()
+    hoy = fechas.hoy()
 
     cero = Decimal('0')
     ingresos = Transaccion.objects.filter(
@@ -189,7 +190,7 @@ def salud_financiera(usuario, resumen_actual=None):
     hace siempre), se puede pasar en 'resumen_actual' para no repetir las
     mismas consultas.
     """
-    hoy = date.today()
+    hoy = fechas.hoy()
     r = resumen_actual if resumen_actual is not None else numeros_mes(usuario, hoy.year, hoy.month)
     if r['ingresos'] <= 0:
         return {'salud_score': None, 'salud_label': '', 'salud_nota': '', 'salud_estado': 'neutro'}
@@ -274,7 +275,7 @@ def invalidar(usuario_id):
 
 
 def numeros_mes(usuario, year, month):
-    hoy = date.today()
+    hoy = fechas.hoy()
     clave = f'mes:{usuario.pk}:{_version(usuario.pk)}:{year * 100 + month}'
     if (year, month) == (hoy.year, hoy.month):
         clave += f':{hoy.isoformat()}'

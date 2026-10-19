@@ -1,4 +1,3 @@
-from datetime import date
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -9,6 +8,7 @@ from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 
+from .. import fechas
 from ..models import AbonoPrestamo, Persona, Prestamo
 from ..servicios.esfera import esfera_debo, esfera_me_deben
 from .comun import contadores, monto_post, redirigir, simbolo_de, texto_post
@@ -77,7 +77,7 @@ def detalle_persona(request, persona_id):
 def pagar_mes_prestamo(request, prestamo_id):
     prestamo = get_object_or_404(Prestamo, id=prestamo_id, persona__usuario=request.user,
                                  persona__lado='LE_DEBO')
-    hoy = date.today()
+    hoy = fechas.hoy()
     with transaction.atomic():
         prestamo = Prestamo.objects.select_for_update().select_related('persona').get(pk=prestamo.pk)
         falta = prestamo.falta_este_mes(hoy.year, hoy.month)

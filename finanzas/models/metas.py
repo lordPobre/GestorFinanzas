@@ -1,10 +1,10 @@
-from datetime import date
 
 from dateutil.relativedelta import relativedelta
 
 from django.contrib.auth.models import User
 from django.db import models
 from django.utils import timezone
+from .. import fechas
 
 
 class MetaAhorro(models.Model):
@@ -87,7 +87,7 @@ class MetaAhorro(models.Model):
     def ahorro_mensual_sugerido(self):
         if not self.fecha_limite or self.monto_faltante <= 0:
             return None
-        hoy = date.today()
+        hoy = fechas.hoy()
         if self.fecha_limite <= hoy:
             return None
         delta = relativedelta(self.fecha_limite, hoy)
@@ -104,7 +104,7 @@ class MetaAhorro(models.Model):
     def dias_restantes(self):
         if not self.fecha_limite:
             return None
-        return (self.fecha_limite - date.today()).days
+        return (self.fecha_limite - fechas.hoy()).days
 
     @property
     def nota_plan(self):

@@ -7,6 +7,7 @@ from django.contrib.auth.decorators import login_required
 from django.db.models import Sum
 from django.shortcuts import render
 
+from .. import fechas
 from ..models import Categoria, Deuda, Transaccion
 from ..servicios.mes import MESES_LARGOS, numeros_mes, resumen_mes
 from ..servicios.mes_elegido import mes_pedido, selector_mes
@@ -15,7 +16,7 @@ from .comun import contadores
 
 @login_required(login_url='/login/')
 def estadisticas(request):
-    hoy = date.today()
+    hoy = fechas.hoy()
     year, month = mes_pedido(request, hoy)
     activas = [d for d in Deuda.objects.filter(usuario=request.user)
                                         .prefetch_related('pagos') if not d.esta_saldada]

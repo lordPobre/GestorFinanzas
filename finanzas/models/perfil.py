@@ -1,11 +1,11 @@
 import logging
-from datetime import date
 
 from django.contrib.auth.models import User
 from django.db import models
 from django.db.models.signals import post_delete
 from django.dispatch import receiver
 
+from .. import fechas
 from ..almacenamiento import obtener_almacen
 
 log = logging.getLogger('finanzas')
@@ -126,7 +126,7 @@ class UserProfile(models.Model):
     @property
     def dia_aviso_efectivo(self):
         from calendar import monthrange
-        hoy = date.today()
+        hoy = fechas.hoy()
         _, ultimo = monthrange(hoy.year, hoy.month)
         return min(max(1, self.aviso_dia), ultimo)
 

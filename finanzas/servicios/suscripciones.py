@@ -3,11 +3,12 @@ from datetime import date
 
 from dateutil.relativedelta import relativedelta
 
+from .. import fechas
 from ..models import PagoServicio, Suscripcion, Transaccion
 
 
 def generar_cobros_suscripciones(usuario):
-    hoy = date.today()
+    hoy = fechas.hoy()
     mes_actual_clave = hoy.year * 100 + hoy.month
 
     for sub in Suscripcion.objects.filter(usuario=usuario, activa=True):

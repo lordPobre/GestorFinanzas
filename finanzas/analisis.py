@@ -2,6 +2,7 @@ from datetime import date
 
 from dateutil.relativedelta import relativedelta
 
+from . import fechas
 from .dinero import suma
 from .models import Deuda
 from .plan import mes_tipico
@@ -38,13 +39,13 @@ def analizar_finanzas(usuario):
             continue
         ultimo = pendientes[-1]
         fecha_ultimo = d.fecha_cobro_de(ultimo)
-        faltan = (fecha_ultimo.year - date.today().year) * 12 + \
-                 (fecha_ultimo.month - date.today().month) + 1
+        faltan = (fecha_ultimo.year - fechas.hoy().year) * 12 + \
+                 (fecha_ultimo.month - fechas.hoy().month) + 1
         if faltan > meses_restantes:
             meses_restantes = faltan
             fecha_libre_deudas = fecha_ultimo
     proyeccion = []
-    hoy = date.today()
+    hoy = fechas.hoy()
 
     for i in range(7):
         f = date(hoy.year, hoy.month, 1) + relativedelta(months=i)

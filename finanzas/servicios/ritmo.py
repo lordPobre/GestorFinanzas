@@ -5,6 +5,7 @@ from datetime import date
 from dateutil.relativedelta import relativedelta
 from django.db.models import Q, Sum
 
+from .. import fechas
 from ..models import Categoria, Transaccion
 from .panel import TONOS_INSIGHT
 
@@ -39,7 +40,7 @@ def _aviso(tipo, icono, texto):
 
 
 def ritmo_del_mes(usuario, hoy=None, simbolo='$'):
-    hoy = hoy or date.today()
+    hoy = hoy or fechas.hoy()
     if hoy.day < DIA_MINIMO:
         return []
 

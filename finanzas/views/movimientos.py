@@ -1,4 +1,4 @@
-from datetime import date, datetime
+from datetime import datetime
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -7,6 +7,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
 
+from .. import fechas
 from ..forms import TransaccionForm
 from ..models import GastoPendiente, PagoCuota, Transaccion
 from .comun import contadores, monto_post, redirigir, texto_post
@@ -193,7 +194,7 @@ def pagar_gasto_pendiente(request, gasto_id):
 
     if request.method == 'POST' and not gasto.pagado:
         gasto.pagado = True
-        gasto.fecha_pago = date.today()
+        gasto.fecha_pago = fechas.hoy()
         gasto.save(update_fields=['pagado', 'fecha_pago'])
         if gasto.transaccion:
             gasto.transaccion.pagado = True

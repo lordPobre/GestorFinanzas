@@ -1,7 +1,7 @@
-from datetime import date
 
 from django.core.exceptions import ObjectDoesNotExist
 
+from .. import fechas
 from ..dinero import suma
 from ..templatetags.moneda import money
 from .mes import MESES_LARGOS
@@ -227,7 +227,7 @@ def esfera_metas(usuario, metas, simbolo='$'):
         texto = 'Todavía no tienes metas de ahorro.'
         return {'estado': 'neutro', 'etiqueta': 'Sin metas', 'texto': texto, 'frase': texto}
 
-    hoy = date.today()
+    hoy = fechas.hoy()
     ahorrado = float(suma(m.monto_actual for m in metas))
     objetivo = float(suma(m.monto_meta for m in metas))
     pct = min(100, round(ahorrado / objetivo * 100)) if objetivo else 0

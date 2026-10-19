@@ -3,12 +3,13 @@ from decimal import Decimal
 
 from dateutil.relativedelta import relativedelta
 
+from .. import fechas
 from ..models import Deuda, Transaccion
 from .mes import MESES_LARGOS
 
 
 def serie_cuotas(usuario, atras=6, adelante=6):
-    hoy = date.today()
+    hoy = fechas.hoy()
     deudas = list(Deuda.objects.filter(usuario=usuario).prefetch_related('pagos'))
 
     pagos_por_deuda = {d.pk: {p.periodo: p for p in d.pagos.all()} for d in deudas}

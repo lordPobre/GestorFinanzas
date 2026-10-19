@@ -4,6 +4,7 @@ from decimal import Decimal
 
 from django.template.loader import render_to_string
 
+from . import fechas
 from . import correo
 from .models import Deuda, GastoPendiente, Prestamo, Transaccion
 
@@ -108,7 +109,7 @@ def _por_cobrar(usuario, simbolo):
 
 
 def resumen(usuario, hoy=None):
-    hoy = hoy or date.today()
+    hoy = hoy or fechas.hoy()
     perfil = getattr(usuario, 'profile', None)
     simbolo = SIMBOLOS.get(getattr(perfil, 'moneda', 'CLP'), '$')
 

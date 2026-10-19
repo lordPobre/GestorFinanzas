@@ -6,6 +6,7 @@ from dateutil.relativedelta import relativedelta
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
 
+from .. import fechas
 from ..dinero import suma
 from .. import encuesta as encuesta_mod
 from .. import legal, push
@@ -47,7 +48,7 @@ def textos_movimiento(t):
 @login_required(login_url='/login/')
 def dashboard(request):
     generar_cobros_suscripciones(request.user)
-    hoy = date.today()
+    hoy = fechas.hoy()
 
     try:
         year = int(request.GET.get('year', hoy.year))

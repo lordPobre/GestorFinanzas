@@ -5,6 +5,7 @@ from dateutil.relativedelta import relativedelta
 from django.contrib.auth.models import User
 from django.db import models
 from django.utils import timezone
+from .. import fechas
 
 
 class Suscripcion(models.Model):
@@ -99,7 +100,7 @@ class Suscripcion(models.Model):
         if not self.activa:
             return None
         import calendar as _cal
-        hoy = date.today()
+        hoy = fechas.hoy()
         _, ultimo = _cal.monthrange(hoy.year, hoy.month)
         dia = min(self.dia_cobro, ultimo)
         if dia >= hoy.day:
@@ -115,7 +116,7 @@ class Suscripcion(models.Model):
 
     @property
     def periodos_programados(self):
-        hoy = date.today()
+        hoy = fechas.hoy()
         fin = self.fecha_cancelada or hoy
         salida = []
         cursor = date(self.fecha_inicio.year, self.fecha_inicio.month, 1)
@@ -150,7 +151,7 @@ class Suscripcion(models.Model):
 
     @property
     def periodos_atrasados(self):
-        hoy = date.today()
+        hoy = fechas.hoy()
         return [p for p in self.periodos_pendientes if self.fecha_cobro_de(p) < hoy]
 
     @property
@@ -159,7 +160,7 @@ class Suscripcion(models.Model):
 
     @property
     def periodo_actual(self):
-        hoy = date.today()
+        hoy = fechas.hoy()
         return self.periodo_de(hoy.year, hoy.month)
 
     @property
@@ -211,7 +212,7 @@ class Suscripcion(models.Model):
 
     @property
     def meses_activa(self):
-        fin = self.fecha_cancelada or date.today()
+        fin = self.fecha_cancelada or fechas.hoy()
         return (fin.year - self.fecha_inicio.year) * 12 + (fin.month - self.fecha_inicio.month) + 1
 
 class PagoServicio(models.Model):

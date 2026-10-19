@@ -7,6 +7,7 @@ from itertools import pairwise
 from dateutil.relativedelta import relativedelta
 from django.db.models import Q
 
+from .. import fechas
 from ..marcas import buscar_marca, normalizar
 from ..models import SugerenciaDescartada, Suscripcion, Transaccion
 
@@ -63,7 +64,7 @@ def _meses_seguidos(periodos):
 
 
 def sugerencias(usuario, hoy=None):
-    hoy = hoy or date.today()
+    hoy = hoy or fechas.hoy()
     desde = date(hoy.year, hoy.month, 1) - relativedelta(months=MESES_ATRAS)
     movimientos = (Transaccion.objects
                    .filter(usuario=usuario, tipo='EGRESO', es_cuota=False, suscripcion__isnull=True,

@@ -1,10 +1,10 @@
-from datetime import date
 from decimal import Decimal, InvalidOperation
 
 from django.db.models import F
 from django.shortcuts import redirect
 from django.urls import NoReverseMatch, reverse
 
+from .. import fechas
 from ..forms import TransaccionForm
 from ..models import Categoria, Deuda, Persona, Suscripcion, UserProfile
 from ..redirecciones import destino_seguro
@@ -71,7 +71,7 @@ def contadores(usuario, resumen_actual=None):
                 .prefetch_related('prestamos__abonos'))
     prestamos_activos = sum(len(p.prestamos_activos) for p in personas)
     total_por_cobrar = round(sum(p.total_pendiente for p in personas))
-    hoy = date.today()
+    hoy = fechas.hoy()
     datos = {
         'cuotas_activas': cuotas_activas,
         'prestamos_activos': prestamos_activos,

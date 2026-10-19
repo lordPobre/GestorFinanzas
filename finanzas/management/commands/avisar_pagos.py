@@ -1,10 +1,10 @@
-from datetime import date
 
 from django.contrib.auth.models import User
 from django.core.management.base import BaseCommand
 
 from finanzas import avisos
 from finanzas.models import UserProfile
+from ... import fechas
 
 
 class Command(BaseCommand):
@@ -19,7 +19,7 @@ class Command(BaseCommand):
                             help='Limitar a un username.')
 
     def handle(self, *args, **opciones):
-        hoy = date.today()
+        hoy = fechas.hoy()
         periodo = avisos.periodo_de(hoy)
         forzar = opciones['forzar']
         seco = opciones['seco']

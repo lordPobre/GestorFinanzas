@@ -7,6 +7,7 @@ from dateutil.relativedelta import relativedelta
 from django.db.models import Sum
 from django.db.models.functions import TruncMonth
 
+from . import fechas
 from .models import Deuda, MetaAhorro, Suscripcion, Transaccion
 from .servicios.mes import resumen_mes
 
@@ -131,7 +132,7 @@ def promedio_tipico(cerrados, actual, dia, dias_mes):
 
 
 def mes_tipico(usuario, hoy=None):
-    hoy = hoy or date.today()
+    hoy = hoy or fechas.hoy()
     inicio = hoy.replace(day=1)
     dias_mes = calendar.monthrange(hoy.year, hoy.month)[1]
     totales = _totales_por_mes(usuario, inicio - relativedelta(months=MESES_CERRADOS),
@@ -156,7 +157,7 @@ def mes_tipico(usuario, hoy=None):
 
 
 def armar_plan(usuario):
-    hoy = date.today()
+    hoy = fechas.hoy()
     t = mes_tipico(usuario, hoy)
 
     deudas = []
@@ -202,7 +203,7 @@ def armar_plan(usuario):
 
 
 def resumen_para_ia(plan, ahorro, extra, estrategia):
-    hoy = date.today()
+    hoy = fechas.hoy()
     mes = lambda n: etiqueta_mes(n, hoy.year, hoy.month)
     deudas = plan['deudas']
     filas = simular(deudas, extra, estrategia) if deudas else []

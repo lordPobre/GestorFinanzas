@@ -1,7 +1,7 @@
 import logging
 import os
-from datetime import date
 
+from . import fechas
 from . import ia_cliente
 
 log = logging.getLogger('finanzas')
@@ -76,7 +76,7 @@ def limpiar(mensajes):
 def _hay_cupo():
     from .seguridad import sumar
 
-    usados, _ = sumar(f'chat-ayuda:{date.today().isoformat()}', 60 * 60 * 26)
+    usados, _ = sumar(f'chat-ayuda:{fechas.hoy().isoformat()}', 60 * 60 * 26)
     return usados <= tope_diario()
 
 

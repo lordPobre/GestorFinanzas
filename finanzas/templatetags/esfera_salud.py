@@ -1,7 +1,7 @@
-from datetime import date
 
 from django import template
 
+from .. import fechas
 from ..servicios.mes import numeros_mes
 
 register = template.Library()
@@ -13,7 +13,7 @@ def estado_salud(context):
     usuario = getattr(request, 'user', None)
     if usuario is None or not usuario.is_authenticated:
         return 'neutro'
-    hoy = date.today()
+    hoy = fechas.hoy()
     try:
         r = numeros_mes(usuario, hoy.year, hoy.month)
         ingresos = float(r.get('ingresos') or 0)

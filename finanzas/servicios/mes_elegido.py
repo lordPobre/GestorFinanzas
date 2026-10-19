@@ -4,6 +4,7 @@ from datetime import date
 from dateutil.relativedelta import relativedelta
 from django.db.models import Min
 
+from .. import fechas
 from ..models import Transaccion
 from .mes import MESES_LARGOS, nombre_mes_es
 
@@ -11,7 +12,7 @@ MAX_MESES = 36
 
 
 def mes_pedido(request, hoy=None):
-    hoy = hoy or date.today()
+    hoy = hoy or fechas.hoy()
     m = re.fullmatch(r'(\d{4})-(\d{1,2})', (request.GET.get('mes') or '').strip())
     if m:
         year, month = int(m.group(1)), int(m.group(2))
@@ -25,7 +26,7 @@ def _opcion(f):
 
 
 def selector_mes(usuario, year, month, hoy=None):
-    hoy = hoy or date.today()
+    hoy = hoy or fechas.hoy()
     este = date(hoy.year, hoy.month, 1)
     elegido = date(year, month, 1)
 

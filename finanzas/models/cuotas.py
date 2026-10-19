@@ -8,6 +8,7 @@ from django.db import models
 from django.db.models.signals import post_delete, post_save
 from django.dispatch import receiver
 from django.utils import timezone
+from .. import fechas
 
 
 class Deuda(models.Model):
@@ -61,7 +62,7 @@ class Deuda(models.Model):
             return None
         fecha_evaluar = self.proximo_vencimiento or self.fecha_inicio
         if fecha_evaluar:
-            return (fecha_evaluar - date.today()).days
+            return (fecha_evaluar - fechas.hoy()).days
         return None
 
     @property
@@ -87,7 +88,7 @@ class Deuda(models.Model):
         if atrasados:
             n = len(atrasados)
             if n == 1:
-                dias = (date.today() - self.fecha_cobro_de(atrasados[0])).days
+                dias = (fechas.hoy() - self.fecha_cobro_de(atrasados[0])).days
                 return f'Atrasada {dias} día{"s" if dias != 1 else ""}'
             return f'{n} cuotas atrasadas'
         d = self.dias_para_vencer
@@ -134,7 +135,7 @@ class Deuda(models.Model):
 
     @property
     def periodos_atrasados(self):
-        hoy = date.today()
+        hoy = fechas.hoy()
         return [p for p in self.periodos_pendientes if self.fecha_cobro_de(p) < hoy]
 
     @property
@@ -175,7 +176,7 @@ class Deuda(models.Model):
     def rango_cuotas(self):
         pagados = self.periodos_pagados
         siguiente = self.periodo_a_pagar
-        hoy_p = self.periodo_de(date.today().year, date.today().month)
+        hoy_p = self.periodo_de(fechas.hoy().year, fechas.hoy().month)
         marcas = []
         for i, p in enumerate(self.periodos_programados[:36]):
             if p in pagados:

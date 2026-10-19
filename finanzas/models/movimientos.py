@@ -1,8 +1,8 @@
-from datetime import date
 
 from django.contrib.auth.models import User
 from django.db import models
 from django.utils import timezone
+from .. import fechas
 
 
 class Transaccion(models.Model):
@@ -102,6 +102,10 @@ class Transaccion(models.Model):
 
     class Meta:
         ordering = ['-fecha', '-id']
+        indexes = [
+            models.Index(fields=['usuario', 'fecha'], name='trans_usuario_fecha'),
+            models.Index(fields=['usuario', 'tipo', 'fecha'], name='trans_usuario_tipo_fecha'),
+        ]
 
     def __str__(self):
         return f"{self.tipo} - {self.monto}"
@@ -126,7 +130,7 @@ class Transaccion(models.Model):
             if self.fecha_pago and self.fecha_pago != self.fecha:
                 return f'Pagado el {self.fecha_pago.strftime("%d/%m")}'
             return 'Pagado'
-        dias = (date.today() - self.fecha).days
+        dias = (fechas.hoy() - self.fecha).days
         if dias > 0:
             return f'Sin pagar hace {dias} día{"s" if dias != 1 else ""}'
         return 'Sin pagar'
@@ -299,7 +303,7 @@ class GastoPendiente(models.Model):
     def dias_para_vencer(self):
         if self.pagado:
             return None
-        return (self.fecha_vencimiento - date.today()).days
+        return (self.fecha_vencimiento - fechas.hoy()).days
 
     @property
     def urgencia(self):

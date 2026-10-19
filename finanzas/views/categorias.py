@@ -7,6 +7,7 @@ from django.db.models import Count, Sum
 from django.shortcuts import get_object_or_404, render
 from django.views.decorators.http import require_POST
 
+from .. import fechas
 from ..models import Categoria, TopeCategoria, Transaccion
 from ..servicios.mes import MESES_LARGOS, nombre_mes_es
 from ..servicios.mes_elegido import mes_pedido, selector_mes
@@ -20,7 +21,7 @@ def _de_la_lista(valor, opciones, defecto):
 
 @login_required(login_url='/login/')
 def categorias(request):
-    hoy = date.today()
+    hoy = fechas.hoy()
     year, month = mes_pedido(request, hoy)
     _, ultimo = calendar.monthrange(year, month)
     inicio, fin = date(year, month, 1), date(year, month, ultimo)
