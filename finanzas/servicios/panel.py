@@ -5,6 +5,7 @@ from dateutil.relativedelta import relativedelta
 from django.db.models import Sum
 from django.urls import reverse
 
+from ..categorias_base import COLOR_OTROS
 from ..models import Categoria, Deuda, MetaAhorro, Presupuesto, Suscripcion, Transaccion
 from .mes import MESES_LARGOS, numeros_mes
 
@@ -31,7 +32,6 @@ def desglose_categorias(usuario, resumen):
 
     total_cat = sum(float(x['total']) for x in gastos_categoria) or 1.0
     mapa = Categoria.mapa(usuario)
-    otros = Transaccion.COLORES_CATEGORIA['Otros']
     categorias = []
     for x in gastos_categoria:
         cat = x['categoria'] or 'Otros'
@@ -41,7 +41,7 @@ def desglose_categorias(usuario, resumen):
             'label': datos.get('label', cat),
             'total': float(x['total']),
             'porcentaje': round(float(x['total']) / total_cat * 100),
-            'color': datos.get('color') or Transaccion.COLORES_CATEGORIA.get(cat, otros),
+            'color': datos.get('color') or COLOR_OTROS,
         })
     return categorias
 

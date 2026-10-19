@@ -39,7 +39,7 @@
       <div class="rp-fila rp-queda">
         <span class="rp-icono"><i class="fas fa-check"></i></span>
         <span class="rp-txt">
-          <span class="rp-titulo">{{ p.queda.descripcion|default:p.queda.get_categoria_display }}</span>
+          <span class="rp-titulo">{{ p.queda.descripcion|default:p.queda.nombre_categoria }}</span>
           <span class="rp-meta">{{ p.queda.fecha|date:"d/m/Y" }} · Se queda</span>
         </span>
         <span class="rp-monto{% if p.queda.es_ingreso %} entra{% endif %}">{{ p.queda.monto|money }}</span>
@@ -47,7 +47,7 @@
       <label class="rp-fila rp-borra">
         <input type="checkbox" name="borrar" value="{{ p.borra.pk }}" class="rp-check"{% if p.marcado %} checked{% endif %} aria-label="Borrar esta copia">
         <span class="rp-txt">
-          <span class="rp-titulo">{{ p.borra.descripcion|default:p.borra.get_categoria_display }}</span>
+          <span class="rp-titulo">{{ p.borra.descripcion|default:p.borra.nombre_categoria }}</span>
           <span class="rp-meta">{{ p.borra.fecha|date:"d/m/Y" }}{% if p.dias %} · {{ p.dias }} día{{ p.dias|pluralize:"s" }} después{% else %} · el mismo día{% endif %}</span>
           {% if p.por_ia %}<span class="sec-badge azul chico">La IA dice que es la misma</span>{% elif not p.marcado %}<span class="sec-badge gris chico">Revísala: no es seguro</span>{% endif %}
         </span>

@@ -131,7 +131,7 @@ def marcar_repetidas(cartola, usuario):
         if nivel == 'dudoso' and veredicto is False:
             continue
         m.reemplaza_id = t.pk
-        m.reemplaza_desc = (t.descripcion or t.get_categoria_display())[:60]
+        m.reemplaza_desc = (t.descripcion or t.nombre_categoria)[:60]
         m.reemplaza_fecha = t.fecha.strftime('%d/%m')
         m.reemplaza_seguro = nivel == 'seguro' or veredicto is True
         if m.aviso:

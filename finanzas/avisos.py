@@ -60,7 +60,7 @@ def _sin_pagar_del_mes(usuario, hoy, simbolo):
 
     suscripciones, sueltos = [], []
     for t in movs:
-        nombre = t.descripcion or t.get_categoria_display()
+        nombre = t.descripcion or t.nombre_categoria
         fila = {
             'nombre': nombre,
             'detalle': _dia_mes(t.fecha),

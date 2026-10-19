@@ -10,6 +10,7 @@ from django.shortcuts import redirect, render
 from ..cartolas import BANCOS, enriquecer, leer_cartola
 from ..cartolas.base import ErrorCartola
 from ..cartolas.ciclo import reubicar_anteriores
+from ..categorias_base import SLUGS_BASE
 from ..models import (Categoria, Deuda, GastoPendiente, PagoCuota, Persona, Prestamo, Suscripcion,
                       Transaccion)
 from ..servicios.repetidos import marcar_repetidas
@@ -166,7 +167,7 @@ def confirmar_cartola(request):
     movs = datos['movimientos']
     creados = movidos = reemplazados = subs = deudas = prestamos = 0
     validas = {tipo: {slug for slug, _ in Categoria.opciones(request.user, tipo)}
-              | set(Transaccion.COLORES_CATEGORIA)
+              | SLUGS_BASE
               for tipo in ('INGRESO', 'EGRESO')}
 
     with db_transaction.atomic():

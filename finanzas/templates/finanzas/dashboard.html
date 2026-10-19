@@ -254,8 +254,8 @@
         <span class="ini-mov-icono{% if t.es_ingreso %} ingreso{% elif t.por_pagar %} por-pagar{% endif %}"><i class="fas {{ t.icono }}"></i></span>
         {% endif %}
         <span class="ini-mov-txt">
-          <span class="ini-mov-nombre">{{ t.descripcion|default:t.get_categoria_display }}</span>
-          <span class="ini-mov-meta"><span class="solo-esc">· </span><span class="ini-mov-dia">{{ t.fecha|naturalday:"j b"|lower }}</span><span class="solo-tel"> · {% if t.por_pagar %}sin pagar{% else %}{{ t.get_categoria_display }}{% endif %}</span></span>
+          <span class="ini-mov-nombre">{{ t.descripcion|default:t.nombre_categoria }}</span>
+          <span class="ini-mov-meta"><span class="solo-esc">· </span><span class="ini-mov-dia">{{ t.fecha|naturalday:"j b"|lower }}</span><span class="solo-tel"> · {% if t.por_pagar %}sin pagar{% else %}{{ t.nombre_categoria }}{% endif %}</span></span>
         </span>
         <span class="ini-mov-monto{% if t.es_ingreso %} ingreso{% endif %}">{% if t.es_ingreso %}+{% endif %}{{ t.monto|money }}</span>
       </a>
@@ -410,7 +410,7 @@
             <button type="submit" class="swipe-btn editar" title="{{ t.texto_estado_pago }}"><i class="fas fa-rotate-left"></i><span>Deshacer</span></button>
           </form>
           {% endif %}
-          <form method="post" action="{% url 'eliminar_transaccion' t.pk %}" class="sin-margen" data-confirm="{% if t.es_cuota %}¿Anular el pago de {{ t.descripcion }}? La cuota vuelve a quedar por pagar.{% else %}¿Eliminar {{ t.descripcion|default:t.get_categoria_display }}?{% endif %}" data-sin-recargar="eliminar">
+          <form method="post" action="{% url 'eliminar_transaccion' t.pk %}" class="sin-margen" data-confirm="{% if t.es_cuota %}¿Anular el pago de {{ t.descripcion }}? La cuota vuelve a quedar por pagar.{% else %}¿Eliminar {{ t.descripcion|default:t.nombre_categoria }}?{% endif %}" data-sin-recargar="eliminar">
             {% csrf_token %}
             <input type="hidden" name="next" value="{{ request.get_full_path }}">
             <button type="submit" class="swipe-btn borrar" title="Eliminar"><i class="fas fa-trash-can"></i><span>Eliminar</span></button>

@@ -1,24 +1,14 @@
 from django.db.models import Exists, F, OuterRef, Q, Subquery
 
+from ..categorias_base import BASE
 from ..models import Categoria, Deuda, GastoPendiente, Suscripcion, TopeCategoria, Transaccion
 
 MODELOS = (Transaccion, TopeCategoria, GastoPendiente, Suscripcion, Deuda)
 
-EXTRA_BASE = (
-    ('Suscripciones', 'Suscripciones', 'EGRESO'),
-    ('Cuentas', 'Cuentas', 'EGRESO'),
-)
-
 
 def filas_base():
-    ingreso = {s for s, _ in Transaccion.CATEGORIAS_INGRESO}
-    filas = [(s, n, 'INGRESO' if s in ingreso else 'EGRESO') for s, n in Transaccion.CATEGORIAS]
-    for slug, nombre, tipo in filas + list(EXTRA_BASE):
-        yield {
-            'slug': slug, 'nombre': nombre, 'tipo': tipo,
-            'color': Transaccion.COLORES_CATEGORIA.get(slug, Transaccion.COLORES_CATEGORIA['Otros']),
-            'icono': Transaccion.ICONOS_CATEGORIA.get(slug, 'fa-tag'),
-        }
+    for slug, nombre, tipo, color, icono in BASE:
+        yield {'slug': slug, 'nombre': nombre, 'tipo': tipo, 'color': color, 'icono': icono}
 
 
 def asegurar_base():

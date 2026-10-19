@@ -29,7 +29,7 @@ PATRON_CUOTA = re.compile(r'^Cuota (\d+)/(\d+)\s*[—-]\s*(.+)$')
 
 def textos_movimiento(t):
     desc = (t.descripcion or '').strip()
-    cat = t.get_categoria_display()
+    cat = t.nombre_categoria
     if t.es_cuota:
         m = PATRON_CUOTA.match(desc)
         if m:

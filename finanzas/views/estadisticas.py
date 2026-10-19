@@ -8,6 +8,7 @@ from django.db.models import Sum
 from django.shortcuts import render
 
 from .. import fechas
+from ..categorias_base import COLOR_OTROS
 from ..models import Categoria, Deuda, Transaccion
 from ..servicios.mes import MESES_LARGOS, numeros_mes, resumen_mes
 from ..servicios.mes_elegido import mes_pedido, selector_mes
@@ -58,7 +59,6 @@ def estadisticas(request):
     anterior = por_categoria(anterior_f.year, anterior_f.month)
     maximo = max(actual.values()) if actual else 1
     mapa = Categoria.mapa(request.user)
-    otros = Transaccion.COLORES_CATEGORIA['Otros']
 
     ranking = []
     for cat, total in sorted(actual.items(), key=lambda x: -x[1]):
@@ -72,7 +72,7 @@ def estadisticas(request):
             'ancho': round(total / maximo * 100),
             'delta': delta,
             'subio': delta is not None and delta > 0,
-            'color': datos.get('color') or Transaccion.COLORES_CATEGORIA.get(cat, otros),
+            'color': datos.get('color') or COLOR_OTROS,
         })
 
     context = {

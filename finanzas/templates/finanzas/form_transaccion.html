@@ -75,7 +75,7 @@
 
   {% if editar and transaccion %}
   <form method="post" action="{% url 'eliminar_transaccion' transaccion.pk %}" class="fo-borrar"
-        data-confirm="¿Eliminar {{ transaccion.descripcion|default:transaccion.get_categoria_display }}? No se puede deshacer.">
+        data-confirm="¿Eliminar {{ transaccion.descripcion|default:transaccion.nombre_categoria }}? No se puede deshacer.">
     {% csrf_token %}
     <input type="hidden" name="next" value="{% url 'dashboard' %}">
     <button type="submit" class="sec-btn rojo alto-48"><i class="fas fa-trash-can"></i>Eliminar {% if transaccion.es_ingreso %}ingreso{% else %}gasto{% endif %}</button>

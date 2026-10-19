@@ -3,6 +3,7 @@ from django.contrib.auth.models import User
 from django.db import models
 from django.utils import timezone
 from .. import fechas
+from ..categorias_base import COLOR_OTROS
 
 
 class VinculoCategoria(models.Model):
@@ -25,6 +26,26 @@ class VinculoCategoria(models.Model):
         obj = super().from_db(db, field_names, values)
         obj._categoria_vinculada = obj.__dict__.get('categoria')
         return obj
+
+    @property
+    def nombre_categoria(self):
+        ref = self.categoria_ref
+        return ref.nombre if ref else self.categoria
+
+    @property
+    def color_categoria(self):
+        ref = self.categoria_ref
+        return ref.color if ref else COLOR_OTROS
+
+    @property
+    def icono_categoria(self):
+        ref = self.categoria_ref
+        return ref.icono if ref else None
+
+
+class ConCategoria(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().select_related('categoria_ref')
 
 
 class Transaccion(VinculoCategoria):
@@ -60,55 +81,6 @@ class Transaccion(VinculoCategoria):
 
     CATEGORIAS = CATEGORIAS_EGRESO + CATEGORIAS_INGRESO
 
-    COLORES_CATEGORIA = {
-        'Comida': '#60a5fa',
-        'Transporte': '#53d258',
-        'Servicios': '#818cf8',
-        'Ocio': '#fbbf24',
-        'Salud': '#22d3ee',
-        'Tecnologia': '#818cf8',
-        'Ropa': '#f472b6',
-        'Hogar': '#2dd4bf',
-        'Viajes': '#38bdf8',
-        'Compras': '#c084fc',
-        'Educacion': '#facc15',
-        'Suscripciones': '#fb923c',
-        'Cuentas': '#e25c5c',
-        'Otros': '#8b8b96',
-
-        'Sueldo': '#53d258',
-        'Freelance': '#2fd8c8',
-        'Negocio': '#4b8cff',
-        'Venta': '#a3e635',
-        'Bono': '#ffd54f',
-        'Transferencia': '#38bdf8',
-        'Otros_Ingresos': '#8b8b96',
-    }
-
-    ICONOS_CATEGORIA = {
-        'Comida': 'fa-cart-shopping',
-        'Transporte': 'fa-car',
-        'Servicios': 'fa-bolt',
-        'Ocio': 'fa-film',
-        'Salud': 'fa-kit-medical',
-        'Tecnologia': 'fa-laptop',
-        'Ropa': 'fa-shirt',
-        'Hogar': 'fa-couch',
-        'Viajes': 'fa-plane',
-        'Compras': 'fa-bag-shopping',
-        'Educacion': 'fa-graduation-cap',
-        'Suscripciones': 'fa-rotate',
-        'Cuentas': 'fa-file-invoice',
-        'Otros': 'fa-ellipsis',
-        'Sueldo': 'fa-money-check-dollar',
-        'Freelance': 'fa-laptop-code',
-        'Negocio': 'fa-store',
-        'Venta': 'fa-tag',
-        'Bono': 'fa-gift',
-        'Transferencia': 'fa-right-left',
-        'Otros_Ingresos': 'fa-ellipsis',
-    }
-
     usuario = models.ForeignKey(User, on_delete=models.CASCADE)
     tipo = models.CharField(max_length=10, choices=TIPO_CHOICES)
     monto = models.DecimalField(max_digits=10, decimal_places=2)
@@ -123,6 +95,8 @@ class Transaccion(VinculoCategoria):
     fecha_pago = models.DateField(null=True, blank=True)
     suscripcion = models.ForeignKey('Suscripcion', on_delete=models.SET_NULL, null=True,
                                     blank=True, related_name='cobros')
+
+    objects = ConCategoria()
 
     class Meta:
         ordering = ['-fecha', '-id']
@@ -160,10 +134,6 @@ class Transaccion(VinculoCategoria):
         return 'Sin pagar'
 
     @property
-    def color_categoria(self):
-        return self.COLORES_CATEGORIA.get(self.categoria, self.COLORES_CATEGORIA['Otros'])
-
-    @property
     def clase_tono(self):
         if self.es_ingreso:
             return 'ingreso'
@@ -190,9 +160,7 @@ class Transaccion(VinculoCategoria):
 
     @property
     def icono(self):
-        if self.es_ingreso:
-            return self.ICONOS_CATEGORIA.get(self.categoria, 'fa-arrow-down')
-        return self.ICONOS_CATEGORIA.get(self.categoria, 'fa-arrow-up')
+        return self.icono_categoria or ('fa-arrow-down' if self.es_ingreso else 'fa-arrow-up')
 
 class Categoria(models.Model):
     TIPOS = [('EGRESO', 'Gasto'), ('INGRESO', 'Ingreso')]
@@ -280,21 +248,10 @@ class Categoria(models.Model):
 
     @classmethod
     def mapa(cls, usuario):
-        salida = {}
-        for slug, label in Transaccion.CATEGORIAS:
-            salida[slug] = {
-                'label': label,
-                'color': Transaccion.COLORES_CATEGORIA.get(
-                    slug, Transaccion.COLORES_CATEGORIA['Otros']),
-                'icono': Transaccion.ICONOS_CATEGORIA.get(slug, 'fa-tag'),
-                'propia': False,
-            }
-        for c in cls.objects.filter(usuario=usuario):
-            salida[c.slug] = {
-                'label': c.nombre, 'color': c.color,
-                'icono': c.icono, 'propia': True,
-            }
-        return salida
+        filas = (cls.objects.filter(models.Q(usuario=usuario) | models.Q(usuario__isnull=True))
+                 .order_by(models.F('usuario_id').asc(nulls_first=True), 'id'))
+        return {c.slug: {'label': c.nombre, 'color': c.color, 'icono': c.icono, 'propia': not c.es_base}
+                for c in filas}
 
 class Presupuesto(models.Model):
     usuario = models.OneToOneField(User, on_delete=models.CASCADE)

@@ -54,7 +54,7 @@ Es el registro base: cada ingreso o gasto que afecta al mes.
 
 Orden por defecto: `-fecha, -id`.
 
-Categorías fijas de gasto: `Comida`, `Transporte`, `Servicios`, `Ocio`, `Salud`, `Tecnologia`, `Ropa`, `Hogar`, `Viajes`, `Compras`, `Educacion`, `Otros`. De ingreso: `Sueldo`, `Freelance`, `Negocio`, `Venta`, `Bono`, `Transferencia`, `Otros_Ingresos`. Cada una tiene color (`COLORES_CATEGORIA`) e ícono de Font Awesome (`ICONOS_CATEGORIA`). Hay además dos claves de solo lectura para colorear: `Suscripciones` y `Cuentas`.
+Categorías fijas de gasto: `Comida`, `Transporte`, `Servicios`, `Ocio`, `Salud`, `Tecnologia`, `Ropa`, `Hogar`, `Viajes`, `Compras`, `Educacion`, `Otros`. De ingreso: `Sueldo`, `Freelance`, `Negocio`, `Venta`, `Bono`, `Transferencia`, `Otros_Ingresos`. Cada una es una fila de `Categoria` sin usuario, con su nombre, color e ícono de Font Awesome; los valores de partida están en `finanzas/categorias_base.py`. `Suscripciones` y `Cuentas` también son filas base, pero no se ofrecen al anotar ni aparecen en la pantalla de categorías.
 
 Propiedades calculadas:
 

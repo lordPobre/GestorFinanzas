@@ -4,7 +4,7 @@ from decimal import Decimal
 from dateutil.relativedelta import relativedelta
 
 from .. import fechas
-from ..models import Deuda, Transaccion
+from ..models import Deuda
 from .mes import MESES_LARGOS
 
 
@@ -51,7 +51,7 @@ def serie_cuotas(usuario, atras=6, adelante=6):
 
 def mis_cuotas_detalle(usuario, hoy):
     mis_cuotas = []
-    for d in Deuda.objects.filter(usuario=usuario).prefetch_related('pagos'):
+    for d in Deuda.objects.filter(usuario=usuario).select_related('categoria_ref').prefetch_related('pagos'):
         if d.esta_saldada:
             continue
         atrasadas = len(d.periodos_atrasados)
@@ -59,9 +59,8 @@ def mis_cuotas_detalle(usuario, hoy):
             'obj': d,
             'acreedor': d.acreedor,
             'categoria': d.get_categoria_display(),
-            'icono': Transaccion(categoria=d.categoria, tipo='EGRESO').icono,
-            'color': Transaccion.COLORES_CATEGORIA.get(
-                d.categoria, Transaccion.COLORES_CATEGORIA['Otros']),
+            'icono': d.icono_categoria or 'fa-arrow-up',
+            'color': d.color_categoria,
             'monto_total': round(float(d.monto_total)),
             'pagado': round(float(d.monto_pagado)),
             'restante': round(float(d.monto_restante)),

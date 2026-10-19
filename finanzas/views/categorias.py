@@ -65,9 +65,10 @@ def categorias(request):
 
     de_gasto, de_ingreso = [], []
     slugs_ingreso = {c[0] for c in Transaccion.CATEGORIAS_INGRESO}
+    elegibles = {c[0] for c in Transaccion.CATEGORIAS}
 
     for slug, datos in mapa.items():
-        if slug in propias_slugs:
+        if slug in propias_slugs or slug not in elegibles:
             continue
         destino = de_ingreso if slug in slugs_ingreso else de_gasto
         destino.append(fila(slug, datos))

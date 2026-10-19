@@ -58,8 +58,8 @@ def pendientes_del_mes(usuario, year, month):
             descripcion__startswith='Pendiente: '):
         items.append({
             'tipo': 'gasto',
-            'nombre': t.descripcion or t.get_categoria_display(),
-            'detalle': t.get_categoria_display(),
+            'nombre': t.descripcion or t.nombre_categoria,
+            'detalle': t.nombre_categoria,
             'monto': t.monto,
             'fecha': t.fecha,
             'pagado': False,
@@ -74,11 +74,11 @@ def pendientes_del_mes(usuario, year, month):
     for g in GastoPendiente.objects.filter(
             usuario=usuario,
             fecha_vencimiento__gte=date(year, month, 1),
-            fecha_vencimiento__lte=date(year, month, ultimo)):
+            fecha_vencimiento__lte=date(year, month, ultimo)).select_related('categoria_ref'):
         items.append({
             'tipo': 'cuenta',
             'nombre': g.nombre,
-            'detalle': g.categoria or 'Cuenta por pagar',
+            'detalle': g.nombre_categoria or 'Cuenta por pagar',
             'monto': g.monto,
             'fecha': g.fecha_vencimiento,
             'pagado': g.pagado,

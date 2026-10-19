@@ -127,7 +127,7 @@ def pagar_gasto(request, transaccion_id):
     if es_ajax:
         return JsonResponse({'ok': True, 'pagado': True,
                              'texto': t.texto_estado_pago})
-    messages.success(request, f'{t.descripcion or t.get_categoria_display()}: marcado como pagado.')
+    messages.success(request, f'{t.descripcion or t.nombre_categoria}: marcado como pagado.')
     return redirigir(request)
 
 @login_required(login_url='/login/')
