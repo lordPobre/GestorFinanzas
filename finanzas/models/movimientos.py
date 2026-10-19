@@ -5,7 +5,29 @@ from django.utils import timezone
 from .. import fechas
 
 
-class Transaccion(models.Model):
+class VinculoCategoria(models.Model):
+    class Meta:
+        abstract = True
+
+    @classmethod
+    def from_db(cls, db, field_names, values):
+        obj = super().from_db(db, field_names, values)
+        obj._categoria_vinculada = obj.__dict__.get('categoria')
+        return obj
+
+    def save(self, *args, **kwargs):
+        campos = kwargs.get('update_fields')
+        if campos is None or 'categoria' in campos:
+            al_dia = self.categoria_ref_id and getattr(self, '_categoria_vinculada', None) == self.categoria
+            if not al_dia:
+                self.categoria_ref_id = Categoria.id_de(self.usuario_id, self.categoria)
+                if campos is not None:
+                    kwargs['update_fields'] = [*campos, 'categoria_ref']
+            self._categoria_vinculada = self.categoria
+        super().save(*args, **kwargs)
+
+
+class Transaccion(VinculoCategoria):
     TIPO_CHOICES = [
         ('INGRESO', 'Ingreso'),
         ('EGRESO', 'Egreso'),
@@ -91,6 +113,8 @@ class Transaccion(models.Model):
     tipo = models.CharField(max_length=10, choices=TIPO_CHOICES)
     monto = models.DecimalField(max_digits=10, decimal_places=2)
     categoria = models.CharField(max_length=50, choices=CATEGORIAS, default='Otros')
+    categoria_ref = models.ForeignKey('Categoria', on_delete=models.RESTRICT, null=True, blank=True,
+                                      editable=False, related_name='movimientos')
     fecha = models.DateField(default=timezone.now)
     descripcion = models.CharField(max_length=200, blank=True)
     es_cuota = models.BooleanField(default=False)
@@ -188,7 +212,8 @@ class Categoria(models.Model):
         ('fa-heart', 'Salud'), ('fa-wallet', 'Dinero'),
     ]
 
-    usuario = models.ForeignKey(User, on_delete=models.CASCADE, related_name='categorias')
+    usuario = models.ForeignKey(User, on_delete=models.CASCADE, related_name='categorias',
+                                null=True, blank=True)
     nombre = models.CharField(max_length=40)
     slug = models.SlugField(max_length=50)
     tipo = models.CharField(max_length=10, choices=TIPOS, default='EGRESO')
@@ -201,6 +226,8 @@ class Categoria(models.Model):
         constraints = [
             models.UniqueConstraint(fields=['usuario', 'slug'],
                                     name='categoria_unica_por_usuario'),
+            models.UniqueConstraint(fields=['slug'], condition=models.Q(usuario__isnull=True),
+                                    name='categoria_base_unica'),
         ]
 
     def __str__(self):
@@ -225,6 +252,19 @@ class Categoria(models.Model):
     @property
     def es_gasto(self):
         return self.tipo == 'EGRESO'
+
+    @property
+    def es_base(self):
+        return self.usuario_id is None
+
+    @classmethod
+    def id_de(cls, usuario_id, texto):
+        if not texto:
+            return None
+        return (cls.objects
+                .filter(models.Q(usuario_id=usuario_id) | models.Q(usuario__isnull=True), slug=texto)
+                .order_by(models.F('usuario_id').asc(nulls_last=True))
+                .values_list('id', flat=True).first())
 
     @classmethod
     def opciones(cls, usuario, tipo=None):
@@ -263,9 +303,11 @@ class Presupuesto(models.Model):
     def __str__(self):
         return f"Presupuesto de {self.usuario.username}: ${self.limite_mensual}"
 
-class TopeCategoria(models.Model):
+class TopeCategoria(VinculoCategoria):
     usuario = models.ForeignKey(User, on_delete=models.CASCADE, related_name='topes')
     categoria = models.CharField(max_length=50)
+    categoria_ref = models.ForeignKey('Categoria', on_delete=models.RESTRICT, null=True, blank=True,
+                                      editable=False, related_name='topes')
     monto = models.DecimalField(max_digits=12, decimal_places=2)
     avisar = models.BooleanField(default=True)
     aviso_periodo = models.IntegerField(default=0)
@@ -281,12 +323,14 @@ class TopeCategoria(models.Model):
     def __str__(self):
         return f'Tope de {self.categoria}: {self.monto}'
 
-class GastoPendiente(models.Model):
+class GastoPendiente(VinculoCategoria):
     usuario = models.ForeignKey(User, on_delete=models.CASCADE, related_name='gastos_pendientes')
     nombre = models.CharField(max_length=100)
     monto = models.DecimalField(max_digits=12, decimal_places=2)
     fecha_vencimiento = models.DateField()
     categoria = models.CharField(max_length=50, blank=True, default='Cuentas')
+    categoria_ref = models.ForeignKey('Categoria', on_delete=models.RESTRICT, null=True, blank=True,
+                                      editable=False, related_name='gastos_pendientes')
     pagado = models.BooleanField(default=False)
     fecha_pago = models.DateField(null=True, blank=True)
     creado = models.DateField(default=timezone.now)

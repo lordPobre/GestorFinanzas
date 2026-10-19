@@ -3,12 +3,13 @@ from datetime import date
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.db.models import Count, Sum
+from django.db import transaction
+from django.db.models import Count, Q, Sum
 from django.shortcuts import get_object_or_404, render
 from django.views.decorators.http import require_POST
 
 from .. import fechas
-from ..models import Categoria, TopeCategoria, Transaccion
+from ..models import Categoria, Deuda, GastoPendiente, Suscripcion, TopeCategoria, Transaccion
 from ..servicios.mes import MESES_LARGOS, nombre_mes_es
 from ..servicios.mes_elegido import mes_pedido, selector_mes
 from ..servicios.topes import estado_tope, gastado_por_categoria, promedio_tres_meses
@@ -155,11 +156,16 @@ def eliminar_categoria(request, cat_id):
     if request.method == 'POST':
         nombre = cat.nombre
         destino = 'Otros_Ingresos' if cat.tipo == 'INGRESO' else 'Otros'
-        TopeCategoria.objects.filter(usuario=request.user, categoria=cat.slug).delete()
-        movidos = Transaccion.objects.filter(
-            usuario=request.user, categoria=cat.slug,
-        ).update(categoria=destino)
-        cat.delete()
+        destino_id = Categoria.id_de(request.user.id, destino)
+        de_esta = Q(categoria=cat.slug) | Q(categoria_ref=cat)
+        with transaction.atomic():
+            TopeCategoria.objects.filter(de_esta, usuario=request.user).delete()
+            movidos = Transaccion.objects.filter(de_esta, usuario=request.user).update(
+                categoria=destino, categoria_ref_id=destino_id)
+            for modelo in (GastoPendiente, Suscripcion, Deuda):
+                modelo.objects.filter(de_esta, usuario=request.user).update(
+                    categoria=destino, categoria_ref_id=destino_id)
+            cat.delete()
         if movidos:
             messages.success(
                 request, '"' + nombre + '" eliminada. "' + str(movidos)

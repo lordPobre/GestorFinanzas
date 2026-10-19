@@ -9,9 +9,10 @@ from django.db.models.signals import post_delete, post_save
 from django.dispatch import receiver
 from django.utils import timezone
 from .. import fechas
+from .movimientos import VinculoCategoria
 
 
-class Deuda(models.Model):
+class Deuda(VinculoCategoria):
     CATEGORIAS_CUOTAS = (
         ('Tecnologia', 'Tecnología y electrónica'),
         ('Compras', 'Compras online'),
@@ -33,6 +34,8 @@ class Deuda(models.Model):
     monto_total = models.DecimalField(max_digits=10, decimal_places=2)
     categoria = models.CharField(max_length=50, choices=CATEGORIAS_CUOTAS,
                                  default='Tecnologia')
+    categoria_ref = models.ForeignKey('Categoria', on_delete=models.RESTRICT, null=True, blank=True,
+                                      editable=False, related_name='cuotas')
     cuotas_totales = models.IntegerField(default=12)
     cuotas_pagadas = models.IntegerField(default=0)
     fecha_inicio = models.DateField(default=timezone.now, help_text="Fecha del primer pago")
