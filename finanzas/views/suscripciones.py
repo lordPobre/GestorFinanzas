@@ -25,6 +25,7 @@ from .comun import contadores, monto_post, redirigir, simbolo_de
 def suscripciones(request):
     subs = list(
         Suscripcion.objects.filter(usuario=request.user)
+        .select_related('categoria_ref')
         .annotate(
             cobros_cantidad=Count('cobros'),
             cobros_total=Sum('cobros__monto'),
@@ -242,7 +243,7 @@ def editar_suscripcion(request, sub_id):
             sub.save(update_fields=['nombre', 'monto', 'categoria', 'dia_cobro'])
             sub.cobros.update(descripcion=f'Suscripción: {nombre}')
             sub.cobros.filter(pagado=False, fecha__year=hoy.year, fecha__month=hoy.month).update(
-                monto=monto, categoria=categoria,
+                monto=monto, categoria_ref_id=sub.categoria_ref_id,
                 fecha=sub.fecha_cobro_de(hoy.year * 100 + hoy.month))
         invalidar(request.user.pk)
         messages.success(request, f'{nombre} actualizada.')

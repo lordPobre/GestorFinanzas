@@ -50,7 +50,7 @@ class ConfirmarCartolaTests(TestCase):
         self.assertTrue(all(t.pagado and t.fecha_pago == t.fecha for t in movs))
         sueldo = movs.get(descripcion='REMUNERACION EMPRESA')
         self.assertEqual((sueldo.tipo, sueldo.categoria, sueldo.monto), ('INGRESO', 'Sueldo', Decimal('795000')))
-        self.assertTrue(movs.filter(descripcion='Supermercado de septiembre', categoria='Comida').exists())
+        self.assertTrue(movs.filter(descripcion='Supermercado de septiembre', categoria_ref__slug='Comida').exists())
 
         sub = Suscripcion.objects.get(usuario=self.ana)
         self.assertEqual((sub.nombre, sub.monto, sub.dia_cobro), ('SPOTIFY', Decimal('5990'), 28))

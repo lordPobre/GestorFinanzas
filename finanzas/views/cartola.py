@@ -244,7 +244,7 @@ def confirmar_cartola(request):
                     acreedor=desc[:100],
                     monto_total=monto * restantes,
                     categoria=(cat if m['tipo'] == 'EGRESO'
-                               else Deuda._meta.get_field('categoria').default),
+                               else Deuda.CATEGORIA_DEFECTO),
                     cuotas_totales=restantes,
                     cuotas_pagadas=0,
                     fecha_inicio=fecha,

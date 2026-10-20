@@ -4,7 +4,7 @@ from datetime import date
 from dateutil.relativedelta import relativedelta
 
 from django.contrib.auth.decorators import login_required
-from django.db.models import Sum
+from django.db.models import F, Sum
 from django.shortcuts import render
 
 from .. import fechas
@@ -51,8 +51,8 @@ def estadisticas(request):
         qs = Transaccion.objects.filter(
             usuario=request.user, tipo='EGRESO',
             fecha__gte=date(year, month, 1), fecha__lte=date(year, month, ult),
-        ).values('categoria').annotate(total=Sum('monto'))
-        return {x['categoria'] or 'Otros': float(x['total']) for x in qs}
+        ).values(slug=F('categoria_ref__slug')).annotate(total=Sum('monto'))
+        return {x['slug'] or 'Otros': float(x['total']) for x in qs}
 
     actual = por_categoria(year, month)
     anterior_f = date(year, month, 1) - relativedelta(months=1)

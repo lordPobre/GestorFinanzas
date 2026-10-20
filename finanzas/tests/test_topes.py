@@ -87,7 +87,7 @@ class GuardarTopeTests(TestCase):
     def test_una_categoria_propia_de_gasto_admite_tope(self):
         propia = Categoria.objects.create(usuario=self.ana, nombre='Mascotas')
         self.client.post(self.url, {'categoria': propia.slug, 'monto': '40.000'})
-        self.assertTrue(TopeCategoria.objects.filter(usuario=self.ana, categoria=propia.slug).exists())
+        self.assertTrue(TopeCategoria.objects.filter(usuario=self.ana, categoria_ref__slug=propia.slug).exists())
 
     def test_quitar_no_toca_el_tope_de_otra_cuenta(self):
         TopeCategoria.objects.create(usuario=self.beto, categoria='Comida', monto=Decimal('100000'))

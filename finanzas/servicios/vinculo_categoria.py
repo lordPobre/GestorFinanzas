@@ -1,4 +1,4 @@
-from django.db.models import Exists, F, OuterRef, Q, Subquery
+from django.db.models import F, Q
 
 from ..categorias_base import BASE
 from ..models import Categoria, Deuda, GastoPendiente, Suscripcion, TopeCategoria, Transaccion
@@ -20,46 +20,22 @@ def asegurar_base():
     return creadas
 
 
-def vincular(modelo):
-    n = 0
-    for filtro in ({'usuario_id': OuterRef('usuario_id')}, {'usuario__isnull': True}):
-        cat = Categoria.objects.filter(slug=OuterRef('categoria'), **filtro)
-        n += (modelo.objects.filter(categoria_ref__isnull=True).filter(Exists(cat))
-              .update(categoria_ref=Subquery(cat.values('id')[:1])))
-    return n
-
-
-def sin_vinculo(modelo):
-    return modelo.objects.filter(categoria_ref__isnull=True).exclude(categoria='')
-
-
 def desalineados(modelo):
-    return modelo.objects.filter(categoria_ref__isnull=False).filter(
-        ~Q(categoria_ref__slug=F('categoria'))
-        | (Q(categoria_ref__usuario__isnull=False) & ~Q(categoria_ref__usuario=F('usuario'))))
+    return modelo.objects.filter(
+        Q(categoria_ref__usuario__isnull=False) & ~Q(categoria_ref__usuario=F('usuario')))
 
 
 def revisar():
-    salida = []
-    for modelo in MODELOS:
-        sueltos = sin_vinculo(modelo)
-        salida.append({
-            'tabla': modelo.__name__,
-            'total': modelo.objects.count(),
-            'sin_vinculo': sueltos.count(),
-            'textos_sueltos': sorted(set(sueltos.values_list('categoria', flat=True))
-                                     | set(desalineados(modelo).values_list('categoria', flat=True))),
-            'desalineados': desalineados(modelo).count(),
-        })
-    return salida
+    return [{'tabla': modelo.__name__, 'total': modelo.objects.count(),
+             'desalineados': desalineados(modelo).count()} for modelo in MODELOS]
 
 
 def arreglar():
     asegurar_base()
-    vinculados = 0
+    arregladas = 0
     for modelo in MODELOS:
-        for fila in [*sin_vinculo(modelo), *desalineados(modelo)]:
-            fila._categoria_vinculada = None
+        for fila in desalineados(modelo).select_related('categoria_ref'):
+            fila.categoria = fila.categoria_ref.slug
             fila.save(update_fields=['categoria'])
-            vinculados += 1
-    return vinculados
+            arregladas += 1
+    return arregladas

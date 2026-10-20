@@ -23,6 +23,8 @@ class DeudaForm(forms.ModelForm):
         widget=MontoInput(attrs={'placeholder': '12500', 'min': '1', 'step': '1'}),
     )
 
+    categoria = forms.ChoiceField(label='Categoría')
+
     field_order = ['acreedor', 'valor_cuota', 'cuotas_totales', 'fecha_inicio', 'categoria']
 
     class Meta:
@@ -46,9 +48,9 @@ class DeudaForm(forms.ModelForm):
 
     def __init__(self, *args, usuario=None, opciones=None, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['categoria'] = forms.ChoiceField(
-            label='Categoría',
-            choices=opciones if opciones is not None else (lambda: Categoria.opciones(usuario, 'EGRESO')))
+        self.fields['categoria'].choices = (opciones if opciones is not None
+                                            else (lambda: Categoria.opciones(usuario, 'EGRESO')))
+        self.initial.setdefault('categoria', self.instance.categoria)
         if not self.instance.pk:
             self.fields['fecha_inicio'].initial = fechas.hoy()
         else:
@@ -67,6 +69,11 @@ class DeudaForm(forms.ModelForm):
         if n > 120:
             raise forms.ValidationError('Máximo 120 cuotas (10 años).')
         return n
+
+    def _post_clean(self):
+        super()._post_clean()
+        if self.cleaned_data.get('categoria'):
+            self.instance.categoria = self.cleaned_data['categoria']
 
     def clean(self):
         datos = super().clean()
@@ -98,6 +105,8 @@ class TransaccionForm(forms.ModelForm):
         help_text='Días anteriores siempre. Un ingreso también puede ir a futuro.',
     )
 
+    categoria = forms.ChoiceField(label='Categoría')
+
     DIAS_FUTURO_INGRESO = 366
 
     class Meta:
@@ -117,8 +126,13 @@ class TransaccionForm(forms.ModelForm):
 
         self._usuario = usuario or getattr(self.instance, 'usuario_id', None) and self.instance.usuario
         dueno = self._usuario or None
-        self.fields['categoria'] = forms.ChoiceField(
-            label='Categoría', choices=lambda: Categoria.opciones(dueno))
+        self.fields['categoria'].choices = lambda: Categoria.opciones(dueno)
+        self.initial.setdefault('categoria', self.instance.categoria)
+
+    def _post_clean(self):
+        super()._post_clean()
+        if self.cleaned_data.get('categoria'):
+            self.instance.categoria = self.cleaned_data['categoria']
 
     def clean_monto(self):
         monto = self.cleaned_data.get('monto')

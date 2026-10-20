@@ -8,6 +8,7 @@ from ..categorias_base import BASE, COLOR_OTROS
 
 class VinculoCategoria(models.Model):
     CATEGORIA_RESPALDO = 'Otros'
+    CATEGORIA_DEFECTO = None
 
     class Meta:
         abstract = True
@@ -15,33 +16,45 @@ class VinculoCategoria(models.Model):
     def categoria_respaldo(self):
         return self.CATEGORIA_RESPALDO
 
-    def _vinculo(self):
-        ref = Categoria.id_de(self.usuario_id, self.categoria)
+    def categoria_defecto(self):
+        return self.CATEGORIA_DEFECTO or self.categoria_respaldo()
+
+    @property
+    def categoria(self):
+        pendiente = self.__dict__.get('_categoria_pendiente')
+        if pendiente is not None:
+            return pendiente
+        if self.categoria_ref_id:
+            return self.categoria_ref.slug
+        return self.categoria_defecto()
+
+    @categoria.setter
+    def categoria(self, valor):
+        self.__dict__['_categoria_pendiente'] = valor or ''
+
+    def _vinculo(self, texto):
+        ref = Categoria.id_de(self.usuario_id, texto)
         if ref is None and not Categoria.objects.filter(usuario__isnull=True).exists():
             from ..servicios.vinculo_categoria import asegurar_base
             asegurar_base()
-            ref = Categoria.id_de(self.usuario_id, self.categoria)
+            ref = Categoria.id_de(self.usuario_id, texto)
         if ref is None:
-            self.categoria = self.categoria_respaldo()
-            ref = Categoria.id_de(self.usuario_id, self.categoria)
+            ref = Categoria.id_de(self.usuario_id, self.categoria_respaldo())
         return ref
 
     def save(self, *args, **kwargs):
         campos = kwargs.get('update_fields')
-        if campos is None or 'categoria' in campos:
-            al_dia = self.categoria_ref_id and getattr(self, '_categoria_vinculada', None) == self.categoria
-            if not al_dia:
-                self.categoria_ref_id = self._vinculo()
-                if campos is not None:
-                    kwargs['update_fields'] = [*campos, 'categoria_ref']
-            self._categoria_vinculada = self.categoria
+        if campos is not None and 'categoria' in campos:
+            campos = [c for c in campos if c != 'categoria']
+            if 'categoria_ref' not in campos:
+                campos.append('categoria_ref')
+            kwargs['update_fields'] = campos
+        if campos is None or 'categoria_ref' in campos:
+            pendiente = self.__dict__.pop('_categoria_pendiente', None)
+            if pendiente is not None or not self.categoria_ref_id:
+                texto = self.categoria_defecto() if pendiente is None else pendiente
+                self.categoria_ref_id = self._vinculo(texto)
         super().save(*args, **kwargs)
-
-    @classmethod
-    def from_db(cls, db, field_names, values):
-        obj = super().from_db(db, field_names, values)
-        obj._categoria_vinculada = obj.__dict__.get('categoria')
-        return obj
 
     @property
     def nombre_categoria(self):
@@ -87,7 +100,6 @@ class Transaccion(VinculoCategoria):
     usuario = models.ForeignKey(User, on_delete=models.CASCADE)
     tipo = models.CharField(max_length=10, choices=TIPO_CHOICES)
     monto = models.DecimalField(max_digits=10, decimal_places=2)
-    categoria = models.CharField(max_length=50, default='Otros')
     categoria_ref = models.ForeignKey('Categoria', on_delete=models.RESTRICT, blank=True,
                                       editable=False, related_name='movimientos')
     fecha = models.DateField(default=timezone.now)
@@ -315,7 +327,6 @@ class Presupuesto(models.Model):
 
 class TopeCategoria(VinculoCategoria):
     usuario = models.ForeignKey(User, on_delete=models.CASCADE, related_name='topes')
-    categoria = models.CharField(max_length=50)
     categoria_ref = models.ForeignKey('Categoria', on_delete=models.RESTRICT, blank=True,
                                       editable=False, related_name='topes')
     monto = models.DecimalField(max_digits=12, decimal_places=2)
@@ -324,9 +335,9 @@ class TopeCategoria(VinculoCategoria):
     aviso_nivel = models.IntegerField(default=0)
 
     class Meta:
-        ordering = ['categoria']
+        ordering = ['categoria_ref__nombre']
         constraints = [
-            models.UniqueConstraint(fields=['usuario', 'categoria'],
+            models.UniqueConstraint(fields=['usuario', 'categoria_ref'],
                                     name='tope_unico_por_categoria'),
         ]
 
@@ -340,7 +351,6 @@ class GastoPendiente(VinculoCategoria):
     nombre = models.CharField(max_length=100)
     monto = models.DecimalField(max_digits=12, decimal_places=2)
     fecha_vencimiento = models.DateField()
-    categoria = models.CharField(max_length=50, blank=True, default='Cuentas')
     categoria_ref = models.ForeignKey('Categoria', on_delete=models.RESTRICT, blank=True,
                                       editable=False, related_name='gastos_pendientes')
     pagado = models.BooleanField(default=False)

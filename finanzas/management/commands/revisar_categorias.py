@@ -5,25 +5,21 @@ from ...servicios.vinculo_categoria import arreglar, revisar
 
 
 class Command(BaseCommand):
-    help = 'Revisa que cada fila tenga su categoría vinculada a la tabla de categorías.'
+    help = 'Revisa que ninguna fila apunte a una categoría propia de otra cuenta.'
 
     def add_arguments(self, parser):
         parser.add_argument('--arreglar', action='store_true',
-                            help='Vuelve a vincular las filas sin vínculo o con un vínculo que no calza.')
+                            help='Vuelve a vincular las filas que apuntan a una categoría de otra cuenta.')
 
     def handle(self, *args, **opciones):
         if opciones['arreglar']:
             with transaction.atomic():
                 n = arreglar()
-            self.stdout.write(f'Filas vinculadas: {n}')
+            self.stdout.write(f'Filas arregladas: {n}')
         problemas = 0
         for fila in revisar():
-            problemas += fila['sin_vinculo'] + fila['desalineados']
-            linea = (f"{fila['tabla']}: {fila['total']} filas, {fila['sin_vinculo']} sin vínculo, "
-                     f"{fila['desalineados']} que no calzan")
-            if fila['textos_sueltos']:
-                linea += ' (textos: ' + ', '.join(fila['textos_sueltos'][:20]) + ')'
-            self.stdout.write(linea)
+            problemas += fila['desalineados']
+            self.stdout.write(f"{fila['tabla']}: {fila['total']} filas, {fila['desalineados']} que no calzan")
         if problemas:
             self.stdout.write(self.style.WARNING(f'Quedan {problemas} filas por revisar.'))
         else:

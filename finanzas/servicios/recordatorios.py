@@ -48,7 +48,7 @@ def _items(usuario, hoy):
 
 
 def avisos_topes(usuario, hoy, montos, simbolo):
-    topes = list(TopeCategoria.objects.filter(usuario=usuario))
+    topes = list(TopeCategoria.objects.filter(usuario=usuario).select_related('categoria_ref'))
     if not topes:
         return []
     from ..models import Categoria

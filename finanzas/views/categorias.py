@@ -43,7 +43,8 @@ def categorias(request):
                                     .values(slug=F('categoria_ref__slug')).annotate(n=Count('id'))
     }
 
-    topes = {t.categoria: t for t in TopeCategoria.objects.filter(usuario=request.user)}
+    topes = {t.categoria: t for t in TopeCategoria.objects.filter(usuario=request.user)
+                                                           .select_related('categoria_ref')}
     gasto_mes = gastado_por_categoria(request.user, year, month) if topes else {}
     promedios = promedio_tres_meses(request.user, hoy)
 
@@ -120,8 +121,9 @@ def guardar_tope(request):
         messages.warning(request, 'Elige una categoría de gasto.')
         return redirigir(request, 'categorias')
     nombre = opciones[slug]
+    ref = Categoria.id_de(request.user.id, slug)
     if request.POST.get('quitar'):
-        TopeCategoria.objects.filter(usuario=request.user, categoria=slug).delete()
+        TopeCategoria.objects.filter(usuario=request.user, categoria_ref_id=ref).delete()
         messages.success(request, f'Quitaste el tope de {nombre}.')
         return redirigir(request, 'categorias')
     monto = monto_post(request)
@@ -129,7 +131,7 @@ def guardar_tope(request):
         messages.warning(request, 'Escribe un monto mayor que cero.')
         return redirigir(request, 'categorias')
     TopeCategoria.objects.update_or_create(
-        usuario=request.user, categoria=slug,
+        usuario=request.user, categoria_ref_id=ref,
         defaults={'monto': monto, 'avisar': request.POST.get('avisar') == '1'},
     )
     messages.success(request, f'Tope de {nombre}: {money(monto, simbolo_de(request.user))} al mes.')
@@ -155,14 +157,14 @@ def eliminar_categoria(request, cat_id):
         nombre = cat.nombre
         destino = 'Otros_Ingresos' if cat.tipo == 'INGRESO' else 'Otros'
         destino_id = Categoria.id_de(request.user.id, destino)
-        de_esta = Q(categoria=cat.slug) | Q(categoria_ref=cat)
+        de_esta = Q(categoria_ref=cat)
         with transaction.atomic():
             TopeCategoria.objects.filter(de_esta, usuario=request.user).delete()
             movidos = Transaccion.objects.filter(de_esta, usuario=request.user).update(
-                categoria=destino, categoria_ref_id=destino_id)
+                categoria_ref_id=destino_id)
             for modelo in (GastoPendiente, Suscripcion, Deuda):
                 modelo.objects.filter(de_esta, usuario=request.user).update(
-                    categoria=destino, categoria_ref_id=destino_id)
+                    categoria_ref_id=destino_id)
             cat.delete()
         if movidos:
             messages.success(

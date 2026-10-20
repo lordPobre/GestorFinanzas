@@ -123,29 +123,25 @@ class AlBorrar(Base):
 
 
 class Revision(Base):
-    def test_arreglar_vincula_filas_viejas_y_corrige_las_que_no_calzan(self):
-        a = self.gasto('Comida')
+    def test_arreglar_corrige_un_vinculo_a_la_propia_de_otro(self):
+        de_beto = Categoria.objects.create(usuario=self.beto, nombre='Mascotas')
+        mia = Categoria.objects.create(usuario=self.ana, nombre='Mascotas')
+        a = self.gasto(mia.slug)
         b = self.gasto('Ocio')
-        Transaccion.objects.filter(pk=a.pk).update(categoria='NoExiste')
-        Transaccion.objects.filter(pk=b.pk).update(categoria_ref=self.base('Comida'))
+        Transaccion.objects.filter(pk=a.pk).update(categoria_ref=de_beto)
+        Transaccion.objects.filter(pk=b.pk).update(categoria_ref=de_beto)
         self.assertEqual(vinculo_categoria.desalineados(Transaccion).count(), 2)
         vinculo_categoria.arreglar()
-        a = Transaccion.objects.get(pk=a.pk)
-        self.assertEqual((a.categoria, a.categoria_ref), ('Otros', self.base('Otros')))
-        self.assertEqual(Transaccion.objects.get(pk=b.pk).categoria_ref, self.base('Ocio'))
+        self.assertEqual(Transaccion.objects.get(pk=a.pk).categoria_ref, mia)
+        self.assertEqual(Transaccion.objects.get(pk=b.pk).categoria_ref, self.base('Otros'))
+        self.assertEqual(vinculo_categoria.desalineados(Transaccion).count(), 0)
 
-    def test_un_vinculo_a_la_propia_de_otro_no_calza(self):
+    def test_el_comando_avisa_lo_que_no_calza(self):
         de_beto = Categoria.objects.create(usuario=self.beto, nombre='Mascotas')
-        t = self.gasto(de_beto.slug)
-        Transaccion.objects.filter(pk=t.pk).update(categoria_ref=de_beto)
-        self.assertEqual(vinculo_categoria.desalineados(Transaccion).count(), 1)
-
-    def test_el_comando_avisa_los_textos_sueltos(self):
         t = self.gasto('Comida')
-        Transaccion.objects.filter(pk=t.pk).update(categoria='NoExiste')
+        Transaccion.objects.filter(pk=t.pk).update(categoria_ref=de_beto)
         salida = StringIO()
         call_command('revisar_categorias', stdout=salida)
-        self.assertIn('NoExiste', salida.getvalue())
         self.assertIn('Quedan 1 filas por revisar', salida.getvalue())
 
     def test_el_comando_dice_cuando_esta_todo_bien(self):

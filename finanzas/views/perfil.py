@@ -288,6 +288,8 @@ def _fila(obj):
         if campo.name in CAMPOS_OCULTOS or campo.name == 'id' or campo.is_relation:
             continue
         fila[campo.name] = _valor_serializable(getattr(obj, campo.name, None))
+    if hasattr(obj, 'categoria_ref_id'):
+        fila['categoria'] = obj.categoria
     return fila
 
 def _filas(consulta):

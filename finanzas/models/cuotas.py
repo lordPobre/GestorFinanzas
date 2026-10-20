@@ -13,10 +13,11 @@ from .movimientos import VinculoCategoria
 
 
 class Deuda(VinculoCategoria):
+    CATEGORIA_DEFECTO = 'Tecnologia'
+
     usuario = models.ForeignKey(User, on_delete=models.CASCADE)
     acreedor = models.CharField(max_length=100)
     monto_total = models.DecimalField(max_digits=10, decimal_places=2)
-    categoria = models.CharField(max_length=50, default='Tecnologia')
     categoria_ref = models.ForeignKey('Categoria', on_delete=models.RESTRICT, blank=True,
                                       editable=False, related_name='cuotas')
     cuotas_totales = models.IntegerField(default=12)

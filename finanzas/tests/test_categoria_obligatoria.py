@@ -50,7 +50,6 @@ class CategoriaObligatoria(TestCase):
 
     def test_las_sumas_agrupan_por_el_vinculo(self):
         t = self.mov('Comida')
-        Transaccion.objects.filter(pk=t.pk).update(categoria='Ocio')
         inicio = self.hoy.replace(day=1)
         filas = desglose_categorias(self.ana, {'fecha_inicio': inicio, 'fecha_fin': self.hoy})
         self.assertEqual([f['nombre'] for f in filas], ['Comida'])
@@ -59,7 +58,6 @@ class CategoriaObligatoria(TestCase):
 
     def test_la_pantalla_de_categorias_usa_el_vinculo(self):
         t = self.mov('Comida')
-        Transaccion.objects.filter(pk=t.pk).update(categoria='Ocio')
         self.client.force_login(self.ana)
         r = self.client.get(reverse('categorias'))
         fila = next(c for c in r.context['de_gasto'] if c['slug'] == 'Comida')

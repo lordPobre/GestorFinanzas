@@ -62,7 +62,7 @@ def promedio_tres_meses(usuario, hoy):
 
 
 def topes_para_anotar(usuario, hoy):
-    topes = list(TopeCategoria.objects.filter(usuario=usuario, avisar=True))
+    topes = list(TopeCategoria.objects.filter(usuario=usuario, avisar=True).select_related('categoria_ref'))
     if not topes:
         return {}
     gastado = gastado_por_categoria(usuario, hoy.year, hoy.month)

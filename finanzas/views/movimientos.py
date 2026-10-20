@@ -9,7 +9,7 @@ from django.utils import timezone
 
 from .. import fechas
 from ..forms import TransaccionForm
-from ..models import GastoPendiente, PagoCuota, Transaccion
+from ..models import Categoria, GastoPendiente, PagoCuota, Transaccion
 from .comun import contadores, monto_post, redirigir, texto_post
 
 
@@ -158,7 +158,7 @@ def crear_gasto_pendiente(request):
         nombre = texto_post(request, 'nombre', GastoPendiente)
         monto = monto_post(request)
         fecha_venc = request.POST.get('fecha_vencimiento')
-        categoria = texto_post(request, 'categoria', Transaccion) or 'Cuentas'
+        categoria = texto_post(request, 'categoria', Categoria, 'slug') or 'Cuentas'
         largo_desc = Transaccion._meta.get_field('descripcion').max_length or 200
 
         if not (nombre and monto > 0 and fecha_venc):
