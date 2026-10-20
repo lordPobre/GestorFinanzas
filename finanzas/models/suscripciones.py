@@ -10,11 +10,13 @@ from .movimientos import VinculoCategoria
 
 
 class Suscripcion(VinculoCategoria):
+    CATEGORIA_RESPALDO = 'Suscripciones'
+
     usuario = models.ForeignKey(User, on_delete=models.CASCADE, related_name='suscripciones')
     nombre = models.CharField(max_length=100)
     monto = models.DecimalField(max_digits=12, decimal_places=2)
     categoria = models.CharField(max_length=50, blank=True, default='Suscripciones')
-    categoria_ref = models.ForeignKey('Categoria', on_delete=models.RESTRICT, null=True, blank=True,
+    categoria_ref = models.ForeignKey('Categoria', on_delete=models.RESTRICT, blank=True,
                                       editable=False, related_name='suscripciones')
     dia_cobro = models.IntegerField(default=1, help_text='Día del mes en que se cobra (1-28)')
     activa = models.BooleanField(default=True)

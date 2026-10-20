@@ -536,7 +536,7 @@
       <div class="row">
         <div class="row-main">
           <div class="row-title">{{ e.deuda.acreedor }}</div>
-          <div class="row-meta">{{ e.deuda.get_categoria_display }}{% if e.atrasado %} · <span class="tinta-coral-texto">atrasada</span>{% elif e.pago %} · pagada el {{ e.pago.fecha_pago|date:"j b" }}{% endif %}</div>
+          <div class="row-meta">{{ e.deuda.nombre_categoria }}{% if e.atrasado %} · <span class="tinta-coral-texto">atrasada</span>{% elif e.pago %} · pagada el {{ e.pago.fecha_pago|date:"j b" }}{% endif %}</div>
         </div>
         <div class="mono">{{ e.monto|money }}</div>
         {% if e.estado == 'pagado' %}

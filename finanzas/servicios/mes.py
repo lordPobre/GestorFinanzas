@@ -34,7 +34,7 @@ def _decimal(valor):
 def deudas_del_mes(usuario, year, month, con_atrasos=False):
     anio = Cast(ExtractYear('fecha_inicio'), IntegerField())
     mes_inicio = Cast(ExtractMonth('fecha_inicio'), IntegerField())
-    qs = Deuda.objects.filter(usuario=usuario).annotate(
+    qs = Deuda.objects.filter(usuario=usuario).select_related('categoria_ref').annotate(
         inicio_idx=anio * 12 + mes_inicio - 1,
         inicio_periodo=anio * 100 + mes_inicio,
     ).annotate(fin_idx=F('inicio_idx') + F('cuotas_totales') - 1)

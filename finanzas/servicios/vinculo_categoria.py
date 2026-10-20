@@ -47,7 +47,8 @@ def revisar():
             'tabla': modelo.__name__,
             'total': modelo.objects.count(),
             'sin_vinculo': sueltos.count(),
-            'textos_sueltos': sorted(set(sueltos.values_list('categoria', flat=True))),
+            'textos_sueltos': sorted(set(sueltos.values_list('categoria', flat=True))
+                                     | set(desalineados(modelo).values_list('categoria', flat=True))),
             'desalineados': desalineados(modelo).count(),
         })
     return salida
@@ -57,6 +58,8 @@ def arreglar():
     asegurar_base()
     vinculados = 0
     for modelo in MODELOS:
-        desalineados(modelo).update(categoria_ref=None)
-        vinculados += vincular(modelo)
+        for fila in [*sin_vinculo(modelo), *desalineados(modelo)]:
+            fila._categoria_vinculada = None
+            fila.save(update_fields=['categoria'])
+            vinculados += 1
     return vinculados

@@ -74,7 +74,7 @@
           <span class="cf-fin-nota">{% if faltan %}{{ faltan }} cuota{{ faltan|pluralize:"s" }} más{% endif %}{% if d.fecha_fin_estimada == termina_todo and deudas|length > 1 %}<b>La última en terminar</b>{% endif %}</span>
         </div>
         {% endwith %}{% endif %}
-        <span class="sec-mas-nota">Te queda {{ d.monto_restante|money }} de {{ d.monto_total|money }} · {{ d.get_categoria_display }}</span>
+        <span class="sec-mas-nota">Te queda {{ d.monto_restante|money }} de {{ d.monto_total|money }} · {{ d.nombre_categoria }}</span>
         <div class="sec-mas-fila">
           {% if d.cuotas_pagadas > 0 %}
           <form method="post" action="{% url 'anular_cuota' d.pk %}" data-confirm="¿Anular la última cuota pagada?">

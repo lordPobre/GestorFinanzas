@@ -1,7 +1,7 @@
 from decimal import Decimal
 from io import BytesIO
 
-from .models import Categoria, Transaccion
+from .models import Transaccion
 
 MESES = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio',
          'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre']
@@ -54,7 +54,6 @@ def nombre_mes(anio, mes):
 
 
 def filas_movimientos(usuario):
-    etiquetas = dict(Categoria.opciones(usuario))
     filas = []
 
     consulta = Transaccion.objects.filter(usuario=usuario)
@@ -66,7 +65,7 @@ def filas_movimientos(usuario):
         movimientos = consulta.order_by('fecha', 'id').iterator(chunk_size=2000)
 
     for t in movimientos:
-        categoria = etiquetas.get(t.categoria, t.categoria)
+        categoria = t.nombre_categoria
         es_ingreso = t.es_ingreso
         filas.append({
             'periodo': f'{t.fecha.year}-{t.fecha.month:02d}',

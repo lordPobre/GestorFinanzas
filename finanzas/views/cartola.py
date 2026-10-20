@@ -135,6 +135,7 @@ def revisar_cartola(request):
 
     filas = _filas(datos)
     nuevas = [f for f in filas if not f['ya_existe']]
+    cats = Categoria.opciones_por_tipo(request.user)
 
     ctx = {
         'c': datos,
@@ -146,8 +147,8 @@ def revisar_cartola(request):
         'descuadre': Decimal(datos.get('descuadre') or 0),
         'suma_ingresos': sum(f['monto_dec'] for f in nuevas if f['tipo'] == 'INGRESO'),
         'suma_egresos': sum(f['monto_dec'] for f in nuevas if f['tipo'] == 'EGRESO'),
-        'cartola_cats_egreso': Transaccion.CATEGORIAS_EGRESO,
-        'cartola_cats_ingreso': Transaccion.CATEGORIAS_INGRESO,
+        'cartola_cats_egreso': cats['EGRESO'],
+        'cartola_cats_ingreso': cats['INGRESO'],
         'personas': Persona.objects.filter(usuario=request.user, lado='ME_DEBE'),
     }
     ctx.update(contadores(request.user))
@@ -166,8 +167,8 @@ def confirmar_cartola(request):
 
     movs = datos['movimientos']
     creados = movidos = reemplazados = subs = deudas = prestamos = 0
-    validas = {tipo: {slug for slug, _ in Categoria.opciones(request.user, tipo)}
-              | SLUGS_BASE
+    cats = Categoria.opciones_por_tipo(request.user)
+    validas = {tipo: {slug for slug, _ in cats[tipo]} | SLUGS_BASE
               for tipo in ('INGRESO', 'EGRESO')}
 
     with db_transaction.atomic():
@@ -242,7 +243,7 @@ def confirmar_cartola(request):
                     usuario=request.user,
                     acreedor=desc[:100],
                     monto_total=monto * restantes,
-                    categoria=(cat if cat in dict(Deuda.CATEGORIAS)
+                    categoria=(cat if m['tipo'] == 'EGRESO'
                                else Deuda._meta.get_field('categoria').default),
                     cuotas_totales=restantes,
                     cuotas_pagadas=0,

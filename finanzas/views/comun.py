@@ -58,11 +58,8 @@ def texto_post(request, campo, modelo, nombre_campo=None, defecto=''):
     return texto[:largo] if largo else texto
 
 def _opciones_de_categorias(usuario):
-    from ..models import Transaccion
-    propias = list(Categoria.objects.filter(usuario=usuario, activa=True).only('slug', 'nombre', 'tipo'))
-    egreso = list(Transaccion.CATEGORIAS_EGRESO) + [(p.slug, p.nombre) for p in propias if p.tipo == 'EGRESO']
-    ingreso = list(Transaccion.CATEGORIAS_INGRESO) + [(p.slug, p.nombre) for p in propias if p.tipo == 'INGRESO']
-    return egreso, ingreso
+    por_tipo = Categoria.opciones_por_tipo(usuario)
+    return por_tipo['EGRESO'], por_tipo['INGRESO']
 
 SEGUNDOS_CONTEOS = 26 * 60 * 60
 

@@ -2,7 +2,7 @@ from datetime import date
 
 from dateutil.relativedelta import relativedelta
 
-from django.db.models import Sum
+from django.db.models import F, Sum
 from django.urls import reverse
 
 from ..categorias_base import COLOR_OTROS
@@ -28,13 +28,13 @@ def desglose_categorias(usuario, resumen):
     gastos_categoria = Transaccion.objects.filter(
         usuario=usuario, tipo='EGRESO',
         fecha__gte=resumen['fecha_inicio'], fecha__lte=resumen['fecha_fin'],
-    ).values('categoria').annotate(total=Sum('monto')).order_by('-total')
+    ).values(slug=F('categoria_ref__slug')).annotate(total=Sum('monto')).order_by('-total')
 
     total_cat = sum(float(x['total']) for x in gastos_categoria) or 1.0
     mapa = Categoria.mapa(usuario)
     categorias = []
     for x in gastos_categoria:
-        cat = x['categoria'] or 'Otros'
+        cat = x['slug'] or 'Otros'
         datos = mapa.get(cat, {})
         categorias.append({
             'nombre': cat,

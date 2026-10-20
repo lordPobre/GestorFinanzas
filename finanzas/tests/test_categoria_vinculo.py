@@ -9,6 +9,7 @@ from django.test import TestCase
 from django.test.utils import CaptureQueriesContext
 from django.urls import reverse
 
+from ..categorias_base import SLUGS_BASE
 from ..models import Categoria, Deuda, GastoPendiente, Suscripcion, TopeCategoria, Transaccion
 from ..servicios import vinculo_categoria
 
@@ -31,8 +32,8 @@ class Base(TestCase):
 class FilasBase(Base):
     def test_estan_todas_las_categorias_de_siempre(self):
         slugs = set(Categoria.objects.filter(usuario=None).values_list('slug', flat=True))
-        esperadas = {s for s, _ in Transaccion.CATEGORIAS} | {s for s, _ in Deuda.CATEGORIAS_CUOTAS}
-        self.assertTrue(esperadas | {'Suscripciones', 'Cuentas'} <= slugs)
+        self.assertTrue(SLUGS_BASE <= slugs)
+        self.assertEqual(len(SLUGS_BASE), 21)
 
     def test_asegurar_base_no_duplica(self):
         self.assertEqual(vinculo_categoria.asegurar_base(), 0)
@@ -72,8 +73,9 @@ class AlGuardar(Base):
         tabla = Categoria._meta.db_table
         self.assertFalse([c['sql'] for c in consultas.captured_queries if tabla in c['sql']])
 
-    def test_un_texto_desconocido_queda_sin_vinculo(self):
-        self.assertIsNone(self.gasto('NoExiste').categoria_ref)
+    def test_un_texto_desconocido_pasa_a_otros(self):
+        t = self.gasto('NoExiste')
+        self.assertEqual((t.categoria, t.categoria_ref), ('Otros', self.base('Otros')))
 
     def test_las_otras_tablas_tambien_se_vinculan(self):
         hoy = date.today()
@@ -124,11 +126,12 @@ class Revision(Base):
     def test_arreglar_vincula_filas_viejas_y_corrige_las_que_no_calzan(self):
         a = self.gasto('Comida')
         b = self.gasto('Ocio')
-        Transaccion.objects.filter(pk=a.pk).update(categoria_ref=None)
+        Transaccion.objects.filter(pk=a.pk).update(categoria='NoExiste')
         Transaccion.objects.filter(pk=b.pk).update(categoria_ref=self.base('Comida'))
-        self.assertEqual(vinculo_categoria.desalineados(Transaccion).count(), 1)
+        self.assertEqual(vinculo_categoria.desalineados(Transaccion).count(), 2)
         vinculo_categoria.arreglar()
-        self.assertEqual(Transaccion.objects.get(pk=a.pk).categoria_ref, self.base('Comida'))
+        a = Transaccion.objects.get(pk=a.pk)
+        self.assertEqual((a.categoria, a.categoria_ref), ('Otros', self.base('Otros')))
         self.assertEqual(Transaccion.objects.get(pk=b.pk).categoria_ref, self.base('Ocio'))
 
     def test_un_vinculo_a_la_propia_de_otro_no_calza(self):
@@ -138,7 +141,8 @@ class Revision(Base):
         self.assertEqual(vinculo_categoria.desalineados(Transaccion).count(), 1)
 
     def test_el_comando_avisa_los_textos_sueltos(self):
-        self.gasto('NoExiste')
+        t = self.gasto('Comida')
+        Transaccion.objects.filter(pk=t.pk).update(categoria='NoExiste')
         salida = StringIO()
         call_command('revisar_categorias', stdout=salida)
         self.assertIn('NoExiste', salida.getvalue())

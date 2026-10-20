@@ -43,9 +43,9 @@ class CategoriaDesdeLaTabla(TestCase):
                          ('Súper', '#123456', 'fa-utensils'))
         self.assertEqual(Categoria.mapa(self.ana)['Comida']['label'], 'Súper')
 
-    def test_sin_vinculo_usa_el_texto_y_la_flecha(self):
+    def test_un_texto_desconocido_se_muestra_como_otros(self):
         t = self.gasto('NoExiste')
-        self.assertEqual((t.nombre_categoria, t.icono), ('NoExiste', 'fa-arrow-up'))
+        self.assertEqual((t.categoria, t.nombre_categoria, t.icono), ('Otros', 'Otros Gastos', 'fa-ellipsis'))
 
     def test_leer_movimientos_no_consulta_la_categoria_de_cada_uno(self):
         for _ in range(5):

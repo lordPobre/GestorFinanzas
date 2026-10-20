@@ -3,19 +3,35 @@ from django.contrib.auth.models import User
 from django.db import models
 from django.utils import timezone
 from .. import fechas
-from ..categorias_base import COLOR_OTROS
+from ..categorias_base import BASE, COLOR_OTROS
 
 
 class VinculoCategoria(models.Model):
+    CATEGORIA_RESPALDO = 'Otros'
+
     class Meta:
         abstract = True
+
+    def categoria_respaldo(self):
+        return self.CATEGORIA_RESPALDO
+
+    def _vinculo(self):
+        ref = Categoria.id_de(self.usuario_id, self.categoria)
+        if ref is None and not Categoria.objects.filter(usuario__isnull=True).exists():
+            from ..servicios.vinculo_categoria import asegurar_base
+            asegurar_base()
+            ref = Categoria.id_de(self.usuario_id, self.categoria)
+        if ref is None:
+            self.categoria = self.categoria_respaldo()
+            ref = Categoria.id_de(self.usuario_id, self.categoria)
+        return ref
 
     def save(self, *args, **kwargs):
         campos = kwargs.get('update_fields')
         if campos is None or 'categoria' in campos:
             al_dia = self.categoria_ref_id and getattr(self, '_categoria_vinculada', None) == self.categoria
             if not al_dia:
-                self.categoria_ref_id = Categoria.id_de(self.usuario_id, self.categoria)
+                self.categoria_ref_id = self._vinculo()
                 if campos is not None:
                     kwargs['update_fields'] = [*campos, 'categoria_ref']
             self._categoria_vinculada = self.categoria
@@ -29,17 +45,17 @@ class VinculoCategoria(models.Model):
 
     @property
     def nombre_categoria(self):
-        ref = self.categoria_ref
+        ref = self.categoria_ref if self.categoria_ref_id else None
         return ref.nombre if ref else self.categoria
 
     @property
     def color_categoria(self):
-        ref = self.categoria_ref
+        ref = self.categoria_ref if self.categoria_ref_id else None
         return ref.color if ref else COLOR_OTROS
 
     @property
     def icono_categoria(self):
-        ref = self.categoria_ref
+        ref = self.categoria_ref if self.categoria_ref_id else None
         return ref.icono if ref else None
 
 
@@ -53,33 +69,6 @@ class Transaccion(VinculoCategoria):
         ('INGRESO', 'Ingreso'),
         ('EGRESO', 'Egreso'),
     ]
-
-    CATEGORIAS_EGRESO = (
-        ('Comida', 'Comida y Supermercado'),
-        ('Transporte', 'Transporte y Gasolina'),
-        ('Servicios', 'Luz, Agua, Internet'),
-        ('Ocio', 'Entretenimiento y Salidas'),
-        ('Salud', 'Salud y Farmacia'),
-        ('Tecnologia', 'Tecnología y electrónica'),
-        ('Ropa', 'Ropa y calzado'),
-        ('Hogar', 'Hogar y muebles'),
-        ('Viajes', 'Viajes y pasajes'),
-        ('Compras', 'Compras online'),
-        ('Educacion', 'Educación y cursos'),
-        ('Otros', 'Otros Gastos'),
-    )
-
-    CATEGORIAS_INGRESO = (
-        ('Sueldo', 'Sueldo o salario'),
-        ('Freelance', 'Trabajo freelance'),
-        ('Negocio', 'Negocio o emprendimiento'),
-        ('Venta', 'Venta de algo'),
-        ('Bono', 'Bono o aguinaldo'),
-        ('Transferencia', 'Transferencia recibida'),
-        ('Otros_Ingresos', 'Otros ingresos'),
-    )
-
-    CATEGORIAS = CATEGORIAS_EGRESO + CATEGORIAS_INGRESO
 
     MANUAL = 'manual'
     SUSCRIPCION = 'suscripcion'
@@ -98,8 +87,8 @@ class Transaccion(VinculoCategoria):
     usuario = models.ForeignKey(User, on_delete=models.CASCADE)
     tipo = models.CharField(max_length=10, choices=TIPO_CHOICES)
     monto = models.DecimalField(max_digits=10, decimal_places=2)
-    categoria = models.CharField(max_length=50, choices=CATEGORIAS, default='Otros')
-    categoria_ref = models.ForeignKey('Categoria', on_delete=models.RESTRICT, null=True, blank=True,
+    categoria = models.CharField(max_length=50, default='Otros')
+    categoria_ref = models.ForeignKey('Categoria', on_delete=models.RESTRICT, blank=True,
                                       editable=False, related_name='movimientos')
     fecha = models.DateField(default=timezone.now)
     descripcion = models.CharField(max_length=200, blank=True)
@@ -129,6 +118,9 @@ class Transaccion(VinculoCategoria):
 
     def __str__(self):
         return f"{self.tipo} - {self.monto}"
+
+    def categoria_respaldo(self):
+        return 'Otros_Ingresos' if self.tipo == 'INGRESO' else 'Otros'
 
     @property
     def es_ingreso(self):
@@ -278,23 +270,40 @@ class Categoria(models.Model):
                 .order_by(models.F('usuario_id').asc(nulls_last=True))
                 .values_list('id', flat=True).first())
 
+    NO_ELEGIBLES = frozenset({'Suscripciones', 'Cuentas'})
+
+    @classmethod
+    def _elegibles(cls, usuario, reponer=True):
+        filas = list(cls.objects
+                     .filter(models.Q(usuario=usuario) | models.Q(usuario__isnull=True), activa=True)
+                     .exclude(usuario__isnull=True, slug__in=cls.NO_ELEGIBLES)
+                     .only('slug', 'nombre', 'tipo', 'usuario'))
+        if reponer and not any(c.usuario_id is None for c in filas):
+            from ..servicios.vinculo_categoria import asegurar_base
+            asegurar_base()
+            return cls._elegibles(usuario, reponer=False)
+        orden = {fila[0]: i for i, fila in enumerate(BASE)}
+        base = sorted((c for c in filas if c.usuario_id is None), key=lambda c: orden.get(c.slug, len(orden)))
+        propias = sorted((c for c in filas if c.usuario_id is not None), key=lambda c: (c.tipo, c.nombre))
+        return base + propias
+
     @classmethod
     def opciones(cls, usuario, tipo=None):
-        base = []
-        if tipo != 'INGRESO':
-            base += list(Transaccion.CATEGORIAS_EGRESO)
-        if tipo != 'EGRESO':
-            base += list(Transaccion.CATEGORIAS_INGRESO)
-        propias = cls.objects.filter(usuario=usuario, activa=True)
-        if tipo:
-            propias = propias.filter(tipo=tipo)
-        return base + [(c.slug, c.nombre) for c in propias]
+        return [(c.slug, c.nombre) for c in cls._elegibles(usuario) if tipo is None or c.tipo == tipo]
+
+    @classmethod
+    def opciones_por_tipo(cls, usuario):
+        salida = {'EGRESO': [], 'INGRESO': []}
+        for c in cls._elegibles(usuario):
+            salida.setdefault(c.tipo, []).append((c.slug, c.nombre))
+        return salida
 
     @classmethod
     def mapa(cls, usuario):
         filas = (cls.objects.filter(models.Q(usuario=usuario) | models.Q(usuario__isnull=True))
                  .order_by(models.F('usuario_id').asc(nulls_first=True), 'id'))
-        return {c.slug: {'label': c.nombre, 'color': c.color, 'icono': c.icono, 'propia': not c.es_base}
+        return {c.slug: {'label': c.nombre, 'color': c.color, 'icono': c.icono, 'tipo': c.tipo,
+                         'propia': not c.es_base}
                 for c in filas}
 
 class Presupuesto(models.Model):
@@ -307,7 +316,7 @@ class Presupuesto(models.Model):
 class TopeCategoria(VinculoCategoria):
     usuario = models.ForeignKey(User, on_delete=models.CASCADE, related_name='topes')
     categoria = models.CharField(max_length=50)
-    categoria_ref = models.ForeignKey('Categoria', on_delete=models.RESTRICT, null=True, blank=True,
+    categoria_ref = models.ForeignKey('Categoria', on_delete=models.RESTRICT, blank=True,
                                       editable=False, related_name='topes')
     monto = models.DecimalField(max_digits=12, decimal_places=2)
     avisar = models.BooleanField(default=True)
@@ -325,12 +334,14 @@ class TopeCategoria(VinculoCategoria):
         return f'Tope de {self.categoria}: {self.monto}'
 
 class GastoPendiente(VinculoCategoria):
+    CATEGORIA_RESPALDO = 'Cuentas'
+
     usuario = models.ForeignKey(User, on_delete=models.CASCADE, related_name='gastos_pendientes')
     nombre = models.CharField(max_length=100)
     monto = models.DecimalField(max_digits=12, decimal_places=2)
     fecha_vencimiento = models.DateField()
     categoria = models.CharField(max_length=50, blank=True, default='Cuentas')
-    categoria_ref = models.ForeignKey('Categoria', on_delete=models.RESTRICT, null=True, blank=True,
+    categoria_ref = models.ForeignKey('Categoria', on_delete=models.RESTRICT, blank=True,
                                       editable=False, related_name='gastos_pendientes')
     pagado = models.BooleanField(default=False)
     fecha_pago = models.DateField(null=True, blank=True)

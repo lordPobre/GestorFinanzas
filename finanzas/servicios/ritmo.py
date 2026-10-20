@@ -3,7 +3,7 @@ from collections import defaultdict
 from datetime import date
 
 from dateutil.relativedelta import relativedelta
-from django.db.models import Sum
+from django.db.models import F, Sum
 
 from .. import fechas
 from ..models import Categoria, Transaccion
@@ -27,10 +27,10 @@ def _dia_a_dia(usuario, desde, hasta):
              .filter(usuario=usuario, tipo='EGRESO', es_cuota=False, suscripcion__isnull=True,
                      fecha__gte=desde, fecha__lte=hasta)
              .exclude(Transaccion.q_vinculados())
-             .values('categoria').annotate(total=Sum('monto')))
+             .values(slug=F('categoria_ref__slug')).annotate(total=Sum('monto')))
     salida = defaultdict(float)
     for f in filas:
-        salida[f['categoria'] or 'Otros'] += float(f['total'])
+        salida[f['slug'] or 'Otros'] += float(f['total'])
     return salida
 
 

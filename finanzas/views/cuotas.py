@@ -14,7 +14,8 @@ from .comun import contadores, redirigir, simbolo_de
 
 @login_required(login_url='/login/')
 def deudas(request):
-    lista = list(Deuda.objects.filter(usuario=request.user).prefetch_related('pagos'))
+    lista = list(Deuda.objects.filter(usuario=request.user)
+                 .select_related('categoria_ref').prefetch_related('pagos'))
     activas = [d for d in lista if not d.esta_saldada]
 
     activas.sort(key=lambda d: (
@@ -37,10 +38,10 @@ def deudas(request):
         'cuotas_atrasadas': sum(len(d.periodos_atrasados) for d in activas),
         'total_deuda': round(suma(d.monto_total for d in lista)),
         'termina_todo': con_fin[-1].fecha_fin_estimada if con_fin else None,
-        'form': DeudaForm(),
     }
     context['esfera'] = esfera_cuotas(request.user, activas, simbolo_de(request.user))
     context.update(contadores(request.user))
+    context['form'] = DeudaForm(usuario=request.user, opciones=context['cats_egreso'])
     return render(request, 'finanzas/deudas.html', context)
 
 @login_required(login_url='/login/')
@@ -154,7 +155,7 @@ def anular_cuota(request, deuda_id):
 @login_required(login_url='/login/')
 def crear_deuda(request):
     if request.method == 'POST':
-        form = DeudaForm(request.POST)
+        form = DeudaForm(request.POST, usuario=request.user)
         if form.is_valid():
             deuda = form.save(commit=False)
             deuda.usuario = request.user
@@ -166,7 +167,7 @@ def crear_deuda(request):
             return redirigir(request, 'deudas')
         messages.warning(request, 'Revisa los datos de la compra.')
     else:
-        form = DeudaForm()
+        form = DeudaForm(usuario=request.user)
     context = {'form': form}
     context.update(contadores(request.user))
     return render(request, 'finanzas/form_deuda.html', context)
@@ -175,13 +176,13 @@ def crear_deuda(request):
 def editar_deuda(request, deuda_id):
     deuda = get_object_or_404(Deuda, id=deuda_id, usuario=request.user)
     if request.method == 'POST':
-        form = DeudaForm(request.POST, instance=deuda)
+        form = DeudaForm(request.POST, instance=deuda, usuario=request.user)
         if form.is_valid():
             form.save()
             messages.success(request, 'Compra actualizada.')
             return redirigir(request, 'deudas')
     else:
-        form = DeudaForm(instance=deuda)
+        form = DeudaForm(instance=deuda, usuario=request.user)
     context = {'form': form, 'editar': True, 'deuda': deuda}
     context.update(contadores(request.user))
     return render(request, 'finanzas/form_deuda.html', context)

@@ -58,7 +58,7 @@ def mis_cuotas_detalle(usuario, hoy):
         mis_cuotas.append({
             'obj': d,
             'acreedor': d.acreedor,
-            'categoria': d.get_categoria_display(),
+            'categoria': d.nombre_categoria,
             'icono': d.icono_categoria or 'fa-arrow-up',
             'color': d.color_categoria,
             'monto_total': round(float(d.monto_total)),

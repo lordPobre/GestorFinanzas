@@ -4,7 +4,7 @@ from datetime import date
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
-from django.db.models import Count, Q, Sum
+from django.db.models import Count, F, Q, Sum
 from django.shortcuts import get_object_or_404, render
 from django.views.decorators.http import require_POST
 
@@ -28,19 +28,19 @@ def categorias(request):
     inicio, fin = date(year, month, 1), date(year, month, ultimo)
 
     gastado = {
-        x['categoria']: float(x['total'])
+        x['slug']: float(x['total'])
         for x in Transaccion.objects.filter(
             usuario=request.user, fecha__gte=inicio, fecha__lte=fin,
-        ).values('categoria').annotate(total=Sum('monto'))
+        ).values(slug=F('categoria_ref__slug')).annotate(total=Sum('monto'))
     }
     movs_mes = {}
     for t in Transaccion.objects.filter(
             usuario=request.user, fecha__gte=inicio, fecha__lte=fin).order_by('-fecha', '-id'):
-        movs_mes.setdefault(t.categoria, []).append(t)
+        movs_mes.setdefault(t.categoria_ref.slug, []).append(t)
     usos = {
-        x['categoria']: x['n']
+        x['slug']: x['n']
         for x in Transaccion.objects.filter(usuario=request.user)
-                                    .values('categoria').annotate(n=Count('id'))
+                                    .values(slug=F('categoria_ref__slug')).annotate(n=Count('id'))
     }
 
     topes = {t.categoria: t for t in TopeCategoria.objects.filter(usuario=request.user)}
@@ -64,13 +64,10 @@ def categorias(request):
         }
 
     de_gasto, de_ingreso = [], []
-    slugs_ingreso = {c[0] for c in Transaccion.CATEGORIAS_INGRESO}
-    elegibles = {c[0] for c in Transaccion.CATEGORIAS}
-
     for slug, datos in mapa.items():
-        if slug in propias_slugs or slug not in elegibles:
+        if slug in propias_slugs or datos['propia'] or slug in Categoria.NO_ELEGIBLES:
             continue
-        destino = de_ingreso if slug in slugs_ingreso else de_gasto
+        destino = de_ingreso if datos['tipo'] == 'INGRESO' else de_gasto
         destino.append(fila(slug, datos))
 
     for c in propias_qs:

@@ -44,7 +44,7 @@ Es el registro base: cada ingreso o gasto que afecta al mes.
 | `usuario` | FK User, CASCADE | |
 | `tipo` | char(10) | `INGRESO` o `EGRESO` |
 | `monto` | decimal(10,2) | Siempre positivo; el signo lo da `tipo` |
-| `categoria` | char(50) | Clave de `CATEGORIAS` o `slug` de una `Categoria` propia. Por defecto `Otros` |
+| `categoria` | char(50) | `slug` de una `Categoria` base o propia. Sin `choices`: las opciones salen de la tabla. Por defecto `Otros` |
 | `fecha` | date | Por defecto hoy |
 | `descripcion` | char(200) | Libre. Los cobros de suscripción y las cuentas por pagar llevan el prefijo `Suscripción: ` o `Pendiente: `, pero solo para mostrar: ninguna regla lo lee |
 | `es_cuota` | bool | `True` si la generó el pago de una cuota |
@@ -56,7 +56,9 @@ Es el registro base: cada ingreso o gasto que afecta al mes.
 
 Orden por defecto: `-fecha, -id`.
 
-Categorías fijas de gasto: `Comida`, `Transporte`, `Servicios`, `Ocio`, `Salud`, `Tecnologia`, `Ropa`, `Hogar`, `Viajes`, `Compras`, `Educacion`, `Otros`. De ingreso: `Sueldo`, `Freelance`, `Negocio`, `Venta`, `Bono`, `Transferencia`, `Otros_Ingresos`. Cada una es una fila de `Categoria` sin usuario, con su nombre, color e ícono de Font Awesome; los valores de partida están en `finanzas/categorias_base.py`. `Suscripciones` y `Cuentas` también son filas base, pero no se ofrecen al anotar ni aparecen en la pantalla de categorías.
+Las categorías base (12 de gasto, 7 de ingreso, más `Suscripciones` y `Cuentas`) son filas de `Categoria` con `usuario` vacío. Sus valores de partida están en `categorias_base.py`.
+
+Vínculo con la tabla: los cinco modelos con categoría (`Transaccion`, `TopeCategoria`, `GastoPendiente`, `Suscripcion`, `Deuda`) tienen `categoria_ref` obligatorio desde el lote 165. Al guardar, si el texto no corresponde a ninguna categoría, la fila pasa a su categoría de respaldo (`CATEGORIA_RESPALDO`: `Otros`, `Otros_Ingresos` para ingresos, `Cuentas` o `Suscripciones`). Las sumas por categoría agrupan por `categoria_ref__slug`; el texto `categoria` se sigue guardando como copia hasta el lote 166.
 
 Propiedades calculadas:
 
@@ -83,7 +85,7 @@ Categorías propias del usuario, que se suman a las fijas.
 | `icono` | char(30) | De `ICONOS` (15 íconos) |
 | `activa` | bool | Una categoría inactiva no aparece al anotar, pero conserva sus movimientos |
 
-`Categoria.opciones(usuario, tipo)` devuelve las fijas más las propias activas, listas para un `<select>`. `Categoria.mapa(usuario)` devuelve `{slug: {label, color, icono, propia}}` con las fijas y todas las propias, y se usa para pintar cualquier movimiento.
+`Categoria.opciones(usuario, tipo)` lee de la tabla las base activas (sin `Suscripciones` ni `Cuentas`, en el orden de `categorias_base.BASE`) y después las propias activas, listas para un `<select>`. `Categoria.opciones_por_tipo(usuario)` hace lo mismo en una consulta y devuelve `{'EGRESO': [...], 'INGRESO': [...]}`. Si no encuentra las base, las repone con `asegurar_base()`. `Categoria.mapa(usuario)` devuelve `{slug: {label, color, icono, tipo, propia}}` con las base y las propias.
 
 La `Transaccion` guarda el slug como texto, no una FK. Por eso desactivar una categoría no rompe nada. Al borrarla, la vista pasa sus movimientos a `Otros` (u `Otros_Ingresos`) antes de eliminarla.
 
@@ -123,7 +125,7 @@ Una compra en cuotas. El nombre del modelo es histórico: en la interfaz se llam
 | `usuario` | FK User, CASCADE | |
 | `acreedor` | char(100) | Qué se compró o dónde (“Notebook”, “Falabella”) |
 | `monto_total` | decimal(10,2) | |
-| `categoria` | char(50) | De `CATEGORIAS_CUOTAS` (10 opciones) |
+| `categoria` | char(50) | `slug` de una `Categoria` de gasto, base o propia. Por defecto `Tecnologia` |
 | `cuotas_totales` | int | Por defecto 12 |
 | `cuotas_pagadas` | int | Cantidad de `pagos`. Lo actualiza una señal de `PagoCuota` al crear o borrar un pago |
 | `fecha_inicio` | date | Fecha del primer cobro. Su día es el día de pago de todos los meses |
@@ -346,5 +348,8 @@ Se conserva 12 meses (ver [10 · Operación](10-OPERACION.md)).
 | 0128 | `Transaccion.origen` y `Transaccion.periodo_cobro` |
 | 0129 | Completa `origen` desde los vínculos (y el prefijo, por última vez) y `periodo_cobro` de los cobros de suscripción. Si un mes ya tenía dos cobros, el segundo queda sin periodo |
 | 0130 | Restricción `cobro_suscripcion_unico_por_mes` |
+| 0131 | Quita los `choices` de `Transaccion.categoria` y `Deuda.categoria`. No cambia la base de datos |
+| 0132 | Revincula las filas que no calzan y pasa las sueltas a su categoría de respaldo (`Otros`, `Otros_Ingresos`, `Cuentas` o `Suscripciones`). Borra los topes de categorías que ya no existen |
+| 0133 | `categoria_ref` pasa a ser obligatorio en los cinco modelos |
 
 El CI corre `makemigrations --check`: un cambio de modelo sin su migración deja el build en rojo.

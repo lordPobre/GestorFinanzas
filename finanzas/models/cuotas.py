@@ -13,28 +13,11 @@ from .movimientos import VinculoCategoria
 
 
 class Deuda(VinculoCategoria):
-    CATEGORIAS_CUOTAS = (
-        ('Tecnologia', 'Tecnología y electrónica'),
-        ('Compras', 'Compras online'),
-        ('Ropa', 'Ropa y calzado'),
-        ('Hogar', 'Hogar y muebles'),
-        ('Ocio', 'Entretenimiento'),
-        ('Viajes', 'Viajes y pasajes'),
-        ('Educacion', 'Educación y cursos'),
-        ('Salud', 'Salud y Farmacia'),
-        ('Transporte', 'Transporte'),
-        ('Otros', 'Otra cosa'),
-    )
-
-    CATEGORIAS_EGRESO = CATEGORIAS_CUOTAS
-    CATEGORIAS = CATEGORIAS_CUOTAS
-
     usuario = models.ForeignKey(User, on_delete=models.CASCADE)
     acreedor = models.CharField(max_length=100)
     monto_total = models.DecimalField(max_digits=10, decimal_places=2)
-    categoria = models.CharField(max_length=50, choices=CATEGORIAS_CUOTAS,
-                                 default='Tecnologia')
-    categoria_ref = models.ForeignKey('Categoria', on_delete=models.RESTRICT, null=True, blank=True,
+    categoria = models.CharField(max_length=50, default='Tecnologia')
+    categoria_ref = models.ForeignKey('Categoria', on_delete=models.RESTRICT, blank=True,
                                       editable=False, related_name='cuotas')
     cuotas_totales = models.IntegerField(default=12)
     cuotas_pagadas = models.IntegerField(default=0)

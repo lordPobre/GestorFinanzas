@@ -3,7 +3,7 @@ from datetime import date, timedelta
 from decimal import Decimal
 
 from dateutil.relativedelta import relativedelta
-from django.db.models import Sum
+from django.db.models import F, Sum
 
 from ..models import Categoria, TopeCategoria, Transaccion
 
@@ -13,11 +13,11 @@ UMBRAL_AVISO = 80
 def gastado_por_categoria(usuario, year, month):
     _, ultimo = calendar.monthrange(year, month)
     return {
-        x['categoria']: Decimal(x['total'])
+        x['slug']: Decimal(x['total'])
         for x in Transaccion.objects.filter(
             usuario=usuario, tipo='EGRESO',
             fecha__gte=date(year, month, 1), fecha__lte=date(year, month, ultimo),
-        ).values('categoria').annotate(total=Sum('monto'))
+        ).values(slug=F('categoria_ref__slug')).annotate(total=Sum('monto'))
     }
 
 
@@ -54,10 +54,10 @@ def promedio_tres_meses(usuario, hoy):
     desde = inicio_mes - relativedelta(months=3)
     hasta = inicio_mes - timedelta(days=1)
     return {
-        x['categoria']: round(Decimal(x['total']) / 3)
+        x['slug']: round(Decimal(x['total']) / 3)
         for x in Transaccion.objects.filter(
             usuario=usuario, tipo='EGRESO', fecha__gte=desde, fecha__lte=hasta,
-        ).values('categoria').annotate(total=Sum('monto'))
+        ).values(slug=F('categoria_ref__slug')).annotate(total=Sum('monto'))
     }
 
 

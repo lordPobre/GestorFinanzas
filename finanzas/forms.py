@@ -2,6 +2,7 @@ from datetime import timedelta
 from decimal import Decimal
 
 from django import forms
+from django.db.models import F, Q
 
 from . import fechas
 from .models import Categoria, Deuda, MetaAhorro, Transaccion
@@ -43,9 +44,11 @@ class DeudaForm(forms.ModelForm):
 
     TOTAL_MAXIMO = Decimal('99999999')
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, usuario=None, opciones=None, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['categoria'].choices = Deuda.CATEGORIAS_CUOTAS
+        self.fields['categoria'] = forms.ChoiceField(
+            label='Categoría',
+            choices=opciones if opciones is not None else (lambda: Categoria.opciones(usuario, 'EGRESO')))
         if not self.instance.pk:
             self.fields['fecha_inicio'].initial = fechas.hoy()
         else:
@@ -113,8 +116,9 @@ class TransaccionForm(forms.ModelForm):
             self.fields['fecha'].initial = fechas.hoy()
 
         self._usuario = usuario or getattr(self.instance, 'usuario_id', None) and self.instance.usuario
-        if self._usuario:
-            self.fields['categoria'].choices = Categoria.opciones(self._usuario)
+        dueno = self._usuario or None
+        self.fields['categoria'] = forms.ChoiceField(
+            label='Categoría', choices=lambda: Categoria.opciones(dueno))
 
     def clean_monto(self):
         monto = self.cleaned_data.get('monto')
@@ -132,22 +136,18 @@ class TransaccionForm(forms.ModelForm):
         if not tipo or not categoria:
             return datos
 
-        de_ingreso = {c[0] for c in Transaccion.CATEGORIAS_INGRESO}
-        de_egreso = {c[0] for c in Transaccion.CATEGORIAS_EGRESO}
+        cat = (Categoria.objects
+               .filter(Q(usuario=self._usuario or None) | Q(usuario__isnull=True), slug=categoria)
+               .order_by(F('usuario_id').asc(nulls_last=True)).first())
+        if cat is None or cat.tipo == tipo:
+            return datos
 
-        if getattr(self, '_usuario', None):
-            propia = Categoria.objects.filter(
-                usuario=self._usuario, slug=categoria).first()
-            if propia:
-                if propia.tipo != tipo:
-                    self.add_error('categoria',
-                                   'Esa categoría es de ' +
-                                   ('ingresos' if propia.tipo == 'INGRESO' else 'gastos') + '.')
-                return datos
-
-        if tipo == 'INGRESO' and categoria in de_egreso:
+        if not cat.es_base:
+            self.add_error('categoria', 'Esa categoría es de ' +
+                           ('ingresos' if cat.tipo == 'INGRESO' else 'gastos') + '.')
+        elif tipo == 'INGRESO':
             self.add_error('categoria', 'Esa categoría es de gastos. Elige de dónde viene el ingreso.')
-        elif tipo == 'EGRESO' and categoria in de_ingreso:
+        else:
             self.add_error('categoria', 'Esa categoría es de ingresos. Elige a qué gasto corresponde.')
         return datos
 
