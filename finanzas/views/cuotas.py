@@ -91,7 +91,7 @@ def pagar_cuota(request, deuda_id):
             usuario=request.user, tipo='EGRESO', monto=monto,
             categoria=deuda.categoria,
             descripcion=f'Cuota {numero}/{deuda.cuotas_totales} — {deuda.acreedor}',
-            fecha=fecha_cobro, es_cuota=True,
+            fecha=fecha_cobro, es_cuota=True, origen=Transaccion.CUOTA,
             pagado=True, fecha_pago=hoy,
         )
         PagoCuota.objects.create(

@@ -54,8 +54,7 @@ def pendientes_del_mes(usuario, year, month):
     for t in Transaccion.objects.filter(
             usuario=usuario, tipo='EGRESO', es_cuota=False, pagado=False,
             fecha__year=year, fecha__month=month,
-    ).exclude(descripcion__startswith='Suscripción: ').exclude(
-            descripcion__startswith='Pendiente: '):
+    ).exclude(Transaccion.q_vinculados()):
         items.append({
             'tipo': 'gasto',
             'nombre': t.descripcion or t.nombre_categoria,

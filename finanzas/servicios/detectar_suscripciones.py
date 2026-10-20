@@ -5,7 +5,6 @@ from datetime import date
 from itertools import pairwise
 
 from dateutil.relativedelta import relativedelta
-from django.db.models import Q
 
 from .. import fechas
 from ..marcas import buscar_marca, normalizar
@@ -70,8 +69,8 @@ def sugerencias(usuario, hoy=None):
                    .filter(usuario=usuario, tipo='EGRESO', es_cuota=False, suscripcion__isnull=True,
                            fecha__gte=desde, fecha__lte=hoy)
                    .exclude(descripcion='')
-                   .exclude(Q(descripcion__startswith='Suscripción: ') | Q(descripcion__startswith='Pendiente: ') |
-                            Q(descripcion__startswith='Cuota '))
+                   .exclude(Transaccion.q_vinculados())
+                   .exclude(origen=Transaccion.CUOTA)
                    .order_by('fecha', 'id'))
 
     grupos = defaultdict(list)

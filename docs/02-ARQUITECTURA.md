@@ -159,7 +159,7 @@ Las cuatro funciones con IA (análisis, plan, repetidos y chat de ayuda) pasan p
 
 ## Suscripciones: cómo aparecen solas cada mes
 
-`servicios/suscripciones.generar_cobros_suscripciones(usuario)` recorre las suscripciones activas y crea un egreso `Suscripción: {nombre}` por cada mes que falte, desde `ultimo_mes_generado` hasta el mes en curso. El del mes en curso queda por pagar y los anteriores, pagados. Se llama al abrir el inicio, al crear o reactivar una suscripción y antes de mandar el aviso mensual. No hay un proceso de fondo: los cobros se generan cuando el usuario vuelve.
+`servicios/suscripciones.generar_cobros_suscripciones(usuario)` recorre las suscripciones activas que tienen meses sin generar. Cada una se bloquea con `select_for_update` y se crea un egreso por mes que falte, con `origen='suscripcion'` y `periodo_cobro`; el del mes en curso queda por pagar y los anteriores, pagados. Usa `get_or_create` sobre `(suscripcion, periodo_cobro)` y la base tiene una restricción única, así que dos pestañas o un reactivar en el mismo mes no duplican el cobro. Se llama al abrir el inicio, al crear o reactivar una suscripción y antes de mandar el aviso mensual.
 
 ## Ritmo de gasto
 
@@ -245,4 +245,4 @@ La lista completa y dónde se configura cada una está en [09 · Instalación y 
 
 - **Un solo proceso de negocio.** Todo corre dentro de la petición, sin colas. Las llamadas a la IA, a ElevenLabs y a Resend bloquean el hilo hasta 10 s (correo) o lo que tarde Anthropic. Con 2 × 4 hilos alcanza para el uso actual, pero con carga habría que pasarlas a una tarea en segundo plano.
 - **Cálculos en Python sobre listas.** Muchas pantallas traen todos los objetos del usuario con `prefetch_related` y calculan en memoria. Es correcto y está probado que no hace consultas extra por fila, pero crece linealmente con el historial. El primer lugar donde se va a notar es `resumen_mes`, que recorre todas las compras en cuotas del usuario.
-- **Vínculos por texto.** El egreso de una suscripción se encuentra por su descripción (`Suscripción: {nombre}`). Ver [13 · Deuda técnica](13-DEUDA-TECNICA-Y-HOJA-DE-RUTA.md).
+- **Vínculos.** Desde el lote 162, el tipo de un movimiento sale de `origen` y de sus relaciones (`suscripcion`, `gasto_pendiente`, `pago_cuota`). La descripción solo se muestra.

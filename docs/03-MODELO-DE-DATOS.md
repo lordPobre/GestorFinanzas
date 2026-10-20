@@ -46,11 +46,13 @@ Es el registro base: cada ingreso o gasto que afecta al mes.
 | `monto` | decimal(10,2) | Siempre positivo; el signo lo da `tipo` |
 | `categoria` | char(50) | Clave de `CATEGORIAS` o `slug` de una `Categoria` propia. Por defecto `Otros` |
 | `fecha` | date | Por defecto hoy |
-| `descripcion` | char(200) | Libre. Prefijo `Suscripción: ` para los cobros generados por suscripciones |
+| `descripcion` | char(200) | Libre. Los cobros de suscripción y las cuentas por pagar llevan el prefijo `Suscripción: ` o `Pendiente: `, pero solo para mostrar: ninguna regla lo lee |
 | `es_cuota` | bool | `True` si la generó el pago de una cuota |
 | `pagado` | bool | Por defecto `True`. `False` = gasto anotado pero aún sin pagar |
 | `fecha_pago` | date, null | Cuándo se pagó de verdad, si fue otro día |
 | `suscripcion` | FK `Suscripcion`, null | Si es el cobro de una suscripción (`related_name='cobros'`). Al borrar la suscripción, el movimiento queda sin vínculo |
+| `origen` | char(12) | Quién lo creó: `manual`, `suscripcion`, `pendiente`, `cuota` o `cartola`. No se edita. Al borrar la suscripción, el cobro sigue siendo `suscripcion` |
+| `periodo_cobro` | int, null | Mes del cobro de suscripción (`año * 100 + mes`). La restricción `cobro_suscripcion_unico_por_mes` hace único `(suscripcion, periodo_cobro)` |
 
 Orden por defecto: `-fecha, -id`.
 
@@ -60,8 +62,11 @@ Propiedades calculadas:
 
 - `es_ingreso`, `es_gasto_unico` (gasto que no es cuota) y `por_pagar` (gasto único sin pagar).
 - `texto_estado_pago`: “Pagado”, “Pagado el dd/mm” o “Sin pagar hace N días”.
+- `es_cobro_suscripcion`: `origen == 'suscripcion'` o tiene `suscripcion`. `es_cuenta_pendiente`: `origen == 'pendiente'`.
+- `nombre_sin_prefijo`: la descripción sin `Suscripción: ` o `Pendiente: `, solo si el origen corresponde.
+- `q_vinculados()`: filtro de los movimientos que ya muestra otra pantalla (cobros de suscripción y cuentas por pagar, por origen o por vínculo).
 - `clase_tono`: `ingreso`, `cuota`, `suscripcion` o `gasto`. Sirve para colorear la fila.
-- `marca_suscripcion`: si la descripción empieza con `Suscripción: `, busca la marca en `Suscripcion.MARCAS` y devuelve ícono y color.
+- `marca_suscripcion`: si es cobro de suscripción, busca la marca en `Suscripcion.MARCAS` y devuelve ícono y color.
 - `color_categoria` e `icono`.
 
 ### `Categoria`
@@ -334,5 +339,12 @@ Se conserva 12 meses (ver [10 · Operación](10-OPERACION.md)).
 | 0121 | `Persona.lado`, los seis campos `push_*` de `UserProfile`, `TopeCategoria` y `SuscripcionPush`. Escrita a mano: `makemigrations --check` confirma que calza con los modelos |
 | 0122 | `UserProfile.politica_avisada` |
 | 0123 | `AltaPendiente` |
+| 0124 | `UserProfile.zona_horaria` |
+| 0125 | Índices `(usuario, fecha)` y `(usuario, tipo, fecha)` en `Transaccion` |
+| 0126 | `categoria_ref` en los cinco modelos con categoría |
+| 0127 | Categorías base como filas y vínculo de `categoria_ref` |
+| 0128 | `Transaccion.origen` y `Transaccion.periodo_cobro` |
+| 0129 | Completa `origen` desde los vínculos (y el prefijo, por última vez) y `periodo_cobro` de los cobros de suscripción. Si un mes ya tenía dos cobros, el segundo queda sin periodo |
+| 0130 | Restricción `cobro_suscripcion_unico_por_mes` |
 
 El CI corre `makemigrations --check`: un cambio de modelo sin su migración deja el build en rojo.

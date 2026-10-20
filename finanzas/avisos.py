@@ -68,8 +68,8 @@ def _sin_pagar_del_mes(usuario, hoy, simbolo):
             'crudo': t.monto,
             'atrasado': t.fecha < hoy,
         }
-        if nombre.startswith('Suscripción:'):
-            fila['nombre'] = nombre.split(':', 1)[1].strip()
+        if t.es_cobro_suscripcion:
+            fila['nombre'] = t.nombre_sin_prefijo or t.nombre_categoria
             suscripciones.append(fila)
         else:
             sueltos.append(fila)

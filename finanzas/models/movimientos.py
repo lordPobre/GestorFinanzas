@@ -81,6 +81,20 @@ class Transaccion(VinculoCategoria):
 
     CATEGORIAS = CATEGORIAS_EGRESO + CATEGORIAS_INGRESO
 
+    MANUAL = 'manual'
+    SUSCRIPCION = 'suscripcion'
+    PENDIENTE = 'pendiente'
+    CUOTA = 'cuota'
+    CARTOLA = 'cartola'
+    ORIGENES = [
+        (MANUAL, 'Anotado a mano'),
+        (SUSCRIPCION, 'Cobro de suscripción'),
+        (PENDIENTE, 'Cuenta por pagar'),
+        (CUOTA, 'Pago de cuota'),
+        (CARTOLA, 'Cartola'),
+    ]
+    PREFIJOS = {SUSCRIPCION: 'Suscripción: ', PENDIENTE: 'Pendiente: '}
+
     usuario = models.ForeignKey(User, on_delete=models.CASCADE)
     tipo = models.CharField(max_length=10, choices=TIPO_CHOICES)
     monto = models.DecimalField(max_digits=10, decimal_places=2)
@@ -95,6 +109,8 @@ class Transaccion(VinculoCategoria):
     fecha_pago = models.DateField(null=True, blank=True)
     suscripcion = models.ForeignKey('Suscripcion', on_delete=models.SET_NULL, null=True,
                                     blank=True, related_name='cobros')
+    origen = models.CharField(max_length=12, choices=ORIGENES, default=MANUAL, editable=False)
+    periodo_cobro = models.IntegerField(null=True, blank=True, editable=False)
 
     objects = ConCategoria()
 
@@ -103,6 +119,12 @@ class Transaccion(VinculoCategoria):
         indexes = [
             models.Index(fields=['usuario', 'fecha'], name='trans_usuario_fecha'),
             models.Index(fields=['usuario', 'tipo', 'fecha'], name='trans_usuario_tipo_fecha'),
+        ]
+        constraints = [
+            models.UniqueConstraint(
+                fields=['suscripcion', 'periodo_cobro'],
+                condition=models.Q(suscripcion__isnull=False, periodo_cobro__isnull=False),
+                name='cobro_suscripcion_unico_por_mes'),
         ]
 
     def __str__(self):
@@ -134,12 +156,35 @@ class Transaccion(VinculoCategoria):
         return 'Sin pagar'
 
     @property
+    def es_cobro_suscripcion(self):
+        return self.origen == self.SUSCRIPCION or self.suscripcion_id is not None
+
+    @property
+    def es_cuenta_pendiente(self):
+        return self.origen == self.PENDIENTE
+
+    @property
+    def nombre_sin_prefijo(self):
+        desc = (self.descripcion or '').strip()
+        clave = self.SUSCRIPCION if self.es_cobro_suscripcion else self.origen
+        prefijo = self.PREFIJOS.get(clave)
+        if prefijo and desc.startswith(prefijo):
+            return desc[len(prefijo):].strip()
+        return desc
+
+    @classmethod
+    def q_vinculados(cls):
+        return (models.Q(origen__in=[cls.SUSCRIPCION, cls.PENDIENTE])
+                | models.Q(suscripcion__isnull=False)
+                | models.Q(gasto_pendiente__isnull=False))
+
+    @property
     def clase_tono(self):
         if self.es_ingreso:
             return 'ingreso'
         if self.es_cuota:
             return 'cuota'
-        if (self.descripcion or '').startswith('Suscripción: '):
+        if self.es_cobro_suscripcion:
             return 'suscripcion'
         return 'gasto'
 
@@ -147,10 +192,9 @@ class Transaccion(VinculoCategoria):
     def marca_suscripcion(self):
         from .suscripciones import Suscripcion
 
-        desc = self.descripcion or ''
-        if not desc.startswith('Suscripción: '):
+        if not self.es_cobro_suscripcion:
             return None
-        nombre = desc[len('Suscripción: '):].lower()
+        nombre = self.nombre_sin_prefijo.lower()
         for clave, icono, color in Suscripcion.MARCAS:
             if clave in nombre:
                 return {'icono': icono, 'color': color,

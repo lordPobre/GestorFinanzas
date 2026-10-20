@@ -174,7 +174,7 @@ def crear_gasto_pendiente(request):
         tx = Transaccion.objects.create(
             usuario=request.user, tipo='EGRESO', monto=monto,
             categoria=categoria, descripcion=f'Pendiente: {nombre}'[:largo_desc],
-            fecha=venc, es_cuota=False, pagado=False,
+            fecha=venc, es_cuota=False, pagado=False, origen=Transaccion.PENDIENTE,
         )
         GastoPendiente.objects.create(
             usuario=request.user, nombre=nombre, monto=monto,

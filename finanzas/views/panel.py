@@ -23,7 +23,6 @@ from ..servicios.suscripciones import generar_cobros_suscripciones
 from .comun import contadores, simbolo_de
 
 
-PREFIJOS = (('Suscripción: ', 'Suscripción'), ('Pendiente: ', 'Cuenta por pagar'))
 PATRON_CUOTA = re.compile(r'^Cuota (\d+)/(\d+)\s*[—-]\s*(.+)$')
 
 
@@ -35,11 +34,10 @@ def textos_movimiento(t):
         if m:
             return m.group(3), f'Cuota {m.group(1)} de {m.group(2)}'
         return desc or cat, 'Cuota'
-    for prefijo, etiqueta in PREFIJOS:
-        if desc.startswith(prefijo):
-            return desc[len(prefijo):].strip() or cat, etiqueta
-    if t.suscripcion_id:
-        return desc or cat, 'Suscripción'
+    if t.es_cobro_suscripcion:
+        return t.nombre_sin_prefijo or cat, 'Suscripción'
+    if t.es_cuenta_pendiente:
+        return t.nombre_sin_prefijo or cat, 'Cuenta por pagar'
     if not desc:
         return cat, 'Ingreso' if t.es_ingreso else 'Gasto'
     return desc, cat

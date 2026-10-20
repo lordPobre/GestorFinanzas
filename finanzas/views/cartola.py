@@ -218,6 +218,7 @@ def confirmar_cartola(request):
                 fecha=fecha,
                 descripcion=desc,
                 es_cuota=es_cuota,
+                origen=Transaccion.CARTOLA,
                 pagado=True,
                 fecha_pago=fecha,
             )

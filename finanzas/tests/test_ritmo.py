@@ -14,9 +14,10 @@ class RitmoTests(TestCase):
     def setUp(self):
         self.ana = User.objects.create_user('ana', 'ana@ejemplo.cl', 'clave-larga-1')
 
-    def gasto(self, monto, fecha, categoria='Comida', descripcion=''):
+    def gasto(self, monto, fecha, categoria='Comida', descripcion='', origen=Transaccion.MANUAL):
         Transaccion.objects.create(usuario=self.ana, tipo='EGRESO', monto=monto, categoria=categoria,
-                                   fecha=fecha, descripcion=descripcion, pagado=True, fecha_pago=fecha)
+                                   fecha=fecha, descripcion=descripcion, origen=origen,
+                                   pagado=True, fecha_pago=fecha)
 
     def historial(self, meses=(6, 7, 8)):
         for m in meses:
@@ -57,9 +58,16 @@ class RitmoTests(TestCase):
 
     def test_suscripciones_y_pendientes_no_cuentan(self):
         self.historial()
-        self.gasto(300000, date(2026, 9, 1), descripcion='Suscripción: Gimnasio')
-        self.gasto(300000, date(2026, 9, 2), descripcion='Pendiente: Dentista')
+        self.gasto(300000, date(2026, 9, 1), descripcion='Suscripción: Gimnasio',
+                   origen=Transaccion.SUSCRIPCION)
+        self.gasto(300000, date(2026, 9, 2), descripcion='Pendiente: Dentista',
+                   origen=Transaccion.PENDIENTE)
         self.assertEqual(ritmo_del_mes(self.ana, HOY), [])
+
+    def test_un_gasto_que_empieza_igual_si_cuenta(self):
+        self.historial()
+        self.gasto(120000, date(2026, 9, 10), descripcion='Pendiente: arreglar la bici')
+        self.assertEqual(len(ritmo_del_mes(self.ana, HOY)), 1)
 
     def test_felicita_si_gasta_menos(self):
         self.historial()

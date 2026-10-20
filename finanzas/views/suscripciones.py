@@ -6,6 +6,7 @@ from django.contrib.auth.decorators import login_required
 from django.db import transaction
 from django.db import transaction as db_transaction
 from django.db.models import Count, Q, Sum
+from django.db.models.functions import ExtractMonth, ExtractYear
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
@@ -287,7 +288,9 @@ def agregar_sugerencia(request):
             usuario=request.user, nombre=s['nombre'], monto=s['monto'], dia_cobro=s['dia'],
             categoria=s['categoria'], fecha_inicio=hoy,
         )
-        Transaccion.objects.filter(usuario=request.user, pk__in=s['ids']).update(suscripcion=sub)
+        Transaccion.objects.filter(usuario=request.user, pk__in=s['ids']).update(
+            suscripcion=sub, origen=Transaccion.SUSCRIPCION,
+            periodo_cobro=ExtractYear('fecha') * 100 + ExtractMonth('fecha'))
         if s['cobrada_este_mes']:
             sub.ultimo_mes_generado = periodo
             sub.save(update_fields=['ultimo_mes_generado'])
