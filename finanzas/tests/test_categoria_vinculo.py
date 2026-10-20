@@ -125,13 +125,18 @@ class AlBorrar(Base):
 class Revision(Base):
     def test_arreglar_corrige_un_vinculo_a_la_propia_de_otro(self):
         de_beto = Categoria.objects.create(usuario=self.beto, nombre='Mascotas')
+        de_beto_exclusiva = Categoria.objects.create(usuario=self.beto, nombre='Exclusiva Beto') # Categoría que Ana no tiene
         mia = Categoria.objects.create(usuario=self.ana, nombre='Mascotas')
+        
         a = self.gasto(mia.slug)
         b = self.gasto('Ocio')
+        
         Transaccion.objects.filter(pk=a.pk).update(categoria_ref=de_beto)
-        Transaccion.objects.filter(pk=b.pk).update(categoria_ref=de_beto)
+        Transaccion.objects.filter(pk=b.pk).update(categoria_ref=de_beto_exclusiva) # Asignamos a la categoría que Ana no tiene
+        
         self.assertEqual(vinculo_categoria.desalineados(Transaccion).count(), 2)
         vinculo_categoria.arreglar()
+        
         self.assertEqual(Transaccion.objects.get(pk=a.pk).categoria_ref, mia)
         self.assertEqual(Transaccion.objects.get(pk=b.pk).categoria_ref, self.base('Otros'))
         self.assertEqual(vinculo_categoria.desalineados(Transaccion).count(), 0)
