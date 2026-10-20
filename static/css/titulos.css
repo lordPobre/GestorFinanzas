@@ -7,15 +7,19 @@
   src: url('../vendor/fonts/chakra-petch-latin-700-normal.woff2') format('woff2');
 }
 
+:root { --titulo: 255, 170, 44; }
+body:has(.ini-esfera[data-estado="verde"]) { --titulo: 83, 210, 88; }
+body:has(.ini-esfera[data-estado="rojo"]) { --titulo: 242, 110, 110; }
+
 .sec-titulo, .page-title {
   --esq: 12px;
   position: relative; width: fit-content; max-width: 100%; box-sizing: border-box;
   padding: .2em .45em;
   font-family: 'Chakra Petch', 'Manrope', sans-serif; font-weight: 700;
   text-transform: uppercase; letter-spacing: .02em; line-height: 1.1;
-  background: linear-gradient(90deg, transparent, rgba(var(--luz, 255, 170, 44), .3), transparent) no-repeat;
+  background: linear-gradient(90deg, transparent, rgba(var(--titulo), .3), transparent) no-repeat;
   background-size: 40% 100%; background-position: -70% 0;
-  animation: titulo-luz 6s linear infinite;
+  animation: titulo-luz 6s linear 2;
 }
 .sec-titulo { font-size: 30px; }
 .sec-top.centrado .sec-titulo { --esq: 10px; font-size: 22px; }
@@ -24,16 +28,16 @@
 .page-title::before, .page-title::after {
   content: ''; position: absolute; width: var(--esq); height: var(--esq); box-sizing: border-box;
   bottom: auto; border-radius: 0; background: none; box-shadow: none; pointer-events: none;
-  animation: 6s cubic-bezier(.65, 0, .35, 1) infinite;
+  animation: 6s cubic-bezier(.65, 0, .35, 1) 2;
 }
 .sec-titulo::before, .page-title::before {
   left: 0; top: 0;
-  border-left: 2px solid color-mix(in srgb, rgb(var(--luz, 255, 170, 44)) 85%, #fff); border-top: 2px solid color-mix(in srgb, rgb(var(--luz, 255, 170, 44)) 85%, #fff);
+  border-left: 2px solid color-mix(in srgb, rgb(var(--titulo)) 85%, #fff); border-top: 2px solid color-mix(in srgb, rgb(var(--titulo)) 85%, #fff);
   animation-name: titulo-esquina-a;
 }
 .sec-titulo::after, .page-title::after {
   right: 0; left: auto; top: calc(100% - var(--esq));
-  border-right: 2px solid color-mix(in srgb, rgb(var(--luz, 255, 170, 44)) 85%, #fff); border-bottom: 2px solid color-mix(in srgb, rgb(var(--luz, 255, 170, 44)) 85%, #fff);
+  border-right: 2px solid color-mix(in srgb, rgb(var(--titulo)) 85%, #fff); border-bottom: 2px solid color-mix(in srgb, rgb(var(--titulo)) 85%, #fff);
   animation-name: titulo-esquina-b;
 }
 
@@ -76,7 +80,7 @@
 @media (max-width: 720px) {
   .sec-titulo { font-size: 24px; }
   .sec-top.centrado .sec-titulo { --esq: 9px; font-size: 16px; }
-  .sec-top > .mes-tel { margin-left: auto; }
+  .sec-top > .mes-tel { margin-left: auto; margin-right: -4px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
