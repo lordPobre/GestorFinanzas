@@ -32,6 +32,20 @@ class VinculoCategoria(models.Model):
     def categoria(self, valor):
         self.__dict__['_categoria_pendiente'] = valor or ''
 
+    def save(self, *args, **kwargs):
+            campos = kwargs.get('update_fields')
+            if campos is not None and 'categoria' in campos:
+                campos = [c for c in campos if c != 'categoria']
+                if 'categoria_ref' not in campos:
+                    campos.append('categoria_ref')
+                kwargs['update_fields'] = campos
+            if campos is None or 'categoria_ref' in campos:
+                pendiente = self.__dict__.pop('_categoria_pendiente', None)
+                if pendiente is not None or not self.categoria_ref_id:
+                    texto = self.categoria_defecto() if pendiente is None else pendiente
+                    self.categoria_ref_id = self._vinculo(texto)
+            super().save(*args, **kwargs)
+
     def _vinculo(self, texto):
         ref = Categoria.id_de(self.usuario_id, texto)
         if ref is None and not Categoria.objects.filter(usuario__isnull=True).exists():
@@ -42,19 +56,6 @@ class VinculoCategoria(models.Model):
             ref = Categoria.id_de(self.usuario_id, self.categoria_respaldo())
         return ref
 
-    def save(self, *args, **kwargs):
-        campos = kwargs.get('update_fields')
-        if campos is not None and 'categoria' in campos:
-            campos = [c for c in campos if c != 'categoria']
-            if 'categoria_ref' not in campos:
-                campos.append('categoria_ref')
-            kwargs['update_fields'] = campos
-        if campos is None or 'categoria_ref' in campos:
-            pendiente = self.__dict__.pop('_categoria_pendiente', None)
-            if pendiente is not None or not self.categoria_ref_id:
-                texto = self.categoria_defecto() if pendiente is None else pendiente
-                self.categoria_ref_id = self._vinculo(texto)
-        super().save(*args, **kwargs)
 
     @property
     def nombre_categoria(self):
