@@ -16,7 +16,7 @@
   const bienvenida = esfera.hasAttribute('data-bienvenida');
   const hola = esfera.querySelector('[data-esfera-hola]');
   const cambio = esfera.querySelector('[data-esfera-cambio]');
-  const destinos = hero.contains(esfera) ? [panel, hero] : [panel, hero, esfera];
+  const destinos = [panel, hero, esfera];
 
   function saludoDeLaHora() {
     const h = new Date().getHours();
