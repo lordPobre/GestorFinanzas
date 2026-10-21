@@ -29,11 +29,16 @@
   function pintarChips(tipo) {
     var lista = tipo === 'INGRESO' ? catsIngreso : catsGasto;
     labelCat.textContent = tipo === 'INGRESO' ? 'De dónde viene' : 'Categoría';
-    chips.innerHTML = lista.map(function (c, i) {
-      return '<button type="button" class="chip' + (i === 0 ? ' on' : '') +
-             '" data-value="' + c[0] + '">' + c[1] + '</button>';
-    }).join('');
-    campoCat.value = lista[0][0];
+    chips.replaceChildren();
+    lista.forEach(function (c, i) {
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'chip' + (i === 0 ? ' on' : '');
+      b.dataset.value = String(c[0]);
+      b.textContent = String(c[1]);
+      chips.appendChild(b);
+    });
+    campoCat.value = lista.length ? lista[0][0] : '';
   }
 
   function setTipo(tipo) {

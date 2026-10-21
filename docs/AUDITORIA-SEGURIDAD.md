@@ -20,17 +20,17 @@ uno de ellos es urgente.
 
 > **Cerrado en septiembre de 2026.** El token se rotó en Cloudflare, que es lo
 > único que cierra el agujero. Lo que sigue queda como registro de qué pasó y
-> por qué; el token que aparece más abajo ya no es válido.
+> por qué. Los valores se tacharon en octubre de 2026.
 
 `finanzas/migrations/0107_alter_transaccion_categoria_alter_userprofile_foto.py`,
 línea 23. Cuando generaste esa migración, `makemigrations` congeló el objeto
 `S3Storage` entero dentro del campo, con las credenciales incluidas:
 
 ```
-access_key='18dee3fc1f42ba24be7620f6ca9ab52a'
-secret_key='493cc6b21ce277342770...'
+access_key='[tachado]'
+secret_key='[tachado]'
 bucket_name='finapp'
-endpoint_url='https://223db563a6d18d9d16e20d340d0b05fd.r2.cloudflarestorage.com'
+endpoint_url='https://[id de cuenta tachado].r2.cloudflarestorage.com'
 ```
 
 Es un token de API con acceso de escritura al bucket. Con eso, cualquiera que
