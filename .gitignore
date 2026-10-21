@@ -51,3 +51,4 @@ seguridad.log.1
 .coverage.*
 htmlcov/
 coverage/
+estilos/
