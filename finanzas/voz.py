@@ -5,8 +5,11 @@ import os
 import urllib.error
 import urllib.parse
 import urllib.request
+from datetime import timedelta
 
 from django.core.cache import cache
+from django.core.files.base import ContentFile
+from django.utils import timezone
 
 log = logging.getLogger('finanzas')
 
@@ -14,6 +17,8 @@ URL = 'https://api.elevenlabs.io/v1/text-to-speech/{voz}?output_format=mp3_44100
 MODELO_POR_DEFECTO = 'eleven_multilingual_v2'
 MAX_CARACTERES = 900
 SEGUNDOS_EN_CACHE = 6 * 3600
+VIDA_EN_R2 = timedelta(hours=5)
+CARPETA = 'voz'
 TIEMPO_ESPERA = 15
 
 
@@ -26,6 +31,71 @@ def _modelo():
     return os.environ.get('ELEVENLABS_MODELO', '').strip() or MODELO_POR_DEFECTO
 
 
+def _almacen():
+    from .almacenamiento import almacen_media, r2_configurado
+    return almacen_media if r2_configurado() else None
+
+
+def _ruta(huella):
+    return f'{CARPETA}/{huella}.mp3'
+
+
+def _vencido(almacen, ruta):
+    return timezone.now() - almacen.get_modified_time(ruta) > VIDA_EN_R2
+
+
+def _leer(huella):
+    almacen = _almacen()
+    if almacen is None:
+        return cache.get('voz:' + huella)
+    ruta = _ruta(huella)
+    try:
+        if not almacen.exists(ruta):
+            return None
+        if _vencido(almacen, ruta):
+            almacen.delete(ruta)
+            return None
+        with almacen.open(ruta, 'rb') as archivo:
+            return archivo.read()
+    except Exception:
+        log.warning('No se pudo leer el audio guardado %s', ruta, exc_info=True)
+        return None
+
+
+def _guardar(huella, audio):
+    almacen = _almacen()
+    if almacen is None:
+        cache.set('voz:' + huella, audio, SEGUNDOS_EN_CACHE)
+        return
+    ruta = _ruta(huella)
+    try:
+        if almacen.exists(ruta):
+            almacen.delete(ruta)
+        almacen.save(ruta, ContentFile(audio))
+    except Exception:
+        log.warning('No se pudo guardar el audio %s', ruta, exc_info=True)
+
+
+def limpiar_audios():
+    almacen = _almacen()
+    if almacen is None:
+        return 0
+    try:
+        _, archivos = almacen.listdir(CARPETA)
+    except FileNotFoundError:
+        return 0
+    borrados = 0
+    for nombre in archivos:
+        ruta = f'{CARPETA}/{nombre}'
+        try:
+            if _vencido(almacen, ruta):
+                almacen.delete(ruta)
+                borrados += 1
+        except Exception:
+            log.warning('No se pudo revisar el audio %s', ruta, exc_info=True)
+    return borrados
+
+
 def sintetizar(texto):
     texto = ' '.join((texto or '').split())[:MAX_CARACTERES]
     if not texto or not configurada():
@@ -33,8 +103,8 @@ def sintetizar(texto):
 
     voz = os.environ['ELEVENLABS_VOZ'].strip()
     modelo = _modelo()
-    clave = 'voz:' + hashlib.sha256(f'{voz}|{modelo}|{texto}'.encode()).hexdigest()
-    guardado = cache.get(clave)
+    huella = hashlib.sha256(f'{voz}|{modelo}|{texto}'.encode()).hexdigest()
+    guardado = _leer(huella)
     if guardado:
         return guardado
 
@@ -61,5 +131,5 @@ def sintetizar(texto):
         return None
 
     if audio:
-        cache.set(clave, audio, SEGUNDOS_EN_CACHE)
+        _guardar(huella, audio)
     return audio or None

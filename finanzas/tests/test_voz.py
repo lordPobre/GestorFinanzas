@@ -13,11 +13,13 @@ from ..templatetags.voz import SAL
 
 ELEVENLABS = {'ELEVENLABS_API_KEY': 'clave', 'ELEVENLABS_VOZ': 'voz123'}
 
-
 class VozTests(TestCase):
 
     def setUp(self):
         cache.clear()
+        parche = mock.patch('finanzas.voz._almacen', return_value=None)
+        parche.start()
+        self.addCleanup(parche.stop)
         self.ana = User.objects.create_user('ana', 'ana@ejemplo.cl', 'clave-larga-1')
         self.perfil, _ = UserProfile.objects.update_or_create(
             usuario=self.ana, defaults={'onboarding_completado': True})
@@ -96,3 +98,64 @@ class VozTests(TestCase):
             self.assertIsNone(voz.sintetizar('Hola'))
             r = self.client.get(reverse('deudas'))
         self.assertContains(r, 'data-voz=""')
+
+
+@mock.patch.dict(os.environ, {**ELEVENLABS, 'ELEVENLABS_MODELO': ''})
+class VozEnR2Tests(TestCase):
+
+    def setUp(self):
+        from django.core.files.storage import InMemoryStorage
+        cache.clear()
+        self.almacen = InMemoryStorage()
+        parche = mock.patch('finanzas.voz._almacen', return_value=self.almacen)
+        parche.start()
+        self.addCleanup(parche.stop)
+        self.respuesta = mock.MagicMock()
+        self.respuesta.__enter__.return_value.read.return_value = b'mp3'
+
+    def _mas_tarde(self, horas):
+        from datetime import timedelta
+
+        from django.utils import timezone
+        reloj = mock.MagicMock()
+        reloj.now.return_value = timezone.now() + timedelta(hours=horas)
+        return mock.patch('finanzas.voz.timezone', reloj)
+
+    def test_el_audio_queda_en_r2_y_no_en_la_base(self):
+        with mock.patch('urllib.request.urlopen', return_value=self.respuesta) as abrir:
+            self.assertEqual(voz.sintetizar('Vas bien.'), b'mp3')
+            self.assertEqual(voz.sintetizar('Vas bien.'), b'mp3')
+        self.assertEqual(abrir.call_count, 1)
+        _, archivos = self.almacen.listdir('voz')
+        self.assertEqual(len(archivos), 1)
+        import hashlib
+        huella = hashlib.sha256(b'voz123|eleven_multilingual_v2|Vas bien.').hexdigest()
+        self.assertEqual(archivos, [f'{huella}.mp3'])
+        self.assertIsNone(cache.get('voz:' + huella))
+
+    def test_pasadas_cinco_horas_se_vuelve_a_pedir(self):
+        with mock.patch('urllib.request.urlopen', return_value=self.respuesta) as abrir:
+            voz.sintetizar('Vas bien.')
+            with self._mas_tarde(6):
+                self.assertEqual(voz.sintetizar('Vas bien.'), b'mp3')
+        self.assertEqual(abrir.call_count, 2)
+        _, archivos = self.almacen.listdir('voz')
+        self.assertEqual(len(archivos), 1)
+
+    def test_la_limpieza_borra_solo_lo_vencido(self):
+        with mock.patch('urllib.request.urlopen', return_value=self.respuesta):
+            voz.sintetizar('Vas bien.')
+        with self._mas_tarde(4):
+            self.assertEqual(voz.limpiar_audios(), 0)
+        with self._mas_tarde(6):
+            self.assertEqual(voz.limpiar_audios(), 1)
+        _, archivos = self.almacen.listdir('voz')
+        self.assertEqual(archivos, [])
+
+    def test_el_comando_cuenta_lo_borrado(self):
+        from io import StringIO
+
+        from django.core.management import call_command
+        salida = StringIO()
+        call_command('limpiar_audios', stdout=salida)
+        self.assertIn('borrados: 0', salida.getvalue())
