@@ -1327,6 +1327,60 @@ body:has(.sidebar .nav-item.active[data-label="Me deben"]) .bottomnav .nav-item.
 .md-elegir { display: flex; flex-direction: column; gap: 8px; }
 .md-elegir-op { display: flex; align-items: center; gap: 12px; width: 100%; padding: 14px 16px; border-radius: 16px; cursor: pointer; background: var(--vidrio); border: 1px solid var(--vidrio-borde); color: var(--text-primary); font-family: 'Manrope', sans-serif; text-align: left; }
 .md-elegir-op > i { font-size: 11px; color: var(--text-muted); }
+.md-card .sec-botones { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+.md-agregar {
+  display: flex; align-items: center; gap: 8px; width: 100%; padding: 12px 0 0; margin-top: -2px;
+  border: none; border-top: 1px solid rgba(255, 255, 255, .07); background: none; cursor: pointer;
+  color: #6ee873; font-family: 'Manrope', sans-serif; font-size: 13px; font-weight: 800; text-align: left;
+}
+.md-agregar i { font-size: 11px; }
+.md-agregar:hover { color: #8af08e; }
+.md-card .sec-mas-fila.siempre { flex-wrap: nowrap; justify-content: space-between; }
+.md-prestamo-nombre { display: block; flex: 1 1 auto; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.md-prestamo-nombre .sec-badge { flex-shrink: 0; }
+.md-personas { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.md-personas-cab { padding: 0 6px 6px; font-size: 13px; font-weight: 700; color: rgba(245, 245, 245, .68); }
+.md-fila { border: 1px solid transparent; }
+.md-fila.on { background: rgba(255, 255, 255, .08); border-color: rgba(110, 232, 115, .35); }
+.md-total { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; flex-shrink: 0; }
+.md-total-etq { font-size: 13px; font-weight: 700; color: rgba(245, 245, 245, .68); }
+.md-acciones { display: flex; align-items: center; gap: 8px; }
+.md-acciones-main { display: flex; gap: 8px; }
+.md-acciones-main .sec-btn { width: auto; padding: 0 20px; }
+.md-acciones-extra { display: flex; gap: 8px; margin-left: auto; }
+.md-acciones-extra form { margin: 0; }
+.md-icono-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 7px; width: 44px; height: 44px; flex-shrink: 0; padding: 0;
+  border: 1px solid rgba(255, 255, 255, .1); border-radius: 50%; cursor: pointer; background: rgba(255, 255, 255, .07);
+  color: rgba(245, 245, 245, .72); font-family: 'Manrope', sans-serif; font-size: 13px; font-weight: 700; white-space: nowrap;
+}
+.md-icono-btn:hover { background: rgba(255, 255, 255, .12); color: var(--text-primary); }
+.md-icono-btn:focus-visible { outline: 2px solid #6ee873; outline-offset: 2px; }
+.md-icono-btn.peligro, .md-icono-btn.peligro:hover { color: var(--coral-texto); }
+.md-prestamos-bloque { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.md-prestamos-cab { display: flex; justify-content: space-between; align-items: center; gap: 12px; font-size: 14px; font-weight: 800; }
+.md-prestamos-cab .md-agregar { width: auto; min-height: 44px; margin: 0; padding: 0; border: none; }
+@media (min-width: 721px) {
+  .md-dos { display: grid; grid-template-columns: 340px minmax(0, 1fr); gap: 20px; align-items: start; }
+  .md-dos > .md-personas { grid-column: 1; grid-row: 1; }
+  .md-dos > .md-detalle { grid-column: 2; grid-row: 1; gap: 20px; padding: 22px 24px; background: rgba(255, 255, 255, .05); }
+  .md-detalle .md-avatar { width: 52px; height: 52px; font-size: 20px; }
+  .md-detalle .md-nombre { font-size: 20px; letter-spacing: -.02em; }
+  .md-detalle .md-monto { font-size: 28px; letter-spacing: -.03em; }
+}
+@media (min-width: 721px) and (max-width: 1100px) {
+  .md-dos { grid-template-columns: 280px minmax(0, 1fr); }
+}
+@media (max-width: 720px) {
+  .md-personas-cab, .md-fila.on { display: none; }
+  .md-detalle .md-prestamos-bloque { order: 1; }
+  .md-detalle .md-acciones { order: 2; flex-direction: column; align-items: stretch; }
+  .md-acciones-main { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .md-acciones-main > :only-child { grid-column: 1 / -1; }
+  .md-acciones-main .sec-btn { width: 100%; padding: 0 16px; }
+  .md-acciones-extra { margin-left: 0; justify-content: space-between; }
+  .md-icono-btn { width: auto; padding: 0 14px; border-radius: 100px; }
+}
 
 .su-lista { display: flex; flex-direction: column; }
 .su-fila { display: flex; flex-direction: column; gap: 8px; padding: 10px 0; border-bottom: 1px solid rgba(255, 255, 255, .07); }
@@ -2146,60 +2200,6 @@ body:has(.fo-hoja.fo-ambar) { --luz: 255, 170, 44; }
 }
 
 .sec-btn { white-space: nowrap; }
-.md-card .sec-botones { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
-.md-agregar {
-  display: flex; align-items: center; gap: 8px; width: 100%; padding: 12px 0 0; margin-top: -2px;
-  border: none; border-top: 1px solid rgba(255, 255, 255, .07); background: none; cursor: pointer;
-  color: #6ee873; font-family: 'Manrope', sans-serif; font-size: 13px; font-weight: 800; text-align: left;
-}
-.md-agregar i { font-size: 11px; }
-.md-agregar:hover { color: #8af08e; }
-.md-card .sec-mas-fila.siempre { flex-wrap: nowrap; justify-content: space-between; }
-.md-prestamo-nombre { display: block; flex: 1 1 auto; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
-.md-prestamo-nombre .sec-badge { flex-shrink: 0; }
-.md-personas { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
-.md-personas-cab { padding: 0 6px 6px; font-size: 13px; font-weight: 700; color: rgba(245, 245, 245, .68); }
-.md-fila { border: 1px solid transparent; }
-.md-fila.on { background: rgba(255, 255, 255, .08); border-color: rgba(110, 232, 115, .35); }
-.md-total { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; flex-shrink: 0; }
-.md-total-etq { font-size: 13px; font-weight: 700; color: rgba(245, 245, 245, .68); }
-.md-acciones { display: flex; align-items: center; gap: 8px; }
-.md-acciones-main { display: flex; gap: 8px; }
-.md-acciones-main .sec-btn { width: auto; padding: 0 20px; }
-.md-acciones-extra { display: flex; gap: 8px; margin-left: auto; }
-.md-acciones-extra form { margin: 0; }
-.md-icono-btn {
-  display: inline-flex; align-items: center; justify-content: center; gap: 7px; width: 44px; height: 44px; flex-shrink: 0; padding: 0;
-  border: 1px solid rgba(255, 255, 255, .1); border-radius: 50%; cursor: pointer; background: rgba(255, 255, 255, .07);
-  color: rgba(245, 245, 245, .72); font-family: 'Manrope', sans-serif; font-size: 13px; font-weight: 700; white-space: nowrap;
-}
-.md-icono-btn:hover { background: rgba(255, 255, 255, .12); color: var(--text-primary); }
-.md-icono-btn:focus-visible { outline: 2px solid #6ee873; outline-offset: 2px; }
-.md-icono-btn.peligro, .md-icono-btn.peligro:hover { color: var(--coral-texto); }
-.md-prestamos-bloque { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
-.md-prestamos-cab { display: flex; justify-content: space-between; align-items: center; gap: 12px; font-size: 14px; font-weight: 800; }
-.md-prestamos-cab .md-agregar { width: auto; min-height: 44px; margin: 0; padding: 0; border: none; }
-@media (min-width: 721px) {
-  .md-dos { display: grid; grid-template-columns: 340px minmax(0, 1fr); gap: 20px; align-items: start; }
-  .md-dos > .md-personas { grid-column: 1; grid-row: 1; }
-  .md-dos > .md-detalle { grid-column: 2; grid-row: 1; gap: 20px; padding: 22px 24px; background: rgba(255, 255, 255, .05); }
-  .md-detalle .md-avatar { width: 52px; height: 52px; font-size: 20px; }
-  .md-detalle .md-nombre { font-size: 20px; letter-spacing: -.02em; }
-  .md-detalle .md-monto { font-size: 28px; letter-spacing: -.03em; }
-}
-@media (min-width: 721px) and (max-width: 1100px) {
-  .md-dos { grid-template-columns: 280px minmax(0, 1fr); }
-}
-@media (max-width: 720px) {
-  .md-personas-cab, .md-fila.on { display: none; }
-  .md-detalle .md-prestamos-bloque { order: 1; }
-  .md-detalle .md-acciones { order: 2; flex-direction: column; align-items: stretch; }
-  .md-acciones-main { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
-  .md-acciones-main > :only-child { grid-column: 1 / -1; }
-  .md-acciones-main .sec-btn { width: 100%; padding: 0 16px; }
-  .md-acciones-extra { margin-left: 0; justify-content: space-between; }
-  .md-icono-btn { width: auto; padding: 0 14px; border-radius: 100px; }
-}
 .marca-app { box-shadow: inset 0 1px 0 rgba(255, 255, 255, .18), inset 0 0 0 1px rgba(255, 255, 255, .08); overflow: hidden; }
 .marca-app b { font-weight: 800; letter-spacing: -.03em; line-height: 1; }
 .marca-app i { color: inherit; }
