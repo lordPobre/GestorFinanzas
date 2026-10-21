@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.humanize',
+    'django_q',
     'finanzas',
 ]
 
@@ -215,6 +216,25 @@ GOOGLE_CLIENT_SECRET = os.environ.get('GOOGLE_CLIENT_SECRET', '')
 VAPID_PRIVADA = os.environ.get('VAPID_PRIVADA', '').strip()
 VAPID_CONTACTO = (os.environ.get('VAPID_CONTACTO', '').strip()
                   or 'mailto:soporte@perseustechnology.dev')
+
+_COLA_SINCRONA = (os.environ.get('COLA_SINCRONA', '').strip().lower()
+                  or ('1' if DEBUG else '0')) in ('1', 'true', 'si')
+
+Q_CLUSTER = {
+    'name': 'fintora',
+    'orm': 'default',
+    'workers': int(os.environ.get('COLA_WORKERS', '2') or 2),
+    'timeout': 120,
+    'retry': 180,
+    'max_attempts': 1,
+    'ack_failures': True,
+    'poll': 2,
+    'queue_limit': 20,
+    'save_limit': 200,
+    'catch_up': False,
+    'label': 'Cola',
+    'sync': sys.argv[1:2] == ['test'] or _COLA_SINCRONA,
+}
 
 RESPUESTA_LENTA_MS = int(os.environ.get('RESPUESTA_LENTA_MS', '1500') or 1500)
 

@@ -11,7 +11,7 @@ from django.utils import timezone
 
 PREFIJO = 'postgres/'
 TABLAS_OBLIGATORIAS = ('auth_user', 'finanzas_transaccion', 'finanzas_userprofile')
-TABLAS_SIN_DATOS = ('django_session', 'cache_finapp', 'finanzas_contador')
+TABLAS_SIN_DATOS = ('django_session', 'cache_finapp', 'finanzas_contador', 'django_q_ormq', 'django_q_task')
 
 
 class Command(BaseCommand):
