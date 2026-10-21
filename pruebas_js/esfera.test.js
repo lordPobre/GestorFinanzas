@@ -23,7 +23,8 @@ function montar({ telefono = true, voz = 'Llevas gastado la mitad', bienvenida =
 <input type="hidden" name="csrfmiddlewaretoken" value="ficha">`);
   const $ = (selector) => documento.querySelector(selector);
   const raiz = documento.documentElement;
-  const bajada = () => Number(raiz.style['--esfera-p'] || 0) * parseFloat(raiz.style['--esfera-d'] || '0');
+  const hoja = documento.querySelector('[data-esfera-hoja]');
+  const bajada = () => Number(hoja.style['--esfera-p'] || 0) * parseFloat(hoja.style['--esfera-d'] || '0');
   $('.ini-hero').rect = caja(100, 400);
   $('.ini-accesos').rect = caja(200);
   $('.bottomnav').rect = caja(780, 60);
@@ -74,7 +75,7 @@ function montar({ telefono = true, voz = 'Llevas gastado la mitad', bienvenida =
   });
   const ayuda = $('[data-esfera-ayuda]');
   return {
-    documento, ventana, mq, pedidos, audios, reloj: r, $, raiz,
+    documento, ventana, mq, pedidos, audios, reloj: r, $, raiz, hoja,
     esfera: $('[data-esfera]'),
     asa: $('[data-esfera-asa]'),
     bola: $('[data-esfera-hablar]'),
@@ -96,8 +97,8 @@ function montar({ telefono = true, voz = 'Llevas gastado la mitad', bienvenida =
 test('al cargar en el teléfono queda cerrada, medida y con el saludo de la hora', () => {
   const e = montar();
   assert.equal(e.abierta(), false);
-  assert.equal(e.raiz.style['--esfera-p'], '0.0000');
-  assert.equal(e.raiz.style['--esfera-d'], '416px');
+  assert.equal(e.hoja.style['--esfera-p'], '0.0000');
+  assert.equal(e.hoja.style['--esfera-d'], '416px');
   assert.equal(e.esfera.style['--esfera-top'], '94px');
   assert.equal(e.esfera.getAttribute('aria-hidden'), 'true');
   assert.equal(e.bola.tabIndex, -1);
@@ -113,7 +114,7 @@ test('tocar el asa sube al inicio, abre la esfera y pide la voz una sola vez', a
   e.asa.click();
   assert.equal(e.ventana.scrollY, 0);
   assert.equal(e.abierta(), true);
-  assert.equal(e.raiz.style['--esfera-p'], '1.0000');
+  assert.equal(e.hoja.style['--esfera-p'], '1.0000');
   assert.equal(e.esfera.getAttribute('aria-hidden'), 'false');
   assert.equal(e.bola.tabIndex, 0);
   assert.equal(e.asa.getAttribute('aria-label'), 'Subir la hoja');
@@ -149,7 +150,9 @@ test('arrastrar la hoja la abre o la cierra según cuánto se mueva', () => {
   const movida = e.ventana.emitir('pointermove', { clientY: 308, cancelable: true });
   assert.equal(movida.defaultPrevented, true);
   assert.equal(e.raiz.classList.contains('esfera-arrastrando'), true);
-  assert.equal(e.raiz.style['--esfera-p'], '0.5000');
+  assert.equal(e.hoja.style['--esfera-p'], '0.0000');
+  e.reloj.pasar(0);
+  assert.equal(e.hoja.style['--esfera-p'], '0.5000');
   e.ventana.emitir('pointerup');
   assert.equal(e.raiz.classList.contains('esfera-arrastrando'), false);
   assert.equal(e.abierta(), true);
@@ -161,7 +164,7 @@ test('arrastrar la hoja la abre o la cierra según cuánto se mueva', () => {
 
   e.arrastrar(100, 180);
   assert.equal(e.abierta(), false);
-  assert.equal(e.raiz.style['--esfera-p'], '0.0000');
+  assert.equal(e.hoja.style['--esfera-p'], '0.0000');
   e.api.abrir();
   e.arrastrar(500, 350);
   assert.equal(e.abierta(), false);
@@ -263,4 +266,34 @@ test('cerrar la hoja corta el audio y pasar al computador la cierra', async () =
   e.mq.matches = false;
   e.ventana.emitir('resize');
   assert.equal(e.abierta(), false);
+});
+
+test('la bajada se escribe en la hoja y en el bloque de arriba, no en toda la página', () => {
+  const e = montar();
+  e.asa.click();
+  const bloque = e.$('.ini-hero');
+  assert.equal(e.hoja.style['--esfera-p'], '1.0000');
+  assert.equal(bloque.style['--esfera-p'], '1.0000');
+  assert.equal(bloque.style['--esfera-d'], e.hoja.style['--esfera-d']);
+  assert.equal(e.raiz.style['--esfera-p'], undefined);
+  assert.equal(e.raiz.style['--esfera-d'], undefined);
+});
+
+test('al arrastrar mueve la hoja una sola vez por cuadro', () => {
+  const e = montar();
+  let escrituras = 0;
+  const poner = e.hoja.style.setProperty;
+  e.hoja.style.setProperty = function (clave, valor) {
+    if (clave === '--esfera-p') escrituras += 1;
+    return poner.call(this, clave, valor);
+  };
+  e.asa.emitir('pointerdown', { clientY: 100, pointerType: 'touch', button: 0 });
+  e.ventana.emitir('pointermove', { clientY: 150, cancelable: true });
+  e.ventana.emitir('pointermove', { clientY: 200, cancelable: true });
+  e.ventana.emitir('pointermove', { clientY: 250, cancelable: true });
+  assert.equal(escrituras, 0);
+  e.reloj.pasar(0);
+  assert.equal(escrituras, 1);
+  assert.equal(e.hoja.style['--esfera-p'], (150 / 416).toFixed(4));
+  e.ventana.emitir('pointerup');
 });

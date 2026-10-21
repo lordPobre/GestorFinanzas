@@ -28,10 +28,13 @@
     display: flex; flex-direction: column; align-items: center; gap: 20px;
     opacity: calc((var(--esfera-p, 0) - .2) * 1.25);
     transform: scale(calc(.7 + .3 * var(--esfera-p, 0))); transform-origin: 50% 0;
-    transition: opacity .45s ease, transform .45s cubic-bezier(.2, .8, .2, 1);
+    transition: opacity .45s ease, transform .45s cubic-bezier(.2, .8, .2, 1), visibility 0s;
     pointer-events: none;
   }
   html.esfera-abierta .ini-esfera { pointer-events: auto; }
+  html:not(.esfera-abierta):not(.esfera-arrastrando) .ini-esfera { visibility: hidden; transition-delay: 0s, 0s, .45s; }
+  html:not(.esfera-abierta):not(.esfera-arrastrando) .ini-esfera-bola,
+  html:not(.esfera-abierta):not(.esfera-arrastrando) .eb-nucleo i { animation-play-state: paused; }
   .sec-hero > .ini-esfera { top: calc(100% + 26px); }
 
   .ini-esfera[data-estado="verde"]    { --c1: #2fe08a; --c2: #13c2a3; --c3: #a6f05a; --cg: #22c983; --ct: #6ee873; --vel: 1.15; }

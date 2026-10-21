@@ -16,6 +16,7 @@
   const bienvenida = esfera.hasAttribute('data-bienvenida');
   const hola = esfera.querySelector('[data-esfera-hola]');
   const cambio = esfera.querySelector('[data-esfera-cambio]');
+  const destinos = hero.contains(esfera) ? [panel, hero] : [panel, hero, esfera];
 
   function saludoDeLaHora() {
     const h = new Date().getHours();
@@ -37,6 +38,7 @@
   let audioUrl = '';
   let audioPara = '';
   let pedido = null;
+  let cuadro = 0;
 
   function claveAudio() {
     const conCambio = cambio && raiz.classList.contains('esfera-bienvenida');
@@ -95,8 +97,12 @@
   }
 
   function aplicar() {
-    raiz.style.setProperty('--esfera-p', p.toFixed(4));
-    raiz.style.setProperty('--esfera-d', d + 'px');
+    const vp = p.toFixed(4);
+    const vd = d + 'px';
+    destinos.forEach((el) => {
+      el.style.setProperty('--esfera-p', vp);
+      el.style.setProperty('--esfera-d', vd);
+    });
   }
 
   const AYUDA = {
@@ -204,7 +210,7 @@
     if (d <= 0) return;
     if (e.cancelable) e.preventDefault();
     p = Math.min(1, Math.max(0, arrastre.p0 + dy / d));
-    aplicar();
+    if (!cuadro) cuadro = requestAnimationFrame(() => { cuadro = 0; aplicar(); });
   }
 
   function soltar() {
