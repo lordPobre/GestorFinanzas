@@ -1,7 +1,7 @@
 import json
 import os
 import unittest
-from datetime import date, datetime, timezone as zona
+from datetime import UTC, date, datetime
 from decimal import Decimal
 from pathlib import Path
 from unittest import mock
@@ -24,7 +24,7 @@ CON_SESION = ('dashboard', 'por_pagar', 'deudas', 'prestamos', 'suscripciones', 
 SIN_SESION = ('login', 'registro', 'privacidad', 'terminos')
 APARATOS = {'telefono': IPHONE, 'computador': ESCRITORIO}
 
-AHORA = datetime(2026, 10, 15, 18, 0, tzinfo=zona.utc)
+AHORA = datetime(2026, 10, 15, 18, 0, tzinfo=UTC)
 AHORA_NAVEGADOR = '2026-10-15T15:00:00-03:00'
 
 QUIETO = '*, *::before, *::after { animation: none !important; transition: none !important; caret-color: transparent !important; }'
