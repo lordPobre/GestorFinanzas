@@ -1,9 +1,10 @@
 import json
 import os
 import unittest
-from datetime import date
+from datetime import date, datetime, timezone as zona
 from decimal import Decimal
 from pathlib import Path
+from unittest import mock
 
 from django.conf import settings
 from django.contrib.auth.models import User
@@ -15,13 +16,16 @@ from .. import legal
 from ..models import Deuda, Persona, Suscripcion, Transaccion, UserProfile
 from .test_navegador import ESCRITORIO, IPHONE, SIN_TOUR, sync_playwright
 
-GUARDAR = os.environ.get('GUARDAR_ESTILOS', '')
 COMPARAR = os.environ.get('COMPARAR_ESTILOS', '')
+GUARDAR = '' if COMPARAR else os.environ.get('GUARDAR_ESTILOS', '')
 
 CON_SESION = ('dashboard', 'por_pagar', 'deudas', 'prestamos', 'suscripciones', 'metas',
               'estadisticas', 'plan_plata', 'perfil', 'categorias', 'importar_cartola')
 SIN_SESION = ('login', 'registro', 'privacidad', 'terminos')
 APARATOS = {'telefono': IPHONE, 'computador': ESCRITORIO}
+
+AHORA = datetime(2026, 10, 15, 18, 0, tzinfo=zona.utc)
+AHORA_NAVEGADOR = '2026-10-15T15:00:00-03:00'
 
 QUIETO = '*, *::before, *::after { animation: none !important; transition: none !important; caret-color: transparent !important; }'
 
@@ -81,6 +85,8 @@ class EstilosCalculadosTests(StaticLiveServerTestCase):
     @classmethod
     def setUpClass(cls):
         os.environ['DJANGO_ALLOW_ASYNC_UNSAFE'] = 'true'
+        cls.reloj = mock.patch('django.utils.timezone.now', return_value=AHORA)
+        cls.reloj.start()
         super().setUpClass()
         cls.pw = sync_playwright().start()
         cls.navegador = cls.pw.chromium.launch()
@@ -90,6 +96,7 @@ class EstilosCalculadosTests(StaticLiveServerTestCase):
         cls.navegador.close()
         cls.pw.stop()
         super().tearDownClass()
+        cls.reloj.stop()
 
     def setUp(self):
         self.ana = User.objects.create_user('ana', 'ana@ejemplo.cl', 'clave-larga-de-prueba-1')
@@ -115,6 +122,7 @@ class EstilosCalculadosTests(StaticLiveServerTestCase):
         contexto = self.navegador.new_context(service_workers='block', locale='es-CL', bypass_csp=True,
                                               timezone_id='America/Santiago', **aparato)
         contexto.add_init_script(SIN_TOUR)
+        contexto.clock.set_fixed_time(AHORA_NAVEGADOR)
         if con_sesion:
             cliente = Client()
             cliente.force_login(self.ana)
