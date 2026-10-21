@@ -77,6 +77,14 @@
   window.finappOpen = open;
   window.finappClose = closeAll;
 
+  window.addEventListener('pageswap', function () {
+    var abiertos = $('.modal-overlay.open');
+    if (!abiertos.length) return;
+    abiertos.forEach(function (m) { m.classList.remove('open'); });
+    document.body.style.overflow = '';
+    ultimoFoco = null;
+  });
+
   document.addEventListener('click', function (e) {
     var opener = e.target.closest('[data-open]');
     if (opener) { e.preventDefault(); open(opener.getAttribute('data-open')); return; }
