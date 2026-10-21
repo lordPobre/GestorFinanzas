@@ -125,7 +125,6 @@
 .sin-encoger { flex-shrink: 0 !important; }
 .ancho-min-0 { min-width: 0 !important; }
 .ancho-min-200 { min-width: 200px !important; }
-.ancho-max-460 { max-width: 460px !important; }
 
 .fila-8, .fila-9, .fila-10, .fila-13, .fila-14 { display: flex !important; }
 .fila-8 { gap: 8px !important; }
