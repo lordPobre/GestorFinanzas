@@ -1,0 +1,3 @@
+@layer vendor, base, tema, pantallas, ajustes;
+@import url('../vendor/fonts/fuentes.css') layer(vendor);
+@import url('../vendor/fontawesome/css/all.min.css') layer(vendor);
