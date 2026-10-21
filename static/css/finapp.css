@@ -1,3 +1,4 @@
+@layer app {
 :root {
   --bg:            #191919;
   --bg-elev:       #212121;
@@ -4029,4 +4030,5 @@ html.lp-chat-oculto:not(.lp-chat-abierto) .lp-chat-boton { opacity: 0; translate
 @media (prefers-reduced-motion: reduce) {
   .lp-escribiendo span { animation: none; }
   .lp-faq-signo, .lp-faq-signo i, .lp-chat-boton { transition: none; }
+}
 }

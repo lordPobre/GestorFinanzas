@@ -1,3 +1,4 @@
+@layer app {
 .lt-pantalla {
   position: relative; isolation: isolate; gap: 16px; padding: 16px 16px 0;
   background: #151412;
@@ -146,4 +147,5 @@ html:not(.lp-js) .lt-escena:first-child { opacity: 1; visibility: visible; }
 
 @media (prefers-reduced-motion: reduce) {
   .lt-pagada, .lt-escena, .lt-barra i, .lt-switch, .lt-switch::after { transition: none; }
+}
 }

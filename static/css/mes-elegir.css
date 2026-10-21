@@ -1,3 +1,4 @@
+@layer app {
 body:has(.mes-abrir) .topbar { flex-wrap: nowrap; }
 body:has(.mes-abrir) .topbar .search { min-width: 150px; }
 .mes-abrir {
@@ -22,4 +23,5 @@ span.topbar-mes-flecha.apagada { cursor: default; }
   .sec-top:has(> .mes-tel) > .sec-titulo, .sec-top:has(> .mes-tel) > .sec-titulo-caja { min-width: 0; }
   .mes-tel .ini-top-mes { min-height: 40px; padding: 0 14px; color: var(--text-primary); }
   .mes-tel .ini-top-mes.otro { color: #ffc978; border-color: rgba(255, 187, 86, .45); }
+}
 }

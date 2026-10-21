@@ -1,3 +1,4 @@
+@layer app {
 .ct-hero { margin-bottom: 22px; }
 .ct-intro { max-width: 60ch; font-size: 15px; line-height: 1.5; color: rgba(255, 245, 230, .78); text-wrap: pretty; }
 .ct-nueva i { color: #ffbb56; }
@@ -76,3 +77,4 @@ button.ct-chip:hover { background: rgba(255, 255, 255, .12); }
 .ct-mov-desc em { flex-shrink: 0; padding: 1px 7px; border-radius: 100px; background: rgba(255, 255, 255, .08); font-style: normal; font-size: 11.5px; font-weight: 800; color: rgba(245, 245, 245, .75); }
 .ct-mov-monto { font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .ct-mov-monto.verde { color: #8af08e; }
+}

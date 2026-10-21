@@ -1,3 +1,4 @@
+@layer app {
 @font-face {
   font-family: 'Chakra Petch'; font-style: normal; font-weight: 600; font-display: swap;
   src: url('../vendor/fonts/chakra-petch-latin-600-normal.woff2') format('woff2');
@@ -87,4 +88,5 @@ body:has(.ini-esfera[data-estado="rojo"]) { --titulo: 242, 110, 110; }
   .sec-titulo, .page-title { animation: none; background: none; }
   .sec-titulo::before, .sec-titulo::after,
   .page-title::before, .page-title::after { animation: none; }
+}
 }

@@ -1,3 +1,4 @@
+@layer app {
 .pf-resumen { margin-top: 2px; font-size: 14px; color: rgba(245, 245, 245, .6); }
 .pf-pestanas > button { min-height: 44px; font-size: 14px; }
 .pf-valor { flex-shrink: 0; font-size: 14px; font-weight: 700; color: rgba(245, 245, 245, .78); }
@@ -37,3 +38,4 @@
 .pf-push-fila { padding-left: 14px; }
 .pf-push-pie { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 14px 14px; }
 @media (max-width: 720px) { .pf-push { margin-left: 0; border-left: none; } }
+}

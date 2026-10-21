@@ -1,3 +1,4 @@
+@layer app {
 .ini-ficha.t-debo { background: var(--coral-tenue); color: var(--coral-texto); }
 
 .anotar-tope { display: flex; flex-direction: column; gap: 6px; padding: 12px 14px; border-radius: var(--r-md); font-size: 13px; line-height: 1.45; }
@@ -25,4 +26,5 @@
 @media (max-width: 720px) {
   .av-invita { gap: 14px; }
   .av-invita-acciones { flex: 1 1 100%; width: auto; }
+}
 }

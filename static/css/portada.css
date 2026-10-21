@@ -1,3 +1,4 @@
+@layer app {
 .lp-tinta-verde { color: var(--green) !important; }
 .lp-tinta-texto { color: var(--text-primary) !important; }
 .lp-tinta-ambar { color: var(--amber) !important; }
@@ -68,3 +69,4 @@
   background: repeating-linear-gradient(90deg, var(--tinta-ambar) 0 2px, transparent 2px 4px, var(--tinta-ambar) 4px 5px, transparent 5px 8px, var(--tinta-ambar) 8px 11px, transparent 11px 13px) !important;
 }
 .lp-boleta-pie { margin-top: 12px !important; text-align: center !important; font-size: 12px !important; opacity: .8 !important; }
+}

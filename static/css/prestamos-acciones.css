@@ -1,3 +1,4 @@
+@layer app {
 .md-franja { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 14px; background: rgba(0, 0, 0, .2); }
 .md-franja-etq { font-size: 13px; font-weight: 700; color: rgba(245, 245, 245, .72); }
 .md-franja-monto { flex-shrink: 0; font-size: 15px; font-weight: 800; font-variant-numeric: tabular-nums; }
@@ -41,3 +42,4 @@
   color: rgba(245, 245, 245, .6); font-size: 13px; cursor: pointer;
 }
 .md-borrar-prestamo:hover, .md-borrar-prestamo:focus-visible { background: rgba(255, 120, 110, .14); border-color: rgba(255, 138, 138, .3); color: var(--coral-texto); }
+}

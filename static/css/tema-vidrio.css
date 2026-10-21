@@ -1,3 +1,4 @@
+@layer app {
 :root {
   --bg:            #151412;
   --bg-elev:       #1c1b18;
@@ -2463,3 +2464,4 @@ html.es-movil [data-solo-pc] { display: none !important; }
 .pl-ia { gap: 14px; padding: 18px; border-radius: 20px; background: rgba(255, 255, 255, .05); border: 1px solid rgba(255, 255, 255, .08); box-shadow: none; }
 .pl-ia .pl-ia-btn { align-self: stretch; width: 100%; background: rgba(255, 255, 255, .1); border: 1px solid rgba(255, 255, 255, .14); color: var(--text-primary); box-shadow: none; }
 .pl-ia .pl-ia-btn:hover { background: rgba(255, 255, 255, .15); color: var(--text-primary); }
+}

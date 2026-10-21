@@ -1,3 +1,4 @@
+@layer app {
 .pp-hero { margin-bottom: 22px; }
 .pp-sub { font-size: 14px; color: rgba(245, 245, 245, .66); }
 .pp-hoja { display: flex; flex-direction: column; gap: 6px; }
@@ -41,4 +42,5 @@
 }
 @media (max-width: 720px) {
   .pp-hero { margin: 18px 0 0; }
+}
 }

@@ -1,3 +1,4 @@
+@layer app {
 .cf-fin {
   display: flex; align-items: center; gap: 12px; min-width: 0; padding: 12px 14px; border-radius: 16px;
   background: rgba(255, 255, 255, .05); border: 1px solid rgba(255, 255, 255, .08);
@@ -14,3 +15,4 @@
 .cf-fin.ultima .cf-fin-mes { color: #8db4ff; }
 .cf-fin-nota { flex-shrink: 0; display: flex; flex-direction: column; align-items: flex-end; gap: 2px; font-size: 13px; font-weight: 600; color: var(--text-muted); text-align: right; }
 .cf-fin-nota b { font-size: 12px; font-weight: 800; color: #8db4ff; }
+}

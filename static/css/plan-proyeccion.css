@@ -1,3 +1,4 @@
+@layer app {
 .pl-proy-campos { grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); }
 .pl-ayuda { font-size: 12px; line-height: 1.45; color: rgba(245, 245, 245, .55); }
 .pl-porcentaje { position: relative; display: block; }
@@ -62,4 +63,5 @@
   .pl-cifra { flex-direction: row; justify-content: space-between; align-items: baseline; }
   .pl-dap-plazo { width: 100%; }
   .pl-dap-plazo > button { flex: 1; padding: 0 8px; }
+}
 }

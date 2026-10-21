@@ -1,3 +1,4 @@
+@layer app {
 .lm-hero, .lm-fondo, .lm-asa, .lm-cerrar { display: none; }
 
 @media (max-width: 900px) {
@@ -76,4 +77,5 @@
 
 @media (max-width: 900px) and (prefers-reduced-motion: reduce) {
   .lm-esfera, .lm-textos, .lm-abajo, .lm-fondo, .auth.lm > .auth-panel { transition: none; }
+}
 }

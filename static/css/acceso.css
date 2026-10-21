@@ -1,3 +1,4 @@
+@layer app {
 .aviso-staging {
   position: fixed; top: 0; left: 50%; transform: translateX(-50%); z-index: 9999; pointer-events: none;
   padding: 4px 14px; border-radius: 0 0 12px 12px; background: var(--coral); color: #fff;
@@ -196,3 +197,4 @@
 .avp-tab-on.ambar { color: #ffbb56; }
 .avp-tab-on.azul { color: #8db4ff; }
 .avp-tab-on.verde { color: #6ee873; }
+}

@@ -1,3 +1,4 @@
+@layer app {
 .sec-titulo-caja { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
 .sec-top.centrado .sec-titulo-caja { align-items: center; text-align: center; }
 .sec-eyebrow { display: inline-flex; align-items: center; gap: 8px; font-size: 12.5px; font-weight: 800; letter-spacing: .02em; color: rgb(var(--luz)); }
@@ -35,4 +36,5 @@
 
 @media (max-width: 1100px) {
   .saludo-pastilla-hola { display: none; }
+}
 }

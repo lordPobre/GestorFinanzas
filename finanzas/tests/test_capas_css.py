@@ -5,7 +5,11 @@ from django.conf import settings
 from django.test import SimpleTestCase
 
 PLANTILLAS = Path(settings.BASE_DIR) / 'finanzas' / 'templates'
-CAPAS = Path(settings.BASE_DIR) / 'static' / 'css' / 'capas.css'
+HOJAS = Path(settings.BASE_DIR) / 'static' / 'css'
+CAPAS = HOJAS / 'capas.css'
+ORDEN = '@layer vendor, app, ajustes;'
+FUERA_DE_APP = ('capas.css', 'errores.css')
+ANTES_QUE_CAPAS = ('consentimiento.css',)
 HOJA = re.compile(r'<link rel="stylesheet" href="\{% static \'([^\']+)\' %\}">')
 CON_CAPAS = (
     'finanzas/base.html',
@@ -21,7 +25,7 @@ class CapasDeCascadaTests(SimpleTestCase):
 
     def test_el_orden_de_las_capas_se_declara_primero(self):
         primera = CAPAS.read_text('utf-8').strip().splitlines()[0]
-        self.assertEqual(primera, '@layer vendor, base, tema, pantallas, ajustes;')
+        self.assertEqual(primera, ORDEN)
 
     def test_lo_de_terceros_entra_en_su_capa(self):
         texto = CAPAS.read_text('utf-8')
@@ -41,3 +45,15 @@ class CapasDeCascadaTests(SimpleTestCase):
                 hojas = HOJA.findall((PLANTILLAS / ruta).read_text('utf-8'))
                 for hoja in DE_TERCEROS:
                     self.assertNotIn(hoja, hojas)
+
+    def test_cada_hoja_propia_va_entera_en_la_capa_app(self):
+        for hoja in sorted(HOJAS.glob('*.css')):
+            if hoja.name in FUERA_DE_APP:
+                continue
+            with self.subTest(hoja=hoja.name):
+                lineas = hoja.read_text('utf-8').strip().splitlines()
+                if hoja.name in ANTES_QUE_CAPAS:
+                    self.assertEqual(lineas.pop(0), ORDEN)
+                self.assertEqual(lineas[0], '@layer app {')
+                self.assertEqual(lineas[-1], '}')
+                self.assertNotIn('@layer app {', '\n'.join(lineas[1:]))
