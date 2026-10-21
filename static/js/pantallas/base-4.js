@@ -29,7 +29,7 @@
   function pintarChips(tipo) {
     var lista = tipo === 'INGRESO' ? catsIngreso : catsGasto;
     labelCat.textContent = tipo === 'INGRESO' ? 'De dónde viene' : 'Categoría';
-    chips.replaceChildren();
+    chips.textContent = '';
     lista.forEach(function (c, i) {
       var b = document.createElement('button');
       b.type = 'button';

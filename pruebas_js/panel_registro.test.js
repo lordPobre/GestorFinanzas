@@ -157,3 +157,11 @@ test('acepta las categorías aunque vengan codificadas dos veces', () => {
   const { $, valores } = montar({ egresos: JSON.stringify(JSON.stringify(GASTOS)) });
   assert.equal(valores($('chipsGasto').querySelectorAll('button')), 'Comida,Transporte');
 });
+
+test('el nombre de una categoría se muestra como texto, no como HTML', () => {
+  const { $ } = montar({ egresos: JSON.stringify([['x', '<b>prueba</b>']]) });
+  const boton = $('chipsGasto').querySelector('button');
+  assert.equal(boton.textContent, '<b>prueba</b>');
+  assert.equal(boton.querySelector('b'), null);
+  assert.equal($('campoCategoria').value, 'x');
+});
