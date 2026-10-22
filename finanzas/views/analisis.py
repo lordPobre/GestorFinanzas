@@ -46,16 +46,21 @@ def analisis_predictivo(request):
 @limitar(6, 3600, 'Ya pediste varias interpretaciones esta hora. '
                   'Los números de la pantalla no dependen de la IA.')
 def analisis_ia(request):
-    from ..analisis import analizar_finanzas
-    from ..ia import interpretar_con_ia
+    from ..tareas_ia import interpretar, lanzar
 
     perfil_usuario = get_or_create_profile(request.user)
     if not perfil_usuario.analisis_ia:
         return JsonResponse({'ok': False, 'msg': 'Tienes el analisis con IA desactivado.',
                              'desactivado': True})
 
-    analisis = analizar_finanzas(request.user)
-    interpretacion = interpretar_con_ia(analisis, simbolo_de(request.user))
-    if interpretacion:
-        return JsonResponse({'ok': True, 'ia': interpretacion})
-    return JsonResponse({'ok': False, 'msg': 'IA no disponible'})
+    return JsonResponse(lanzar(request.user, interpretar, request.user.pk, simbolo_de(request.user)))
+
+
+@login_required(login_url='/login/')
+def tarea_ia(request):
+    from ..tareas_ia import SIN_IA, estado
+
+    respuesta = estado(request.user, request.GET.get('t', ''))
+    if respuesta is None:
+        return JsonResponse({'listo': True, **SIN_IA}, status=404)
+    return JsonResponse(respuesta)

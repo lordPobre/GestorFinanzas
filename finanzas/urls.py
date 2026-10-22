@@ -79,6 +79,7 @@ urlpatterns = [
 
     path('analisis/', analisis.analisis_predictivo, name='analisis_predictivo'),
     path('analisis/ia/', analisis.analisis_ia, name='analisis_ia'),
+    path('analisis/ia/tarea/', analisis.tarea_ia, name='tarea_ia'),
     path('analisis/plan/', plan.plan_plata, name='plan_plata'),
     path('analisis/plan/ia/', plan.plan_ia, name='plan_ia'),
 

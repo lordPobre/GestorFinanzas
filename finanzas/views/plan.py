@@ -30,7 +30,7 @@ def plan_plata(request):
 @limitar(6, 3600, 'Ya pediste varias explicaciones esta hora. '
                   'Los números del plan no dependen de la IA.')
 def plan_ia(request):
-    from ..ia_plan import explicar_plan
+    from ..tareas_ia import explicar, lanzar
 
     perfil = get_or_create_profile(request.user)
     if not perfil.analisis_ia:
@@ -49,7 +49,5 @@ def plan_ia(request):
         estrategia = 'saldo'
 
     resumen, nombres = resumen_para_ia(plan, ahorro, extra, estrategia)
-    parrafos = explicar_plan(resumen, nombres, simbolo_de(request.user))
-    if not parrafos:
-        return JsonResponse({'ok': False, 'msg': 'IA no disponible'})
-    return JsonResponse({'ok': True, 'parrafos': parrafos})
+    return JsonResponse(lanzar(request.user, explicar, request.user.pk, resumen, nombres,
+                               simbolo_de(request.user)))

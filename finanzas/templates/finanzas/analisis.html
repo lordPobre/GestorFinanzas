@@ -147,5 +147,5 @@
 {{ serie_pagado_json|json_script:"d-serie_pagado_json" }}
 {{ serie_pendiente_json|json_script:"d-serie_pendiente_json" }}
 <script src="{% static 'js/pantallas/analisis.js' %}" nonce="{{ csp_nonce }}" data-indice-actual="{{ indice_actual }}"></script>
-<script src="{% static 'js/pantallas/analisis-2.js' %}" nonce="{{ csp_nonce }}" data-url-ia="{% url 'analisis_ia' %}"></script>
+<script src="{% static 'js/pantallas/analisis-2.js' %}" nonce="{{ csp_nonce }}" data-url-ia="{% url 'analisis_ia' %}" data-url-tarea="{% url 'tarea_ia' %}"></script>
 {% endblock %}

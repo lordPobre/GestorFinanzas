@@ -293,7 +293,7 @@
 {% block extra_js %}
 {% if plan.tiene_datos and plan.sobra > 0 %}
 {{ plan_json|json_script:"d-plan" }}
-<script src="{% static 'js/pantallas/plan.js' %}" nonce="{{ csp_nonce }}" data-url-ia="{% url 'plan_ia' %}"></script>
+<script src="{% static 'js/pantallas/plan.js' %}" nonce="{{ csp_nonce }}" data-url-ia="{% url 'plan_ia' %}" data-url-tarea="{% url 'tarea_ia' %}"></script>
 <script src="{% static 'js/pantallas/plan-proyeccion.js' %}" nonce="{{ csp_nonce }}"></script>
 <script src="{% static 'js/pantallas/plan-simulador.js' %}" nonce="{{ csp_nonce }}"></script>
 {% endif %}
