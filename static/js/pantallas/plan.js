@@ -4,6 +4,7 @@
   if (!nodo || !script) return;
   var d = JSON.parse(nodo.textContent);
   var urlIA = script.dataset.urlIa;
+  var urlTarea = script.dataset.urlTarea;
   var MESES = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio',
                'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
   var estado = { ahorro: d.ahorro, extra: d.extra, estrategia: 'saldo' };
@@ -183,6 +184,25 @@
   var estadoIA = $('planIAEstado');
   var parrafos = $('planIAParrafos');
 
+  function esperar(tarea) {
+    var limite = Date.now() + 100000;
+    return new Promise(function (listo, falla) {
+      (function consultar() {
+        fetch(urlTarea + '?t=' + encodeURIComponent(tarea), {
+          credentials: 'same-origin',
+          headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+          .then(function (r) { return r.json(); })
+          .then(function (d) {
+            if (d.listo) listo(d);
+            else if (Date.now() > limite) listo({ ok: false });
+            else setTimeout(consultar, 1500);
+          })
+          .catch(falla);
+      })();
+    });
+  }
+
   function avisoIA(msg) {
     parrafos.hidden = true;
     estadoIA.hidden = false;
@@ -202,6 +222,7 @@
       headers: { 'X-Requested-With': 'XMLHttpRequest', 'X-CSRFToken': token ? token.value : '' }
     })
       .then(function (r) { return r.json(); })
+      .then(function (d) { return d.tarea ? esperar(d.tarea) : d; })
       .then(function (res) {
         if (!res.ok || !Array.isArray(res.parrafos)) {
           avisoIA(res.desactivado ? 'Tienes el análisis con IA desactivado. Puedes activarlo en Perfil.'

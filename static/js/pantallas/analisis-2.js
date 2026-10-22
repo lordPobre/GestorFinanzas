@@ -3,6 +3,7 @@
   var btn = document.getElementById('btnIA');
   if (!btn || !script) return;
   var urlIA = script.dataset.urlIa;
+  var urlTarea = script.dataset.urlTarea;
   var caja = document.getElementById('cajaIA');
   var estado = document.getElementById('iaEstado');
   var contenido = document.getElementById('iaContenido');
@@ -11,6 +12,25 @@
     contenido.style.display = 'none';
     estado.style.display = 'block';
     estado.textContent = msg;
+  }
+
+  function esperar(tarea) {
+    var limite = Date.now() + 100000;
+    return new Promise(function (listo, falla) {
+      (function consultar() {
+        fetch(urlTarea + '?t=' + encodeURIComponent(tarea), {
+          credentials: 'same-origin',
+          headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+          .then(function (r) { return r.json(); })
+          .then(function (d) {
+            if (d.listo) listo(d);
+            else if (Date.now() > limite) listo({ ok: false });
+            else setTimeout(consultar, 1500);
+          })
+          .catch(falla);
+      })();
+    });
   }
 
   function pintar(ia) {
@@ -67,6 +87,7 @@
       headers: { 'X-Requested-With': 'XMLHttpRequest', 'X-CSRFToken': token ? token.value : '' }
     })
       .then(function (r) { return r.json(); })
+      .then(function (d) { return d.tarea ? esperar(d.tarea) : d; })
       .then(function (d) {
         if (d.ok) pintar(d.ia);
         else fallo('La IA no está disponible ahora. Los números de arriba no dependen de ella.');
