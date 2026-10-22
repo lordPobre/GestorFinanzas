@@ -16,6 +16,7 @@ URL_RESEND = 'https://api.resend.com/emails'
 AGENTE = 'Fintora/1.0 (+https://github.com/lordPobre/GestorFinanzas)'
 NOMBRE_REMITENTE = 'Fintora'
 URL_LOCAL = 'http://127.0.0.1:8000'
+RUTA_TAREA = 'finanzas.correo.enviar_desde_cola'
 
 IMAGENES_EN_LINEA = {
     'fintora-cabecera': 'img/correo-cabecera.png',
@@ -110,6 +111,40 @@ def enviar(destino, asunto, texto, html=None):
     peticion.add_header('Authorization', f"Bearer {os.environ['RESEND_API_KEY']}")
     peticion.add_header('Content-Type', 'application/json')
     return _pedir(peticion)
+
+
+def _argumentos(destino, asunto, texto, html):
+    return (destino, asunto, texto, html) if html else (destino, asunto, texto)
+
+
+def enviar_desde_cola(destino, asunto, texto, html=None):
+    try:
+        ok = bool(enviar(*_argumentos(destino, asunto, texto, html)))
+    except Exception:
+        log.exception('Falló el envío del correo «%s»', asunto)
+        return False
+    if not ok:
+        log.error('No salió el correo «%s»', asunto)
+    return ok
+
+
+def encolar(destino, asunto, texto, html=None):
+    from . import cola
+
+    argumentos = _argumentos(destino, asunto, texto, html)
+    if cola.sincronica():
+        tarea = cola.encolar(RUTA_TAREA, *argumentos)
+        return bool(cola.resultado(tarea).get('resultado'))
+
+    if not (configurado() or _staging_sin_correo()):
+        log.error('Correo sin configurar: no se envió nada a %s', destino)
+        return False
+    try:
+        cola.encolar(RUTA_TAREA, *argumentos, q_options={'save': False})
+    except Exception:
+        log.exception('No se pudo dejar el correo «%s» en la cola; sale al tiro', asunto)
+        return enviar_desde_cola(destino, asunto, texto, html)
+    return True
 
 
 def url_absoluta(request, ruta):

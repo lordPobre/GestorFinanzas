@@ -50,7 +50,7 @@ def enviar(request, usuario):
         'enlace': enlace(request, usuario),
         'horas': HORAS_VALIDEZ,
     }
-    ok = correo.enviar(
+    ok = correo.encolar(
         destino,
         'Confirma tu correo en Fintora',
         render_to_string('registration/correo_verificar.txt', contexto),

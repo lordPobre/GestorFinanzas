@@ -48,7 +48,7 @@ def recuperar(request):
     from django.utils.encoding import force_bytes
     from django.utils.http import urlsafe_base64_encode
 
-    from ..correo import configurado as correo_configurado, enviar, url_absoluta
+    from ..correo import configurado as correo_configurado, encolar, url_absoluta
 
     enviado = False
     correo_txt = ''
@@ -80,8 +80,8 @@ def recuperar(request):
             }
             cuerpo = render_to_string('registration/correo_recuperar.txt', contexto_correo)
             cuerpo_html = render_to_string('registration/correo_recuperar.html', contexto_correo)
-            if not enviar(usuario.email or correo_txt,
-                          'Recupera tu contraseña de Fintora', cuerpo, cuerpo_html):
+            if not encolar(usuario.email or correo_txt,
+                           'Recupera tu contraseña de Fintora', cuerpo, cuerpo_html):
                 logging.getLogger('finanzas').error(
                     'Reset solicitado para %s pero el correo no salió', usuario.pk)
                 if not correo_configurado():
@@ -155,8 +155,8 @@ def _avisar_registro_repetido(request, correo):
         'entrar': servicio_correo.url_absoluta(request, reverse('login')),
         'recuperar': servicio_correo.url_absoluta(request, reverse('recuperar')),
     }
-    servicio_correo.enviar(correo, 'Ya tienes una cuenta en Fintora',
-                           render_to_string('registration/correo_registro_repetido.txt', contexto))
+    servicio_correo.encolar(correo, 'Ya tienes una cuenta en Fintora',
+                            render_to_string('registration/correo_registro_repetido.txt', contexto))
     logger.info('Registro con un correo que ya tiene cuenta: aviso enviado')
 
 @limitar(5, 3600, 'Demasiados registros desde esta conexión. Prueba más tarde.')

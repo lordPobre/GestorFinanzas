@@ -94,14 +94,14 @@ def _pedir_cambio_correo(request, profile, nuevo):
                           salt=SAL_CAMBIO_CORREO)
     enlace = servicio_correo.url_absoluta(
         request, reverse('confirmar_cambio_correo', kwargs={'token': token}))
-    servicio_correo.enviar(
+    servicio_correo.encolar(
         nuevo, 'Confirma tu nuevo correo en Fintora',
         render_to_string('registration/correo_cambio.txt', {
             'usuario': usuario, 'enlace': enlace, 'horas': HORAS_CAMBIO_CORREO}))
 
     anterior = (usuario.email or '').strip()
     if anterior:
-        servicio_correo.enviar(
+        servicio_correo.encolar(
             anterior, 'Pidieron cambiar el correo de tu cuenta de Fintora',
             render_to_string('registration/correo_cambio_aviso.txt', {
                 'usuario': usuario, 'nuevo': nuevo,

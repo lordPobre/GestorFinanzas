@@ -40,9 +40,9 @@ def pedir(request, username, clave, destino, nombre=''):
         'enlace': correo.url_absoluta(request, reverse('confirmar_alta', kwargs={'token': secreto})),
         'horas': HORAS_VALIDEZ,
     }
-    ok = correo.enviar(destino, ASUNTO,
-                       render_to_string('registration/correo_alta.txt', contexto),
-                       render_to_string('registration/correo_alta.html', contexto))
+    ok = correo.encolar(destino, ASUNTO,
+                        render_to_string('registration/correo_alta.txt', contexto),
+                        render_to_string('registration/correo_alta.html', contexto))
     if not ok:
         logger.error('No salió el correo para confirmar un registro')
     return ok

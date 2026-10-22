@@ -59,8 +59,8 @@ def al_entrar(request, usuario):
             'cuando': timezone.localtime(),
             'enlace': correo.url_absoluta(request, reverse('sesiones_activas')),
         }
-        if not correo.enviar(destino, 'Nuevo acceso a tu cuenta de Fintora',
-                             render_to_string('registration/correo_aparato.txt', contexto)):
+        if not correo.encolar(destino, 'Nuevo acceso a tu cuenta de Fintora',
+                              render_to_string('registration/correo_aparato.txt', contexto)):
             log.warning('No salió el aviso de aparato nuevo del usuario %s', usuario.pk)
     return True
 
