@@ -1,0 +1,20 @@
+@layer app {
+.sec-titulo { view-transition-name: titulo; }
+.sec-monto, .ini-valor:not([hidden]) > .ini-monto { view-transition-name: cifra; }
+.ini-esfera-bola,
+body:not(:has(.ini-esfera)) .sidebar-foot.health .salud-esfera { view-transition-name: esfera; }
+
+::view-transition-group(titulo),
+::view-transition-group(cifra),
+::view-transition-group(esfera) {
+  animation-duration: .3s;
+  animation-timing-function: cubic-bezier(.2, .8, .2, 1);
+}
+
+::view-transition-old(titulo), ::view-transition-new(titulo),
+::view-transition-old(cifra), ::view-transition-new(cifra) {
+  height: 100%;
+  object-fit: none;
+  object-position: left center;
+}
+}
