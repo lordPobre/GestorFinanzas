@@ -8,15 +8,10 @@ function pago({ fecha, monto = 1000, atrasado = false }) {
   return `<div class="ini-pago${atrasado ? ' atrasado' : ''}" data-fecha="${fecha}" data-monto="${monto}"></div>`;
 }
 
-function fila({ fecha, atrasado = false }) {
-  return `<div class="ini-fila${atrasado ? ' atrasado' : ''}" data-fecha="${fecha}"></div>`;
-}
-
-function montar({ pagos = [], filas = [], barras = null, guardada = null } = {}) {
+function montar({ pagos = [], barras = null, guardada = null, telefono = false } = {}) {
   const html = `
 <div data-pestanas><button data-pestana="pagar"></button><button data-pestana="movimientos"></button></div>
 <div class="ini-panel"><section data-panel="pagar"></section><section data-panel="movimientos"></section></div>
-<div data-lista-pagar>${filas.map(fila).join('')}<p data-lista-pagar-vacia hidden></p></div>
 <div data-linea data-hoy="${HOY}">
   <p data-linea-sub></p>
   <div data-regla>
@@ -25,14 +20,17 @@ function montar({ pagos = [], filas = [], barras = null, guardada = null } = {})
     <span data-regla-hoy></span>
     <p data-regla-vacia hidden></p>
     ${pagos.map(pago).join('')}
+    <p data-lista-pagar-vacia hidden></p>
   </div>
 </div>
 <div data-barras></div>
-<p data-comparar></p>`;
+<p data-comparar></p>
+<div data-lista-atrasados></div>`;
   const documento = crearDocumento(html);
   if (barras) Object.assign(documento.querySelector('[data-barras]').dataset, barras);
   const sesion = memoria(guardada ? { 'fintora-pestana-inicio': guardada } : {});
-  ejecutar('pantallas/dashboard.js', { document: documento, sessionStorage: sesion });
+  const ventana = { addEventListener() {}, matchMedia: () => ({ matches: telefono }) };
+  ejecutar('pantallas/dashboard.js', { document: documento, sessionStorage: sesion, window: ventana });
   const regla = documento.querySelector('[data-regla]');
   return {
     documento,
@@ -40,6 +38,7 @@ function montar({ pagos = [], filas = [], barras = null, guardada = null } = {})
     regla,
     sub: documento.querySelector('[data-linea-sub]').textContent,
     vacia: documento.querySelector('[data-regla-vacia]'),
+    vaciaLista: documento.querySelector('[data-lista-pagar-vacia]'),
     tarjetas: regla.querySelectorAll('.ini-pago'),
   };
 }
@@ -67,24 +66,39 @@ test('una pestaña guardada que ya no existe vuelve a «Por pagar»', () => {
   assert.equal(documento.querySelector('[data-pestana="pagar"]').classList.contains('on'), true);
 });
 
-test('en el teléfono marca como pronto lo que vence en 7 días', () => {
-  const { documento } = montar({
-    filas: [{ fecha: '2026-10-10' }, { fecha: '2026-10-20' }, { fecha: '2026-10-01', atrasado: true }],
+test('en el teléfono marca como pronto lo que vence en 7 días y deja todo a la vista', () => {
+  const { tarjetas, vaciaLista, regla } = montar({
+    telefono: true,
+    pagos: [{ fecha: '2026-10-10' }, { fecha: '2026-10-30' }, { fecha: '2026-10-01', atrasado: true }],
   });
-  const filas = documento.querySelectorAll('.ini-fila');
-  assert.equal(filas[0].classList.contains('pronto'), true);
-  assert.equal(filas[1].classList.contains('pronto'), false);
-  assert.equal(filas[2].classList.contains('pronto'), false);
-  assert.equal(documento.querySelector('[data-lista-pagar-vacia]').hidden, true);
+  assert.equal(tarjetas[0].classList.contains('pronto'), true);
+  assert.equal(tarjetas[1].classList.contains('pronto'), false);
+  assert.equal(tarjetas[2].classList.contains('pronto'), false);
+  assert.equal(tarjetas.filter((t) => t.hidden).length, 0);
+  assert.equal(regla.querySelectorAll('.ini-palito').length, 0);
+  assert.equal(vaciaLista.hidden, true);
 });
 
 test('en el teléfono sin pagos muestra el mensaje de lista vacía', () => {
-  const { documento } = montar();
-  assert.equal(documento.querySelector('[data-lista-pagar-vacia]').hidden, false);
+  const { vaciaLista } = montar({ telefono: true });
+  assert.equal(vaciaLista.hidden, false);
+});
+
+test('en el teléfono cada atrasado queda en su fila', () => {
+  const { regla } = montar({
+    telefono: true,
+    pagos: [
+      { fecha: '2026-10-01', atrasado: true },
+      { fecha: '2026-10-03', atrasado: true },
+    ],
+  });
+  const visibles = regla.querySelectorAll('.ini-pago.atrasado').filter((t) => !t.hidden);
+  assert.equal(visibles.length, 2);
+  assert.equal(visibles.some((t) => t.classList.contains('grupo')), false);
 });
 
 test('la línea suma lo atrasado y lo de los próximos días', () => {
-  const { sub, vacia, tarjetas, regla } = montar({
+  const { sub, vacia, vaciaLista, tarjetas, regla } = montar({
     pagos: [
       { fecha: '2026-10-06', monto: 50000, atrasado: true },
       { fecha: '2026-10-09', monto: 31000 },
@@ -94,6 +108,7 @@ test('la línea suma lo atrasado y lo de los próximos días', () => {
   });
   assert.equal(sub, '$90.990 por pagar en 3 pagos');
   assert.equal(vacia.hidden, true);
+  assert.equal(vaciaLista.hidden, true);
   assert.equal(tarjetas[1].classList.contains('pronto'), true);
   assert.equal(tarjetas[2].classList.contains('luego'), true);
   assert.equal(tarjetas[3].hidden, true);
@@ -102,20 +117,29 @@ test('la línea suma lo atrasado y lo de los próximos días', () => {
 });
 
 test('varios atrasados se juntan en una sola tarjeta que abre la lista', () => {
-  const { sub, regla } = montar({
+  const { sub, regla, documento } = montar({
     pagos: [
       { fecha: '2026-10-01', monto: 10000, atrasado: true },
       { fecha: '2026-10-03', monto: 20000, atrasado: true },
       { fecha: '2026-10-05', monto: 5000, atrasado: true },
     ],
   });
-  const atrasados = regla.querySelectorAll('.ini-pago.atrasado');
-  assert.equal(atrasados.length, 1);
-  assert.equal(atrasados[0].classList.contains('grupo'), true);
-  assert.equal(atrasados[0].getAttribute('data-open'), '#modalAtrasados');
-  assert.match(atrasados[0].textContent, /3 pagos atrasados/);
-  assert.match(atrasados[0].textContent, /\$35\.000 en total/);
+  const visibles = regla.querySelectorAll('.ini-pago.atrasado').filter((t) => !t.hidden);
+  assert.equal(visibles.length, 1);
+  const grupo = visibles[0];
+  assert.equal(grupo.classList.contains('grupo'), true);
+  assert.equal(grupo.getAttribute('data-open'), '#modalAtrasados');
+  assert.match(grupo.textContent, /3 pagos atrasados/);
+  assert.match(grupo.textContent, /\$35\.000 en total/);
   assert.equal(sub, '$35.000 por pagar en 3 pagos');
+
+  const modal = documento.querySelector('[data-lista-atrasados]');
+  assert.equal(modal.children.length, 0);
+  grupo.click();
+  assert.equal(modal.children.length, 3);
+  assert.equal(modal.children.filter((t) => t.hidden || t.classList.contains('agrupado')).length, 0);
+  grupo.click();
+  assert.equal(modal.children.length, 3);
 });
 
 test('lo que no cabe en la línea se cuenta aparte', () => {

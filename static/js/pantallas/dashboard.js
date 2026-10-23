@@ -50,7 +50,7 @@
     var sub = linea.querySelector('[data-linea-sub]');
     var vacia = caja.querySelector('[data-regla-vacia]');
     var vaciaLista = caja.querySelector('[data-lista-pagar-vacia]');
-    var enLista = window.matchMedia('(max-width: 720px)');
+    var enLista = window.matchMedia ? window.matchMedia('(max-width: 720px)') : { matches: false };
     var ANTES = 3, TOTAL = 15, FILA = 64, GAP = 10;
     var etiquetas = [];
     for (var k = 0; k < TOTAL; k++) {
@@ -126,7 +126,7 @@
         t.style.visibility = '';
       });
       if (grupo) grupo.hidden = true;
-      caja.style.removeProperty('--y');
+      caja.style.setProperty('--y', '');
       caja.style.height = '';
       vaciaLista.hidden = tarjetas.length > 0;
     }
