@@ -198,38 +198,15 @@
         {% endif %}
         <span class="ini-pago-txt">
           <span class="ini-pago-nombre">{{ i.nombre }}</span>
-          <span class="ini-pago-meta">{% if i.atrasado %}Atrasado{% else %}{{ i.fecha|date:"j b" }}{% endif %} · {{ i.monto|money }}</span>
+          <span class="ini-pago-meta"><span class="ini-pago-cuando">{% if i.atrasado %}Atrasado{% else %}{{ i.fecha|date:"j b" }}{% endif %} · {{ i.monto|money }}</span><span class="ini-pago-vence">{% if i.atrasado %}Atrasado · {{ i.fecha|date:"j b" }}{% elif i.tipo == 'cuota' or i.tipo == 'debo' %}{{ i.detalle }} · vence {{ i.fecha|date:"j b" }}{% else %}Vence {{ i.fecha|date:"j b" }}{% endif %}</span></span>
         </span>
+        <span class="ini-pago-monto">{{ i.monto|money }}</span>
         <form method="post" action="{{ i.url_pagar }}">
           {% csrf_token %}
           <input type="hidden" name="next" value="?year={{ year }}&amp;month={{ month }}">
           <input type="hidden" name="next_path" value="{% url 'dashboard' %}">
           <input type="hidden" name="periodo" value="{{ i.periodo }}">
           <button type="submit" class="ini-pago-ok" title="Marcar como pagado" aria-label="Marcar {{ i.nombre }} como pagado"><i class="fas fa-check"></i><span>Pagué</span></button>
-        </form>
-      </div>
-      {% endif %}{% endfor %}
-    </div>
-
-    <div class="ini-lista-pagar" data-lista-pagar>
-      {% for i in pendientes %}{% if not i.pagado %}
-      <div class="ini-fila{% if i.atrasado %} atrasado{% endif %}" data-fecha="{{ i.fecha|date:'Y-m-d' }}">
-        {% marca_de i.nombre as m %}{% if m %}
-        {% include 'finanzas/_marca.html' with clase="ini-ficha" %}
-        {% else %}
-        <span class="ini-ficha t-{{ i.tipo }}"><i class="fas {{ i.icono }}"></i></span>
-        {% endif %}
-        <span class="ini-fila-txt">
-          <span class="ini-fila-nombre">{{ i.nombre }}</span>
-          <span class="ini-fila-meta">{% if i.atrasado %}Atrasado · {{ i.fecha|date:"j b" }}{% elif i.tipo == 'cuota' or i.tipo == 'debo' %}{{ i.detalle }} · vence {{ i.fecha|date:"j b" }}{% else %}Vence {{ i.fecha|date:"j b" }}{% endif %}</span>
-        </span>
-        <span class="ini-fila-monto">{{ i.monto|money }}</span>
-        <form method="post" action="{{ i.url_pagar }}">
-          {% csrf_token %}
-          <input type="hidden" name="next" value="?year={{ year }}&amp;month={{ month }}">
-          <input type="hidden" name="next_path" value="{% url 'dashboard' %}">
-          <input type="hidden" name="periodo" value="{{ i.periodo }}">
-          <button type="submit" class="ini-fila-pagar" title="Marcar como pagado" aria-label="Marcar {{ i.nombre }} como pagado"><i class="fas fa-check"></i></button>
         </form>
       </div>
       {% endif %}{% endfor %}
@@ -335,29 +312,7 @@
       </div>
       <button class="modal-close" data-close aria-label="Cerrar"><i class="fas fa-xmark"></i></button>
     </div>
-    <div class="ini-lista-modal">
-      {% for i in pendientes %}{% if i.atrasado and not i.pagado %}
-      <div class="ini-fila atrasado">
-        {% marca_de i.nombre as m %}{% if m %}
-        {% include 'finanzas/_marca.html' with clase="ini-ficha" %}
-        {% else %}
-        <span class="ini-ficha t-{{ i.tipo }}"><i class="fas {{ i.icono }}"></i></span>
-        {% endif %}
-        <span class="ini-fila-txt">
-          <span class="ini-fila-nombre">{{ i.nombre }}</span>
-          <span class="ini-fila-meta">Atrasado · {{ i.fecha|date:"j b" }}</span>
-        </span>
-        <span class="ini-fila-monto">{{ i.monto|money }}</span>
-        <form method="post" action="{{ i.url_pagar }}">
-          {% csrf_token %}
-          <input type="hidden" name="next" value="?year={{ year }}&amp;month={{ month }}">
-          <input type="hidden" name="next_path" value="{% url 'dashboard' %}">
-          <input type="hidden" name="periodo" value="{{ i.periodo }}">
-          <button type="submit" class="ini-fila-pagar" title="Marcar como pagado" aria-label="Marcar {{ i.nombre }} como pagado"><i class="fas fa-check"></i></button>
-        </form>
-      </div>
-      {% endif %}{% endfor %}
-    </div>
+    <div class="ini-lista-modal" data-lista-atrasados></div>
   </div>
 </div>
 

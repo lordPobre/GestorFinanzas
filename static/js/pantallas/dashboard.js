@@ -43,25 +43,14 @@
     mostrar(guardada);
   })();
 
-  (function listaTelefono() {
-    var lista = document.querySelector('[data-lista-pagar]');
-    if (!lista) return;
-    var filas = lista.querySelectorAll('.ini-fila');
-    if (!filas.length) { lista.querySelector('[data-lista-pagar-vacia]').hidden = false; return; }
-    if (isNaN(base)) return;
-    filas.forEach(function (f) {
-      if (f.classList.contains('atrasado')) return;
-      var dif = Math.round((fecha(f.dataset.fecha) - base) / DIA);
-      if (dif <= 7) f.classList.add('pronto');
-    });
-  })();
-
-  (function regla() {
+  (function pendientes() {
     if (!linea || isNaN(base)) return;
     var caja = linea.querySelector('[data-regla]');
     var dias = caja.querySelector('[data-regla-dias]');
     var sub = linea.querySelector('[data-linea-sub]');
     var vacia = caja.querySelector('[data-regla-vacia]');
+    var vaciaLista = caja.querySelector('[data-lista-pagar-vacia]');
+    var enLista = window.matchMedia('(max-width: 720px)');
     var ANTES = 3, TOTAL = 15, FILA = 64, GAP = 10;
     var etiquetas = [];
     for (var k = 0; k < TOTAL; k++) {
@@ -76,43 +65,79 @@
     var tarjetas = Array.prototype.slice.call(caja.querySelectorAll('.ini-pago'));
     var atrasados = tarjetas.filter(function (t) { return t.classList.contains('atrasado'); });
     var items = [];
+    var grupo = null;
+
+    tarjetas.forEach(function (t) {
+      if (t.classList.contains('atrasado')) return;
+      var dif = Math.round((fecha(t.dataset.fecha) - base) / DIA);
+      t.classList.add(dif <= 7 ? 'pronto' : 'luego');
+    });
+
+    function llenarModal() {
+      var destino = document.querySelector('[data-lista-atrasados]');
+      if (!destino) return;
+      destino.textContent = '';
+      atrasados.forEach(function (t) {
+        var copia = t.cloneNode(true);
+        copia.removeAttribute('style');
+        copia.hidden = false;
+        copia.classList.remove('agrupado');
+        destino.appendChild(copia);
+      });
+    }
 
     if (atrasados.length === 1) {
       var dif0 = Math.round((fecha(atrasados[0].dataset.fecha) - base) / DIA);
       items.push({ el: atrasados[0], col: Math.max(0, Math.min(ANTES - 1, dif0 + ANTES)), tono: 'atraso', monto: Number(atrasados[0].dataset.monto) || 0 });
     } else if (atrasados.length > 1) {
       var total = 0;
-      atrasados.forEach(function (t) { total += Number(t.dataset.monto) || 0; t.remove(); });
-      var g = document.createElement('div');
-      g.setAttribute('role', 'button');
-      g.tabIndex = 0;
-      g.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); g.click(); } });
-      g.className = 'ini-pago atrasado grupo';
-      g.setAttribute('data-open', '#modalAtrasados');
-      g.innerHTML = '<span class="ini-ficha"><i class="fas fa-triangle-exclamation"></i></span>' +
+      atrasados.forEach(function (t) { total += Number(t.dataset.monto) || 0; t.classList.add('agrupado'); });
+      grupo = document.createElement('div');
+      grupo.setAttribute('role', 'button');
+      grupo.tabIndex = 0;
+      grupo.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); grupo.click(); } });
+      grupo.addEventListener('click', llenarModal);
+      grupo.className = 'ini-pago atrasado grupo';
+      grupo.setAttribute('data-open', '#modalAtrasados');
+      grupo.innerHTML = '<span class="ini-ficha"><i class="fas fa-triangle-exclamation"></i></span>' +
         '<span class="ini-pago-txt"><span class="ini-pago-nombre">' + atrasados.length + ' pagos atrasados</span>' +
         '<span class="ini-pago-meta">' + plata(total) + ' en total</span></span>' +
         '<span class="ini-pago-ver">Revisar</span>';
-      caja.appendChild(g);
-      items.push({ el: g, col: 0, tono: 'atraso', monto: total, n: atrasados.length });
+      caja.appendChild(grupo);
+      items.push({ el: grupo, col: 0, tono: 'atraso', monto: total, n: atrasados.length });
     }
 
     tarjetas.forEach(function (t) {
       if (t.classList.contains('atrasado')) return;
       var dif = Math.round((fecha(t.dataset.fecha) - base) / DIA);
-      if (isNaN(dif) || dif > TOTAL - ANTES - 1) { t.hidden = true; return; }
-      var tono = dif <= 7 ? 'pronto' : 'luego';
-      t.classList.add(tono);
-      items.push({ el: t, col: Math.max(ANTES, dif + ANTES), tono: tono, monto: Number(t.dataset.monto) || 0 });
+      if (isNaN(dif) || dif > TOTAL - ANTES - 1) return;
+      items.push({ el: t, col: Math.max(ANTES, dif + ANTES), tono: dif <= 7 ? 'pronto' : 'luego', monto: Number(t.dataset.monto) || 0 });
     });
     items.sort(function (a, b) { return a.col - b.col; });
+    items.forEach(function (it) { it.el.dataset.enRegla = '1'; });
 
     function x(col, W) { return col === 0 ? 1 : (col + 0.5) / TOTAL * W; }
 
+    function comoLista() {
+      tarjetas.forEach(function (t) {
+        t.hidden = false;
+        t.style.left = '';
+        t.style.top = '';
+        t.style.visibility = '';
+      });
+      if (grupo) grupo.hidden = true;
+      caja.style.removeProperty('--y');
+      caja.style.height = '';
+      vaciaLista.hidden = tarjetas.length > 0;
+    }
+
     function pintar() {
+      caja.querySelectorAll('.ini-palito').forEach(function (p) { p.remove(); });
+      if (enLista.matches) { comoLista(); return; }
+      vaciaLista.hidden = true;
       var W = caja.clientWidth;
       if (!W) return;
-      caja.querySelectorAll('.ini-palito').forEach(function (p) { p.remove(); });
+      tarjetas.forEach(function (t) { if (!t.dataset.enRegla) t.hidden = true; });
       etiquetas.forEach(function (e, i) { e.className = i === ANTES ? 'hoy' : ''; });
       var fin = [-Infinity, -Infinity, -Infinity];
       var filas = 1, suma = 0, cuenta = 0, fuera = 0;
