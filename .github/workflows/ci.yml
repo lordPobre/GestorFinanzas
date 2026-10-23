@@ -4,6 +4,12 @@ on:
   push:
     branches: [main]
   pull_request:
+  schedule:
+    - cron: "0 11 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
 
 concurrency:
   group: ci-${{ github.ref }}
@@ -23,7 +29,9 @@ jobs:
       PROXIES_CONFIABLES: "0"
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
 
       - name: Postgres 18
         run: |
@@ -43,7 +51,7 @@ jobs:
           pg_isready -h localhost -p 5432
           echo "/usr/lib/postgresql/18/bin" >> "$GITHUB_PATH"
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
         with:
           python-version-file: .python-version
           cache: pip
@@ -84,7 +92,9 @@ jobs:
       PRUEBAS_NAVEGADOR: "1"
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
 
       - name: Postgres 18
         run: |
@@ -104,7 +114,7 @@ jobs:
           pg_isready -h localhost -p 5432
           echo "/usr/lib/postgresql/18/bin" >> "$GITHUB_PATH"
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
         with:
           python-version-file: .python-version
           cache: pip
@@ -131,9 +141,11 @@ jobs:
       CSRF_TRUSTED_ORIGINS: https://fintora.example
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
         with:
           python-version-file: .python-version
           cache: pip
@@ -151,9 +163,11 @@ jobs:
     timeout-minutes: 10
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
         with:
           python-version-file: .python-version
           cache: pip
@@ -165,17 +179,63 @@ jobs:
           pip-audit --requirement requirements.txt --strict
           pip-audit --requirement requirements-dev.txt --strict
 
+  trivy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+
+      - name: Repositorio y Dockerfile
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25
+        with:
+          scan-type: fs
+          scan-ref: .
+          scanners: vuln,misconfig
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          skip-dirs: .cache
+          exit-code: "1"
+
+      - name: Construir la imagen del respaldo
+        run: docker build -f railway/Dockerfile.respaldo -t fintora-respaldo:ci .
+
+      - name: Imagen del respaldo
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25
+        with:
+          scan-type: image
+          image-ref: fintora-respaldo:ci
+          scanners: vuln
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          exit-code: "1"
+          skip-setup-trivy: true
+      
+      - name: Origen de los hallazgos
+        if: failure()
+        run: |
+          trivy image --scanners vuln --severity HIGH,CRITICAL --ignore-unfixed --format json fintora-respaldo:ci \
+            | jq -r '.Results[] | .Target as $t | .Vulnerabilities[]? | "\(.PkgName) \(.InstalledVersion) \(.PkgPath // $t)"'
+          docker run --rm --entrypoint sh fintora-respaldo:ci -c 'find / -xdev \( -name "*.spdx.json" -o -name "*.cdx.json" -o -path "*ensurepip/_bundled*" \) 2>/dev/null'
+
   secretos:
     runs-on: ubuntu-latest
     timeout-minutes: 10
 
+    permissions:
+      contents: read
+      pull-requests: read
+
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
           fetch-depth: 0
+          persist-credentials: false
 
       - name: Secretos en el historial
-        uses: gitleaks/gitleaks-action@v2
+        uses: gitleaks/gitleaks-action@ff98106e4c7b2bc287b24eaf42907196329070c7
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITLEAKS_CONFIG: .gitleaks.toml
@@ -185,9 +245,11 @@ jobs:
     timeout-minutes: 5
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
           node-version: 22
 
