@@ -285,7 +285,7 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="{% static 'js/pantallas/categorias.js' %}" nonce="{{ csp_nonce }}"></script>
-<script src="{% static 'js/pantallas/categorias-2.js' %}" nonce="{{ csp_nonce }}"></script>
-<script src="{% static 'js/pantallas/categorias-topes.js' %}" nonce="{{ csp_nonce }}" data-simbolo="{{ simbolo_moneda }}"></script>
+<script type="module" src="{% static 'js/pantallas/categorias.js' %}" nonce="{{ csp_nonce }}"></script>
+<script type="module" src="{% static 'js/pantallas/categorias-2.js' %}" nonce="{{ csp_nonce }}"></script>
+<script type="module" data-js="categorias-topes" src="{% static 'js/pantallas/categorias-topes.js' %}" nonce="{{ csp_nonce }}" data-simbolo="{{ simbolo_moneda }}"></script>
 {% endblock %}

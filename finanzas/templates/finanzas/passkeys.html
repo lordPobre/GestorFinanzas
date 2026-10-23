@@ -118,7 +118,7 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="{% static 'js/dispositivo.js' %}" nonce="{{ csp_nonce }}"></script>
-<script src="{% static 'js/passkeys.js' %}" nonce="{{ csp_nonce }}"></script>
-<script src="{% static 'js/pantallas/passkeys.js' %}" nonce="{{ csp_nonce }}" data-url-opciones="{% url 'passkey_registro_opciones' %}" data-url-verificar="{% url 'passkey_registro_verificar' %}"></script>
+<script type="module" src="{% static 'js/dispositivo.js' %}" nonce="{{ csp_nonce }}"></script>
+<script type="module" src="{% static 'js/passkeys.js' %}" nonce="{{ csp_nonce }}"></script>
+<script type="module" data-js="passkeys" src="{% static 'js/pantallas/passkeys.js' %}" nonce="{{ csp_nonce }}" data-url-opciones="{% url 'passkey_registro_opciones' %}" data-url-verificar="{% url 'passkey_registro_verificar' %}"></script>
 {% endblock %}

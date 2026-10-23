@@ -1,5 +1,5 @@
 (function () {
-  var script = document.currentScript;
+  var script = (document.currentScript || document.querySelector('script[data-js="crear-meta"]'));
   if (!script) return;
   var d = script.dataset;
   var meta = document.getElementById(d.meta);

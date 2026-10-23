@@ -1,5 +1,5 @@
 (function () {
-  var script = document.currentScript;
+  var script = (document.currentScript || document.querySelector('script[data-js="form-transaccion"]'));
   if (!script) return;
   var oculto = document.getElementById(script.dataset.tipo);
   var seg = document.getElementById('segTipoMov');

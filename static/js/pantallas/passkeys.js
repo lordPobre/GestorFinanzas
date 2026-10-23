@@ -1,5 +1,5 @@
 (function () {
-  var script = document.currentScript;
+  var script = (document.currentScript || document.querySelector('script[data-js="passkeys"]'));
   var form = document.getElementById('formPasskey');
   var boton = document.getElementById('btnPasskey');
   var aviso = document.getElementById('avisoPasskey');

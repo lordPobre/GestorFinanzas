@@ -82,5 +82,5 @@
 {% block modals %}{% include 'finanzas/_mes_modal.html' %}{% endblock %}
 
 {% block extra_js %}
-<script src="{% static 'js/pantallas/por-pagar.js' %}" nonce="{{ csp_nonce }}"></script>
+<script type="module" src="{% static 'js/pantallas/por-pagar.js' %}" nonce="{{ csp_nonce }}"></script>
 {% endblock %}

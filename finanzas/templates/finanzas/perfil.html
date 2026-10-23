@@ -454,8 +454,8 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="{% static 'js/pantallas/recordatorios.js' %}" nonce="{{ csp_nonce }}"></script>
-<script src="{% static 'js/dispositivo.js' %}" nonce="{{ csp_nonce }}"></script>
-<script src="{% static 'js/pantallas/perfil.js' %}" nonce="{{ csp_nonce }}" data-foto="{{ perfil_form.foto.id_for_label }}"></script>
-<script src="{% static 'js/pantallas/perfil-2.js' %}" nonce="{{ csp_nonce }}" {% if pw_form.errors %}data-pw-errores="1" {% endif %}data-p1="{{ pw_form.new_password1.id_for_label }}" data-p2="{{ pw_form.new_password2.id_for_label }}"></script>
+<script type="module" src="{% static 'js/pantallas/recordatorios.js' %}" nonce="{{ csp_nonce }}"></script>
+<script type="module" src="{% static 'js/dispositivo.js' %}" nonce="{{ csp_nonce }}"></script>
+<script type="module" data-js="perfil" src="{% static 'js/pantallas/perfil.js' %}" nonce="{{ csp_nonce }}" data-foto="{{ perfil_form.foto.id_for_label }}"></script>
+<script type="module" data-js="perfil-2" src="{% static 'js/pantallas/perfil-2.js' %}" nonce="{{ csp_nonce }}" {% if pw_form.errors %}data-pw-errores="1" {% endif %}data-p1="{{ pw_form.new_password1.id_for_label }}" data-p2="{{ pw_form.new_password2.id_for_label }}"></script>
 {% endblock %}

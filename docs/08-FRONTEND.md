@@ -80,6 +80,15 @@ Tipografía: Manrope para todo el texto y JetBrains Mono para cifras que se comp
 
 `pruebas_js/` tiene pruebas con el ejecutor que trae Node (`node:test`), sin dependencias: cargan el archivo real con `vm` sobre un DOM mínimo escrito en la misma prueba. Hoy cubren `anotar-tope.js` y los avisos de `sw.js`. Se corren con `node --test pruebas_js/*.test.js`, y el CI lo hace en el trabajo `javascript`. La carpeta está fuera de `static/` para que no se publique.
 
+### Módulos (lote 191)
+
+En las pantallas con sesión (`base.html` y las plantillas que la extienden) los scripts se cargan con `type="module"`:
+
+- Corren en modo estricto y después de que el navegador termina de leer la página, en el orden en que aparecen. No hay `import` ni `export`: cada archivo sigue siendo un bloque que se ejecuta solo, y lo que se comparte entre archivos sigue en `window` (`finappOpen`, `finappEsfera`, `finappTour`, `FintoraPasskeys`, `FintoraDispositivo`). Así las pruebas de `pruebas_js/` los siguen cargando igual.
+- En un módulo `document.currentScript` no existe. Los archivos que leen sus `data-*` buscan su etiqueta con `document.currentScript || document.querySelector('script[data-js="nombre"]')`, y la etiqueta lleva `data-js="nombre"`. `test_modulos.py` revisa que no falte.
+- Siguen clásicos, a propósito: `modales-temprano.js`, `registro-sw.js` y `barra-estado.js` en `<head>`, y `saludo-hora.js` dentro de `<main>`, porque tienen que correr antes de pintar. También los que se cargan al usarlos (`tour.js`, `anotar.js`, `anotar-tope.js`, `panel-anotar.js`), Chart.js, `consentimiento.js` (que puede ir dos veces en una página, y un módulo corre una sola vez) y las páginas sin sesión (acceso, landing, legales).
+- Un archivo nuevo para una pantalla con sesión va con `type="module"`. Si lee `data-*`, con `data-js`.
+
 ### Global: `static/js/finapp.js`
 
 Se carga en `base.html`. Marca `window.__finappJsCargado`, para no inicializar dos veces.

@@ -1,5 +1,5 @@
 (function () {
-  var script = document.currentScript;
+  var script = (document.currentScript || document.querySelector('script[data-js="analisis"]'));
   var GRID = 'rgba(255,255,255,.055)';
   var TICK = 'rgba(245, 245, 245, .62)';
   var FONT = "'Manrope', sans-serif";

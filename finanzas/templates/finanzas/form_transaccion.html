@@ -85,5 +85,5 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="{% static 'js/pantallas/form-transaccion.js' %}" nonce="{{ csp_nonce }}" data-tipo="{{ form.tipo.id_for_label }}" data-monto="{{ form.monto.id_for_label }}"></script>
+<script type="module" data-js="form-transaccion" src="{% static 'js/pantallas/form-transaccion.js' %}" nonce="{{ csp_nonce }}" data-tipo="{{ form.tipo.id_for_label }}" data-monto="{{ form.monto.id_for_label }}"></script>
 {% endblock %}

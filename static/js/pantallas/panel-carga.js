@@ -1,5 +1,5 @@
 (function () {
-  var script = document.currentScript;
+  var script = (document.currentScript || document.querySelector('script[data-js="panel-carga"]'));
   var modal = document.getElementById('modalGasto');
   if (!script || !modal) return;
   var d = script.dataset;

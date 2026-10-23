@@ -198,6 +198,6 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="{% static 'js/pantallas/inicio-esfera.js' %}" nonce="{{ csp_nonce }}"></script>
-<script src="{% static 'js/pantallas/deudas.js' %}" nonce="{{ csp_nonce }}" data-cuota="{{ form.valor_cuota.id_for_label }}" data-cuotas="{{ form.cuotas_totales.id_for_label }}" data-inicio="{{ form.fecha_inicio.id_for_label }}"></script>
+<script type="module" src="{% static 'js/pantallas/inicio-esfera.js' %}" nonce="{{ csp_nonce }}"></script>
+<script type="module" data-js="deudas" src="{% static 'js/pantallas/deudas.js' %}" nonce="{{ csp_nonce }}" data-cuota="{{ form.valor_cuota.id_for_label }}" data-cuotas="{{ form.cuotas_totales.id_for_label }}" data-inicio="{{ form.fecha_inicio.id_for_label }}"></script>
 {% endblock %}

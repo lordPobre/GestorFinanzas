@@ -1,6 +1,6 @@
 (function () {
   var VERSION_TOUR = 4;
-  var script = document.currentScript;
+  var script = (document.currentScript || document.querySelector('script[data-js="tour-arranque"]'));
   if (!script || !script.dataset.src) return;
   var d = script.dataset;
   var nonce = script.nonce || '';

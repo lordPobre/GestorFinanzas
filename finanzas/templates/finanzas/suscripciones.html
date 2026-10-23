@@ -251,6 +251,6 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="{% static 'js/pantallas/inicio-esfera.js' %}" nonce="{{ csp_nonce }}"></script>
-<script src="{% static 'js/pantallas/suscripciones.js' %}" nonce="{{ csp_nonce }}" data-total-mensual="{{ total_mensual|default:0 }}"></script>
+<script type="module" src="{% static 'js/pantallas/inicio-esfera.js' %}" nonce="{{ csp_nonce }}"></script>
+<script type="module" data-js="suscripciones" src="{% static 'js/pantallas/suscripciones.js' %}" nonce="{{ csp_nonce }}" data-total-mensual="{{ total_mensual|default:0 }}"></script>
 {% endblock %}

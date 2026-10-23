@@ -65,5 +65,5 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="{% static 'js/pantallas/crear-meta.js' %}" nonce="{{ csp_nonce }}" data-meta="{{ form.monto_meta.id_for_label }}" data-actual="{{ form.monto_actual.id_for_label }}" data-fecha="{{ form.fecha_limite.id_for_label }}"></script>
+<script type="module" data-js="crear-meta" src="{% static 'js/pantallas/crear-meta.js' %}" nonce="{{ csp_nonce }}" data-meta="{{ form.monto_meta.id_for_label }}" data-actual="{{ form.monto_actual.id_for_label }}" data-fecha="{{ form.fecha_limite.id_for_label }}"></script>
 {% endblock %}

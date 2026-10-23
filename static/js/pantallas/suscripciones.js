@@ -43,7 +43,7 @@
 })();
 
 (function () {
-  var script = document.currentScript;
+  var script = (document.currentScript || document.querySelector('script[data-js="suscripciones"]'));
   var monto = document.getElementById('id_sub_monto');
   var anual = document.getElementById('subAnual');
   var nota = document.getElementById('subNota');

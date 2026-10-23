@@ -1,5 +1,5 @@
 (function () {
-  var script = document.currentScript;
+  var script = (document.currentScript || document.querySelector('script[data-js="perfil"]'));
   if (!script) return;
   var campo = document.getElementById(script.dataset.foto);
   var img = document.getElementById('vistaAvatar');

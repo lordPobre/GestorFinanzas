@@ -1,5 +1,5 @@
 (function () {
-  var script = document.currentScript;
+  var script = (document.currentScript || document.querySelector('script[data-js="analisis-2"]'));
   var btn = document.getElementById('btnIA');
   if (!btn || !script) return;
   var urlIA = script.dataset.urlIa;

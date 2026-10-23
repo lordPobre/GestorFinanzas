@@ -1,5 +1,5 @@
 (function () {
-  var script = document.currentScript;
+  var script = (document.currentScript || document.querySelector('script[data-js="plan"]'));
   var nodo = document.getElementById('d-plan');
   if (!nodo || !script) return;
   var d = JSON.parse(nodo.textContent);

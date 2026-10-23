@@ -1,5 +1,5 @@
 (function () {
-  var script = document.currentScript;
+  var script = (document.currentScript || document.querySelector('script[data-js="form-deuda"]'));
   if (!script) return;
   var d = script.dataset;
   var cuota = document.getElementById(d.cuota);

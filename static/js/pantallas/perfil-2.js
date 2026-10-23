@@ -1,5 +1,5 @@
 (function () {
-  var script = document.currentScript;
+  var script = (document.currentScript || document.querySelector('script[data-js="perfil-2"]'));
   var seg = document.getElementById('segPerfil');
   if (!seg || !script) return;
   var d = script.dataset;

@@ -1,5 +1,5 @@
 (function () {
-  var script = document.currentScript;
+  var script = (document.currentScript || document.querySelector('script[data-js="categorias-topes"]'));
   var simbolo = (script && script.dataset.simbolo) || '$';
   var modal = document.getElementById('modalTope');
   if (!modal) return;

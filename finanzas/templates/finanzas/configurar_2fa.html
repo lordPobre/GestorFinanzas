@@ -205,6 +205,6 @@
 
 {% block extra_js %}
 {% if not factor.activo %}
-<script src="{% static 'js/pantallas/configurar-2fa.js' %}" nonce="{{ csp_nonce }}"></script>
+<script type="module" src="{% static 'js/pantallas/configurar-2fa.js' %}" nonce="{{ csp_nonce }}"></script>
 {% endif %}
 {% endblock %}
