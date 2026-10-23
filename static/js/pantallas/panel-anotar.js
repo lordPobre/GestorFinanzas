@@ -132,7 +132,9 @@
       : 'Queda en la lista de pagos del mes para marcarlo cuando lo pagues.';
   });
 
-  setTipo('EGRESO');
+  var preset = script ? script.dataset.presetTipo : '';
+  setTipo(preset === 'INGRESO' ? 'INGRESO' : 'EGRESO');
+  if (preset && avisoMonto) avisoMonto.style.display = 'none';
   pintarMonto();
 
   if (abrirPanel) {

@@ -114,6 +114,7 @@ Hay 50 archivos, uno o más por plantilla, con el nombre de la plantilla (`dashb
   - `registro-sw.js` (en `<head>`): registra el *service worker*, recarga al tomar uno nuevo y recarga cuando Safari muestra una página guardada al ir Atrás.
   - `barra-estado.js` (en `<head>`): la clase `con-scroll` de la franja de la barra de estado.
   - `saludo-hora.js`: «Buenos días», «Buenas tardes» o «Buenas noches» según la hora.
+  - `panel-carga.js`: deja que el panel Registrar se cargue al usarlo (lote 190). Al primer toque en un botón que abre `#modalGasto` pide en orden `anotar.js`, `anotar-tope.js` y `panel-anotar.js`, y recién entonces abre el panel con el tipo del botón (llega a `panel-anotar.js` en su `data-preset-tipo`). Con `?registrar=1` o `abrir_panel` los carga al abrir la página. Si otro script abre el panel (por ejemplo `mantener-lugar.js`), los carga igual. También cierra la hoja «¿Qué quieres anotar?».
   - `panel-anotar.js`: el panel Registrar (tipo, categorías, teclado, «¿Ya la pagaste?»).
   - `tour-arranque.js`: decide si hace falta el recorrido y solo entonces carga `tour.js` (ver más abajo).
 - `recordatorios.js` (solo en Inicio y Perfil, desde el lote 189): el interruptor de Perfil, el permiso del navegador, suscribir o quitar el aparato, «Probar aviso» y la invitación de Inicio, que «Ahora no» esconde en ese aparato (`localStorage`). En un iPhone sin la app instalada explica cómo agregarla.

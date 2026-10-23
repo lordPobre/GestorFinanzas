@@ -1,11 +1,4 @@
 (function () {
-  var hoja = document.getElementById('modalAnotar');
-  if (hoja) {
-    hoja.addEventListener('click', function (e) {
-      if (e.target.closest('[data-open]')) hoja.classList.remove('open');
-    });
-  }
-
   var form = document.getElementById('formRegistro');
   if (!form) return;
 

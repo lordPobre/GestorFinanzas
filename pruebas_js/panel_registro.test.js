@@ -28,8 +28,11 @@ const HTML = `
 </div>
 <button id="presetIngreso" data-preset-tipo="INGRESO"></button>`;
 
-function montar({ abrir = false, egresos = JSON.stringify(GASTOS), ingresos = JSON.stringify(INGRESOS) } = {}) {
-  const documento = crearDocumento(HTML, abrir ? { abrirPanel: '1' } : {});
+function montar({ abrir = false, preset = '', egresos = JSON.stringify(GASTOS), ingresos = JSON.stringify(INGRESOS) } = {}) {
+  const datos = {};
+  if (abrir) datos.abrirPanel = '1';
+  if (preset) datos.presetTipo = preset;
+  const documento = crearDocumento(HTML, datos);
   const chips = documento.getElementById('chipsGasto');
   chips.dataset.egreso = egresos;
   chips.dataset.ingreso = ingresos;
@@ -164,4 +167,12 @@ test('el nombre de una categoría se muestra como texto, no como HTML', () => {
   assert.equal(boton.textContent, '<b>prueba</b>');
   assert.equal(boton.querySelector('b'), null);
   assert.equal($('campoCategoria').value, 'x');
+});
+
+test('si se cargó desde un botón de ingreso parte en ingreso y sin el aviso', () => {
+  const { $ } = montar({ preset: 'INGRESO' });
+  assert.equal($('campoTipo').value, 'INGRESO');
+  assert.equal($('labelCat').textContent, 'De dónde viene');
+  assert.equal($('avisoMonto').style.display, 'none');
+  assert.equal(montar({ preset: 'EGRESO' }).$('campoTipo').value, 'EGRESO');
 });
