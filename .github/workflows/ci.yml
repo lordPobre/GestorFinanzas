@@ -216,7 +216,7 @@ jobs:
       - name: Origen de los hallazgos
         if: failure()
         run: |
-          trivy image --scanners vuln --severity HIGH,CRITICAL --ignore-unfixed --skip-db-update --format json fintora-respaldo:ci \
+          trivy image --scanners vuln --severity HIGH,CRITICAL --ignore-unfixed --format json fintora-respaldo:ci \
             | jq -r '.Results[] | .Target as $t | .Vulnerabilities[]? | "\(.PkgName) \(.InstalledVersion) \(.PkgPath // $t)"'
           docker run --rm --entrypoint sh fintora-respaldo:ci -c 'find / -xdev \( -name "*.spdx.json" -o -name "*.cdx.json" -o -path "*ensurepip/_bundled*" \) 2>/dev/null'
 
