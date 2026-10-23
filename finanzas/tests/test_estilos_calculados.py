@@ -57,7 +57,9 @@ RECOLECTAR = """
     const partes = [];
     while (el && el !== document.documentElement) {
       const padre = el.parentElement;
-      partes.unshift(el.tagName.toLowerCase() + ':' + ([...padre.children].indexOf(el) + 1));
+      const clase = el.classList[0] || '';
+      const iguales = [...padre.children].filter((h) => h.tagName === el.tagName && (h.classList[0] || '') === clase);
+      partes.unshift(el.tagName.toLowerCase() + (clase ? '.' + clase : '') + ':' + (iguales.indexOf(el) + 1));
       el = padre;
     }
     return partes.join('>');

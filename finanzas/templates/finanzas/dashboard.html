@@ -79,9 +79,7 @@
     {% if profile.foto_url %}<img src="{{ profile.foto_url }}" alt="" data-quitar-si-falla>{% endif %}
   </a>
   <button type="button" class="ini-top-mes" data-open="#modalMes">{{ nombre_mes }}<i class="fas fa-chevron-down"></i></button>
-  <button type="button" class="ini-top-campana" data-open="#modalAvisos" aria-label="Avisos">
-    <i class="fas fa-bell"></i>{% if cuotas_atrasadas or pendientes_sin_pagar or insights or atrasado_arrastrado %}<span class="punto"></span>{% endif %}
-  </button>
+  {% include 'finanzas/_campana.html' with clase='ini-top-campana' %}
 </div>
 
 <section class="ini-hero">

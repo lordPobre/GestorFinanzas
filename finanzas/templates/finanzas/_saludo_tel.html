@@ -1,0 +1,8 @@
+<div class="saludo-card">
+  <a href="{% url 'perfil' %}" class="avatar">{% if profile.foto_url %}<img src="{{ profile.foto_url }}" alt="" data-quitar-si-falla>{% endif %}<span class="avatar-letra">{{ profile.inicial|default:"?" }}</span></a>
+  <div class="saludo-txt">
+    <div class="saludo-hola" data-saludo>Buenos días</div>
+    <div class="saludo-nombre">{{ profile.nombre_display|default:user.username }}</div>
+  </div>
+  {% include 'finanzas/_campana.html' with clase='saludo-campana' %}
+</div>
