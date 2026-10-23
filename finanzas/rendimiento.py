@@ -19,6 +19,17 @@ def recordar(clave, calcular):
     return memo[clave]
 
 
+def recordado(clave):
+    memo = _memo.get()
+    return None if memo is None else memo.get(clave)
+
+
+def olvidar(clave):
+    memo = _memo.get()
+    if memo is not None:
+        memo.pop(clave, None)
+
+
 def limpiar():
     memo = _memo.get()
     if memo is not None:

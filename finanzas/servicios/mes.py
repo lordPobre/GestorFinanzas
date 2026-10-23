@@ -10,7 +10,7 @@ from django.db.models.functions import Cast, Coalesce, ExtractMonth, ExtractYear
 
 from .. import fechas
 from ..models import Deuda, PagoCuota, Prestamo, Suscripcion, Transaccion
-from ..rendimiento import recordar
+from ..rendimiento import olvidar, recordado, recordar
 
 MESES_LARGOS = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio',
                 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre']
@@ -289,13 +289,17 @@ def _clave_version(usuario_id):
     return f'mes-version:{usuario_id}'
 
 
-def _version(usuario_id):
+def _leer_version(usuario_id):
     clave = _clave_version(usuario_id)
     version = cache.get(clave)
     if version is None:
         version = time.time_ns()
         cache.set(clave, version, None)
     return version
+
+
+def _version(usuario_id):
+    return recordar(('mes-version', usuario_id), lambda: _leer_version(usuario_id))
 
 
 def version_de(usuario_id):
@@ -305,6 +309,7 @@ def version_de(usuario_id):
 def invalidar(usuario_id):
     if usuario_id:
         cache.set(_clave_version(usuario_id), time.time_ns(), None)
+        olvidar(('mes-version', usuario_id))
 
 
 def _clave_numeros(usuario_id, version, year, month, hoy):
@@ -314,7 +319,7 @@ def _clave_numeros(usuario_id, version, year, month, hoy):
     return clave
 
 
-def numeros_mes(usuario, year, month):
+def _numeros_desde_cache(usuario, year, month):
     hoy = fechas.hoy()
     clave = _clave_numeros(usuario.pk, _version(usuario.pk), year, month, hoy)
     datos = cache.get(clave)
@@ -323,6 +328,14 @@ def numeros_mes(usuario, year, month):
         datos = {k: r[k] for k in CLAVES_NUMEROS}
         cache.set(clave, datos, SEGUNDOS_NUMEROS_EN_CACHE)
     return datos
+
+
+def numeros_mes(usuario, year, month):
+    ya = recordado(('resumen_mes', usuario.pk, year, month))
+    if ya is not None:
+        return {k: ya[k] for k in CLAVES_NUMEROS}
+    return recordar(('numeros_mes', usuario.pk, year, month),
+                    lambda: _numeros_desde_cache(usuario, year, month))
 
 
 def _numeros_pasados(usuario, meses):
@@ -371,19 +384,15 @@ def _numeros_pasados(usuario, meses):
 
 def numeros_meses(usuario, meses):
     hoy = fechas.hoy()
-    version = _version(usuario.pk)
-    claves = {mes: _clave_numeros(usuario.pk, version, *mes, hoy) for mes in meses}
-    guardados = cache.get_many(list(claves.values()))
-    salida, faltan = {}, []
-    for mes, clave in claves.items():
-        if clave in guardados:
-            salida[mes] = guardados[clave]
-        elif mes < (hoy.year, hoy.month):
-            faltan.append(mes)
-        else:
-            salida[mes] = numeros_mes(usuario, *mes)
-    if faltan:
-        nuevos = _numeros_pasados(usuario, faltan)
-        cache.set_many({claves[mes]: datos for mes, datos in nuevos.items()}, SEGUNDOS_NUMEROS_EN_CACHE)
-        salida.update(nuevos)
+    actual = (hoy.year, hoy.month)
+    pasados = sorted(m for m in meses if m < actual)
+    salida = {m: numeros_mes(usuario, *m) for m in meses if m >= actual}
+    if pasados:
+        periodos = ','.join(str(y * 100 + m) for y, m in pasados)
+        clave = f'meses:{usuario.pk}:{_version(usuario.pk)}:{periodos}'
+        datos = cache.get(clave)
+        if datos is None:
+            datos = _numeros_pasados(usuario, pasados)
+            cache.set(clave, datos, SEGUNDOS_NUMEROS_EN_CACHE)
+        salida.update(datos)
     return salida

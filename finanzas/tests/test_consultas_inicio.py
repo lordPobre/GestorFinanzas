@@ -13,7 +13,8 @@ from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.cache import cache
 from django.db import connection
-from django.test import TestCase
+from django.core.management import call_command
+from django.test import TestCase, override_settings
 from django.test.utils import CaptureQueriesContext
 from django.urls import reverse
 
@@ -22,7 +23,7 @@ from ..models import Deuda, PagoCuota, Transaccion
 MEDIR = os.environ.get('MEDIR_INICIO') == '1'
 TABLA = re.compile(r'FROM "(\w+)"')
 RAIZ = str(Path(settings.BASE_DIR).resolve())
-TOPE_INICIO = 40
+TOPE_INICIO = 56
 
 
 def tablas(consultas):
@@ -53,7 +54,17 @@ class Anotador:
         return ejecutar(sql, params, many, contexto)
 
 
+CACHE_COMO_PRODUCCION = {'default': {'BACKEND': 'django.core.cache.backends.db.DatabaseCache',
+                                     'LOCATION': 'cache_finapp'}}
+
+
+@override_settings(CACHES=CACHE_COMO_PRODUCCION)
 class ConsultasInicioTests(TestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        call_command('createcachetable', verbosity=0)
 
     def setUp(self):
         self.ana = User.objects.create_user('ana', 'ana@ejemplo.cl', 'clave-larga-1')

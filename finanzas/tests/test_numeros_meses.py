@@ -4,10 +4,12 @@ from decimal import Decimal
 from dateutil.relativedelta import relativedelta
 from django.contrib.auth.models import User
 from django.core.cache import cache
-from django.test import TestCase
+from django.test import TestCase, override_settings
 
 from ..models import AbonoPrestamo, Deuda, PagoCuota, Persona, Prestamo, Transaccion
-from ..servicios.mes import CLAVES_NUMEROS, _numeros_pasados, _resumen_mes, numeros_meses
+from ..rendimiento import _memo
+from ..servicios.mes import (CLAVES_NUMEROS, _numeros_pasados, _resumen_mes, invalidar, numeros_mes,
+                              numeros_meses, resumen_mes)
 from ..servicios.panel import primeros_pasos
 
 
@@ -66,6 +68,8 @@ class NumerosMesesTests(TestCase):
         for mes in self.meses:
             self.assertEqual(juntos[mes], self._esperado(mes))
 
+    @override_settings(CACHES={'default': {'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+                                           'LOCATION': 'pruebas-numeros-meses'}})
     def test_cinco_meses_en_pocas_consultas_y_luego_desde_cache(self):
         self._datos()
         with self.assertNumQueries(5):
@@ -73,6 +77,37 @@ class NumerosMesesTests(TestCase):
         with self.assertNumQueries(0):
             segunda = numeros_meses(self.ana, self.meses)
         self.assertEqual(primera, segunda)
+
+    def test_otro_mes_dentro_de_la_serie_no_usa_lo_guardado(self):
+        self._datos()
+        juntos = numeros_meses(self.ana, self.meses)
+        cache.clear()
+        for mes in self.meses:
+            self.assertEqual(numeros_meses(self.ana, [mes])[mes], juntos[mes], mes)
+
+    def test_en_la_misma_peticion_reusa_el_mes_ya_calculado(self):
+        self._datos()
+        hoy = date.today()
+        token = _memo.set({})
+        try:
+            r = resumen_mes(self.ana, hoy.year, hoy.month)
+            with self.assertNumQueries(0):
+                datos = numeros_mes(self.ana, hoy.year, hoy.month)
+        finally:
+            _memo.reset(token)
+        self.assertEqual(datos, {k: r[k] for k in CLAVES_NUMEROS})
+
+    def test_invalidar_cambia_la_version_aunque_ya_se_haya_leido(self):
+        token = _memo.set({})
+        try:
+            antes = numeros_meses(self.ana, self.meses)
+            Transaccion.objects.create(usuario=self.ana, tipo='INGRESO', monto=Decimal('50000'),
+                                       categoria='Sueldo', fecha=self._fecha(1, 3))
+            invalidar(self.ana.pk)
+            despues = numeros_meses(self.ana, self.meses)
+        finally:
+            _memo.reset(token)
+        self.assertEqual(despues[self.meses[-1]]['ingresos'], antes[self.meses[-1]]['ingresos'] + 50000)
 
     def test_primeros_pasos_en_una_consulta(self):
         self._datos()
