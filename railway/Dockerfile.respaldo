@@ -16,13 +16,16 @@ RUN apt-get update \
  && apt-get install -y --no-install-recommends postgresql-client-${PG_MAJOR} \
  && apt-get purge -y curl \
  && apt-get autoremove -y \
- && rm -rf /var/lib/apt/lists/*
+ && rm -rf /var/lib/apt/lists/* \
+ && useradd --create-home --uid 10001 respaldo
 
 WORKDIR /app
 
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir --require-hashes -r requirements.txt
 
 COPY . .
+
+USER respaldo
 
 CMD ["python", "manage.py", "respaldar_postgres"]
