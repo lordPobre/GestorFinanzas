@@ -23,7 +23,7 @@ from ..models import Deuda, PagoCuota, Transaccion
 MEDIR = os.environ.get('MEDIR_INICIO') == '1'
 TABLA = re.compile(r'FROM "(\w+)"')
 RAIZ = str(Path(settings.BASE_DIR).resolve())
-TOPE_INICIO = 56
+TOPE_INICIO = 54
 
 
 def tablas(consultas):
@@ -110,7 +110,8 @@ class ConsultasInicioTests(TestCase):
         respuesta, _ = self._medir()
         for clave in ('mis_cuotas', 'fijo_mensual', 'cat_data_json', 'mapa_categorias', 'variacion_saldo',
                       'deuda_total', 'proximo_pago', 'hoy_texto', 'calendario', 'dias_con_pago',
-                      'monto_ya_pagado', 'gastos_pendientes', 'dias_semana'):
+                      'monto_ya_pagado', 'gastos_pendientes', 'dias_semana', 'movimientos_mes',
+                      'mov_entro', 'mov_salio', 'mov_n_unicos'):
             self.assertNotIn(clave, respuesta.context, clave)
 
     def test_inicio_no_pasa_el_tope_y_no_crece_con_las_compras(self):

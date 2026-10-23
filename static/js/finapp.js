@@ -428,110 +428,110 @@
     });
   });
 
-  var carriles = $$('.swipe');
-  if (carriles.length) {
 
-    function panelDe(carril, lado) {
-      return $('.swipe-acciones.' + lado, carril) ||
-             (lado === 'der' ? $('.swipe-acciones:not(.izq)', carril) : null);
-    }
-    function anchoDe(carril, lado) {
-      var acc = panelDe(carril, lado || 'der');
-      return acc ? Math.round(acc.getBoundingClientRect().width) + 8 : 144;
-    }
-    var UMBRAL = 40;
-    var abierta = null;
-
-    function esFlotante(c) { return c.classList.contains('swipe-mov'); }
-
-    function cerrar(c) {
-      if (!c) return;
-      c.classList.remove('abierta', 'abierta-izq', 'abierta-der');
-      var card = $('.swipe-card', c);
-      if (card) card.style.transform = '';
-      if (abierta === c) abierta = null;
-    }
-
-    function abrir(c, lado) {
-
-      if (abierta && abierta !== c) cerrar(abierta);
-      c.classList.add('abierta');
-      c.classList.toggle('abierta-izq', lado === 'izq');
-      c.classList.toggle('abierta-der', lado !== 'izq');
-      var card = $('.swipe-card', c);
-
-      if (card) {
-        var d = anchoDe(c, lado);
-        card.style.transform = 'translateX(' + (lado === 'izq' ? d : -d) + 'px)';
-      }
-      abierta = c;
-    }
-
-    carriles.forEach(function (carril) {
-      var card = $('.swipe-card', carril);
-      if (!card) return;
-      var x0 = 0, y0 = 0, dx = 0, arrastrando = false, decidido = false;
-
-      card.addEventListener('touchstart', function (e) {
-        if (e.touches.length !== 1) return;
-        x0 = e.touches[0].clientX;
-        y0 = e.touches[0].clientY;
-        dx = 0; arrastrando = true; decidido = false;
-        card.style.transition = 'none';
-      }, { passive: true });
-
-      card.addEventListener('touchmove', function (e) {
-        if (!arrastrando) return;
-        var mx = e.touches[0].clientX - x0;
-        var my = e.touches[0].clientY - y0;
-
-        if (!decidido) {
-          if (Math.abs(mx) < 8 && Math.abs(my) < 8) return;
-          if (Math.abs(my) > Math.abs(mx)) { arrastrando = false; card.style.transition = ''; return; }
-          decidido = true;
-        }
-
-        var hayIzq = !!panelDe(carril, 'izq');
-        var hayDer = !!panelDe(carril, 'der');
-        var ladoAbierto = carril.classList.contains('abierta-izq') ? 'izq'
-                        : carril.classList.contains('abierta-der') ? 'der' : null;
-        var base = ladoAbierto
-          ? (ladoAbierto === 'izq' ? anchoDe(carril, 'izq') : -anchoDe(carril, 'der'))
-          : 0;
-        dx = base + mx;
-
-        var topeDer = hayDer ? anchoDe(carril, 'der') : 0;
-        var topeIzq = hayIzq ? anchoDe(carril, 'izq') : 0;
-        if (dx > topeIzq) dx = topeIzq + (dx - topeIzq) * 0.25;
-        else if (dx < -topeDer) dx = -topeDer + (dx + topeDer) * 0.25;
-        card.style.transform = 'translateX(' + dx + 'px)';
-      }, { passive: true });
-
-      function soltar() {
-        if (!arrastrando) return;
-        arrastrando = false;
-        card.style.transition = '';
-        card.style.transform = '';
-        if (!decidido) return;
-        if (dx < -UMBRAL && panelDe(carril, 'der')) abrir(carril, 'der');
-        else if (dx > UMBRAL && panelDe(carril, 'izq')) abrir(carril, 'izq');
-        else cerrar(carril);
-      }
-      card.addEventListener('touchend', soltar);
-      card.addEventListener('touchcancel', soltar);
-
-      card.addEventListener('click', function (e) {
-        if (carril.classList.contains('abierta')) {
-          e.preventDefault();
-          e.stopPropagation();
-          cerrar(carril);
-        }
-      }, true);
-    });
-
-    document.addEventListener('touchstart', function (e) {
-      if (abierta && !abierta.contains(e.target)) cerrar(abierta);
-    }, { passive: true });
+  function panelDe(carril, lado) {
+    return $('.swipe-acciones.' + lado, carril) ||
+           (lado === 'der' ? $('.swipe-acciones:not(.izq)', carril) : null);
   }
+  function anchoDe(carril, lado) {
+    var acc = panelDe(carril, lado || 'der');
+    return acc ? Math.round(acc.getBoundingClientRect().width) + 8 : 144;
+  }
+  var UMBRAL = 40;
+  var abierta = null;
+
+  function cerrar(c) {
+    if (!c) return;
+    c.classList.remove('abierta', 'abierta-izq', 'abierta-der');
+    var card = $('.swipe-card', c);
+    if (card) card.style.transform = '';
+    if (abierta === c) abierta = null;
+  }
+
+  function abrir(c, lado) {
+
+    if (abierta && abierta !== c) cerrar(abierta);
+    c.classList.add('abierta');
+    c.classList.toggle('abierta-izq', lado === 'izq');
+    c.classList.toggle('abierta-der', lado !== 'izq');
+    var card = $('.swipe-card', c);
+
+    if (card) {
+      var d = anchoDe(c, lado);
+      card.style.transform = 'translateX(' + (lado === 'izq' ? d : -d) + 'px)';
+    }
+    abierta = c;
+  }
+
+  function conectarSwipe(carril) {
+    if (carril.dataset.swipeListo) return;
+    var card = $('.swipe-card', carril);
+    if (!card) return;
+    carril.dataset.swipeListo = '1';
+    var x0 = 0, y0 = 0, dx = 0, arrastrando = false, decidido = false;
+
+    card.addEventListener('touchstart', function (e) {
+      if (e.touches.length !== 1) return;
+      x0 = e.touches[0].clientX;
+      y0 = e.touches[0].clientY;
+      dx = 0; arrastrando = true; decidido = false;
+      card.style.transition = 'none';
+    }, { passive: true });
+
+    card.addEventListener('touchmove', function (e) {
+      if (!arrastrando) return;
+      var mx = e.touches[0].clientX - x0;
+      var my = e.touches[0].clientY - y0;
+
+      if (!decidido) {
+        if (Math.abs(mx) < 8 && Math.abs(my) < 8) return;
+        if (Math.abs(my) > Math.abs(mx)) { arrastrando = false; card.style.transition = ''; return; }
+        decidido = true;
+      }
+
+      var hayIzq = !!panelDe(carril, 'izq');
+      var hayDer = !!panelDe(carril, 'der');
+      var ladoAbierto = carril.classList.contains('abierta-izq') ? 'izq'
+                      : carril.classList.contains('abierta-der') ? 'der' : null;
+      var base = ladoAbierto
+        ? (ladoAbierto === 'izq' ? anchoDe(carril, 'izq') : -anchoDe(carril, 'der'))
+        : 0;
+      dx = base + mx;
+
+      var topeDer = hayDer ? anchoDe(carril, 'der') : 0;
+      var topeIzq = hayIzq ? anchoDe(carril, 'izq') : 0;
+      if (dx > topeIzq) dx = topeIzq + (dx - topeIzq) * 0.25;
+      else if (dx < -topeDer) dx = -topeDer + (dx + topeDer) * 0.25;
+      card.style.transform = 'translateX(' + dx + 'px)';
+    }, { passive: true });
+
+    function soltar() {
+      if (!arrastrando) return;
+      arrastrando = false;
+      card.style.transition = '';
+      card.style.transform = '';
+      if (!decidido) return;
+      if (dx < -UMBRAL && panelDe(carril, 'der')) abrir(carril, 'der');
+      else if (dx > UMBRAL && panelDe(carril, 'izq')) abrir(carril, 'izq');
+      else cerrar(carril);
+    }
+    card.addEventListener('touchend', soltar);
+    card.addEventListener('touchcancel', soltar);
+
+    card.addEventListener('click', function (e) {
+      if (carril.classList.contains('abierta')) {
+        e.preventDefault();
+        e.stopPropagation();
+        cerrar(carril);
+      }
+    }, true);
+  }
+
+  window.finappSwipe = function (raiz) { $$('.swipe', raiz).forEach(conectarSwipe); };
+  window.finappSwipe(document);
+
+  document.addEventListener('touchstart', function (e) {
+    if (abierta && !abierta.contains(e.target)) cerrar(abierta);
+  }, { passive: true });
 
 })();

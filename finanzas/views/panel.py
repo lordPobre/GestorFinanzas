@@ -1,3 +1,4 @@
+import calendar
 import re
 from datetime import date
 
@@ -5,6 +6,7 @@ from dateutil.relativedelta import relativedelta
 
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
+from django.urls import reverse
 
 from .. import fechas
 from ..dinero import suma
@@ -76,6 +78,43 @@ def calendario_inicio(request):
     return respuesta
 
 
+def _movimientos_del_mes(usuario, year, month):
+    _, ultimo = calendar.monthrange(year, month)
+    movimientos_mes = list(Transaccion.objects.filter(
+        usuario=usuario, fecha__gte=date(year, month, 1), fecha__lte=date(year, month, ultimo),
+    ).order_by('-fecha', '-id'))
+    for t in movimientos_mes:
+        t.nombre_lista, t.meta_lista = textos_movimiento(t)
+    mov_entro = round(suma(t.monto for t in movimientos_mes if t.es_ingreso))
+    mov_salio = round(suma(t.monto for t in movimientos_mes if not t.es_ingreso))
+    mov_cuotas = round(suma(t.monto for t in movimientos_mes if t.es_cuota))
+    mov_tope = max(mov_entro, mov_salio, 1)
+    return {
+        'movimientos_mes': movimientos_mes,
+        'mov_entro': mov_entro,
+        'mov_salio': mov_salio,
+        'mov_pct_unicos': round((mov_salio - mov_cuotas) / mov_tope * 100),
+        'mov_pct_cuotas': round(mov_cuotas / mov_tope * 100),
+        'mov_pct_salio': round(mov_salio / mov_entro * 100) if mov_entro else None,
+        'mov_n_unicos': sum(1 for t in movimientos_mes if not t.es_ingreso and not t.es_cuota),
+        'mov_n_cuotas': sum(1 for t in movimientos_mes if t.es_cuota),
+        'mov_n_ingresos': sum(1 for t in movimientos_mes if t.es_ingreso),
+    }
+
+
+@login_required(login_url='/login/')
+def movimientos_inicio(request):
+    hoy = fechas.hoy()
+    year, month = _mes_pedido(request, hoy)
+    respuesta = render(request, 'finanzas/_inicio_movimientos.html', {
+        'nombre_mes': nombre_mes_es(year, month),
+        'volver': f"{reverse('dashboard')}?year={year}&month={month}",
+        **_movimientos_del_mes(request.user, year, month),
+    })
+    respuesta['Cache-Control'] = 'no-store'
+    return respuesta
+
+
 @login_required(login_url='/login/')
 def dashboard(request):
     generar_cobros_suscripciones(request.user)
@@ -101,16 +140,6 @@ def dashboard(request):
     atrasados = [i for i in sin_pagar if i['atrasado']]
 
     ultimas = Transaccion.objects.filter(usuario=request.user).order_by('-fecha', '-id')[:10]
-    movimientos_mes = Transaccion.objects.filter(
-        usuario=request.user, fecha__gte=r['fecha_inicio'], fecha__lte=r['fecha_fin'],
-    ).order_by('-fecha', '-id')
-    movimientos_mes = list(movimientos_mes)
-    for t in movimientos_mes:
-        t.nombre_lista, t.meta_lista = textos_movimiento(t)
-    mov_entro = round(suma(t.monto for t in movimientos_mes if t.es_ingreso))
-    mov_salio = round(suma(t.monto for t in movimientos_mes if not t.es_ingreso))
-    mov_cuotas = round(suma(t.monto for t in movimientos_mes if t.es_cuota))
-    mov_tope = max(mov_entro, mov_salio, 1)
     metas = list(MetaAhorro.objects.filter(usuario=request.user)[:3])
 
     presupuesto = Presupuesto.objects.filter(usuario=request.user).first()
@@ -153,15 +182,6 @@ def dashboard(request):
 
         'insights': insights,
         'ultimas': ultimas,
-        'movimientos_mes': movimientos_mes,
-        'mov_entro': mov_entro,
-        'mov_salio': mov_salio,
-        'mov_pct_unicos': round((mov_salio - mov_cuotas) / mov_tope * 100),
-        'mov_pct_cuotas': round(mov_cuotas / mov_tope * 100),
-        'mov_pct_salio': round(mov_salio / mov_entro * 100) if mov_entro else None,
-        'mov_n_unicos': sum(1 for t in movimientos_mes if not t.es_ingreso and not t.es_cuota),
-        'mov_n_cuotas': sum(1 for t in movimientos_mes if t.es_cuota),
-        'mov_n_ingresos': sum(1 for t in movimientos_mes if t.es_ingreso),
         'metas': metas,
 
         'abrir_panel': bool(request.GET.get('registrar')),

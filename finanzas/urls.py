@@ -37,6 +37,7 @@ urlpatterns = [
     path('ayuda/chat/', landing.ayuda_chat, name='ayuda_chat'),
     path('inicio/voz/', vistas_voz.hablar, name='voz_esfera'),
     path('inicio/calendario/', vistas_panel.calendario_inicio, name='inicio_calendario'),
+    path('inicio/movimientos/', vistas_panel.movimientos_inicio, name='inicio_movimientos'),
     path('ayuda/contacto/', landing.ayuda_contacto, name='ayuda_contacto'),
 
     path('por-pagar/', por_pagar.por_pagar, name='por_pagar'),

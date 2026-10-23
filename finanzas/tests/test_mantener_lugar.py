@@ -37,9 +37,10 @@ class VueltaAlMismoLugarTests(TestCase):
         self.assertRedirects(r, reverse('dashboard'), fetch_redirect_response=False)
 
     def test_la_hoja_de_movimientos_borra_sin_recargar_y_lleva_a_repetidos(self):
-        r = self.client.get(reverse('dashboard'), {'year': 2026, 'month': 8})
+        inicio = self.client.get(reverse('dashboard'), {'year': 2026, 'month': 8})
+        self.assertContains(inicio, 'js/pantallas/movimientos-hoja.js')
+        r = self.client.get(reverse('inicio_movimientos'), {'year': 2026, 'month': 8})
         self.assertContains(r, 'data-sin-recargar="eliminar"')
-        self.assertContains(r, 'js/pantallas/movimientos-hoja.js')
         self.assertContains(r, reverse('movimientos_repetidos'))
         self.assertContains(r, 'name="next" value="/?year=2026&amp;month=8"')
 
