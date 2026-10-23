@@ -212,6 +212,13 @@ jobs:
           ignore-unfixed: true
           exit-code: "1"
           skip-setup-trivy: true
+      
+      - name: Origen de los hallazgos
+        if: failure()
+        run: |
+          trivy image --scanners vuln --severity HIGH,CRITICAL --ignore-unfixed --skip-db-update --format json fintora-respaldo:ci \
+            | jq -r '.Results[] | .Target as $t | .Vulnerabilities[]? | "\(.PkgName) \(.InstalledVersion) \(.PkgPath // $t)"'
+          docker run --rm --entrypoint sh fintora-respaldo:ci -c 'find / -xdev \( -name "*.spdx.json" -o -name "*.cdx.json" -o -path "*ensurepip/_bundled*" \) 2>/dev/null'
 
   secretos:
     runs-on: ubuntu-latest
