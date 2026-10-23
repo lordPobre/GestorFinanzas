@@ -70,12 +70,12 @@ class PorPagarTests(TestCase):
         self.assertLess(orden[-1], barra.index('data-open="#modalMas"'))
         self.assertNotIn(f'href="{reverse("prestamos")}"', barra)
 
-    def test_me_deben_queda_dentro_de_mas(self):
+    def test_prestamos_queda_dentro_de_mas(self):
         html = self.client.get(reverse('metas')).content.decode()
         hoja = html[html.index('id="modalMas"'):]
         hoja = hoja[:hoja.index('class="modal-overlay', 1)] if 'class="modal-overlay' in hoja[1:] else hoja
         self.assertIn(f'href="{reverse("prestamos")}"', hoja)
-        self.assertIn('Me deben', hoja)
+        self.assertIn('<span>Préstamos</span>', hoja)
 
     def test_no_muestra_lo_de_otra_persona(self):
         bruno = User.objects.create_user('bruno', 'bruno@ejemplo.cl', 'clave-larga-2')

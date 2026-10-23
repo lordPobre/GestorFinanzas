@@ -1,4 +1,4 @@
-{% load static humanize moneda marketing esfera_salud %}<!DOCTYPE html>
+{% load static humanize moneda marketing esfera_salud menu %}<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8">
@@ -50,55 +50,7 @@
       </span>
     </a>
 
-    <nav class="sidebar-nav">
-      <div class="nav-group">
-        <div class="nav-title">Tu mes</div>
-        <a href="{% url 'dashboard' %}" data-label="Inicio" class="nav-item {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
-          <i class="fas fa-house"></i><span>Inicio</span>
-        </a>
-        <a href="{% url 'por_pagar' %}" data-label="Por pagar" class="nav-item {% if request.resolver_match.url_name == 'por_pagar' %}active{% endif %}">
-          <i class="fas fa-list-check"></i><span>Por pagar</span>
-        </a>
-        <a href="{% url 'deudas' %}" data-label="Cuotas" class="nav-item {% if request.resolver_match.url_name == 'deudas' %}active{% endif %}">
-          <i class="fas fa-credit-card"></i><span>Cuotas</span>
-          {% if cuotas_activas %}<span class="nav-count">{{ cuotas_activas }}</span>{% endif %}
-        </a>
-        <a href="{% url 'prestamos' %}" data-label="Préstamos" class="nav-item {% if request.resolver_match.url_name == 'prestamos' %}active{% endif %}">
-          <i class="fas fa-hand-holding-dollar"></i><span>Préstamos</span>
-          {% if prestamos_activos %}<span class="nav-count">{{ prestamos_activos }}</span>{% endif %}
-        </a>
-        <a href="{% url 'suscripciones' %}" data-label="Suscripciones" class="nav-item {% if request.resolver_match.url_name == 'suscripciones' %}active{% endif %}">
-          <i class="fas fa-rotate"></i><span>Suscripciones</span>
-          {% if subs_pendientes %}<span class="nav-count">{{ subs_pendientes }}</span>{% endif %}
-        </a>
-      </div>
-
-      <div class="nav-group">
-        <div class="nav-title">Planificar</div>
-        <a href="{% url 'metas' %}" data-label="Metas" class="nav-item {% if request.resolver_match.url_name == 'metas' %}active{% endif %}">
-          <i class="fas fa-bullseye"></i><span>Metas</span>
-        </a>
-        <a href="{% url 'plan_plata' %}" data-label="Plan para tu plata" class="nav-item {% if request.resolver_match.url_name == 'plan_plata' %}active{% endif %}">
-          <i class="fas fa-route"></i><span>Plan para tu plata</span>
-        </a>
-        <a href="{% url 'analisis_predictivo' %}" data-label="Análisis IA" class="nav-item {% if request.resolver_match.url_name == 'analisis_predictivo' %}active{% endif %}">
-          <i class="fas fa-brain"></i><span>Análisis IA</span>
-        </a>
-        <a href="{% url 'estadisticas' %}" data-label="Estadísticas" class="nav-item {% if request.resolver_match.url_name == 'estadisticas' %}active{% endif %}">
-          <i class="fas fa-chart-pie"></i><span>Estadísticas</span>
-        </a>
-      </div>
-
-      <div class="nav-group">
-        <div class="nav-title">Datos</div>
-        <a href="{% url 'importar_cartola' %}" data-label="Importar cartola" class="nav-item {% if request.resolver_match.url_name == 'importar_cartola' or request.resolver_match.url_name == 'revisar_cartola' %}active{% endif %}">
-          <i class="fas fa-file-import"></i><span>Importar cartola</span>
-        </a>
-        <a href="{% url 'categorias' %}" data-label="Categorías" class="nav-item {% if request.resolver_match.url_name == 'categorias' %}active{% endif %}">
-          <i class="fas fa-tags"></i><span>Categorías</span>
-        </a>
-      </div>
-    </nav>
+    {% menu 'lateral' %}
 
     {% block sidebar_foot %}
       {% estado_salud as salud_estado %}
@@ -158,9 +110,7 @@
           {% if profile.foto_url %}<img src="{{ profile.foto_url }}" alt="" data-quitar-si-falla>{% endif %}
         </summary>
         <div class="topbar-menu">
-          <a href="{% url 'perfil' %}"><i class="fas fa-user"></i>Mi perfil</a>
-          <a href="{% url 'encuesta' %}"><i class="fas fa-comment-dots"></i>Danos tu opinión</a>
-          {% if user.is_staff %}<a href="{% url 'encuesta_resultados' %}"><i class="fas fa-square-poll-vertical"></i>Resultados encuesta</a>{% endif %}
+          {% menu 'cuenta' %}
           <form method="post" action="{% url 'logout' %}">
             {% csrf_token %}
             <button type="submit"><i class="fas fa-right-from-bracket"></i>Salir</button>
@@ -188,20 +138,7 @@
   </div>
 </div>
 
-<nav class="bottomnav">
-  <a href="{% url 'dashboard' %}" data-label="Inicio" class="nav-item {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
-    <i class="fas fa-house"></i><span>Inicio</span>
-  </a>
-  <a href="{% url 'por_pagar' %}" data-label="Por pagar" class="nav-item {% if request.resolver_match.url_name == 'por_pagar' %}active{% endif %}">
-    <i class="fas fa-list-check"></i><span>Por pagar</span>
-  </a>
-  <a href="{% url 'deudas' %}" data-label="Cuotas" class="nav-item {% if request.resolver_match.url_name == 'deudas' %}active{% endif %}">
-    <i class="fas fa-credit-card"></i><span>Cuotas</span>
-  </a>
-  <button type="button" class="nav-item {% if not request.resolver_match.url_name in 'dashboard por_pagar deudas' %}active{% endif %}" data-open="#modalMas" data-label="Más">
-    <i class="fas fa-grip"></i><span>Más</span>
-  </button>
-</nav>
+{% menu 'barra' %}
 
 <div class="fab-group">
   {% block fab %}
@@ -222,34 +159,7 @@
       <div class="modal-title">Todo lo demás</div>
       <button class="modal-close" data-close aria-label="Cerrar"><i class="fas fa-xmark"></i></button>
     </div>
-    <div class="hoja-grid">
-      <a href="{% url 'prestamos' %}" class="hoja-item">
-        <span class="icon-tile green"><i class="fas fa-hand-holding-dollar"></i></span><span>Me deben</span>
-        {% if prestamos_activos %}<span class="nav-count">{{ prestamos_activos }}</span>{% endif %}</a>
-      <a href="{% url 'metas' %}" class="hoja-item">
-        <span class="icon-tile orange"><i class="fas fa-bullseye"></i></span><span>Metas</span></a>
-      <a href="{% url 'suscripciones' %}" class="hoja-item">
-        <span class="icon-tile orange"><i class="fas fa-rotate"></i></span><span>Suscripciones</span>
-        {% if subs_pendientes %}<span class="nav-count">{{ subs_pendientes }}</span>{% endif %}</a>
-      <a href="{% url 'estadisticas' %}" class="hoja-item">
-        <span class="icon-tile blue"><i class="fas fa-chart-pie"></i></span><span>Estadísticas</span></a>
-      <a href="{% url 'plan_plata' %}" class="hoja-item">
-        <span class="icon-tile orange"><i class="fas fa-route"></i></span><span>Plan para tu plata</span></a>
-      <a href="{% url 'analisis_predictivo' %}" class="hoja-item">
-        <span class="icon-tile orange"><i class="fas fa-brain"></i></span><span>Análisis IA</span></a>
-      <a href="{% url 'categorias' %}" class="hoja-item">
-        <span class="icon-tile blue"><i class="fas fa-tags"></i></span><span>Categorías</span></a>
-      <a href="{% url 'importar_cartola' %}" class="hoja-item">
-        <span class="icon-tile green"><i class="fas fa-file-import"></i></span><span>Importar cartola</span></a>
-      <a href="{% url 'perfil' %}" class="hoja-item">
-        <span class="icon-tile tile-avatar">{% if profile.foto_url %}<img src="{{ profile.foto_url }}" alt="" data-quitar-si-falla>{% endif %}<i class="fas fa-user"></i></span><span>Mi perfil</span></a>
-      <a href="{% url 'encuesta' %}" class="hoja-item">
-        <span class="icon-tile orange"><i class="fas fa-comment-dots"></i></span><span>Danos tu opinión</span></a>
-      {% if user.is_staff %}
-      <a href="{% url 'encuesta_resultados' %}" class="hoja-item">
-        <span class="icon-tile blue"><i class="fas fa-square-poll-vertical"></i></span><span>Resultados encuesta</span></a>
-      {% endif %}
-    </div>
+    {% menu 'hoja' %}
     <form method="post" action="{% url 'logout' %}" class="hoja-salir">
       {% csrf_token %}
       <button type="submit" class="btn btn-glass btn-block tinta-coral">

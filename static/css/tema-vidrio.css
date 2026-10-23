@@ -42,7 +42,7 @@
 }
 
 body:has(.nav-item.active[data-label="Cuotas"])        { --luz: 75, 140, 255; }
-body:has(.nav-item.active[data-label="Me deben"])      { --luz: 83, 210, 88; }
+body:has(.nav-item.active[data-label="Préstamos"])     { --luz: 83, 210, 88; }
 body:has(.nav-item.active[data-label="Suscripciones"]) { --luz: 242, 110, 110; }
 body:has(.nav-item.active[data-label="Metas"])         { --luz: 47, 216, 200; }
 body:has(.nav-item.active[data-label="Importar cartola"]) { --luz: 47, 216, 200; }
@@ -923,8 +923,8 @@ a.ini-mov:hover .ini-mov-nombre { text-decoration: underline; text-underline-off
 body:has(.sec-top) .saludo-card { display: none !important; }
 body:has(.sidebar .nav-item.active[data-label="Cuotas"]) .bottomnav .nav-item.active,
 body:has(.sidebar .nav-item.active[data-label="Cuotas"]) .bottomnav .nav-item.active i { color: #8db4ff; }
-body:has(.sidebar .nav-item.active[data-label="Me deben"]) .bottomnav .nav-item.active,
-body:has(.sidebar .nav-item.active[data-label="Me deben"]) .bottomnav .nav-item.active i { color: #6ee873; }
+body:has(.sidebar .nav-item.active[data-label="Préstamos"]) .bottomnav .nav-item.active,
+body:has(.sidebar .nav-item.active[data-label="Préstamos"]) .bottomnav .nav-item.active i { color: #6ee873; }
 
 .sec-top { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-bottom: 6px; }
 .sec-titulo { margin: 0; font-size: 32px; font-weight: 800; letter-spacing: -.035em; line-height: 1.1; }
