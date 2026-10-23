@@ -69,7 +69,7 @@ def dashboard(request):
                   if not d.esta_saldada and d.dias_para_vencer is not None]
     pendientes.sort(key=lambda d: d.dias_para_vencer)
 
-    pagos_mes = pendientes_del_mes(request.user, year, month)
+    pagos_mes = pendientes_del_mes(request.user, year, month, todas_las_deudas)
     sin_pagar = [i for i in pagos_mes if not i['pagado']]
     atrasados = [i for i in sin_pagar if i['atrasado']]
 

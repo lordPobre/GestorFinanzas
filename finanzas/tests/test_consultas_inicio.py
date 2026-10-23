@@ -1,12 +1,15 @@
 import os
 import re
 import sys
+import traceback
 import unittest
-from collections import Counter
+from collections import Counter, defaultdict
 from datetime import date
 from decimal import Decimal
+from pathlib import Path
 
 from dateutil.relativedelta import relativedelta
+from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.cache import cache
 from django.db import connection
@@ -18,10 +21,36 @@ from ..models import Deuda, PagoCuota, Transaccion
 
 MEDIR = os.environ.get('MEDIR_INICIO') == '1'
 TABLA = re.compile(r'FROM "(\w+)"')
+RAIZ = str(Path(settings.BASE_DIR).resolve())
+TOPE_INICIO = 40
 
 
 def tablas(consultas):
     return Counter(t for q in consultas for t in TABLA.findall(q['sql']))
+
+
+def origen():
+    for marco in reversed(traceback.extract_stack()[:-3]):
+        ruta = str(Path(marco.filename).resolve())
+        if ruta.startswith(RAIZ) and 'site-packages' not in ruta and os.sep + 'tests' + os.sep not in ruta:
+            return f'{os.path.relpath(ruta, RAIZ)}:{marco.lineno} {marco.name}'
+    return 'django'
+
+
+class Anotador:
+
+    def __init__(self):
+        self.por_origen = Counter()
+        self.ejemplo = {}
+        self.tablas = defaultdict(Counter)
+
+    def __call__(self, ejecutar, sql, params, many, contexto):
+        donde = origen()
+        self.por_origen[donde] += 1
+        self.ejemplo.setdefault(donde, ' '.join(sql.split())[:110])
+        for t in TABLA.findall(sql):
+            self.tablas[donde][t] += 1
+        return ejecutar(sql, params, many, contexto)
 
 
 class ConsultasInicioTests(TestCase):
@@ -48,6 +77,14 @@ class ConsultasInicioTests(TestCase):
         self.assertEqual(respuesta.status_code, 200)
         return respuesta, consultas.captured_queries
 
+    def _anotar(self):
+        cache.clear()
+        anotador = Anotador()
+        with connection.execute_wrapper(anotador):
+            respuesta = self.client.get(reverse('dashboard'))
+        self.assertEqual(respuesta.status_code, 200)
+        return anotador
+
     def test_con_compras_en_cuotas_inicio_se_ve_entero(self):
         Transaccion.objects.create(usuario=self.ana, tipo='INGRESO', monto=Decimal('1000000'),
                                    categoria='Sueldo', fecha=date.today(), descripcion='Sueldo')
@@ -64,6 +101,14 @@ class ConsultasInicioTests(TestCase):
                       'deuda_total', 'proximo_pago', 'hoy_texto'):
             self.assertNotIn(clave, respuesta.context, clave)
 
+    def test_inicio_no_pasa_el_tope_y_no_crece_con_las_compras(self):
+        self._compras(2)
+        _, pocas = self._medir()
+        self._compras(10)
+        _, muchas = self._medir()
+        self.assertLessEqual(len(muchas), len(pocas) + 2)
+        self.assertLessEqual(len(muchas), TOPE_INICIO, f'Inicio hizo {len(muchas)} consultas')
+
     @unittest.skipUnless(MEDIR, 'Medir las consultas de Inicio: MEDIR_INICIO=1')
     def test_medir(self):
         self._compras(2)
@@ -72,6 +117,16 @@ class ConsultasInicioTests(TestCase):
         _, muchas = self._medir()
         antes, despues = tablas(pocas), tablas(muchas)
         crecen = {t: f'{antes[t]} → {c}' for t, c in despues.most_common() if c > antes[t]}
-        sys.stdout.write(f'\nInicio con 2 compras en cuotas: {len(pocas)} consultas. Con 12: {len(muchas)}.\n')
-        sys.stdout.write(f'Tablas que crecen con las compras: {crecen or "ninguna"}\n')
-        sys.stdout.write(f'Tablas más consultadas con 12: {dict(despues.most_common(8))}\n')
+        salida = [
+            f'\nInicio con 2 compras en cuotas: {len(pocas)} consultas. Con 12: {len(muchas)}.',
+            f'Tablas que crecen con las compras: {crecen or "ninguna"}',
+            f'Tablas más consultadas con 12: {dict(despues.most_common(8))}',
+            '',
+            'Consultas por línea de código (con 12 compras):',
+        ]
+        anotador = self._anotar()
+        for donde, n in anotador.por_origen.most_common():
+            tablas_linea = ', '.join(f'{t}×{c}' for t, c in anotador.tablas[donde].most_common())
+            salida.append(f'{n:>3}  {donde}  [{tablas_linea}]')
+            salida.append(f'     {anotador.ejemplo[donde]}')
+        sys.stdout.write('\n'.join(salida) + '\n')

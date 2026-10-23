@@ -6,7 +6,7 @@ from decimal import Decimal
 
 from django.core.cache import cache
 from django.db.models import Count, F, IntegerField, OuterRef, Q, Subquery, Sum
-from django.db.models.functions import Cast, Coalesce, ExtractMonth, ExtractYear, Mod
+from django.db.models.functions import Cast, Coalesce, ExtractMonth, ExtractYear, Mod, TruncMonth
 
 from .. import fechas
 from ..models import Deuda, PagoCuota, Prestamo, Suscripcion, Transaccion
@@ -72,18 +72,17 @@ def _resumen_mes(usuario, year, month):
     hoy = fechas.hoy()
 
     cero = Decimal('0')
-    ingresos = Transaccion.objects.filter(
-        usuario=usuario, tipo='INGRESO',
-        fecha__gte=fecha_inicio, fecha__lte=fecha_fin,
-    ).aggregate(t=Sum('monto'))['t'] or cero
-
-    qs_gastos = Transaccion.objects.filter(
-        usuario=usuario, tipo='EGRESO',
-        fecha__gte=fecha_inicio, fecha__lte=fecha_fin, es_cuota=False,
+    gasto = Q(tipo='EGRESO', es_cuota=False)
+    sumas = Transaccion.objects.filter(
+        usuario=usuario, fecha__gte=fecha_inicio, fecha__lte=fecha_fin,
+    ).aggregate(
+        ingresos=Sum('monto', filter=Q(tipo='INGRESO')),
+        gastos=Sum('monto', filter=gasto),
+        pagados=Sum('monto', filter=gasto & Q(pagado=True)),
     )
-    gastos = qs_gastos.aggregate(t=Sum('monto'))['t'] or cero
-
-    gastos_pagados = qs_gastos.filter(pagado=True).aggregate(t=Sum('monto'))['t'] or cero
+    ingresos = sumas['ingresos'] or cero
+    gastos = sumas['gastos'] or cero
+    gastos_pagados = sumas['pagados'] or cero
     gastos_por_pagar = gastos - gastos_pagados
 
     periodo = year * 100 + month
@@ -308,14 +307,83 @@ def invalidar(usuario_id):
         cache.set(_clave_version(usuario_id), time.time_ns(), None)
 
 
-def numeros_mes(usuario, year, month):
-    hoy = fechas.hoy()
-    clave = f'mes:{usuario.pk}:{_version(usuario.pk)}:{year * 100 + month}'
+def _clave_numeros(usuario_id, version, year, month, hoy):
+    clave = f'mes:{usuario_id}:{version}:{year * 100 + month}'
     if (year, month) == (hoy.year, hoy.month):
         clave += f':{hoy.isoformat()}'
+    return clave
+
+
+def numeros_mes(usuario, year, month):
+    hoy = fechas.hoy()
+    clave = _clave_numeros(usuario.pk, _version(usuario.pk), year, month, hoy)
     datos = cache.get(clave)
     if datos is None:
         r = resumen_mes(usuario, year, month)
         datos = {k: r[k] for k in CLAVES_NUMEROS}
         cache.set(clave, datos, SEGUNDOS_NUMEROS_EN_CACHE)
     return datos
+
+
+def _numeros_pasados(usuario, meses):
+    cero = Decimal('0')
+    if not meses:
+        return {}
+    primero, ultimo = min(meses), max(meses)
+    desde = date(primero[0], primero[1], 1)
+    hasta = date(ultimo[0], ultimo[1], calendar.monthrange(*ultimo)[1])
+    gasto = Q(tipo='EGRESO', es_cuota=False)
+    sumas = {
+        (f['mes'].year, f['mes'].month): f
+        for f in Transaccion.objects.filter(usuario=usuario, fecha__gte=desde, fecha__lte=hasta)
+        .annotate(mes=TruncMonth('fecha')).values('mes').order_by()
+        .annotate(ingresos=Sum('monto', filter=Q(tipo='INGRESO')), gastos=Sum('monto', filter=gasto))
+    }
+    deudas = list(Deuda.objects.filter(usuario=usuario).prefetch_related('pagos'))
+    prestamos = list(Prestamo.objects.filter(persona__usuario=usuario, persona__lado='LE_DEBO')
+                     .prefetch_related('abonos'))
+
+    salida = {}
+    for year, month in meses:
+        fila = sumas.get((year, month), {})
+        ingresos = fila.get('ingresos') or cero
+        gastos = fila.get('gastos') or cero
+        indice = year * 12 + month - 1
+        periodo = year * 100 + month
+        cuotas = cero
+        for d in deudas:
+            inicio = d.fecha_inicio.year * 12 + d.fecha_inicio.month - 1
+            if not inicio <= indice <= inicio + d.cuotas_totales - 1:
+                continue
+            if periodo not in d.periodos_programados:
+                continue
+            pago = next((p for p in d.pagos.all() if p.periodo == periodo), None)
+            cuotas += _decimal(pago.monto if pago else d.monto_cuota_de(periodo))
+        debo = sum((pr.abonado_en(year, month) for pr in prestamos), cero)
+        salida[(year, month)] = {
+            'ingresos': float(ingresos),
+            'gastos': float(gastos),
+            'total_cuotas_mes': float(cuotas),
+            'disponible': float(ingresos - (gastos + cuotas + debo)),
+        }
+    return salida
+
+
+def numeros_meses(usuario, meses):
+    hoy = fechas.hoy()
+    version = _version(usuario.pk)
+    claves = {mes: _clave_numeros(usuario.pk, version, *mes, hoy) for mes in meses}
+    guardados = cache.get_many(list(claves.values()))
+    salida, faltan = {}, []
+    for mes, clave in claves.items():
+        if clave in guardados:
+            salida[mes] = guardados[clave]
+        elif mes < (hoy.year, hoy.month):
+            faltan.append(mes)
+        else:
+            salida[mes] = numeros_mes(usuario, *mes)
+    if faltan:
+        nuevos = _numeros_pasados(usuario, faltan)
+        cache.set_many({claves[mes]: datos for mes, datos in nuevos.items()}, SEGUNDOS_NUMEROS_EN_CACHE)
+        salida.update(nuevos)
+    return salida

@@ -2,23 +2,24 @@ from datetime import date
 
 from dateutil.relativedelta import relativedelta
 
-from django.db.models import F, Sum
+from django.contrib.auth import get_user_model
+from django.db.models import Exists, F, OuterRef, Sum
 from django.urls import reverse
 
 from ..categorias_base import COLOR_OTROS
 from ..models import Categoria, Deuda, MetaAhorro, Presupuesto, Suscripcion, Transaccion
-from .mes import MESES_LARGOS, numeros_mes
+from .mes import MESES_LARGOS, numeros_meses
 
 
 def serie_seis_meses(usuario, hoy, year, month, resumen_actual):
+    inicio = date(hoy.year, hoy.month, 1)
+    meses = [((inicio - relativedelta(months=i)).year, (inicio - relativedelta(months=i)).month)
+             for i in range(5, -1, -1)]
+    otros = numeros_meses(usuario, [m for m in meses if m != (year, month)])
     meses_labels, datos_ingresos, datos_gastos, datos_cuotas = [], [], [], []
-    for i in range(5, -1, -1):
-        f = date(hoy.year, hoy.month, 1) - relativedelta(months=i)
-        if f.year == year and f.month == month:
-            rr = resumen_actual
-        else:
-            rr = numeros_mes(usuario, f.year, f.month)
-        meses_labels.append(f"{MESES_LARGOS[f.month - 1]} {f.year}")
+    for mes in meses:
+        rr = resumen_actual if mes == (year, month) else otros[mes]
+        meses_labels.append(f"{MESES_LARGOS[mes[1] - 1]} {mes[0]}")
         datos_ingresos.append(rr['ingresos'])
         datos_gastos.append(rr['gastos'])
         datos_cuotas.append(rr['total_cuotas_mes'])
@@ -108,37 +109,48 @@ def insights_panel(resumen, datos_gastos, pendientes, proyecciones_deuda, presup
 
     return insights, presupuesto_pct
 
+def _existe(modelo, **filtros):
+    return Exists(modelo.objects.filter(usuario=OuterRef('pk'), **filtros))
+
 def primeros_pasos(usuario):
+    hechos = get_user_model().objects.filter(pk=usuario.pk).values(
+        paso_ingreso=_existe(Transaccion, tipo='INGRESO'),
+        paso_gasto=_existe(Transaccion, tipo='EGRESO'),
+        paso_cuotas=_existe(Deuda),
+        paso_suscripciones=_existe(Suscripcion),
+        paso_meta=_existe(MetaAhorro),
+        paso_presupuesto=_existe(Presupuesto),
+    ).first() or {}
     pasos = [
         {'titulo': 'Anota lo que entra',
          'nota': 'Tu sueldo o ingreso del mes',
          'icono': 'fa-arrow-down',
-         'hecho': Transaccion.objects.filter(usuario=usuario, tipo='INGRESO').exists(),
+         'hecho': bool(hechos.get('paso_ingreso')),
          'url': '#', 'abrir': '#modalGasto', 'preset': 'INGRESO'},
         {'titulo': 'Anota un gasto',
          'nota': 'Para que el saldo del mes sea real',
          'icono': 'fa-plus',
-         'hecho': Transaccion.objects.filter(usuario=usuario, tipo='EGRESO').exists(),
+         'hecho': bool(hechos.get('paso_gasto')),
          'url': '#', 'abrir': '#modalGasto', 'preset': 'EGRESO'},
         {'titulo': 'Agrega tus compras en cuotas',
          'nota': 'La cuota queda puesta en cada mes',
          'icono': 'fa-credit-card',
-         'hecho': Deuda.objects.filter(usuario=usuario).exists(),
+         'hecho': bool(hechos.get('paso_cuotas')),
          'url': reverse('deudas')},
         {'titulo': 'Suma tus suscripciones',
          'nota': 'Se cobran solas cada mes',
          'icono': 'fa-rotate',
-         'hecho': Suscripcion.objects.filter(usuario=usuario).exists(),
+         'hecho': bool(hechos.get('paso_suscripciones')),
          'url': reverse('suscripciones')},
         {'titulo': 'Crea una meta de ahorro',
          'nota': 'Cuánto juntar y para cuándo',
          'icono': 'fa-bullseye',
-         'hecho': MetaAhorro.objects.filter(usuario=usuario).exists(),
+         'hecho': bool(hechos.get('paso_meta')),
          'url': reverse('metas')},
         {'titulo': 'Pon tu presupuesto del mes',
          'nota': 'Un techo para el día a día',
          'icono': 'fa-gauge-high',
-         'hecho': Presupuesto.objects.filter(usuario=usuario).exists(),
+         'hecho': bool(hechos.get('paso_presupuesto')),
          'url': reverse('perfil')},
     ]
     return pasos, sum(1 for p in pasos if p['hecho'])

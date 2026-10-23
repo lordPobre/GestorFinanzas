@@ -8,11 +8,13 @@ from ..dinero import suma
 from ..models import Deuda, GastoPendiente, Prestamo, Suscripcion, Transaccion
 
 
-def pendientes_del_mes(usuario, year, month):
+def pendientes_del_mes(usuario, year, month, deudas=None):
     periodo = year * 100 + month
     items = []
 
-    for d in Deuda.objects.filter(usuario=usuario).prefetch_related('pagos'):
+    if deudas is None:
+        deudas = Deuda.objects.filter(usuario=usuario).prefetch_related('pagos')
+    for d in deudas:
         if periodo not in d.periodos_programados:
             continue
         pago = next((p for p in d.pagos.all() if p.periodo == periodo), None)

@@ -11,7 +11,7 @@ from django.urls import reverse
 from ..models import Deuda, Persona, Prestamo, Suscripcion, Transaccion
 
 TOPES = {
-    'dashboard': 90,
+    'dashboard': 40,
     'estadisticas': 60,
     'perfil': 35,
     'categorias': 32,
