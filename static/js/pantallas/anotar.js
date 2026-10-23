@@ -116,7 +116,10 @@
 
   pintarMarca();
 
-  if (urlMarcas && window.fetch) {
+  var marcasPedidas = false;
+  function cargarMarcas() {
+    if (marcasPedidas || !urlMarcas || !window.fetch) return;
+    marcasPedidas = true;
     fetch(urlMarcas).then(function (r) { return r.ok ? r.json() : null; }).then(function (datos) {
       if (!datos) return;
       GLIFOS = datos.glifos || {};
@@ -127,4 +130,11 @@
       pintarMarca();
     }).catch(function () {});
   }
+  if (campoDesc) {
+    campoDesc.addEventListener('focus', cargarMarcas);
+    campoDesc.addEventListener('input', cargarMarcas);
+  }
+  document.addEventListener('click', function (e) {
+    if (e.target.closest && e.target.closest('[data-preset-tipo], [data-open="#modalGasto"]')) cargarMarcas();
+  });
 })();

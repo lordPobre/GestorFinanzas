@@ -40,7 +40,7 @@ Encima se cargan, en este orden:
 
 Las hojas por pantalla se piden con `?v=<lote>` para que el navegador no use una copia vieja.
 
-**No tocar:** en `tema-vidrio.css`, dentro de `@media (max-width: 720px)`, las reglas `body:not(:has(.auth))::after` y `html.con-scroll body:not(:has(.auth))::after` (la franja de la barra de estado que aparece solo al hacer scroll, desde el lote 29). La clase `con-scroll` la pone `base-2.js`.
+**No tocar:** en `tema-vidrio.css`, dentro de `@media (max-width: 720px)`, las reglas `body:not(:has(.auth))::after` y `html.con-scroll body:not(:has(.auth))::after` (la franja de la barra de estado que aparece solo al hacer scroll, desde el lote 29). La clase `con-scroll` la pone `barra-estado.js`.
 
 ### Tokens (`:root`)
 
@@ -109,8 +109,14 @@ Hay 50 archivos, uno o más por plantilla, con el nombre de la plantilla (`dashb
 - `inicio-esfera.js`: la hoja que se baja, la esfera, el saludo al entrar y la voz (ver [02](02-ARQUITECTURA.md#la-voz-de-la-esfera)). Deja `window.finappEsfera` para el tour.
 - `saludo-cielo.js`: el sol o la luna del saludo según la hora, actualizado cada minuto.
 - `categorias-2.js`: porcentaje y barra de cada categoría.
-- `base-2.js`: la clase `con-scroll` y la recarga cuando Safari muestra una página guardada al ir Atrás.
-- `recordatorios.js`: el interruptor de Perfil, el permiso del navegador, suscribir o quitar el aparato, «Probar aviso» y la invitación de Inicio, que «Ahora no» esconde en ese aparato (`localStorage`). En un iPhone sin la app instalada explica cómo agregarla.
+- Los de `base.html`, con nombre por lo que hacen (lote 189; antes `base.js` a `base-5.js`):
+  - `modales-temprano.js` (en `<head>`): abre y cierra los modales mientras `finapp.js` no ha cargado, y esconde la lista de primeros pasos si se ocultó.
+  - `registro-sw.js` (en `<head>`): registra el *service worker*, recarga al tomar uno nuevo y recarga cuando Safari muestra una página guardada al ir Atrás.
+  - `barra-estado.js` (en `<head>`): la clase `con-scroll` de la franja de la barra de estado.
+  - `saludo-hora.js`: «Buenos días», «Buenas tardes» o «Buenas noches» según la hora.
+  - `panel-anotar.js`: el panel Registrar (tipo, categorías, teclado, «¿Ya la pagaste?»).
+  - `tour-arranque.js`: decide si hace falta el recorrido y solo entonces carga `tour.js` (ver más abajo).
+- `recordatorios.js` (solo en Inicio y Perfil, desde el lote 189): el interruptor de Perfil, el permiso del navegador, suscribir o quitar el aparato, «Probar aviso» y la invitación de Inicio, que «Ahora no» esconde en ese aparato (`localStorage`). En un iPhone sin la app instalada explica cómo agregarla.
 - `categorias-topes.js`: la ventana «Poner tope», con el promedio y la sugerencia de un 10 % menos.
 - `anotar-tope.js`: el aviso del panel Registrar cuando el gasto llega al 80 % o pasa el tope. Lee `topes_json`, que agrega `contadores`.
 
@@ -127,6 +133,8 @@ Expone `window.FintoraPasskeys = { soportado, registrar, entrar, mensaje }`. Con
 Expone `window.FintoraDispositivo.movil` y agrega la clase `es-movil` a `<html>` en iPhone, iPad, Android o pantallas táctiles sin mouse. El CSS oculta `[data-solo-movil]` en el computador y `[data-solo-pc]` en el celular. Se usa para que Face ID solo aparezca en celular y tablet; `login.js` además no muestra el botón si `movil` es falso.
 
 ### Recorrido guiado: `static/js/tour.js`
+
+No se carga en cada página: `tour-arranque.js` lo pide recién cuando hay algo que mostrar (`?tour=1`, un paso a medias, las novedades de una versión nueva o la lista de primeros pasos) o cuando se toca «Ver el tour» u «Ocultar», y en ese caso repite el toque cuando termina de cargar. `VERSION_TOUR` de `tour-arranque.js` tiene que ser igual a `VERSION` de `tour.js`; una prueba lo revisa.
 
 Expone `window.finappTour = { iniciar, mostrar, reiniciar }`. Recorre las pantallas con un foco sobre el elemento real (`data-tour="…"` en las plantillas) y una tarjeta de explicación. Arranca con `?tour=1` después de la bienvenida. `reiniciar()` lo vuelve a empezar. Guarda el avance en `localStorage` y distingue entre el recorrido completo y el de “novedades” para quien ya lo hizo, según la versión (hoy la 4, que sumó «La esfera de tu mes»). Hay pasos solo para el teléfono (la esfera, el botón «Gasto» de Inicio) y solo para el computador (la salud del mes de la barra lateral), así la cuenta de pasos sale bien en cada aparato.
 

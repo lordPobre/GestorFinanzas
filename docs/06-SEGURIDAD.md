@@ -85,7 +85,7 @@ Pide la contraseña actual, o el código de la app si la cuenta entra solo con G
 - Vencen a las 8 horas sin uso y se renuevan en cada petición (`SESSION_SAVE_EVERY_REQUEST`). Además, `SesionAbsolutaMiddleware` las cierra a los 7 días desde que se entró, aunque se usen a diario (`SESION_MAXIMA_HORAS`, por defecto 168). Queda el evento `sesion_vencida`.
 - En producción las cookies son `Secure`, `HttpOnly` y `SameSite=Lax`, y se llaman `__Host-sessionid` y `__Host-csrftoken`: el navegador solo las acepta por HTTPS, sin dominio y en `/`, así que un subdominio no puede pisarlas.
 - **Aparato conocido.** Cada aparato recibe la cookie firmada `fintora_aparato`. Si se entra desde uno nuevo y la cuenta ya tenía otro, llega un aviso por correo y queda en *Perfil → Actividad de la cuenta*.
-- **Sin caché.** `SinCacheMiddleware` pone `Cache-Control: no-store, private` en toda respuesta con sesión. Salir responde `Clear-Site-Data: "cache"`, y `base-2.js` recarga la página si Safari la saca de su memoria de Atrás. Después de salir, Atrás lleva al acceso.
+- **Sin caché.** `SinCacheMiddleware` pone `Cache-Control: no-store, private` en toda respuesta con sesión. Salir responde `Clear-Site-Data: "cache"`, y `registro-sw.js` recarga la página si Safari la saca de su memoria de Atrás. Después de salir, Atrás lleva al acceso.
 - Cada sesión abierta queda registrada con IP y navegador (`SesionActiva`). En *Perfil → Sesiones* se puede cerrar cualquiera o todas las demás, y eso borra la sesión de Django.
 - `login()` rota la clave de sesión, lo que evita la fijación de sesión.
 

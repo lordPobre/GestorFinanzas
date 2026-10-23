@@ -33,7 +33,7 @@ function montar({ abrir = false, egresos = JSON.stringify(GASTOS), ingresos = JS
   const chips = documento.getElementById('chipsGasto');
   chips.dataset.egreso = egresos;
   chips.dataset.ingreso = ingresos;
-  ejecutar('pantallas/base-4.js', { document: documento });
+  ejecutar('pantallas/panel-anotar.js', { document: documento });
   const $ = (id) => documento.getElementById(id);
   const apretar = (teclas) => {
     for (const k of teclas) documento.querySelector(`.keypad [data-key="${k}"]`).click();
