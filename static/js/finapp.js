@@ -78,7 +78,7 @@
   window.finappClose = closeAll;
 
   window.addEventListener('pageswap', function () {
-    var abiertos = $('.modal-overlay.open');
+    var abiertos = $$('.modal-overlay.open');
     if (!abiertos.length) return;
     abiertos.forEach(function (m) { m.classList.remove('open'); });
     document.body.style.overflow = '';

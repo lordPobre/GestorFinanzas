@@ -5,6 +5,7 @@ from django.urls import path, reverse
 from . import google_login, legal
 from .views import recordatorios
 from .views import voz as vistas_voz
+from .views import panel as vistas_panel
 from .views import (actividad, analisis, cartola, categorias, cuenta, cuotas, descargas, encuesta,
                     estadisticas, landing, metas, movimientos, passkeys, plan, por_pagar,
                     prestamos, repetidos, sistema, suscripciones)
@@ -35,6 +36,7 @@ urlpatterns = [
     path('', landing.inicio, name='dashboard'),
     path('ayuda/chat/', landing.ayuda_chat, name='ayuda_chat'),
     path('inicio/voz/', vistas_voz.hablar, name='voz_esfera'),
+    path('inicio/calendario/', vistas_panel.calendario_inicio, name='inicio_calendario'),
     path('ayuda/contacto/', landing.ayuda_contacto, name='ayuda_contacto'),
 
     path('por-pagar/', por_pagar.por_pagar, name='por_pagar'),

@@ -109,7 +109,8 @@ class ConsultasInicioTests(TestCase):
         self._compras(1)
         respuesta, _ = self._medir()
         for clave in ('mis_cuotas', 'fijo_mensual', 'cat_data_json', 'mapa_categorias', 'variacion_saldo',
-                      'deuda_total', 'proximo_pago', 'hoy_texto'):
+                      'deuda_total', 'proximo_pago', 'hoy_texto', 'calendario', 'dias_con_pago',
+                      'monto_ya_pagado', 'gastos_pendientes', 'dias_semana'):
             self.assertNotIn(clave, respuesta.context, clave)
 
     def test_inicio_no_pasa_el_tope_y_no_crece_con_las_compras(self):

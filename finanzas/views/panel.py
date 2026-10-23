@@ -42,17 +42,45 @@ def textos_movimiento(t):
     return desc, cat
 
 
-@login_required(login_url='/login/')
-def dashboard(request):
-    generar_cobros_suscripciones(request.user)
-    hoy = fechas.hoy()
-
+def _mes_pedido(request, hoy):
     try:
         year = int(request.GET.get('year', hoy.year))
         month = int(request.GET.get('month', hoy.month))
         date(year, month, 1)
     except ValueError:
-        year, month = hoy.year, hoy.month
+        return hoy.year, hoy.month
+    return year, month
+
+
+@login_required(login_url='/login/')
+def calendario_inicio(request):
+    hoy = fechas.hoy()
+    year, month = _mes_pedido(request, hoy)
+    r = resumen_mes(request.user, year, month)
+    todas_las_deudas = list(Deuda.objects.filter(usuario=request.user).prefetch_related('pagos'))
+    calendario_datos, dias_con_pago = calendario_del_mes(year, month, hoy, r['eventos'])
+    pagos_mes = pendientes_del_mes(request.user, year, month, todas_las_deudas)
+    sin_pagar = [i for i in pagos_mes if not i['pagado']]
+    respuesta = render(request, 'finanzas/_inicio_calendario.html', {
+        'nombre_mes': nombre_mes_es(year, month),
+        'year': year, 'month': month,
+        'dias_semana': ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'],
+        'calendario': calendario_datos,
+        'dias_con_pago': dias_con_pago,
+        'pendientes': pagos_mes,
+        'monto_sin_pagar': round(suma(i['monto'] for i in sin_pagar)),
+        'monto_ya_pagado': round(suma(i['monto'] for i in pagos_mes if i['pagado'])),
+        'gastos_pendientes': GastoPendiente.objects.filter(usuario=request.user, pagado=False),
+    })
+    respuesta['Cache-Control'] = 'no-store'
+    return respuesta
+
+
+@login_required(login_url='/login/')
+def dashboard(request):
+    generar_cobros_suscripciones(request.user)
+    hoy = fechas.hoy()
+    year, month = _mes_pedido(request, hoy)
 
     prev_month, prev_year = (12, year - 1) if month == 1 else (month - 1, year)
     next_month, next_year = (1, year + 1) if month == 12 else (month + 1, year)
@@ -61,7 +89,6 @@ def dashboard(request):
     nombre_mes = nombre_mes_es(year, month)
     todas_las_deudas = list(Deuda.objects.filter(usuario=request.user).prefetch_related('pagos'))
 
-    calendario_datos, dias_con_pago = calendario_del_mes(year, month, hoy, r['eventos'])
     meses_labels, _, datos_gastos, datos_cuotas = serie_seis_meses(
         request.user, hoy, year, month, r)
 
@@ -84,7 +111,7 @@ def dashboard(request):
     mov_salio = round(suma(t.monto for t in movimientos_mes if not t.es_ingreso))
     mov_cuotas = round(suma(t.monto for t in movimientos_mes if t.es_cuota))
     mov_tope = max(mov_entro, mov_salio, 1)
-    metas = MetaAhorro.objects.filter(usuario=request.user)
+    metas = list(MetaAhorro.objects.filter(usuario=request.user)[:3])
 
     presupuesto = Presupuesto.objects.filter(usuario=request.user).first()
     proyecciones_deuda = proyecciones_deuda_activas(todas_las_deudas)
@@ -101,7 +128,6 @@ def dashboard(request):
         'es_mes_actual': (year, month) == (hoy.year, hoy.month),
         'prev_month_nombre': nombre_mes_es(prev_year, prev_month),
         'next_month_nombre': nombre_mes_es(next_year, next_month),
-        'dias_semana': ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'],
 
         'total_ingresos': round(r['ingresos']),
         'total_gastos': round(r['gastos']),
@@ -119,16 +145,13 @@ def dashboard(request):
         'pct_gastado': r['pct_gastado'],
         'pct_por_pagar': r['pct_por_pagar'],
         'pct_disponible': r['pct_disponible'],
-        'dias_con_pago': dias_con_pago,
 
         'pendientes': pagos_mes,
         'pendientes_sin_pagar': sin_pagar,
         'pendientes_atrasados': atrasados,
         'monto_sin_pagar': round(suma(i['monto'] for i in sin_pagar)),
-        'monto_ya_pagado': round(suma(i['monto'] for i in pagos_mes if i['pagado'])),
 
         'insights': insights,
-        'gastos_pendientes': GastoPendiente.objects.filter(usuario=request.user, pagado=False),
         'ultimas': ultimas,
         'movimientos_mes': movimientos_mes,
         'mov_entro': mov_entro,
@@ -140,7 +163,6 @@ def dashboard(request):
         'mov_n_cuotas': sum(1 for t in movimientos_mes if t.es_cuota),
         'mov_n_ingresos': sum(1 for t in movimientos_mes if t.es_ingreso),
         'metas': metas,
-        'calendario': calendario_datos,
 
         'abrir_panel': bool(request.GET.get('registrar')),
 

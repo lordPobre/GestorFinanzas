@@ -396,153 +396,23 @@
   </div>
 </div>
 
-<div class="modal-overlay" id="modalCalendario">
+<div class="modal-overlay" id="modalCalendario" data-fragmento="{% url 'inicio_calendario' %}?year={{ year }}&amp;month={{ month }}">
   <div class="modal-box caja-520">
     <div class="modal-head">
       <div>
         <div class="modal-title">Pagos de {{ nombre_mes }}</div>
-        <div class="modal-sub">{% if monto_ya_pagado %}{{ monto_ya_pagado|money }} ya pagado{% endif %}{% if monto_ya_pagado and monto_sin_pagar %} · {% endif %}{% if monto_sin_pagar %}{{ monto_sin_pagar|money }} por pagar{% endif %}</div>
+        <div class="modal-sub" data-calendario-estado>Cargando…</div>
       </div>
       <button class="modal-close" data-close aria-label="Cerrar"><i class="fas fa-xmark"></i></button>
     </div>
-    <div class="ini-calendario">
-      <div class="cal-head abajo-5">
-        {% for d in dias_semana %}<div>{{ d|slice:":1" }}</div>{% endfor %}
-      </div>
-      {% for semana in calendario %}
-      <div class="cal-week abajo-4">
-        {% for dia in semana %}
-          {% if dia %}
-          <button type="button" class="cal-day {% if dia.tiene_pagos %}has{% endif %} {% if dia.es_hoy %}on{% endif %}"
-                  {% if dia.tiene_pagos %}data-open="#dia{{ dia.numero }}"{% endif %}
-                  title="{% if dia.tiene_pagos %}{{ dia.total_dia|money }} este día{% endif %}">
-            <span>{{ dia.numero }}</span>
-            {% if dia.tiene_pagos %}<span class="dot {% if dia.todo_pagado %}paid{% endif %}"></span>{% endif %}
-          </button>
-          {% else %}
-          <span class="cal-day sin-borde"></span>
-          {% endif %}
-        {% endfor %}
-      </div>
-      {% endfor %}
-      <div class="hint arriba-8">Los días marcados tienen algo que pagar. Toca uno.</div>
-
-      {% if gastos_pendientes %}
-      <div class="label cal-sep">Cuentas de otros meses</div>
-      <div class="row-list">
-        {% for g in gastos_pendientes %}
-        <div class="row">
-          <span class="icon-tile {% if g.urgencia == 'vencido' %}coral{% elif g.urgencia == 'hoy' or g.urgencia == 'proximo' %}orange{% endif %}"><i class="fas fa-file-invoice"></i></span>
-          <div class="row-main">
-            <div class="row-title">{{ g.nombre }}</div>
-            <div class="row-meta">{{ g.fecha_vencimiento|date:"j b" }} · {{ g.texto_urgencia }}</div>
-          </div>
-          <div class="mono">{{ g.monto|money }}</div>
-          <form method="post" action="{% url 'pagar_gasto_pendiente' g.pk %}" class="sin-margen">
-            {% csrf_token %}
-            <input type="hidden" name="next" value="{% url 'dashboard' %}">
-            <button type="submit" class="btn btn-green btn-sm">Pagar</button>
-          </form>
-        </div>
-        {% endfor %}
-      </div>
-      {% endif %}
-    </div>
-
-    {% if monto_ya_pagado %}
-    <div class="label cal-sep corto">Ya pagados</div>
-    <div class="row-list">
-      {% for i in pendientes %}{% if i.pagado %}
-      <div class="row">
-        <span class="icon-tile green"><i class="fas fa-check"></i></span>
-        <div class="row-main">
-          <div class="row-title">{{ i.nombre }}</div>
-          <div class="row-meta">{{ i.detalle }}{% if i.fecha_pago %} · pagado el {{ i.fecha_pago|date:"j b" }}{% endif %}</div>
-        </div>
-        <div class="mono tinta-apagada">{{ i.monto|money }}</div>
-        <form method="post" action="{{ i.url_anular }}" class="sin-margen" data-confirm="¿Marcar {{ i.nombre }} como no pagado?">
-          {% csrf_token %}
-          <input type="hidden" name="next" value="?year={{ year }}&amp;month={{ month }}">
-          <input type="hidden" name="next_path" value="{% url 'dashboard' %}">
-          <input type="hidden" name="periodo" value="{{ i.periodo }}">
-          <button type="submit" class="icon-btn" title="Deshacer" aria-label="Deshacer"><i class="fas fa-rotate-left"></i></button>
-        </form>
-      </div>
-      {% endif %}{% endfor %}
-    </div>
-    {% endif %}
   </div>
 </div>
-
-{% for d in dias_con_pago %}
-<div class="modal-overlay" id="dia{{ d.numero }}">
-  <div class="modal-box caja-420">
-    <div class="modal-head">
-      <div>
-        <div class="modal-title">{{ d.numero }} de {{ nombre_mes }}</div>
-        <div class="modal-sub">{{ d.eventos|length }} pago{{ d.eventos|length|pluralize:"s" }} · {{ d.total_dia|money }}</div>
-      </div>
-      <button class="modal-close" data-close aria-label="Cerrar"><i class="fas fa-xmark"></i></button>
-    </div>
-    <div class="row-list">
-      {% for e in d.eventos %}
-      <div class="row">
-        <div class="row-main">
-          <div class="row-title">{{ e.deuda.acreedor }}</div>
-          <div class="row-meta">{{ e.deuda.nombre_categoria }}{% if e.atrasado %} · <span class="tinta-coral-texto">atrasada</span>{% elif e.pago %} · pagada el {{ e.pago.fecha_pago|date:"j b" }}{% endif %}</div>
-        </div>
-        <div class="mono">{{ e.monto|money }}</div>
-        {% if e.estado == 'pagado' %}
-        <span class="badge badge-green">Pagada</span>
-        {% else %}
-        <form method="post" action="{% url 'pagar_cuota' e.deuda.pk %}" class="sin-margen">
-          {% csrf_token %}
-          <input type="hidden" name="next" value="?year={{ year }}&amp;month={{ month }}">
-          <input type="hidden" name="next_path" value="{% url 'dashboard' %}">
-          <input type="hidden" name="periodo" value="{{ e.periodo }}">
-          <button type="submit" class="btn btn-purple btn-sm">Pagar</button>
-        </form>
-        {% endif %}
-      </div>
-      {% endfor %}
-    </div>
-  </div>
-</div>
-{% endfor %}
-
-{% for m in metas %}
-{% if not m.esta_completa %}
-<div class="modal-overlay" id="meta{{ m.pk }}">
-  <div class="modal-box caja-380">
-    <div class="modal-head">
-      <div>
-        <div class="modal-title">Aportar a {{ m.nombre }}</div>
-        <div class="modal-sub">Te faltan {{ m.monto_faltante|money }}</div>
-      </div>
-      <button class="modal-close" data-close aria-label="Cerrar"><i class="fas fa-xmark"></i></button>
-    </div>
-    <form method="post" action="{% url 'aportar_meta' m.pk %}">
-      {% csrf_token %}
-      <input type="hidden" name="next" value="{% url 'dashboard' %}">
-      <div class="field">
-        <label class="label" for="id_aporte_{{ m.pk }}">Cuánto aportas</label>
-        <input type="number" name="monto" id="id_aporte_{{ m.pk }}" class="input-amount tinta-verde-texto" min="1" required>
-      </div>
-      <div class="field">
-        <label class="label" for="id_nota_meta_{{ m.pk }}">Nota (opcional)</label>
-        <input type="text" name="nota" id="id_nota_meta_{{ m.pk }}" placeholder="Ej: sobró del mes">
-      </div>
-      <button type="submit" class="btn btn-block btn-abono">Guardar aporte</button>
-    </form>
-  </div>
-</div>
-{% endif %}
-{% endfor %}
 {% endblock %}
 
 {% block extra_js %}
 <script type="module" src="{% static 'js/pantallas/recordatorios.js' %}" nonce="{{ csp_nonce }}"></script>
 <script type="module" src="{% static 'js/pantallas/dashboard.js' %}" nonce="{{ csp_nonce }}"></script>
+<script type="module" src="{% static 'js/pantallas/inicio-calendario.js' %}" nonce="{{ csp_nonce }}"></script>
 <script type="module" src="{% static 'js/pantallas/inicio-cifra.js' %}" nonce="{{ csp_nonce }}"></script>
 <script type="module" src="{% static 'js/pantallas/inicio-movimientos.js' %}" nonce="{{ csp_nonce }}"></script>
 <script type="module" src="{% static 'js/pantallas/movimientos-hoja.js' %}" nonce="{{ csp_nonce }}"></script>
