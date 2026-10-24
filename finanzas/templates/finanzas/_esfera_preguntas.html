@@ -1,4 +1,4 @@
-{% if profile.analisis_ia %}<div class="esf-charla" data-charla data-estado="{{ esfera.estado }}" data-modo="quieto" data-url="{% url 'esfera_preguntar' %}" data-url-tarea="{% url 'esfera_pregunta_tarea' %}" data-voz-url="{% url 'voz_esfera' %}" data-url-privacidad="{% url 'privacidad' %}" data-url-perfil="{% url 'perfil' %}" role="dialog" aria-modal="true" aria-label="Preguntarle a la esfera" hidden>
+{% load voz %}{% oido_disponible as oido %}{% if profile.analisis_ia %}<div class="esf-charla" data-charla data-estado="{{ esfera.estado }}" data-modo="quieto" data-url="{% url 'esfera_preguntar' %}" data-url-tarea="{% url 'esfera_pregunta_tarea' %}" data-voz-url="{% url 'voz_esfera' %}"{% if oido %} data-url-oir="{% url 'esfera_oir' %}"{% endif %} data-url-privacidad="{% url 'privacidad' %}" data-url-perfil="{% url 'perfil' %}" role="dialog" aria-modal="true" aria-label="Preguntarle a la esfera" hidden>
   <div class="ec-cab">
     <button type="button" class="ec-cerrar" data-charla-cerrar aria-label="Cerrar"><i class="fas fa-xmark"></i></button>
     <span class="ec-contador" data-charla-contador>Pregunta 1 de 4</span>
@@ -20,6 +20,11 @@
         <button type="button" data-idea>¿Cuándo termino de pagar mis cuotas?</button>
       </div>
     </div>
+    <div class="ec-vista" data-vista="escucha" hidden>
+      <div class="ec-onda" data-charla-onda aria-hidden="true"></div>
+      <span class="ec-tiempo" data-charla-tiempo aria-live="off">0:00</span>
+      <span class="ec-nota">Toca el botón cuadrado para enviar</span>
+    </div>
     <div class="ec-vista" data-vista="piensa" hidden>
       <span class="ec-pregunta" data-charla-pregunta></span>
       <span class="ec-puntos" aria-hidden="true"><i></i><i></i><i></i></span>
@@ -34,13 +39,20 @@
       <span class="ec-titulo" data-charla-aviso-titulo></span>
       <span class="ec-nota" data-charla-aviso-nota></span>
       <a class="ec-enlace" data-charla-aviso-enlace hidden></a>
+      <button type="button" class="ec-enlace ec-ayuda" data-charla-ayuda hidden><i class="fas fa-circle-question"></i>Cómo activarlo</button>
+      <span class="ec-nota" data-charla-ayuda-txt hidden>En el navegador, toca el ícono que está junto a la dirección, entra a Permisos y activa el micrófono. Si instalaste Fintora en el teléfono, búscala en Ajustes → Aplicaciones → Permisos.</span>
     </div>
   </div>
   <form class="ec-entrada" data-charla-form>
     {% csrf_token %}
     <input type="text" name="pregunta" maxlength="300" autocomplete="off" enterkeyhint="send" placeholder="Escribe tu pregunta" aria-label="Tu pregunta" data-charla-campo>
+    <button type="button" class="ec-enviar ec-mic" data-charla-mic aria-label="Preguntar con la voz" hidden><i class="fas fa-microphone"></i></button>
     <button type="submit" class="ec-enviar" aria-label="Preguntar"><i class="fas fa-arrow-up"></i></button>
   </form>
+  <div class="ec-graba" data-charla-graba hidden>
+    <span class="eg-pildora"><b></b>Grabando</span>
+    <button type="button" class="eg-parar" data-charla-parar aria-label="Enviar la grabación"><i class="fas fa-stop"></i></button>
+  </div>
   <div class="ec-final" data-charla-final hidden>
     <span>Esta conversación llegó a 4 preguntas.</span>
     <button type="button" class="ec-otra" data-charla-otra><i class="fas fa-plus"></i>Empezar otra conversación</button>

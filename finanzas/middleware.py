@@ -116,7 +116,7 @@ class PoliticaContenidoMiddleware:
             "upgrade-insecure-requests",
         ])
         respuesta['Permissions-Policy'] = (
-            'camera=(), microphone=(), geolocation=(), payment=(), usb=()'
+            'camera=(), microphone=(self), geolocation=(), payment=(), usb=()'
         )
         return respuesta
 

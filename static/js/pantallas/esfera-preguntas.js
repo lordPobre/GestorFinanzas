@@ -20,6 +20,18 @@
   const avisoEnlace = raiz.querySelector('[data-charla-aviso-enlace]');
   const esferaMes = document.querySelector('[data-esfera]');
   const estadoMes = raiz.dataset.estado;
+  const mic = raiz.querySelector('[data-charla-mic]');
+  const graba = raiz.querySelector('[data-charla-graba]');
+  const parar = raiz.querySelector('[data-charla-parar]');
+  const onda = raiz.querySelector('[data-charla-onda]');
+  const tiempo = raiz.querySelector('[data-charla-tiempo]');
+  const ayuda = raiz.querySelector('[data-charla-ayuda]');
+  const ayudaTxt = raiz.querySelector('[data-charla-ayuda-txt]');
+  const urlOir = raiz.dataset.urlOir || '';
+  const MAX_SEG = 30;
+  const MIN_MS = 700;
+  const UMBRAL = 0.015;
+  const BARRAS = 30;
   const vistas = {};
   raiz.querySelectorAll('[data-vista]').forEach((v) => { vistas[v.dataset.vista] = v; });
 
@@ -33,6 +45,10 @@
   let audioUrl = '';
   let silencioUrl = '';
   let ultimoFoco = null;
+  let grab = null;
+  let puedeGrabar = !!(urlOir && navigator.mediaDevices && navigator.mediaDevices.getUserMedia && window.MediaRecorder);
+  const barras = [];
+  for (let i = 0; i < BARRAS; i += 1) barras.push(onda.appendChild(document.createElement('i')));
 
   function verVista(nombre) {
     Object.keys(vistas).forEach((k) => { vistas[k].hidden = k !== nombre; });
@@ -48,10 +64,18 @@
     contador.textContent = `Pregunta ${Math.min(MAX, Math.max(1, n))} de ${MAX}`;
   }
 
+  function ponerBotones() {
+    const hay = campo.value.trim() !== '';
+    mic.hidden = !puedeGrabar || hay;
+    enviar.hidden = puedeGrabar && !hay;
+  }
+
   function bloquear(si) {
     ocupado = si;
     campo.disabled = si || cerrada;
     enviar.disabled = si || cerrada;
+    mic.disabled = si || cerrada;
+    ponerBotones();
   }
 
   function token() {
@@ -165,6 +189,8 @@
   }
 
   function aviso(titulo, nota, enlace, sinPreguntas) {
+    ayuda.hidden = true;
+    ayudaTxt.hidden = true;
     avisoTitulo.textContent = titulo;
     avisoNota.textContent = nota;
     avisoEnlace.hidden = !enlace;
@@ -267,7 +293,165 @@
       .finally(() => bloquear(false));
   }
 
+  function noEntendi() {
+    aviso('No alcancé a entenderte', 'Intenta de nuevo, más cerca del teléfono, o escribe tu pregunta.');
+    modo('quieto', 'No se descontó ninguna pregunta');
+  }
+
+  function sinPermiso() {
+    aviso('No tengo permiso para usar el micrófono', 'Actívalo en los ajustes del navegador para preguntar con la voz.');
+    ayuda.hidden = false;
+    form.classList.add('sin-mic');
+    mic.querySelector('i').className = 'fas fa-microphone-slash';
+    modo('quieto', 'Puedes escribir tu pregunta');
+  }
+
+  function conPermiso() {
+    form.classList.remove('sin-mic');
+    mic.querySelector('i').className = 'fas fa-microphone';
+  }
+
+  function quitarMic() {
+    puedeGrabar = false;
+    campo.placeholder = 'Escribe tu pregunta';
+    ponerBotones();
+  }
+
+  function tipoGrabacion() {
+    if (!MediaRecorder.isTypeSupported) return '';
+    return ['audio/webm;codecs=opus', 'audio/mp4', 'audio/ogg;codecs=opus', 'audio/webm']
+      .find((t) => MediaRecorder.isTypeSupported(t)) || '';
+  }
+
+  function soltar(g) {
+    if (g.cuadro) cancelAnimationFrame(g.cuadro);
+    clearInterval(g.reloj);
+    g.flujo.getTracks().forEach((t) => t.stop());
+    if (g.ctx && g.ctx.close) g.ctx.close().catch(() => {});
+    barras.forEach((b) => { b.style.transform = ''; });
+  }
+
+  function dibujar() {
+    const g = grab;
+    if (!g) return;
+    if (g.analizador) {
+      g.analizador.getFloatTimeDomainData(g.muestras);
+      let suma = 0;
+      for (let i = 0; i < g.muestras.length; i += 1) suma += g.muestras[i] * g.muestras[i];
+      const nivel = Math.sqrt(suma / g.muestras.length);
+      if (nivel > g.maximo) g.maximo = nivel;
+      g.niveles.push(Math.min(1, nivel * 6));
+      g.niveles.shift();
+      barras.forEach((b, i) => { b.style.transform = `scaleY(${Math.max(0.12, g.niveles[i])})`; });
+    }
+    g.cuadro = requestAnimationFrame(dibujar);
+  }
+
+  function enviarAudio(blob) {
+    raiz.querySelectorAll('[data-charla-pregunta]').forEach((n) => { n.textContent = ''; });
+    verVista('piensa');
+    modo('piensa', 'Pasando tu voz a texto…');
+    const datos = new FormData();
+    datos.append('audio', blob, 'pregunta');
+    fetch(urlOir, {
+      method: 'POST', body: datos, credentials: 'same-origin',
+      headers: { 'X-Requested-With': 'XMLHttpRequest', 'X-CSRFToken': token() },
+    }).then((r) => r.json())
+      .catch(() => ({ ok: false }))
+      .then((d) => {
+        bloquear(false);
+        if (d.ok && d.texto) { preguntar(d.texto); return; }
+        if (d.motivo === 'no_entendi') { noEntendi(); return; }
+        if (d.motivo === 'sin_oido') {
+          quitarMic();
+          aviso('La voz no está disponible ahora', 'Puedes escribir tu pregunta.');
+          return;
+        }
+        if (['tope', 'politica', 'desactivado'].indexOf(d.motivo) >= 0) { mostrar(d, ''); return; }
+        if (d.msg) { aviso('Espera un momento', d.msg); return; }
+        aviso('No pude escuchar la grabación', 'Intenta de nuevo o escribe tu pregunta.');
+      });
+  }
+
+  function terminoGrabacion(g) {
+    if (g.listo) return;
+    g.listo = true;
+    soltar(g);
+    if (grab === g) grab = null;
+    graba.hidden = true;
+    if (g.cancelada) { bloquear(false); return; }
+    form.hidden = false;
+    if (g.duracion < MIN_MS || g.maximo < UMBRAL || !g.partes.length) {
+      bloquear(false);
+      noEntendi();
+      return;
+    }
+    enviarAudio(new Blob(g.partes, { type: g.rec.mimeType || 'audio/webm' }));
+  }
+
+  function pararGrabacion(cancelar) {
+    const g = grab;
+    if (!g) return;
+    g.cancelada = !!cancelar;
+    g.duracion = Date.now() - g.inicio;
+    if (!cancelar) desbloquearAudio();
+    if (g.rec.state !== 'inactive') g.rec.stop();
+    else terminoGrabacion(g);
+  }
+
+  function empezarGrabacion() {
+    if (!puedeGrabar || ocupado || cerrada || grab) return;
+    desbloquearAudio();
+    pararVoz();
+    bloquear(true);
+    navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } })
+      .then((flujo) => {
+        if (raiz.hidden) { flujo.getTracks().forEach((t) => t.stop()); bloquear(false); return; }
+        const tipo = tipoGrabacion();
+        const rec = new MediaRecorder(flujo, tipo ? { mimeType: tipo } : undefined);
+        const g = { flujo, rec, partes: [], inicio: Date.now(), maximo: 0, niveles: new Array(BARRAS).fill(0) };
+        try {
+          const Ctx = window.AudioContext || window.webkitAudioContext;
+          g.ctx = new Ctx();
+          if (g.ctx.resume) g.ctx.resume().catch(() => {});
+          g.analizador = g.ctx.createAnalyser();
+          g.analizador.fftSize = 1024;
+          g.muestras = new Float32Array(g.analizador.fftSize);
+          g.ctx.createMediaStreamSource(flujo).connect(g.analizador);
+          g.analizador.getFloatTimeDomainData(g.muestras);
+        } catch (e) {
+          g.analizador = null;
+          g.maximo = 1;
+        }
+        rec.addEventListener('dataavailable', (e) => { if (e.data && e.data.size) g.partes.push(e.data); });
+        rec.addEventListener('stop', () => terminoGrabacion(g));
+        grab = g;
+        rec.start();
+        conPermiso();
+        let ultimo = -1;
+        tiempo.textContent = '0:00';
+        g.reloj = setInterval(() => {
+          const s = Math.floor((Date.now() - g.inicio) / 1000);
+          if (s !== ultimo) { ultimo = s; tiempo.textContent = `0:${String(Math.min(s, MAX_SEG)).padStart(2, '0')}`; }
+          if (s >= MAX_SEG) pararGrabacion();
+        }, 250);
+        repetir.hidden = true;
+        verVista('escucha');
+        form.hidden = true;
+        graba.hidden = false;
+        modo('escucha', 'Te escucho…');
+        parar.focus();
+        dibujar();
+      })
+      .catch((e) => {
+        bloquear(false);
+        if (e && (e.name === 'NotAllowedError' || e.name === 'SecurityError')) sinPermiso();
+        else aviso('No encontré un micrófono', 'Puedes escribir tu pregunta.');
+      });
+  }
+
   function reiniciar() {
+    pararGrabacion(true);
     pararVoz();
     olvidarAudio();
     conversacion = '';
@@ -281,8 +465,9 @@
     repetir.hidden = true;
     campo.value = '';
     ponerContador(1);
+    graba.hidden = true;
     verVista('inicio');
-    modo('quieto', 'Escribe tu pregunta');
+    modo('quieto', puedeGrabar ? 'Toca el micrófono o escribe' : 'Escribe tu pregunta');
     bloquear(false);
   }
 
@@ -291,10 +476,11 @@
     if (!conversacion && !cerrada) reiniciar();
     raiz.hidden = false;
     html.classList.add('charla-abierta');
-    if (!cerrada && !form.hidden) campo.focus();
+    if (!puedeGrabar && !cerrada && !form.hidden) campo.focus();
   }
 
   function cerrarCharla() {
+    pararGrabacion(true);
     pararVoz();
     raiz.hidden = true;
     html.classList.remove('charla-abierta');
@@ -302,6 +488,12 @@
     if (ultimoFoco && ultimoFoco.focus) ultimoFoco.focus();
   }
 
+  if (puedeGrabar) campo.placeholder = 'Escribe o toca el micrófono';
+  ponerBotones();
+  campo.addEventListener('input', ponerBotones);
+  mic.addEventListener('click', empezarGrabacion);
+  parar.addEventListener('click', () => pararGrabacion());
+  ayuda.addEventListener('click', () => { ayudaTxt.hidden = false; ayuda.hidden = true; });
   abrir.addEventListener('click', abrirCharla);
   raiz.querySelector('[data-charla-cerrar]').addEventListener('click', cerrarCharla);
   raiz.querySelector('[data-charla-otra]').addEventListener('click', () => { reiniciar(); campo.focus(); });
@@ -311,11 +503,12 @@
   });
   repetir.addEventListener('click', () => { olvidarAudio(); hablar(); });
   bola.addEventListener('click', () => {
+    if (raiz.dataset.modo === 'escucha') { pararGrabacion(); return; }
     if (raiz.dataset.modo === 'habla') { pararVoz(); return; }
     if (raiz.dataset.modo !== 'piensa') hablar();
   });
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && !raiz.hidden) cerrarCharla();
   });
-  window.addEventListener('pagehide', pararVoz);
+  window.addEventListener('pagehide', () => { pararGrabacion(true); pararVoz(); });
 })();

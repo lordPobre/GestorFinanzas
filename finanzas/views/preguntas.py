@@ -48,6 +48,46 @@ def preguntar(request):
 
 
 @login_required(login_url='/login/')
+@require_POST
+@limitar(40, 3600, 'Ya grabaste varias preguntas esta hora.')
+def oir(request):
+    from ..oido import MAX_BYTES, MIN_BYTES, TIPOS, tipo_base, transcribir
+    from ..voz import configurada
+
+    perfil = get_or_create_profile(request.user)
+    if not perfil.analisis_ia:
+        return JsonResponse({'ok': False, 'motivo': 'desactivado'}, status=403)
+    if not puede_preguntar(perfil):
+        return JsonResponse({'ok': False, 'motivo': 'politica'}, status=403)
+    if not configurada():
+        return JsonResponse({'ok': False, 'motivo': 'sin_oido'}, status=503)
+    if usadas_hoy(request.user.pk) >= tope_diario():
+        return JsonResponse({'ok': False, 'motivo': 'tope', 'tope': tope_diario()})
+
+    try:
+        largo = int(request.META.get('CONTENT_LENGTH') or 0)
+    except ValueError:
+        largo = 0
+    if largo > MAX_BYTES + 64 * 1024:
+        return JsonResponse({'ok': False, 'motivo': 'audio'}, status=413)
+
+    archivo = request.FILES.get('audio')
+    if not archivo or not MIN_BYTES <= archivo.size <= MAX_BYTES or tipo_base(archivo.content_type) not in TIPOS:
+        return JsonResponse({'ok': False, 'motivo': 'audio'}, status=400)
+
+    audio = archivo.read()
+    archivo.close()
+    texto = transcribir(audio, archivo.content_type)
+    del audio
+    if texto is None:
+        return JsonResponse({'ok': False, 'motivo': 'oido'}, status=502)
+    texto = texto[:LARGO_PREGUNTA]
+    if not texto:
+        return JsonResponse({'ok': False, 'motivo': 'no_entendi'})
+    return JsonResponse({'ok': True, 'texto': texto})
+
+
+@login_required(login_url='/login/')
 @require_GET
 def tarea_pregunta(request):
     from ..tareas_ia import SIN_IA, estado

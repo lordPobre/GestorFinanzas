@@ -85,7 +85,7 @@ Pide la contraseña actual, o el código de la app si la cuenta entra solo con G
 - Vencen a las 8 horas sin uso y se renuevan en cada petición (`SESSION_SAVE_EVERY_REQUEST`). Además, `SesionAbsolutaMiddleware` las cierra a los 7 días desde que se entró, aunque se usen a diario (`SESION_MAXIMA_HORAS`, por defecto 168). Queda el evento `sesion_vencida`.
 - En producción las cookies son `Secure`, `HttpOnly` y `SameSite=Lax`, y se llaman `__Host-sessionid` y `__Host-csrftoken`: el navegador solo las acepta por HTTPS, sin dominio y en `/`, así que un subdominio no puede pisarlas.
 - **Aparato conocido.** Cada aparato recibe la cookie firmada `fintora_aparato`. Si se entra desde uno nuevo y la cuenta ya tenía otro, llega un aviso por correo y queda en *Perfil → Actividad de la cuenta*.
-- **Sin caché.** `SinCacheMiddleware` pone `Cache-Control: no-store, private` en toda respuesta con sesión. Salir responde `Clear-Site-Data: "cache"`, y `registro-sw.js` recarga la página si Safari la saca de su memoria de Atrás. Después de salir, Atrás lleva al acceso.
+- **Sin caché.** `SinCacheMiddleware` pone `Cache-Control: no-store, private` en toda respuesta con sesión. Salir responde `Clear-Site-Data: "cache"`, y `base-2.js` recarga la página si Safari la saca de su memoria de Atrás. Después de salir, Atrás lleva al acceso.
 - Cada sesión abierta queda registrada con IP y navegador (`SesionActiva`). En *Perfil → Sesiones* se puede cerrar cualquiera o todas las demás, y eso borra la sesión de Django.
 - `login()` rota la clave de sesión, lo que evita la fijación de sesión.
 
@@ -120,7 +120,7 @@ upgrade-insecure-requests
 - `connect-src 'self'`: el JavaScript solo puede hablar con la propia app. Las llamadas a Anthropic, ElevenLabs y Resend salen del servidor, nunca del navegador.
 - `media-src blob:` es para reproducir el audio de la esfera, que llega como archivo y se reproduce desde la memoria.
 - Las fuentes, los íconos y Chart.js se sirven desde `static/vendor`. **Dentro de la app el navegador no le pide nada a ningún tercero**, lo que prueba `test_terceros_fotos_cache.py`. En las páginas públicas, la CSP suma el dominio de cada proveedor de medición solo si su variable está puesta (ver [02](02-ARQUITECTURA.md#medición-en-las-páginas-públicas)).
-- `Permissions-Policy` bloquea cámara, micrófono, ubicación, pagos y USB.
+- `Permissions-Policy` bloquea cámara, ubicación, pagos y USB. El micrófono solo lo puede pedir la propia app, para preguntarle a la esfera con la voz; la grabación va a `esfera/preguntar/voz/`, se lee en memoria, se envía a ElevenLabs para pasarla a texto y se descarta.
 - Además: `X-Frame-Options: DENY`, `nosniff`, `Referrer-Policy: same-origin` y `Cross-Origin-Opener-Policy: same-origin`.
 - **Redirecciones abiertas.** Todo `next` pasa por `redirecciones.py`, que solo acepta rutas del propio dominio. `/\malo.com`, que el navegador trata como `//malo.com`, se rechaza.
 - **Exportaciones.** Una descripción que empieza con `=`, `+`, `-` o `@` sale en el CSV con un `'` delante y en el Excel como texto, para que no se ejecute como fórmula.

@@ -21,3 +21,9 @@ def voz_firmada(context, texto):
     if not texto or not puede_usar(usuario):
         return ''
     return signing.dumps({'u': usuario.pk, 't': str(texto)}, salt=SAL, compress=True)
+
+
+@register.simple_tag(takes_context=True)
+def oido_disponible(context):
+    request = context.get('request')
+    return puede_usar(getattr(request, 'user', None))
