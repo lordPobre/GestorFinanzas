@@ -2,6 +2,7 @@
   var esfera = document.querySelector('[data-esfera]');
   var orbe = document.querySelector('.sidebar-foot.health');
   if (!esfera || !orbe || !esfera.dataset.voz || !esfera.dataset.vozUrl || !window.fetch) return;
+  if (document.querySelector('[data-charla]')) return;
   var mq = window.matchMedia('(min-width: 721px)');
   var audio = null;
   var url = '';

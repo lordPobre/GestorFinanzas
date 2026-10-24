@@ -5,15 +5,16 @@ from decimal import Decimal
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db import transaction as db_transaction
+from django.http import JsonResponse
 from django.shortcuts import redirect, render
+from django.urls import reverse
+from django.views.decorators.http import require_GET
 
-from ..cartolas import BANCOS, enriquecer, leer_cartola
-from ..cartolas.base import ErrorCartola
-from ..cartolas.ciclo import reubicar_anteriores
+from ..cartolas import BANCOS
 from ..categorias_base import SLUGS_BASE
 from ..models import (Categoria, Deuda, GastoPendiente, PagoCuota, Persona, Prestamo, Suscripcion,
                       Transaccion)
-from ..servicios.repetidos import marcar_repetidas
+from ..servicios import lectura_cartola
 from .comun import contadores
 from ..seguridad import limitar
 
@@ -22,37 +23,6 @@ log = logging.getLogger('finanzas')
 SESION = 'cartola_pendiente'
 DIAGNOSTICO = 'cartola_diagnostico'
 MAX_MB = 6
-
-
-def _a_dict(cartola):
-    return {
-        'banco': cartola.banco,
-        'periodo': cartola.periodo,
-        'cuenta': cartola.cuenta,
-        'cuadra': cartola.cuadra,
-        'descuadre': str(cartola.descuadre),
-        'nota_cuadre': cartola.nota_cuadre,
-        'saldo_inicial': str(cartola.saldo_inicial or ''),
-        'saldo_final': str(cartola.saldo_final or ''),
-        'movimientos': [{
-            'fecha': m.fecha.isoformat(),
-            'descripcion': m.descripcion,
-            'monto': str(m.monto),
-            'tipo': m.tipo,
-            'categoria': m.categoria,
-            'cuota_actual': m.cuota_actual,
-            'cuota_total': m.cuota_total,
-            'es_suscripcion': m.es_suscripcion,
-            'ya_existe': m.ya_existe,
-            'aviso': m.aviso,
-            'fecha_compra': m.fecha_compra.isoformat() if m.fecha_compra else '',
-            'mover_id': m.mover_id,
-            'reemplaza_id': m.reemplaza_id,
-            'reemplaza_seguro': m.reemplaza_seguro,
-            'reemplaza_desc': m.reemplaza_desc,
-            'reemplaza_fecha': m.reemplaza_fecha,
-        } for m in cartola.movimientos],
-    }
 
 
 def _filas(datos):
@@ -73,6 +43,18 @@ def _filas(datos):
     return filas
 
 
+def _entregar(request, datos):
+    if datos.get('ok'):
+        request.session[SESION] = datos['cartola']
+        return reverse('revisar_cartola')
+    motivo = datos.get('msg') or 'No se pudo leer la cartola.'
+    messages.error(request, motivo)
+    if datos.get('muestra'):
+        request.session[DIAGNOSTICO] = {'archivo': datos.get('archivo', ''), 'motivo': motivo,
+                                        'texto': datos['muestra']}
+    return reverse('importar_cartola')
+
+
 @login_required
 @limitar(20, 3600, 'Demasiadas cartolas seguidas. Prueba en un rato.')
 def importar_cartola(request):
@@ -87,32 +69,25 @@ def importar_cartola(request):
             return redirect('importar_cartola')
 
         request.session.pop(DIAGNOSTICO, None)
-
+        request.session.pop(SESION, None)
+        banco = request.POST.get('banco', '')
+        nombre = archivo.name
         try:
-            cartola = leer_cartola(archivo, request.POST.get('banco', ''),
-                                   archivo.name)
-            enriquecer(cartola, request.user)
-            reubicar_anteriores(cartola, request.user)
-            marcar_repetidas(cartola, request.user)
-        except ErrorCartola as e:
-            messages.error(request, str(e))
-            muestra = getattr(e, 'muestra', '')
-            if muestra:
-                request.session[DIAGNOSTICO] = {
-                    'archivo': archivo.name[:80],
-                    'motivo': str(e),
-                    'texto': muestra,
-                }
-            return redirect('importar_cartola')
-        except Exception:
-            log.exception('Cartola ilegible')
-            messages.error(request, 'No se pudo leer la cartola.')
-            return redirect('importar_cartola')
+            contenido = archivo.read()
         finally:
             archivo.close()
 
-        request.session[SESION] = _a_dict(cartola)
-        return redirect('revisar_cartola')
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            firmado = lectura_cartola.lanzar(request.user, contenido, banco, nombre)
+            del contenido
+            if firmado is None:
+                return JsonResponse({'ok': False, 'msg': 'Ahora hay varias cartolas leyéndose. Prueba en un minuto.'},
+                                    status=503)
+            return JsonResponse({'ok': True, 'tarea': firmado})
+
+        datos = lectura_cartola.leer_ahora(request.user, contenido, banco, nombre)
+        del contenido
+        return redirect(_entregar(request, datos))
 
     cuentas, tarjetas = [], []
     for clave, lector in BANCOS.items():
@@ -124,6 +99,17 @@ def importar_cartola(request):
            'diagnostico': request.session.pop(DIAGNOSTICO, None)}
     ctx.update(contadores(request.user))
     return render(request, 'finanzas/importar_cartola.html', ctx)
+
+
+@login_required
+@require_GET
+def tarea_cartola(request):
+    datos = lectura_cartola.estado(request.user, request.GET.get('t', ''))
+    if datos is None:
+        return JsonResponse({'listo': True, 'url': reverse('importar_cartola')}, status=404)
+    if not datos.get('listo'):
+        return JsonResponse({'listo': False})
+    return JsonResponse({'listo': True, 'url': _entregar(request, datos)})
 
 
 @login_required

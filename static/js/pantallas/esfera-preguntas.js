@@ -1,7 +1,7 @@
 (() => {
   const raiz = document.querySelector('[data-charla]');
-  const abrir = document.querySelector('[data-charla-abrir]');
-  if (!raiz || !abrir) return;
+  const abridores = document.querySelectorAll('[data-charla-abrir]');
+  if (!raiz || !abridores.length) return;
 
   const html = document.documentElement;
   const MAX = 4;
@@ -19,6 +19,8 @@
   const avisoNota = raiz.querySelector('[data-charla-aviso-nota]');
   const avisoEnlace = raiz.querySelector('[data-charla-aviso-enlace]');
   const esferaMes = document.querySelector('[data-esfera]');
+  const velo = document.querySelector('[data-charla-velo]');
+  const escritorio = window.matchMedia('(min-width: 721px)');
   const estadoMes = raiz.dataset.estado;
   const mic = raiz.querySelector('[data-charla-mic]');
   const graba = raiz.querySelector('[data-charla-graba]');
@@ -458,7 +460,7 @@
     anterior = '';
     turno = 0;
     cerrada = false;
-    vozFirmada = '';
+    vozFirmada = (esferaMes && esferaMes.dataset.voz) || '';
     raiz.dataset.estado = estadoMes;
     form.hidden = false;
     final.hidden = true;
@@ -475,14 +477,17 @@
     ultimoFoco = document.activeElement;
     if (!conversacion && !cerrada) reiniciar();
     raiz.hidden = false;
+    if (velo) velo.hidden = false;
     html.classList.add('charla-abierta');
-    if (!puedeGrabar && !cerrada && !form.hidden) campo.focus();
+    if ((!puedeGrabar || escritorio.matches) && !cerrada && !form.hidden) campo.focus();
+    else bola.focus();
   }
 
   function cerrarCharla() {
     pararGrabacion(true);
     pararVoz();
     raiz.hidden = true;
+    if (velo) velo.hidden = true;
     html.classList.remove('charla-abierta');
     if (!cerrada) reiniciar();
     if (ultimoFoco && ultimoFoco.focus) ultimoFoco.focus();
@@ -494,7 +499,19 @@
   mic.addEventListener('click', empezarGrabacion);
   parar.addEventListener('click', () => pararGrabacion());
   ayuda.addEventListener('click', () => { ayudaTxt.hidden = false; ayuda.hidden = true; });
-  abrir.addEventListener('click', abrirCharla);
+  abridores.forEach((a) => {
+    if (a.tagName !== 'BUTTON') {
+      a.setAttribute('role', 'button');
+      a.setAttribute('tabindex', '0');
+      a.setAttribute('aria-haspopup', 'dialog');
+      a.setAttribute('aria-label', 'Preguntarle a la esfera');
+      a.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); abrirCharla(); }
+      });
+    }
+    a.addEventListener('click', abrirCharla);
+  });
+  if (velo) velo.addEventListener('click', cerrarCharla);
   raiz.querySelector('[data-charla-cerrar]').addEventListener('click', cerrarCharla);
   raiz.querySelector('[data-charla-otra]').addEventListener('click', () => { reiniciar(); campo.focus(); });
   form.addEventListener('submit', (e) => { e.preventDefault(); preguntar(campo.value); });

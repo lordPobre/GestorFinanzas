@@ -37,9 +37,55 @@
     mostrar(f);
   });
 
-  document.getElementById('formCartola').addEventListener('submit', function () {
+  var form = document.getElementById('formCartola');
+  var urlTarea = form.dataset.urlTarea;
+  var notaInicial = nota.textContent;
+
+  function volver(texto) {
+    btn.disabled = false;
+    btn.textContent = 'Leer cartola';
+    zona.classList.remove('leyendo');
+    nota.textContent = texto || notaInicial;
+  }
+
+  function esperar(tarea, intentos) {
+    return new Promise(function (listo) { setTimeout(listo, 1000); })
+      .then(function () {
+        return fetch(urlTarea + '?t=' + encodeURIComponent(tarea), {
+          credentials: 'same-origin', headers: { 'X-Requested-With': 'XMLHttpRequest' },
+        });
+      })
+      .then(function (r) { return r.json(); })
+      .then(function (d) { return d.listo || intentos <= 0 ? d : esperar(tarea, intentos - 1); });
+  }
+
+  form.addEventListener('submit', function (e) {
     btn.disabled = true;
-    btn.textContent = 'Leyendo…';
+    if (!window.fetch || !window.FormData || !urlTarea) {
+      btn.textContent = 'Leyendo…';
+      return;
+    }
+    e.preventDefault();
+    var datos = new FormData(form);
+    btn.textContent = 'Leyendo tu cartola…';
+    zona.classList.add('leyendo');
+    nota.textContent = 'Si es larga puede tardar un poco. No cierres esta pantalla.';
+    fetch(window.location.pathname, {
+      method: 'POST', body: datos, credentials: 'same-origin',
+      headers: { 'X-Requested-With': 'XMLHttpRequest' },
+    }).then(function (r) {
+      if (r.redirected) { window.location.href = r.url; return null; }
+      return r.json();
+    }).then(function (d) {
+      if (!d) return null;
+      if (!d.ok || !d.tarea) { volver(d.msg || 'No se pudo leer la cartola.'); return null; }
+      return esperar(d.tarea, 120).then(function (f) {
+        if (f && f.url) { window.location.href = f.url; return; }
+        volver('Está tardando más de lo normal. Intenta de nuevo en un momento.');
+      });
+    }).catch(function () {
+      volver('No se pudo enviar el archivo. Revisa tu conexión e intenta de nuevo.');
+    });
   });
 
   var copiar = document.getElementById('btnCopiarDiag');

@@ -69,3 +69,23 @@ class PantallaPreguntasTests(TestCase):
         r = self.client.get(reverse('deudas'))
         self.assertNotContains(r, 'data-charla')
         self.assertNotContains(r, 'esfera-preguntas')
+
+    def test_en_escritorio_la_tarjeta_de_salud_abre_el_panel(self):
+        for nombre in ('dashboard', 'deudas', 'suscripciones'):
+            with self.subTest(pantalla=nombre):
+                r = self.client.get(reverse(nombre))
+                self.assertContains(r, 'data-tour="salud" data-charla-abrir')
+                self.assertContains(r, 'Toca para preguntar')
+                self.assertContains(r, 'data-charla-velo')
+
+    def test_sin_ia_la_tarjeta_de_salud_no_abre_nada(self):
+        self.perfil.analisis_ia = False
+        self.perfil.save(update_fields=['analisis_ia'])
+        r = self.client.get(reverse('dashboard'))
+        self.assertNotContains(r, 'Toca para preguntar')
+        self.assertNotContains(r, 'data-charla-velo')
+
+    def test_sin_esfera_la_tarjeta_de_salud_no_abre_nada(self):
+        r = self.client.get(reverse('estadisticas'))
+        self.assertNotContains(r, 'data-tour="salud" data-charla-abrir')
+        self.assertNotContains(r, 'Toca para preguntar')

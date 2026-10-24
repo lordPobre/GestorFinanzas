@@ -23,7 +23,7 @@
 
 <section class="sec-hoja">
   <div class="ca-cuerpo">
-    <form method="post" enctype="multipart/form-data" id="formCartola" class="ca-form">
+    <form method="post" enctype="multipart/form-data" id="formCartola" class="ca-form" data-url-tarea="{% url 'tarea_cartola' %}">
       {% csrf_token %}
       <label class="cartola-zona ca-zona" id="zona" data-tour="cartola">
         <input type="file" name="cartola" accept=".pdf,.csv,.tsv,.txt,.xlsx,.xlsm,application/pdf,text/csv" id="inputCartola" class="visually-hidden">

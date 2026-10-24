@@ -138,6 +138,7 @@ urlpatterns = [
 
     path('cartola/', cartola.importar_cartola, name='importar_cartola'),
     path('cartola/revisar/', cartola.revisar_cartola, name='revisar_cartola'),
+    path('cartola/tarea/', cartola.tarea_cartola, name='tarea_cartola'),
     path('cartola/confirmar/', cartola.confirmar_cartola, name='confirmar_cartola'),
     path('cartola/descartar/', cartola.descartar_cartola, name='descartar_cartola'),
 

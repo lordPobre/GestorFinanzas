@@ -44,4 +44,11 @@
 @media (max-width: 720px) {
   .ca-paso > p, .ca-privacidad { font-size: 13px; }
 }
+
+.ca-zona.leyendo { pointer-events: none; }
+.ca-zona.leyendo .ca-zona-icono i { animation: caLeyendo 1.2s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) {
+  .ca-zona.leyendo .ca-zona-icono i { animation: none; }
+}
+@keyframes caLeyendo { 0%, 100% { opacity: 1; transform: translateY(0); } 50% { opacity: .45; transform: translateY(-3px); } }
 }
