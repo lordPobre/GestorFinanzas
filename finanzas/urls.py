@@ -7,6 +7,7 @@ from .views import recordatorios
 from .views import voz as vistas_voz
 from .views import preguntas as vistas_preguntas
 from .views import panel as vistas_panel
+from .views import proyeccion as vistas_proyeccion
 from .views import (actividad, analisis, cartola, categorias, cuenta, cuotas, descargas, encuesta,
                     estadisticas, landing, metas, movimientos, passkeys, plan, por_pagar,
                     prestamos, repetidos, sistema, suscripciones)
@@ -42,6 +43,7 @@ urlpatterns = [
     path('esfera/preguntar/voz/', vistas_preguntas.oir, name='esfera_oir'),
     path('inicio/calendario/', vistas_panel.calendario_inicio, name='inicio_calendario'),
     path('inicio/movimientos/', vistas_panel.movimientos_inicio, name='inicio_movimientos'),
+    path('inicio/proyeccion/', vistas_proyeccion.proyeccion_inicio, name='inicio_proyeccion'),
     path('ayuda/contacto/', landing.ayuda_contacto, name='ayuda_contacto'),
 
     path('por-pagar/', por_pagar.por_pagar, name='por_pagar'),

@@ -15,7 +15,7 @@
 
 {% block topbar_actions %}{% endblock %}
 
-{% block extra_head %}<link rel="stylesheet" href="{% static 'css/inicio-esfera.css' %}">{% endblock %}
+{% block extra_head %}<link rel="stylesheet" href="{% static 'css/inicio-esfera.css' %}"><link rel="stylesheet" href="{% static 'css/saldo-futuro.css' %}">{% endblock %}
 
 {% block content %}
 
@@ -173,6 +173,20 @@
         <button type="button" class="sec-btn vidrio" data-push-no>Ahora no</button>
       </div>
     </div>
+    {% endif %}
+
+    {% if es_mes_actual %}
+    <button type="button" class="sf-tarjeta" data-saldo-futuro data-url="{% url 'inicio_proyeccion' %}" data-open="#modalSaldoFuturo" hidden>
+      <span class="sf-cab">
+        <span class="sf-txt">
+          <span class="sf-titulo">Cómo sigue tu plata</span>
+          <span class="sf-sub" data-sf-sub></span>
+        </span>
+        <i class="fas fa-chevron-right" aria-hidden="true"></i>
+      </span>
+      <svg class="sf-linea" viewBox="0 0 320 64" aria-hidden="true" data-sf-chica></svg>
+      <span class="sf-meses" data-sf-meses></span>
+    </button>
     {% endif %}
 
     <div class="ini-cab">
@@ -334,6 +348,30 @@
   </div>
 </div>
 
+<div class="modal-overlay" id="modalSaldoFuturo">
+  <div class="modal-box caja-520">
+    <div class="modal-head">
+      <div>
+        <div class="modal-title">Cómo sigue tu plata</div>
+        <div class="modal-sub">Hasta fin de mes y los 3 que vienen</div>
+      </div>
+      <button class="modal-close" data-close aria-label="Cerrar"><i class="fas fa-xmark"></i></button>
+    </div>
+    <div class="sf-detalle">
+      <div class="sf-caja">
+        <span class="sf-etq" data-sf-etq></span>
+        <span class="sf-monto" data-sf-fin></span>
+        <svg class="sf-linea" viewBox="0 0 320 104" aria-hidden="true" data-sf-grande></svg>
+        <span class="sf-ejes"><span>Hoy</span><span data-sf-ultimo></span></span>
+        <div class="sf-cobros" data-sf-cobros></div>
+      </div>
+      <span class="sf-label">Los meses que vienen</span>
+      <div class="sf-lista" data-sf-lista></div>
+      <p class="sf-nota" data-sf-nota></p>
+    </div>
+  </div>
+</div>
+
 <div class="modal-overlay" id="modalCalendario" data-fragmento="{% url 'inicio_calendario' %}?year={{ year }}&amp;month={{ month }}">
   <div class="modal-box caja-520">
     <div class="modal-head">
@@ -351,6 +389,7 @@
 <script type="module" src="{% static 'js/pantallas/recordatorios.js' %}" nonce="{{ csp_nonce }}"></script>
 <script type="module" src="{% static 'js/pantallas/dashboard.js' %}" nonce="{{ csp_nonce }}"></script>
 <script type="module" src="{% static 'js/pantallas/inicio-calendario.js' %}" nonce="{{ csp_nonce }}"></script>
+<script type="module" src="{% static 'js/pantallas/saldo-futuro.js' %}" nonce="{{ csp_nonce }}"></script>
 <script type="module" src="{% static 'js/pantallas/inicio-cifra.js' %}" nonce="{{ csp_nonce }}"></script>
 <script type="module" src="{% static 'js/pantallas/inicio-movimientos.js' %}" nonce="{{ csp_nonce }}"></script>
 <script type="module" src="{% static 'js/pantallas/movimientos-hoja.js' %}" nonce="{{ csp_nonce }}"></script>
