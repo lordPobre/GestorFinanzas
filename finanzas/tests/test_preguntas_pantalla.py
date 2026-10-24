@@ -36,3 +36,36 @@ class PantallaPreguntasTests(TestCase):
     def test_la_esfera_del_panel_no_repite_el_nombre_de_transicion(self):
         r = self.client.get(reverse('dashboard'))
         self.assertEqual(r.content.decode().count('ini-esfera-bola'), 1)
+
+    def test_las_otras_pantallas_con_esfera_traen_el_panel(self):
+        for nombre in ('deudas', 'metas', 'prestamos', 'suscripciones'):
+            with self.subTest(pantalla=nombre):
+                r = self.client.get(reverse(nombre))
+                self.assertEqual(r.status_code, 200)
+                self.assertContains(r, 'data-charla-abrir')
+                self.assertContains(r, 'data-charla ')
+                self.assertContains(r, 'js/pantallas/esfera-preguntas.js', count=1)
+                self.assertContains(r, 'css/esfera-preguntas.css', count=1)
+
+    def test_inicio_no_repite_el_panel(self):
+        r = self.client.get(reverse('dashboard'))
+        self.assertContains(r, 'js/pantallas/esfera-preguntas.js', count=1)
+        self.assertContains(r, 'css/esfera-preguntas.css', count=1)
+        self.assertEqual(r.content.decode().count('data-charla '), 1)
+
+    def test_cada_pantalla_trae_sus_ideas(self):
+        self.assertContains(self.client.get(reverse('deudas')), 'los próximos 3 meses')
+        self.assertContains(self.client.get(reverse('metas')), '¿Cómo van mis metas?')
+        self.assertContains(self.client.get(reverse('dashboard')), 'zapatillas')
+
+    def test_sin_esfera_no_hay_panel(self):
+        r = self.client.get(reverse('estadisticas'))
+        self.assertNotContains(r, 'data-charla ')
+        self.assertNotContains(r, 'esfera-preguntas.js')
+
+    def test_sin_ia_las_otras_pantallas_no_traen_el_panel(self):
+        self.perfil.analisis_ia = False
+        self.perfil.save(update_fields=['analisis_ia'])
+        r = self.client.get(reverse('deudas'))
+        self.assertNotContains(r, 'data-charla')
+        self.assertNotContains(r, 'esfera-preguntas')

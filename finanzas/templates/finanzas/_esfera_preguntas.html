@@ -15,9 +15,23 @@
     <div class="ec-vista" data-vista="inicio">
       <span class="ec-titulo">¿Qué quieres saber?</span>
       <div class="ec-ideas">
+        {% with pantalla=request.resolver_match.url_name %}{% if pantalla == 'deudas' %}
+        <button type="button" data-idea>¿Cuánto pago en cuotas los próximos 3 meses?</button>
+        <button type="button" data-idea>¿Cuándo termino de pagar mis cuotas?</button>
+        <button type="button" data-idea>¿Me alcanza para otra compra de $100.000 en 6 cuotas?</button>
+        {% elif pantalla == 'metas' %}
+        <button type="button" data-idea>¿Cómo van mis metas?</button>
+        <button type="button" data-idea>¿Cuánto me falta para mi meta más cercana?</button>
+        <button type="button" data-idea>¿Cuánto me queda este mes?</button>
+        {% elif pantalla == 'prestamos' %}
+        <button type="button" data-idea>¿Cuánto debo en préstamos?</button>
+        <button type="button" data-idea>¿Cuándo termino de pagar lo que debo?</button>
+        <button type="button" data-idea>¿Cuánto me queda este mes?</button>
+        {% else %}
         <button type="button" data-idea>¿Me alcanza para unas zapatillas de $60.000 en 3 cuotas?</button>
         <button type="button" data-idea>¿Cuánto me queda este mes?</button>
         <button type="button" data-idea>¿Cuándo termino de pagar mis cuotas?</button>
+        {% endif %}{% endwith %}
       </div>
     </div>
     <div class="ec-vista" data-vista="escucha" hidden>
