@@ -6,6 +6,7 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 LADO_MAXIMO = 1024
 PIXELES_MAXIMOS = 40_000_000
 FORMATOS = {'JPEG', 'MPO', 'PNG', 'WEBP', 'GIF'}
+LECTORES = ('GIF', 'JPEG', 'PNG', 'WEBP')
 CALIDAD = 85
 
 
@@ -15,7 +16,7 @@ def recodificar(archivo):
     error = forms.ValidationError('No pudimos leer esa imagen. Prueba con una foto JPG o PNG.')
     try:
         archivo.seek(0)
-        with Image.open(archivo) as original:
+        with Image.open(archivo, formats=LECTORES) as original:
             if original.format not in FORMATOS:
                 raise error
             if original.width * original.height > PIXELES_MAXIMOS:
