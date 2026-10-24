@@ -11,7 +11,8 @@ DECENAS = {3: 'treinta', 4: 'cuarenta', 5: 'cincuenta', 6: 'sesenta',
 CENTENAS = ('', 'ciento', 'doscientos', 'trescientos', 'cuatrocientos', 'quinientos',
             'seiscientos', 'setecientos', 'ochocientos', 'novecientos')
 
-SINGULAR = {'pesos': 'peso', 'dólares': 'dólar', 'euros': 'euro', 'soles': 'sol', 'reales': 'real'}
+SINGULAR = {'pesos': 'peso', 'dólares': 'dólar', 'euros': 'euro', 'soles': 'sol', 'reales': 'real',
+            'centavos': 'centavo'}
 MONEDAS = frozenset(SINGULAR) | frozenset(SINGULAR.values())
 MASCULINOS = MONEDAS | frozenset({
     'servicio', 'servicios', 'pago', 'pagos', 'mes', 'meses', 'día', 'días', 'año', 'años',
@@ -22,8 +23,16 @@ FEMENINOS = frozenset({
     'suscripciones', 'meta', 'metas', 'semana', 'semanas', 'vez', 'veces', 'deuda', 'deudas',
 })
 
+NOMBRES = {
+    'US$': 'dólares', 'USD': 'dólares', 'R$': 'reales', 'BRL': 'reales', 'S/': 'soles', 'PEN': 'soles',
+    '€': 'euros', 'EUR': 'euros', 'CLP': 'pesos', 'ARS': 'pesos', 'MXN': 'pesos', 'COP': 'pesos',
+}
+
 PORCENTAJE = re.compile(r'(\d)\s?%')
 NUMERO = re.compile(r'(?<![\w.,])(\d{1,3}(?:\.\d{3})+|\d+)(?!\w|[.,]\d)(?:(\s+)([^\W\d_]+))?')
+MONTO = re.compile(r'(?<![\w$/])(-\s?)?(US\$|R\$|S/|USD|BRL|PEN|EUR|CLP|ARS|MXN|COP|€|\$)\s?'
+                   r'(\d{1,3}(?:\.\d{3})+|\d+)(?:,(\d{1,2}))?(?![.,]?\d)(?![^\W\d_])'
+                   r'(\s+(?:de\s+)?[^\W\d_]+)?')
 
 
 def _hasta_999(n):
@@ -81,6 +90,19 @@ def _reemplazo(m):
     return f'{palabras}{espacio}{siguiente}'
 
 
-def para_voz(texto):
-    texto = PORCENTAJE.sub(r'\1 por ciento', texto or '')
+def _monto(m, pesos):
+    menos, simbolo, entero, decimales, cola = m.groups()
+    cola = cola or ''
+    if cola and cola.split()[-1].lower() in MONEDAS:
+        base, cola = entero + cola, ''
+    else:
+        base = f'{entero} {pesos if simbolo == "$" else NOMBRES[simbolo]}'
+    if decimales and int(decimales):
+        base += f' con {int(decimales.ljust(2, "0"))} centavos'
+    return f'{"menos " if menos else ""}{base}{cola}'
+
+
+def para_voz(texto, pesos='pesos'):
+    texto = MONTO.sub(lambda m: _monto(m, pesos), texto or '')
+    texto = PORCENTAJE.sub(r'\1 por ciento', texto)
     return NUMERO.sub(_reemplazo, texto)

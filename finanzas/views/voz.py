@@ -4,6 +4,7 @@ from django.http import HttpResponse, JsonResponse
 from django.views.decorators.http import require_POST
 
 from ..seguridad import limitar
+from ..servicios.esfera import NOMBRES_MONEDA
 from ..templatetags.voz import SAL, puede_usar
 from ..voz import sintetizar
 
@@ -22,6 +23,11 @@ def _texto(request, campo):
     if not isinstance(datos, dict) or datos.get('u') != request.user.pk:
         return None
     return str(datos.get('t') or '')
+
+
+def _nombre_moneda(usuario):
+    perfil = getattr(usuario, 'profile', None)
+    return NOMBRES_MONEDA.get(getattr(perfil, 'moneda', '') or 'CLP', 'pesos')
 
 
 @login_required(login_url='/login/')
@@ -45,7 +51,7 @@ def hablar(request):
         partes.append(cambio)
     partes.append(frase)
 
-    audio = sintetizar(' '.join(partes))
+    audio = sintetizar(' '.join(partes), _nombre_moneda(request.user))
     if not audio:
         return JsonResponse({'ok': False}, status=503)
     respuesta = HttpResponse(audio, content_type='audio/mpeg')

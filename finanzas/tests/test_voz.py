@@ -36,7 +36,7 @@ class VozTests(TestCase):
             'saludo': 'Buenas noches'})
         self.assertEqual(r.status_code, 200)
         self.assertEqual(r['Content-Type'], 'audio/mpeg')
-        sintetizar.assert_called_once_with('Buenas noches. Tus finanzas siguen sanas. Vas bien.')
+        sintetizar.assert_called_once_with('Buenas noches. Tus finanzas siguen sanas. Vas bien.', 'pesos')
 
     @mock.patch.dict(os.environ, ELEVENLABS)
     @mock.patch('finanzas.views.voz.sintetizar', return_value=b'ID3audio')
@@ -45,7 +45,7 @@ class VozTests(TestCase):
             'frase': self._token('Vas bien.'), 'cambio': self._token('Tus finanzas siguen sanas.'),
             'nombre': self._token('Ana'), 'saludo': 'Buenas tardes'})
         self.assertEqual(r.status_code, 200)
-        sintetizar.assert_called_once_with('Buenas tardes, Ana. Tus finanzas siguen sanas. Vas bien.')
+        sintetizar.assert_called_once_with('Buenas tardes, Ana. Tus finanzas siguen sanas. Vas bien.', 'pesos')
 
     @mock.patch.dict(os.environ, ELEVENLABS)
     def test_no_acepta_un_nombre_sin_firma(self):

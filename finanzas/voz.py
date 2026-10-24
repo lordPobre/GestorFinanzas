@@ -107,8 +107,8 @@ def limpiar_audios():
     return borrados
 
 
-def sintetizar(texto):
-    texto = para_voz(' '.join((texto or '').split()))[:MAX_CARACTERES]
+def sintetizar(texto, pesos='pesos'):
+    texto = para_voz(' '.join((texto or '').split()), pesos)[:MAX_CARACTERES]
     if not texto or not configurada():
         return None
 
