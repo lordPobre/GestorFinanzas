@@ -84,6 +84,12 @@ def _trabajar(usuario_id, contenido, banco, nombre, clave):
         cache.set(clave, {'listo': True, 'ok': False, 'msg': 'No se pudo leer la cartola.'}, SEGUNDOS)
     finally:
         _cupos.release()
+
+
+def _en_hilo(*argumentos):
+    try:
+        _trabajar(*argumentos)
+    finally:
         connections.close_all()
 
 
@@ -98,7 +104,7 @@ def lanzar(usuario, contenido, banco, nombre):
         _trabajar(*argumentos)
     else:
         try:
-            threading.Thread(target=_trabajar, args=argumentos, name='cartola', daemon=True).start()
+            threading.Thread(target=_en_hilo, args=argumentos, name='cartola', daemon=True).start()
         except RuntimeError:
             _cupos.release()
             cache.delete(clave)
