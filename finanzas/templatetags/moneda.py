@@ -2,6 +2,8 @@ from decimal import Decimal, InvalidOperation
 
 from django import template
 
+from ..dinero import redondear
+
 register = template.Library()
 
 SIN_DECIMALES = {'$', 'CLP', 'COP'}
@@ -22,10 +24,11 @@ def money(valor, simbolo='$'):
     num = abs(num)
 
     if simbolo in SIN_DECIMALES:
-        texto = _separar_miles(int(num.to_integral_value()))
+        texto = _separar_miles(redondear(num))
     else:
-        entero = int(num)
-        centavos = int((num - entero) * 100)
+        exacto = redondear(num, 2)
+        entero = int(exacto)
+        centavos = int((exacto - entero) * 100)
         texto = f'{_separar_miles(entero)},{centavos:02d}'
 
     return f'{"-" if negativo else ""}{simbolo}{texto}'

@@ -2,6 +2,7 @@
 from django import template
 
 from .. import fechas
+from ..dinero import a_decimal
 from ..servicios.mes import numeros_mes
 
 register = template.Library()
@@ -16,8 +17,8 @@ def estado_salud(context):
     hoy = fechas.hoy()
     try:
         r = numeros_mes(usuario, hoy.year, hoy.month)
-        ingresos = float(r.get('ingresos') or 0)
-        gastos = float(r.get('gastos') or 0)
+        ingresos = a_decimal(r.get('ingresos'))
+        gastos = a_decimal(r.get('gastos'))
     except Exception:
         return 'neutro'
     if ingresos <= 0:

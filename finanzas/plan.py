@@ -8,6 +8,7 @@ from django.db.models import Sum
 from django.db.models.functions import TruncMonth
 
 from . import fechas
+from .dinero import a_decimal, redondear
 from .models import Deuda, MetaAhorro, Suscripcion, Transaccion
 from .servicios.mes import resumen_mes
 
@@ -111,7 +112,7 @@ def _totales_por_mes(usuario, desde, hasta):
     totales = {}
     for f in filas:
         clave = (f['m'].year, f['m'].month)
-        totales.setdefault(clave, {})[f['tipo']] = float(f['t'] or 0)
+        totales.setdefault(clave, {})[f['tipo']] = a_decimal(f['t'])
     return totales
 
 
@@ -119,7 +120,7 @@ def promedio_tipico(cerrados, actual, dia, dias_mes):
     ingresos = [m.get('INGRESO', 0) for m in cerrados if m.get('INGRESO', 0) > 0]
     if actual.get('INGRESO', 0) > 0:
         ingresos.append(actual['INGRESO'])
-    ingreso = sum(ingresos) / len(ingresos) if ingresos else 0.0
+    ingreso = sum(ingresos) / len(ingresos) if ingresos else 0
 
     gastos = [m.get('EGRESO', 0) for m in cerrados if m.get('EGRESO', 0) > 0]
     if gastos:
@@ -127,7 +128,7 @@ def promedio_tipico(cerrados, actual, dia, dias_mes):
     elif actual.get('EGRESO', 0) > 0:
         gasto = actual['EGRESO'] * dias_mes / max(dia, 1)
     else:
-        gasto = 0.0
+        gasto = 0
     return ingreso, gasto, len(gastos)
 
 
@@ -147,11 +148,11 @@ def mes_tipico(usuario, hoy=None):
     r = resumen_mes(usuario, hoy.year, hoy.month)
     compromisos = r['total_cuotas_mes'] + r['total_debo_mes']
     return {
-        'ingreso': round(ingreso),
-        'gasto': round(gasto),
-        'compromisos': round(compromisos),
-        'flujo': round(ingreso - gasto - compromisos),
-        'disponible_mes': max(0, round(r['disponible'])),
+        'ingreso': redondear(ingreso),
+        'gasto': redondear(gasto),
+        'compromisos': redondear(compromisos),
+        'flujo': redondear(ingreso - gasto - compromisos),
+        'disponible_mes': max(0, redondear(r['disponible'])),
         'meses_base': meses_base,
     }
 

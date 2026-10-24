@@ -7,6 +7,7 @@ from django.db.models import Exists, F, OuterRef, Sum
 from django.urls import reverse
 
 from ..categorias_base import COLOR_OTROS
+from ..dinero import a_decimal, redondear
 from ..models import Categoria, Deuda, MetaAhorro, Presupuesto, Suscripcion, Transaccion
 from .mes import MESES_LARGOS, numeros_meses
 
@@ -61,8 +62,8 @@ def insights_panel(resumen, datos_gastos, pendientes, proyecciones_deuda, presup
     insights = []
     presupuesto_pct = None
     if presupuesto and presupuesto.limite_mensual > 0:
-        limite = float(presupuesto.limite_mensual)
-        presupuesto_pct = round((resumen['gastos'] / limite) * 100)
+        limite = a_decimal(presupuesto.limite_mensual)
+        presupuesto_pct = redondear(a_decimal(resumen['gastos']) / limite * 100)
         if presupuesto_pct >= 100:
             insights.append({
                 'tipo': 'peligro', 'icono': 'fa-exclamation-triangle',
@@ -75,7 +76,7 @@ def insights_panel(resumen, datos_gastos, pendientes, proyecciones_deuda, presup
             })
 
     if len(datos_gastos) >= 2 and datos_gastos[-2] > 0:
-        variacion = round(((datos_gastos[-1] - datos_gastos[-2]) / datos_gastos[-2]) * 100)
+        variacion = redondear((a_decimal(datos_gastos[-1]) - a_decimal(datos_gastos[-2])) / a_decimal(datos_gastos[-2]) * 100)
         if variacion >= 20:
             insights.append({'tipo': 'alerta', 'icono': 'fa-arrow-up',
                              'texto': f'Gastaste {variacion}% más que el mes pasado.'})

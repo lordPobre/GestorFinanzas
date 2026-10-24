@@ -9,6 +9,7 @@ from django.db.models import Count, F, IntegerField, OuterRef, Q, Subquery, Sum
 from django.db.models.functions import Cast, Coalesce, ExtractMonth, ExtractYear, Mod, TruncMonth
 
 from .. import fechas
+from ..dinero import a_decimal, redondear
 from ..models import Deuda, PagoCuota, Prestamo, Suscripcion, Transaccion
 from ..rendimiento import olvidar, recordado, recordar
 
@@ -17,19 +18,9 @@ MESES_LARGOS = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio',
 
 
 def nombre_mes_es(year, month, capitalizado=True):
-    """Mes en español.
-
-    strftime('%B') usa el locale del SISTEMA, no LANGUAGE_CODE de Django, así
-    que en el servidor devolvía 'August' aunque la app esté en español.
-    """
     texto = f'{MESES_LARGOS[month - 1]} {year}'
     return texto.capitalize() if capitalizado else texto
 
-
-def _decimal(valor):
-    if isinstance(valor, Decimal):
-        return valor
-    return Decimal(str(valor or 0))
 
 def deudas_del_mes(usuario, year, month, con_atrasos=False):
     anio = Cast(ExtractYear('fecha_inicio'), IntegerField())
@@ -60,12 +51,6 @@ def suscripciones_del_mes(usuario, year, month, hoy):
 
 
 def _resumen_mes(usuario, year, month):
-    """Los números del mes en un solo lugar.
-
-    Antes esta lógica vivía dentro de dashboard(), así que el panel de
-    registro, la vista de cuotas y el análisis no podían reusarla y cada
-    pantalla mostraba un 'disponible' distinto. Ahora es una función.
-    """
     _, ultimo_dia = calendar.monthrange(year, month)
     fecha_inicio = date(year, month, 1)
     fecha_fin = date(year, month, ultimo_dia)
@@ -104,7 +89,7 @@ def _resumen_mes(usuario, year, month):
         estado = 'pagado' if pago else 'pendiente'
 
         monto_cuota = pago.monto if pago else d.monto_cuota_de(periodo)
-        monto = _decimal(monto_cuota)
+        monto = a_decimal(monto_cuota)
 
         if estado == 'pagado':
             cuotas_pagadas += monto
@@ -124,7 +109,7 @@ def _resumen_mes(usuario, year, month):
     for s in suscripciones_del_mes(usuario, year, month, hoy).prefetch_related('pagos'):
         if periodo not in s.periodos_programados:
             continue
-        monto = _decimal(s.monto)
+        monto = a_decimal(s.monto)
         if s.esta_pagada_en(periodo):
             servicios_pagados += monto
         else:
@@ -147,12 +132,12 @@ def _resumen_mes(usuario, year, month):
             for p in d.periodos_atrasados:
                 if p >= periodo:
                     continue
-                monto_p = _decimal(d.monto_cuota_de(p))
+                monto_p = a_decimal(d.monto_cuota_de(p))
                 atrasado_arrastrado += monto_p
                 cuotas_arrastradas.append({
                     'deuda': d,
                     'periodo': p,
-                    'monto': float(monto_p),
+                    'monto': monto_p,
                     'etiqueta': nombre_mes_es(p // 100, p % 100),
                 })
     cuotas_arrastradas.sort(key=lambda c: c['periodo'])
@@ -171,23 +156,23 @@ def _resumen_mes(usuario, year, month):
         'fecha_inicio': fecha_inicio,
         'fecha_fin': fecha_fin,
         'ultimo_dia': ultimo_dia,
-        'ingresos': float(ingresos),
-        'gastos': float(gastos),
-        'gastos_pagados': float(gastos_pagados),
-        'gastos_por_pagar': float(gastos_por_pagar),
-        'cuotas_pagadas_mes': float(cuotas_pagadas),
-        'cuotas_pendientes_mes': float(cuotas_pendientes),
-        'total_cuotas_mes': float(total_cuotas),
-        'servicios_pagados_mes': float(servicios_pagados),
-        'servicios_pendientes_mes': float(servicios_pendientes),
-        'total_servicios_mes': float(servicios_pagados + servicios_pendientes),
-        'debo_pagado_mes': float(debo_pagado),
-        'debo_pendiente_mes': float(debo_pendiente),
-        'total_debo_mes': float(total_debo),
-        'atrasado_arrastrado': float(atrasado_arrastrado),
+        'ingresos': ingresos,
+        'gastos': gastos,
+        'gastos_pagados': gastos_pagados,
+        'gastos_por_pagar': gastos_por_pagar,
+        'cuotas_pagadas_mes': cuotas_pagadas,
+        'cuotas_pendientes_mes': cuotas_pendientes,
+        'total_cuotas_mes': total_cuotas,
+        'servicios_pagados_mes': servicios_pagados,
+        'servicios_pendientes_mes': servicios_pendientes,
+        'total_servicios_mes': servicios_pagados + servicios_pendientes,
+        'debo_pagado_mes': debo_pagado,
+        'debo_pendiente_mes': debo_pendiente,
+        'total_debo_mes': total_debo,
+        'atrasado_arrastrado': atrasado_arrastrado,
         'cuotas_arrastradas': cuotas_arrastradas,
-        'comprometido': float(comprometido),
-        'disponible': float(disponible),
+        'comprometido': comprometido,
+        'disponible': disponible,
         'exacto': {
             'ingresos': ingresos,
             'gastos': gastos,
@@ -197,10 +182,10 @@ def _resumen_mes(usuario, year, month):
             'disponible': disponible,
         },
         'dias_restantes': dias_restantes,
-        'por_dia': float(libre / dias_restantes),
-        'pct_gastado': round(min(100, gastos / base * 100)),
-        'pct_por_pagar': round(min(100, (cuotas_pendientes + debo_pendiente) / base * 100)),
-        'pct_disponible': round(min(100, libre / base * 100)),
+        'por_dia': libre / dias_restantes,
+        'pct_gastado': redondear(min(100, gastos / base * 100)),
+        'pct_por_pagar': redondear(min(100, (cuotas_pendientes + debo_pendiente) / base * 100)),
+        'pct_disponible': redondear(min(100, libre / base * 100)),
         'eventos': eventos,
     }
 
@@ -209,16 +194,6 @@ def resumen_mes(usuario, year, month):
                               lambda: _resumen_mes(usuario, year, month)))
 
 def salud_financiera(usuario, resumen_actual=None):
-    """Puntaje 0-100 del mes en curso, para el bloque del sidebar.
-
-    Tres cosas, con el peso que tienen en la vida real:
-    que no gastes más de lo que entra, que las cuotas no te ahoguen,
-    y que quede algo libre. Nada de esto necesita IA.
-
-    Si quien llama ya calculó el resumen del mes en curso (el dashboard lo
-    hace siempre), se puede pasar en 'resumen_actual' para no repetir las
-    mismas consultas.
-    """
     hoy = fechas.hoy()
     r = resumen_actual if resumen_actual is not None else numeros_mes(usuario, hoy.year, hoy.month)
     if r['ingresos'] <= 0:
@@ -249,7 +224,7 @@ def salud_financiera(usuario, resumen_actual=None):
     elif gasto_pct > 65:
         score -= 6
 
-    score = max(0, min(100, round(score)))
+    score = max(0, min(100, redondear(score)))
 
     if score >= 80:
         label = 'muy buena'
@@ -263,11 +238,11 @@ def salud_financiera(usuario, resumen_actual=None):
     if r['disponible'] < 0:
         nota = 'Este mes gastas más de lo que entra.'
     elif dti > 35:
-        nota = f'El {round(dti)}% de lo que entra se va en cuotas.'
+        nota = f'El {redondear(dti)}% de lo que entra se va en cuotas.'
     elif margen < 10:
         nota = 'Te queda muy poco libre para imprevistos.'
     elif gasto_pct > 65:
-        nota = f'Llevas gastado el {round(gasto_pct)}% de lo que entró.'
+        nota = f'Llevas gastado el {redondear(gasto_pct)}% de lo que entró.'
     else:
         nota = 'Gastas menos de lo que entra y las cuotas están bajo control.'
 
@@ -313,7 +288,7 @@ def invalidar(usuario_id):
 
 
 def _clave_numeros(usuario_id, version, year, month, hoy):
-    clave = f'mes:{usuario_id}:{version}:{year * 100 + month}'
+    clave = f'mes-d:{usuario_id}:{version}:{year * 100 + month}'
     if (year, month) == (hoy.year, hoy.month):
         clave += f':{hoy.isoformat()}'
     return clave
@@ -371,13 +346,13 @@ def _numeros_pasados(usuario, meses):
             if periodo not in d.periodos_programados:
                 continue
             pago = next((p for p in d.pagos.all() if p.periodo == periodo), None)
-            cuotas += _decimal(pago.monto if pago else d.monto_cuota_de(periodo))
+            cuotas += a_decimal(pago.monto if pago else d.monto_cuota_de(periodo))
         debo = sum((pr.abonado_en(year, month) for pr in prestamos), cero)
         salida[(year, month)] = {
-            'ingresos': float(ingresos),
-            'gastos': float(gastos),
-            'total_cuotas_mes': float(cuotas),
-            'disponible': float(ingresos - (gastos + cuotas + debo)),
+            'ingresos': ingresos,
+            'gastos': gastos,
+            'total_cuotas_mes': cuotas,
+            'disponible': ingresos - (gastos + cuotas + debo),
         }
     return salida
 
@@ -389,7 +364,7 @@ def numeros_meses(usuario, meses):
     salida = {m: numeros_mes(usuario, *m) for m in meses if m >= actual}
     if pasados:
         periodos = ','.join(str(y * 100 + m) for y, m in pasados)
-        clave = f'meses:{usuario.pk}:{_version(usuario.pk)}:{periodos}'
+        clave = f'meses-d:{usuario.pk}:{_version(usuario.pk)}:{periodos}'
         datos = cache.get(clave)
         if datos is None:
             datos = _numeros_pasados(usuario, pasados)

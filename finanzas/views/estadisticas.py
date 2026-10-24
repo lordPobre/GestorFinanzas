@@ -8,6 +8,7 @@ from django.db.models import F, Sum
 from django.shortcuts import render
 
 from .. import fechas
+from ..dinero import redondear
 from ..categorias_base import COLOR_OTROS
 from ..models import Categoria, Deuda, Transaccion
 from ..servicios.mes import MESES_LARGOS, numeros_mes, resumen_mes
@@ -44,7 +45,7 @@ def estadisticas(request):
     mejor = ahorros.index(max(ahorros)) if ahorros else None
     peor = gastos.index(max(gastos)) if gastos else None
     total_ing = sum(ingresos) or 1
-    tasa_ahorro = round(sum(ahorros) / total_ing * 100, 1)
+    tasa_ahorro = redondear(sum(ahorros) / total_ing * 100, 1)
 
     def por_categoria(year, month):
         _, ult = calendar.monthrange(year, month)
@@ -82,11 +83,11 @@ def estadisticas(request):
         'meses_json': meses,
         'ingresos_json': ingresos,
         'gastos_json': gastos,
-        'promedio_gasto': round(promedio),
+        'promedio_gasto': redondear(promedio),
         'mejor_mes': meses[mejor] if mejor is not None else None,
-        'mejor_ahorro': round(ahorros[mejor]) if mejor is not None else 0,
+        'mejor_ahorro': redondear(ahorros[mejor]) if mejor is not None else 0,
         'peor_mes': meses[peor] if peor is not None else None,
-        'peor_gasto': round(gastos[peor]) if peor is not None else 0,
+        'peor_gasto': redondear(gastos[peor]) if peor is not None else 0,
         'tasa_ahorro': tasa_ahorro,
         'ranking': ranking,
         'mes_sel': selector_mes(request.user, year, month, hoy),
