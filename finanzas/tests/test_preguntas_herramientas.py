@@ -39,9 +39,9 @@ class HerramientasTests(TestCase):
     def _usar(self, herramienta, **argumentos):
         return ejecutar(self.ana, herramienta, argumentos, self.alias)
 
-    def test_hay_cinco_herramientas_con_esquema(self):
+    def test_hay_seis_herramientas_con_esquema(self):
         self.assertEqual({h['name'] for h in HERRAMIENTAS},
-                         {'simular_compra', 'queda_mes', 'gasto_categoria', 'fin_deuda', 'metas'})
+                         {'simular_compra', 'queda_mes', 'gasto_categoria', 'fin_deuda', 'cuotas_por_mes', 'metas'})
         for h in HERRAMIENTAS:
             self.assertEqual(h['input_schema']['type'], 'object')
 
@@ -89,6 +89,34 @@ class HerramientasTests(TestCase):
     def test_fin_deuda_filtra_por_nombre(self):
         r = self._usar('fin_deuda', nombre='notebook')
         self.assertEqual(len(r['deudas']), 1)
+
+    def test_cuotas_por_mes_suma_compras_y_prestamos(self):
+        r = self._usar('cuotas_por_mes', meses=3)
+        self.assertEqual([m['total'] for m in r['meses']], [110000, 110000, 110000])
+        self.assertEqual(r['total_periodo'], 330000)
+        self.assertEqual(r['total_todas_las_cuotas'], 420000)
+        self.assertEqual(r['atrasado'], 0)
+        self.assertEqual(len(r['meses'][0]['detalle']), 2)
+        texto = json.dumps(r, ensure_ascii=False)
+        self.assertNotIn('Notebook', texto)
+        self.assertNotIn('Rosa', texto)
+
+    def test_cuotas_por_mes_desde_el_proximo(self):
+        r = self._usar('cuotas_por_mes', meses=4, desde_el_proximo=True)
+        self.assertEqual([m['total'] for m in r['meses']], [110000, 110000, 10000, 10000])
+        self.assertEqual(r['total_periodo'], 240000)
+        self.assertEqual(r['desde'], r['meses'][0]['mes'])
+
+    def test_cuotas_por_mes_usa_los_mismos_alias_que_fin_deuda(self):
+        deudas = self._usar('fin_deuda')['deudas']
+        r = self._usar('cuotas_por_mes', meses=1)
+        self.assertEqual({d['nombre'] for d in deudas}, {d['nombre'] for d in r['meses'][0]['detalle']})
+
+    def test_cuotas_por_mes_rechaza_meses_raros(self):
+        self.assertIn('error', self._usar('cuotas_por_mes', meses=0))
+        self.assertIn('error', self._usar('cuotas_por_mes', meses=999))
+        self.assertIn('error', self._usar('cuotas_por_mes', meses='muchos'))
+        self.assertNotIn('error', self._usar('cuotas_por_mes'))
 
     def test_metas_con_alias(self):
         r = self._usar('metas')

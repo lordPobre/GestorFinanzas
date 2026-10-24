@@ -14,6 +14,7 @@ from .mes import nombre_mes_es, resumen_mes
 from .proyeccion import MAX_MESES, proyeccion
 
 MAX_MONTO = a_decimal('999999999')
+MESES_POR_DEFECTO = 6
 
 HERRAMIENTAS = [
     {
@@ -60,6 +61,22 @@ HERRAMIENTAS = [
         },
     },
     {
+        'name': 'cuotas_por_mes',
+        'description': ('Cuánto paga en cuotas cada mes, sumando las compras en cuotas y los préstamos en cuotas '
+                        'que debe. Devuelve el total de cada mes con su detalle, el total del período, el mes '
+                        'más cargado, lo atrasado de meses anteriores y el total de todas las cuotas que faltan. '
+                        'Los nombres vienen como alias; úsalos tal cual.'),
+        'input_schema': {
+            'type': 'object',
+            'properties': {
+                'meses': {'type': 'integer',
+                          'description': f'Cuántos meses sumar, de 1 a {MAX_MESES}. Si no lo dijo, 6.'},
+                'desde_el_proximo': {'type': 'boolean',
+                                     'description': 'true si pregunta por los meses que vienen sin contar este.'},
+            },
+        },
+    },
+    {
         'name': 'metas',
         'description': 'Cómo van sus metas de ahorro. Los nombres vienen como alias; úsalos tal cual.',
         'input_schema': {'type': 'object', 'properties': {}},
@@ -93,6 +110,15 @@ def _alias(alias, prefijo, nombre):
 
 def _etiqueta(periodo):
     return nombre_mes_es(periodo // 100, periodo % 100, capitalizado=False)
+
+
+def _periodo(f):
+    return f.year * 100 + f.month
+
+
+def _prestamos_que_debo(usuario):
+    return (Prestamo.objects.filter(persona__usuario=usuario, persona__lado='LE_DEBO')
+            .select_related('persona').prefetch_related('abonos'))
 
 
 def simular_compra(usuario, simbolo, alias, monto=None, cuotas=1):
@@ -188,8 +214,7 @@ def fin_deuda(usuario, simbolo, alias, nombre=''):
             'cuotas_que_faltan': len(pendientes),
             'termina': _etiqueta(pendientes[-1]),
         }))
-    for pr in (Prestamo.objects.filter(persona__usuario=usuario, persona__lado='LE_DEBO')
-               .select_related('persona').prefetch_related('abonos')):
+    for pr in _prestamos_que_debo(usuario):
         if pr.esta_pagado:
             continue
         fila = {'tipo': 'préstamo que debes', 'falta': _monto(pr.monto_pendiente, simbolo)}
@@ -207,6 +232,81 @@ def fin_deuda(usuario, simbolo, alias, nombre=''):
         filas = elegidas or filas
     salida = [{'nombre': _alias(alias, 'Deuda', real), **datos} for real, datos in filas]
     return {'deudas': salida, 'total_falta': _monto(suma(a_decimal(str(d['falta'])) for d in salida), simbolo)}
+
+
+def cuotas_por_mes(usuario, simbolo, alias, meses=MESES_POR_DEFECTO, desde_el_proximo=False):
+    try:
+        meses = MESES_POR_DEFECTO if meses is None else int(meses)
+    except (TypeError, ValueError):
+        raise ErrorHerramienta('meses no válido') from None
+    if not 1 <= meses <= MAX_MESES:
+        raise ErrorHerramienta(f'meses debe estar entre 1 y {MAX_MESES}')
+
+    hoy = fechas.hoy()
+    primero = date(hoy.year, hoy.month, 1)
+    actual = _periodo(primero)
+    cero = a_decimal(0)
+    por_mes = {}
+    atrasado = cero
+    sin_fecha = cero
+    total = cero
+
+    def anotar(periodo, nombre, monto):
+        detalle = por_mes.setdefault(periodo, {})
+        detalle[nombre] = detalle.get(nombre, cero) + monto
+
+    for d in Deuda.objects.filter(usuario=usuario).prefetch_related('pagos'):
+        pendientes = d.periodos_pendientes
+        if d.esta_saldada or not pendientes:
+            continue
+        nombre = _alias(alias, 'Deuda', d.acreedor)
+        for p in pendientes:
+            monto = a_decimal(d.monto_cuota_de(p))
+            total += monto
+            if p < actual:
+                atrasado += monto
+            else:
+                anotar(p, nombre, monto)
+
+    for pr in _prestamos_que_debo(usuario):
+        if pr.esta_pagado:
+            continue
+        pendiente = a_decimal(pr.monto_pendiente)
+        total += pendiente
+        nombre = _alias(alias, 'Deuda', f'{pr.persona.nombre} {pr.descripcion}')
+        if pr.tipo != 'CUOTAS' or pr.monto_cuota <= 0:
+            sin_fecha += pendiente
+            continue
+        cuota = a_decimal(pr.monto_cuota)
+        monto = min(pendiente, a_decimal(pr.falta_este_mes(hoy.year, hoy.month)))
+        i = 0
+        while pendiente > 0:
+            if monto > 0:
+                anotar(_periodo(primero + relativedelta(months=i)), nombre, monto)
+                pendiente -= monto
+            i += 1
+            monto = min(cuota, pendiente)
+
+    inicio = 1 if desde_el_proximo else 0
+    filas = []
+    for i in range(inicio, inicio + meses):
+        periodo = _periodo(primero + relativedelta(months=i))
+        detalle = por_mes.get(periodo, {})
+        filas.append((periodo, suma(detalle.values()), detalle))
+
+    cargado = max(filas, key=lambda f: f[1])
+    return {
+        'desde': _etiqueta(filas[0][0]),
+        'hasta': _etiqueta(filas[-1][0]),
+        'meses': [{'mes': _etiqueta(p), 'total': _monto(t, simbolo),
+                   'detalle': [{'nombre': n, 'cuota': _monto(m, simbolo)} for n, m in detalle.items()]}
+                  for p, t, detalle in filas],
+        'total_periodo': _monto(suma(t for _, t, _ in filas), simbolo),
+        'mes_mas_cargado': _etiqueta(cargado[0]) if cargado[1] > 0 else None,
+        'atrasado': _monto(atrasado, simbolo),
+        'prestamos_sin_fecha': _monto(sin_fecha, simbolo),
+        'total_todas_las_cuotas': _monto(total, simbolo),
+    }
 
 
 def metas(usuario, simbolo, alias):
@@ -232,6 +332,7 @@ FUNCIONES = {
     'queda_mes': queda_mes,
     'gasto_categoria': gasto_categoria,
     'fin_deuda': fin_deuda,
+    'cuotas_por_mes': cuotas_por_mes,
     'metas': metas,
 }
 PERMITIDOS = {h['name']: set(h['input_schema'].get('properties', {})) for h in HERRAMIENTAS}
