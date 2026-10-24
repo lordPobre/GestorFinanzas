@@ -15,7 +15,7 @@
 
 {% block topbar_actions %}{% endblock %}
 
-{% block extra_head %}<link rel="stylesheet" href="{% static 'css/inicio-esfera.css' %}">{% endblock %}
+{% block extra_head %}<link rel="stylesheet" href="{% static 'css/inicio-esfera.css' %}"><link rel="stylesheet" href="{% static 'css/esfera-preguntas.css' %}">{% endblock %}
 
 {% block content %}
 
@@ -345,6 +345,7 @@
     </div>
   </div>
 </div>
+{% include 'finanzas/_esfera_preguntas.html' %}
 {% endblock %}
 
 {% block extra_js %}
@@ -355,4 +356,5 @@
 <script type="module" src="{% static 'js/pantallas/inicio-movimientos.js' %}" nonce="{{ csp_nonce }}"></script>
 <script type="module" src="{% static 'js/pantallas/movimientos-hoja.js' %}" nonce="{{ csp_nonce }}"></script>
 <script type="module" src="{% static 'js/pantallas/inicio-esfera.js' %}" nonce="{{ csp_nonce }}"></script>
+<script type="module" src="{% static 'js/pantallas/esfera-preguntas.js' %}" nonce="{{ csp_nonce }}"></script>
 {% endblock %}

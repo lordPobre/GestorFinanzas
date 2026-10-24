@@ -1,0 +1,38 @@
+from django.contrib.auth.models import User
+from django.core.cache import cache
+from django.test import TestCase
+from django.urls import reverse
+
+from .. import legal
+from ..models import UserProfile
+
+
+class PantallaPreguntasTests(TestCase):
+
+    def setUp(self):
+        cache.clear()
+        self.ana = User.objects.create_user('ana', 'ana@ejemplo.cl', 'clave-larga-1')
+        self.perfil, _ = UserProfile.objects.update_or_create(
+            usuario=self.ana, defaults={'onboarding_completado': True, 'analisis_ia': True,
+                                        'politica_version': legal.VERSION})
+        self.client.force_login(self.ana)
+
+    def test_inicio_trae_el_boton_y_el_panel(self):
+        r = self.client.get(reverse('dashboard'))
+        self.assertContains(r, 'data-charla-abrir')
+        self.assertContains(r, 'data-charla ')
+        self.assertContains(r, f'data-url="{reverse("esfera_preguntar")}"')
+        self.assertContains(r, 'js/pantallas/esfera-preguntas.js')
+        self.assertContains(r, 'css/esfera-preguntas.css')
+        self.assertContains(r, 'name="pregunta"')
+
+    def test_sin_ia_no_hay_preguntas(self):
+        self.perfil.analisis_ia = False
+        self.perfil.save(update_fields=['analisis_ia'])
+        r = self.client.get(reverse('dashboard'))
+        self.assertNotContains(r, 'data-charla-abrir')
+        self.assertNotContains(r, 'data-charla ')
+
+    def test_la_esfera_del_panel_no_repite_el_nombre_de_transicion(self):
+        r = self.client.get(reverse('dashboard'))
+        self.assertEqual(r.content.decode().count('ini-esfera-bola'), 1)

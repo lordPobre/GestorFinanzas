@@ -11,5 +11,6 @@
     <span class="ini-esfera-etq"><b></b>{{ esfera.etiqueta }}</span>
     <span class="ini-esfera-nota">{{ esfera.texto }}</span>
     <span class="ini-esfera-ayuda" data-esfera-ayuda><i class="fas fa-hand-pointer"></i><span>Toca la esfera para escucharlo</span></span>
+    {% if profile.analisis_ia %}<button type="button" class="ini-esfera-preguntar" data-charla-abrir aria-haspopup="dialog"><i class="fas fa-comment-dots"></i>Pregúntame algo</button>{% endif %}
   </div>
 </div>

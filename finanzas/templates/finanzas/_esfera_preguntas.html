@@ -1,0 +1,48 @@
+{% if profile.analisis_ia %}<div class="esf-charla" data-charla data-estado="{{ esfera.estado }}" data-modo="quieto" data-url="{% url 'esfera_preguntar' %}" data-url-tarea="{% url 'esfera_pregunta_tarea' %}" data-voz-url="{% url 'voz_esfera' %}" data-url-privacidad="{% url 'privacidad' %}" data-url-perfil="{% url 'perfil' %}" role="dialog" aria-modal="true" aria-label="Preguntarle a la esfera" hidden>
+  <div class="ec-cab">
+    <button type="button" class="ec-cerrar" data-charla-cerrar aria-label="Cerrar"><i class="fas fa-xmark"></i></button>
+    <span class="ec-contador" data-charla-contador>Pregunta 1 de 4</span>
+    <span class="ec-hueco"></span>
+  </div>
+  <div class="ec-esfera">
+    <button type="button" class="ec-bola" data-charla-bola aria-label="Escuchar o detener la respuesta">
+      <span class="eb-brillo"></span>
+      <span class="eb-nucleo"><i class="b1"></i><i class="b2"></i><i class="b3"></i><i class="b4"></i><span class="eb-luz"></span><span class="eb-reflejo"></span><span class="eb-borde"></span></span>
+    </button>
+    <span class="ec-estado" data-charla-estado>Escribe tu pregunta</span>
+  </div>
+  <div class="ec-cuerpo" aria-live="polite">
+    <div class="ec-vista" data-vista="inicio">
+      <span class="ec-titulo">¿Qué quieres saber?</span>
+      <div class="ec-ideas">
+        <button type="button" data-idea>¿Me alcanza para unas zapatillas de $60.000 en 3 cuotas?</button>
+        <button type="button" data-idea>¿Cuánto me queda este mes?</button>
+        <button type="button" data-idea>¿Cuándo termino de pagar mis cuotas?</button>
+      </div>
+    </div>
+    <div class="ec-vista" data-vista="piensa" hidden>
+      <span class="ec-pregunta" data-charla-pregunta></span>
+      <span class="ec-puntos" aria-hidden="true"><i></i><i></i><i></i></span>
+    </div>
+    <div class="ec-vista" data-vista="responde" hidden>
+      <span class="ec-antes" data-charla-antes hidden><i class="fas fa-clock-rotate-left"></i><span></span></span>
+      <span class="ec-pregunta" data-charla-pregunta></span>
+      <p class="ec-respuesta" data-charla-respuesta></p>
+      <button type="button" class="ec-repetir" data-charla-repetir hidden><i class="fas fa-rotate-right"></i>Intentar la voz de nuevo</button>
+    </div>
+    <div class="ec-vista" data-vista="aviso" hidden>
+      <span class="ec-titulo" data-charla-aviso-titulo></span>
+      <span class="ec-nota" data-charla-aviso-nota></span>
+      <a class="ec-enlace" data-charla-aviso-enlace hidden></a>
+    </div>
+  </div>
+  <form class="ec-entrada" data-charla-form>
+    {% csrf_token %}
+    <input type="text" name="pregunta" maxlength="300" autocomplete="off" enterkeyhint="send" placeholder="Escribe tu pregunta" aria-label="Tu pregunta" data-charla-campo>
+    <button type="submit" class="ec-enviar" aria-label="Preguntar"><i class="fas fa-arrow-up"></i></button>
+  </form>
+  <div class="ec-final" data-charla-final hidden>
+    <span>Esta conversación llegó a 4 preguntas.</span>
+    <button type="button" class="ec-otra" data-charla-otra><i class="fas fa-plus"></i>Empezar otra conversación</button>
+  </div>
+</div>{% endif %}
