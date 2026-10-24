@@ -100,7 +100,7 @@ def simular_compra(usuario, simbolo, alias, monto=None, cuotas=1):
         monto = a_decimal(monto)
         cuotas = int(cuotas or 1)
     except (ArithmeticError, TypeError, ValueError):
-        raise ErrorHerramienta('monto o cuotas no válidos')
+        raise ErrorHerramienta('monto o cuotas no válidos') from None
     if monto <= 0 or monto > MAX_MONTO or not 1 <= cuotas <= MAX_MESES:
         raise ErrorHerramienta(f'el monto debe ser positivo y las cuotas entre 1 y {MAX_MESES}')
     p = proyeccion(usuario, compra={'monto': monto, 'cuotas': cuotas})
@@ -147,7 +147,7 @@ def gasto_categoria(usuario, simbolo, alias, categoria='', meses_atras=0):
     try:
         meses_atras = max(0, min(11, int(meses_atras or 0)))
     except (TypeError, ValueError):
-        raise ErrorHerramienta('meses_atras no válido')
+        raise ErrorHerramienta('meses_atras no válido') from None
     buscado = _simple(categoria)
     if not buscado:
         raise ErrorHerramienta('falta la categoría')

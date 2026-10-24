@@ -165,6 +165,35 @@
   hecha con tus propios números: no es asesoría financiera, de inversión ni
   crediticia.
 </p>
+<h3>Preguntas a la esfera</h3>
+<p>
+  Si el análisis con IA está activado, puedes preguntarle a la esfera, escribiendo
+  o con la voz, cosas como «¿me alcanza para unas zapatillas en 3 cuotas?». El servidor calcula
+  las cifras y le pide a la API de Anthropic que las diga en palabras. Sin hacer
+  una pregunta no se envía nada.
+</p>
+<div class="legal-par">
+  <div class="legal-par-si">
+    <div class="legal-par-etq"><i class="fas fa-arrow-up-right-from-square"></i>Lo que se envía, exactamente</div>
+    <p>El texto de tu pregunta y de las anteriores de la misma conversación, hasta
+    cuatro; y los totales que la IA pide para responder: lo que te queda este mes,
+    lo gastado en una categoría, la proyección de los próximos meses con una compra
+    de prueba, lo que falta de cada deuda y cómo van tus metas, con cada deuda y
+    cada meta identificada solo como Deuda 1, Meta 1, etc.</p>
+  </div>
+  <div class="legal-par-no">
+    <div class="legal-par-etq"><i class="fas fa-lock"></i>Lo que no se envía</div>
+    <p>Los nombres de tus deudas y metas, los de las personas con las que tienes
+    préstamos, las descripciones de tus movimientos ni ningún identificador de tu
+    cuenta. Los nombres se agregan a la respuesta después, en el servidor.</p>
+  </div>
+</div>
+<p>
+  Si preguntas con la voz, la grabación se envía a ElevenLabs para pasarla a
+  texto. El servidor la lee en memoria y no la guarda. La conversación se guarda
+  en el servidor 30 minutos para poder seguirla y después se borra. Puedes hacer
+  hasta 30 preguntas al día.
+</p>
 <h3>Movimientos repetidos</h3>
 <p>
   Al importar una cartola y en <em>Perfil → Movimientos repetidos</em>, la app
@@ -207,7 +236,8 @@
     <p>La frase que muestra la esfera: el estado del mes, los montos de esa
     pantalla y, en Me deben, los nombres de las personas y lo que te deben. La
     primera vez que entras a Inicio, también el saludo con tu nombre y cómo
-    cambió tu estado.</p>
+    cambió tu estado. Si le haces una pregunta, también la respuesta, que puede
+    nombrar tus deudas, metas o a las personas de tus préstamos.</p>
   </div>
   <div class="legal-par-no">
     <div class="legal-par-etq"><i class="fas fa-lock"></i>Lo que no se envía</div>
@@ -307,11 +337,11 @@
   </div>
   <div class="legal-proveedor">
     <div class="legal-proveedor-cabeza"><b>Anthropic</b><span class="legal-pais"><i class="fas fa-location-dot"></i>Estados Unidos</span></div>
-    <p>Los agregados numéricos del análisis, los montos del plan para tu plata y las fechas, montos, categorías y descripciones de los pares de movimientos que parecen repetidos, si tienes el análisis con IA activado, y el texto de lo que escribas en el chat de ayuda</p>
+    <p>Los agregados numéricos del análisis, los montos del plan para tu plata y las fechas, montos, categorías y descripciones de los pares de movimientos que parecen repetidos, si tienes el análisis con IA activado, el texto de lo que escribas en el chat de ayuda y las preguntas que le hagas a la esfera, con los totales que hacen falta para responderlas</p>
   </div>
   <div class="legal-proveedor">
     <div class="legal-proveedor-cabeza"><b>ElevenLabs</b><span class="legal-pais"><i class="fas fa-location-dot"></i>Estados Unidos</span></div>
-    <p>El texto que la esfera lee en voz alta, con montos, los nombres de quienes te deben y el nombre del saludo, si tienes el análisis con IA activado</p>
+    <p>El texto que la esfera lee en voz alta, con montos, los nombres de quienes te deben, el nombre del saludo y las respuestas a tus preguntas, y la grabación de las preguntas que hagas con la voz, si tienes el análisis con IA activado</p>
   </div>
   <div class="legal-proveedor">
     <div class="legal-proveedor-cabeza"><b>Google</b><span class="legal-pais"><i class="fas fa-location-dot"></i>Estados Unidos</span></div>

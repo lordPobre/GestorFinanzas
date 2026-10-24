@@ -38,6 +38,23 @@ def explicar(usuario_id, resumen, nombres, moneda):
     return {'ok': True, 'parrafos': parrafos} if parrafos else SIN_IA
 
 
+def preguntar(usuario_id, conversacion, pregunta, moneda):
+    from .ia_preguntas import MAX_TURNOS, cargar, guardar, responder
+
+    if not _con_ia(usuario_id):
+        return SIN_IA
+    estado = cargar(usuario_id, conversacion)
+    if len(estado['turnos']) >= MAX_TURNOS:
+        return {'ok': False, 'motivo': 'conversacion'}
+    texto = responder(User.objects.get(pk=usuario_id), estado, pregunta, moneda)
+    if not texto:
+        return SIN_IA
+    guardar(usuario_id, conversacion, estado)
+    turno = len(estado['turnos'])
+    return {'ok': True, 'texto': texto, 'pregunta': pregunta, 'turno': turno,
+            'quedan': MAX_TURNOS - turno}
+
+
 def purgar():
     from django_q.models import Task
 

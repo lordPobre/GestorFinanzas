@@ -1,6 +1,6 @@
 from django.shortcuts import render
 
-VERSION = '1.8'
+VERSION = '1.9'
 VIGENTE_DESDE = '9 de noviembre de 2026'
 
 RESPONSABLE = 'Carlos López Figueroa, Valparaíso, Chile'
@@ -13,6 +13,11 @@ INFORME_OBSERVATORY = f'https://developer.mozilla.org/es/observatory/analyze?hos
 INFORME_INTERNET_NL = f'https://internet.nl/site/{DOMINIO}/'
 
 CAMBIOS = (
+    ('Preguntas a la esfera',
+     'Si tienes el análisis con IA activado, puedes preguntarle a la esfera cosas como si te alcanza '
+     'para una compra. Tu pregunta y los totales que hacen falta para responderla se envían a '
+     'Anthropic. Los nombres de tus deudas, metas y de las personas salen como alias y se agregan '
+     'a la respuesta en el servidor. La respuesta se lee con la voz de la esfera.'),
     ('Movimientos repetidos con IA',
      'Si tienes el análisis con IA activado, cuando dos movimientos tienen el mismo monto y '
      'fechas cercanas pero no está claro si son el mismo, se envían a Anthropic las fechas, el '
