@@ -28,6 +28,7 @@ select = [
 "finanzas/correo.py" = ["S310"]
 "finanzas/push.py" = ["S310"]
 "finanzas/voz.py" = ["S310"]
+"finanzas/oido.py" = ["S310"]
 "finanzas/management/commands/respaldar_postgres.py" = ["S603"]
 "finanzas/tests/*.py" = ["F841", "S101", "S105", "S106", "S108", "B018"]
 
