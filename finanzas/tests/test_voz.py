@@ -77,7 +77,7 @@ class VozTests(TestCase):
         self.assertContains(r, 'data-voz="')
         self.assertIn("media-src 'self' blob:", r['Content-Security-Policy'])
 
-    @mock.patch.dict(os.environ, {**ELEVENLABS, 'ELEVENLABS_MODELO': ''})
+    @mock.patch.dict(os.environ, {**ELEVENLABS, 'ELEVENLABS_MODELO': '', 'ELEVENLABS_VELOCIDAD': ''})
     def test_sintetizar_llama_a_elevenlabs_y_guarda_en_cache(self):
         import json
         respuesta = mock.MagicMock()
@@ -92,6 +92,31 @@ class VozTests(TestCase):
         cuerpo = json.loads(pedido.data.decode())
         self.assertEqual(cuerpo['text'], 'Vas bien.')
         self.assertEqual(cuerpo['model_id'], 'eleven_multilingual_v2')
+        self.assertEqual(cuerpo['voice_settings']['speed'], 0.9)
+
+    @mock.patch.dict(os.environ, {**ELEVENLABS, 'ELEVENLABS_MODELO': '', 'ELEVENLABS_VELOCIDAD': ''})
+    def test_los_numeros_llegan_en_palabras(self):
+        import json
+        respuesta = mock.MagicMock()
+        respuesta.__enter__.return_value.read.return_value = b'mp3'
+        with mock.patch('urllib.request.urlopen', return_value=respuesta) as abrir:
+            voz.sintetizar('Llevas el 48 por ciento. Te quedan 412.300 pesos.')
+        cuerpo = json.loads(abrir.call_args[0][0].data.decode())
+        self.assertEqual(cuerpo['text'], 'Llevas el cuarenta y ocho por ciento. '
+                                         'Te quedan cuatrocientos doce mil trescientos pesos.')
+
+    @mock.patch.dict(os.environ, {**ELEVENLABS, 'ELEVENLABS_MODELO': ''})
+    def test_la_velocidad_se_ajusta_y_tiene_limites(self):
+        import json
+        respuesta = mock.MagicMock()
+        respuesta.__enter__.return_value.read.return_value = b'mp3'
+        for valor, esperado in (('0.85', 0.85), ('3', 1.2), ('0.1', 0.7), ('rapido', 0.9)):
+            with self.subTest(valor=valor), mock.patch.dict(os.environ, {'ELEVENLABS_VELOCIDAD': valor}), \
+                    mock.patch('urllib.request.urlopen', return_value=respuesta) as abrir:
+                cache.clear()
+                voz.sintetizar('Vas bien.')
+                cuerpo = json.loads(abrir.call_args[0][0].data.decode())
+                self.assertEqual(cuerpo['voice_settings']['speed'], esperado)
 
     def test_sin_azure_no_hay_voz(self):
         with mock.patch.dict(os.environ, {'ELEVENLABS_API_KEY': '', 'ELEVENLABS_VOZ': ''}):
@@ -100,7 +125,7 @@ class VozTests(TestCase):
         self.assertContains(r, 'data-voz=""')
 
 
-@mock.patch.dict(os.environ, {**ELEVENLABS, 'ELEVENLABS_MODELO': ''})
+@mock.patch.dict(os.environ, {**ELEVENLABS, 'ELEVENLABS_MODELO': '', 'ELEVENLABS_VELOCIDAD': ''})
 class VozEnR2Tests(TestCase):
 
     def setUp(self):
@@ -129,7 +154,7 @@ class VozEnR2Tests(TestCase):
         _, archivos = self.almacen.listdir('voz')
         self.assertEqual(len(archivos), 1)
         import hashlib
-        huella = hashlib.sha256(b'voz123|eleven_multilingual_v2|Vas bien.').hexdigest()
+        huella = hashlib.sha256(b'voz123|eleven_multilingual_v2|0.9|Vas bien.').hexdigest()
         self.assertEqual(archivos, [f'{huella}.mp3'])
         self.assertIsNone(cache.get('voz:' + huella))
 

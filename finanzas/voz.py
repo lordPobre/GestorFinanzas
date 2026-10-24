@@ -11,11 +11,14 @@ from django.core.cache import cache
 from django.core.files.base import ContentFile
 from django.utils import timezone
 
+from .habla import para_voz
+
 log = logging.getLogger('finanzas')
 
 URL = 'https://api.elevenlabs.io/v1/text-to-speech/{voz}?output_format=mp3_44100_64'
 MODELO_POR_DEFECTO = 'eleven_multilingual_v2'
-MAX_CARACTERES = 900
+MAX_CARACTERES = 1200
+VELOCIDAD_POR_DEFECTO = 0.9
 SEGUNDOS_EN_CACHE = 6 * 3600
 VIDA_EN_R2 = timedelta(hours=5)
 CARPETA = 'voz'
@@ -29,6 +32,14 @@ def configurada():
 
 def _modelo():
     return os.environ.get('ELEVENLABS_MODELO', '').strip() or MODELO_POR_DEFECTO
+
+
+def _velocidad():
+    try:
+        valor = float(os.environ.get('ELEVENLABS_VELOCIDAD', '').strip() or VELOCIDAD_POR_DEFECTO)
+    except ValueError:
+        valor = VELOCIDAD_POR_DEFECTO
+    return min(1.2, max(0.7, valor))
 
 
 def _almacen():
@@ -97,13 +108,14 @@ def limpiar_audios():
 
 
 def sintetizar(texto):
-    texto = ' '.join((texto or '').split())[:MAX_CARACTERES]
+    texto = para_voz(' '.join((texto or '').split()))[:MAX_CARACTERES]
     if not texto or not configurada():
         return None
 
     voz = os.environ['ELEVENLABS_VOZ'].strip()
     modelo = _modelo()
-    huella = hashlib.sha256(f'{voz}|{modelo}|{texto}'.encode()).hexdigest()
+    velocidad = _velocidad()
+    huella = hashlib.sha256(f'{voz}|{modelo}|{velocidad:g}|{texto}'.encode()).hexdigest()
     guardado = _leer(huella)
     if guardado:
         return guardado
@@ -112,7 +124,7 @@ def sintetizar(texto):
         'text': texto,
         'model_id': modelo,
         'voice_settings': {'stability': 0.5, 'similarity_boost': 0.75, 'style': 0.15,
-                           'use_speaker_boost': True},
+                           'use_speaker_boost': True, 'speed': velocidad},
     }
     pedido = urllib.request.Request(URL.format(voz=urllib.parse.quote(voz, safe='')),
                                     data=json.dumps(cuerpo).encode(), method='POST')
