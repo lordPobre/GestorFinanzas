@@ -52,3 +52,6 @@ seguridad.log.1
 htmlcov/
 coverage/
 estilos/
+
+.railway/node_modules/
+railway-plan.json
