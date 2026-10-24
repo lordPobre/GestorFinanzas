@@ -24,8 +24,8 @@ def estadisticas(request):
                                         .prefetch_related('pagos') if not d.esta_saldada]
 
     labels = [d.acreedor for d in activas]
-    data_cuota = [float(d.monto_cuota) for d in activas]
-    data_restante = [float(d.monto_restante) for d in activas]
+    data_cuota = [d.monto_cuota for d in activas]
+    data_restante = [d.monto_restante for d in activas]
 
     meses, ingresos, gastos = [], [], []
     resumen_actual = None
@@ -53,7 +53,7 @@ def estadisticas(request):
             usuario=request.user, tipo='EGRESO',
             fecha__gte=date(year, month, 1), fecha__lte=date(year, month, ult),
         ).values(slug=F('categoria_ref__slug')).annotate(total=Sum('monto'))
-        return {x['slug'] or 'Otros': float(x['total']) for x in qs}
+        return {x['slug'] or 'Otros': x['total'] for x in qs}
 
     actual = por_categoria(year, month)
     anterior_f = date(year, month, 1) - relativedelta(months=1)
@@ -65,12 +65,12 @@ def estadisticas(request):
     for cat, total in sorted(actual.items(), key=lambda x: -x[1]):
         antes = anterior.get(cat, 0)
         datos = mapa.get(cat, {})
-        delta = round((total - antes) / antes * 100) if antes else None
+        delta = redondear((total - antes) / antes * 100) if antes else None
         ranking.append({
             'nombre': cat,
             'label': datos.get('label', cat),
             'total': total,
-            'ancho': round(total / maximo * 100),
+            'ancho': redondear(total / maximo * 100),
             'delta': delta,
             'subio': delta is not None and delta > 0,
             'color': datos.get('color') or COLOR_OTROS,

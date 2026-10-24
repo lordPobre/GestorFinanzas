@@ -7,7 +7,7 @@ from django.db.models import Exists, F, OuterRef, Sum
 from django.urls import reverse
 
 from ..categorias_base import COLOR_OTROS
-from ..dinero import a_decimal, redondear
+from ..dinero import a_decimal, redondear, suma
 from ..models import Categoria, Deuda, MetaAhorro, Presupuesto, Suscripcion, Transaccion
 from .mes import MESES_LARGOS, numeros_meses
 
@@ -32,7 +32,7 @@ def desglose_categorias(usuario, resumen):
         fecha__gte=resumen['fecha_inicio'], fecha__lte=resumen['fecha_fin'],
     ).values(slug=F('categoria_ref__slug')).annotate(total=Sum('monto')).order_by('-total')
 
-    total_cat = sum(float(x['total']) for x in gastos_categoria) or 1.0
+    total_cat = suma(x['total'] for x in gastos_categoria) or 1
     mapa = Categoria.mapa(usuario)
     categorias = []
     for x in gastos_categoria:
@@ -41,8 +41,8 @@ def desglose_categorias(usuario, resumen):
         categorias.append({
             'nombre': cat,
             'label': datos.get('label', cat),
-            'total': float(x['total']),
-            'porcentaje': round(float(x['total']) / total_cat * 100),
+            'total': x['total'],
+            'porcentaje': redondear(x['total'] / total_cat * 100),
             'color': datos.get('color') or COLOR_OTROS,
         })
     return categorias

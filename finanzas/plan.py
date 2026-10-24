@@ -8,7 +8,7 @@ from django.db.models import Sum
 from django.db.models.functions import TruncMonth
 
 from . import fechas
-from .dinero import a_decimal, redondear
+from .dinero import a_decimal, redondear, suma
 from .models import Deuda, MetaAhorro, Suscripcion, Transaccion
 from .servicios.mes import resumen_mes
 
@@ -92,10 +92,10 @@ def suscripciones_repetidas(usuario):
                  if any(_calza((s.nombre or '').lower(), p) for p in palabras)]
         if len(items) < 2:
             continue
-        mensual = round(sum(float(s.monto) for s in items))
+        mensual = redondear(suma(s.monto for s in items))
         grupos.append({
             'titulo': f'Tienes {len(items)} {etiqueta}',
-            'items': [{'nombre': s.nombre, 'monto': round(float(s.monto))} for s in items],
+            'items': [{'nombre': s.nombre, 'monto': redondear(s.monto)} for s in items],
             'mensual': mensual,
             'anual': mensual * 12,
         })
@@ -165,14 +165,14 @@ def armar_plan(usuario):
     for d in Deuda.objects.filter(usuario=usuario).prefetch_related('pagos'):
         if d.esta_saldada:
             continue
-        saldo, cuota = round(float(d.monto_restante)), round(float(d.monto_cuota))
+        saldo, cuota = redondear(d.monto_restante), redondear(d.monto_cuota)
         if saldo > 0 and cuota > 0:
             deudas.append({'nombre': (d.acreedor or 'Deuda')[:60], 'saldo': saldo, 'cuota': cuota})
 
     metas_fondo = [m for m in MetaAhorro.objects.filter(usuario=usuario)
                    if any(p in (m.nombre or '').lower() for p in PALABRAS_FONDO)]
-    llevas = round(sum(float(m.monto_actual) for m in metas_fondo))
-    meta = round((t['gasto'] + t['compromisos']) * 3)
+    llevas = redondear(suma(m.monto_actual for m in metas_fondo))
+    meta = (t['gasto'] + t['compromisos']) * 3
 
     sobra = max(0, t['flujo'])
     tope_mes = t['disponible_mes']

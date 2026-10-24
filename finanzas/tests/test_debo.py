@@ -137,36 +137,36 @@ class PuedesGastarTests(Base):
     def test_lo_que_debes_resta_de_puedes_gastar(self):
         self.prestamo()
         r = self._resumen()
-        self.assertEqual(r['exacto']['total_debo_mes'], Decimal('100000'))
+        self.assertEqual(r['total_debo_mes'], Decimal('100000'))
         self.assertEqual(r['debo_pendiente_mes'], 100000.0)
-        self.assertEqual(r['exacto']['disponible'], Decimal('900000'))
+        self.assertEqual(r['disponible'], Decimal('900000'))
 
     def test_pagar_la_cuota_no_la_cuenta_dos_veces(self):
         p = self.prestamo()
         self.abonar(p, '100000')
         r = self._resumen()
         self.assertEqual((r['debo_pagado_mes'], r['debo_pendiente_mes']), (100000.0, 0.0))
-        self.assertEqual(r['exacto']['disponible'], Decimal('900000'))
+        self.assertEqual(r['disponible'], Decimal('900000'))
 
     def test_un_abono_parcial_suma_lo_pagado_y_lo_que_falta(self):
         p = self.prestamo()
         self.abonar(p, '30000')
         r = self._resumen()
         self.assertEqual((r['debo_pagado_mes'], r['debo_pendiente_mes']), (30000.0, 70000.0))
-        self.assertEqual(r['exacto']['disponible'], Decimal('900000'))
+        self.assertEqual(r['disponible'], Decimal('900000'))
 
     def test_lo_que_me_deben_no_toca_la_cifra(self):
         self.prestamo(lado='ME_DEBE', monto='500000')
         r = self._resumen()
-        self.assertEqual(r['exacto']['total_debo_mes'], 0)
-        self.assertEqual(r['exacto']['disponible'], Decimal('1000000'))
+        self.assertEqual(r['total_debo_mes'], 0)
+        self.assertEqual(r['disponible'], Decimal('1000000'))
 
     def test_un_mes_cerrado_cuenta_solo_lo_pagado_ese_mes(self):
         anterior = self.hoy - relativedelta(months=1)
         p = self.prestamo(fecha=self.hoy - relativedelta(months=2))
         self.abonar(p, '100000', fecha=anterior)
         r = self._resumen(anterior)
-        self.assertEqual(r['exacto']['total_debo_mes'], Decimal('100000'))
+        self.assertEqual(r['total_debo_mes'], Decimal('100000'))
         self.assertEqual(r['debo_pendiente_mes'], 0.0)
 
 

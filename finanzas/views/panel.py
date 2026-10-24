@@ -21,6 +21,7 @@ from ..servicios.panel import insights_panel, primeros_pasos, serie_seis_meses
 from ..servicios.pendientes import calendario_del_mes, pendientes_del_mes
 from ..servicios.ritmo import ritmo_del_mes
 from ..servicios.suscripciones import generar_cobros_suscripciones
+from ..templatetags.moneda import SIN_DECIMALES
 from .comun import contadores, simbolo_de
 
 
@@ -44,6 +45,11 @@ def textos_movimiento(t):
     return desc, cat
 
 
+def _plata(simbolo):
+    decimales = 0 if simbolo in SIN_DECIMALES else 2
+    return lambda valor: redondear(valor, decimales)
+
+
 def _mes_pedido(request, hoy):
     try:
         year = int(request.GET.get('year', hoy.year))
@@ -63,6 +69,7 @@ def calendario_inicio(request):
     calendario_datos, dias_con_pago = calendario_del_mes(year, month, hoy, r['eventos'])
     pagos_mes = pendientes_del_mes(request.user, year, month, todas_las_deudas)
     sin_pagar = [i for i in pagos_mes if not i['pagado']]
+    plata = _plata(simbolo_de(request.user))
     respuesta = render(request, 'finanzas/_inicio_calendario.html', {
         'nombre_mes': nombre_mes_es(year, month),
         'year': year, 'month': month,
@@ -70,8 +77,8 @@ def calendario_inicio(request):
         'calendario': calendario_datos,
         'dias_con_pago': dias_con_pago,
         'pendientes': pagos_mes,
-        'monto_sin_pagar': redondear(suma(i['monto'] for i in sin_pagar)),
-        'monto_ya_pagado': redondear(suma(i['monto'] for i in pagos_mes if i['pagado'])),
+        'monto_sin_pagar': plata(suma(i['monto'] for i in sin_pagar)),
+        'monto_ya_pagado': plata(suma(i['monto'] for i in pagos_mes if i['pagado'])),
         'gastos_pendientes': GastoPendiente.objects.filter(usuario=request.user, pagado=False),
     })
     respuesta['Cache-Control'] = 'no-store'
@@ -85,9 +92,10 @@ def _movimientos_del_mes(usuario, year, month):
     ).order_by('-fecha', '-id'))
     for t in movimientos_mes:
         t.nombre_lista, t.meta_lista = textos_movimiento(t)
-    mov_entro = redondear(suma(t.monto for t in movimientos_mes if t.es_ingreso))
-    mov_salio = redondear(suma(t.monto for t in movimientos_mes if not t.es_ingreso))
-    mov_cuotas = redondear(suma(t.monto for t in movimientos_mes if t.es_cuota))
+    plata = _plata(simbolo_de(usuario))
+    mov_entro = plata(suma(t.monto for t in movimientos_mes if t.es_ingreso))
+    mov_salio = plata(suma(t.monto for t in movimientos_mes if not t.es_ingreso))
+    mov_cuotas = plata(suma(t.monto for t in movimientos_mes if t.es_cuota))
     mov_tope = max(mov_entro, mov_salio, 1)
     return {
         'movimientos_mes': movimientos_mes,
@@ -125,6 +133,7 @@ def dashboard(request):
     next_month, next_year = (1, year + 1) if month == 12 else (month + 1, year)
 
     r = resumen_mes(request.user, year, month)
+    plata = _plata(simbolo_de(request.user))
     nombre_mes = nombre_mes_es(year, month)
     todas_las_deudas = list(Deuda.objects.filter(usuario=request.user).prefetch_related('pagos'))
 
@@ -158,19 +167,19 @@ def dashboard(request):
         'prev_month_nombre': nombre_mes_es(prev_year, prev_month),
         'next_month_nombre': nombre_mes_es(next_year, next_month),
 
-        'total_ingresos': redondear(r['ingresos']),
-        'total_gastos': redondear(r['gastos']),
-        'total_gastos_mes': redondear(r['gastos']) + redondear(r['total_cuotas_mes']),
-        'total_cuotas_mes': redondear(r['total_cuotas_mes']),
-        'disponible': redondear(r['disponible']),
+        'total_ingresos': plata(r['ingresos']),
+        'total_gastos': plata(r['gastos']),
+        'total_gastos_mes': plata(r['gastos'] + r['total_cuotas_mes']),
+        'total_cuotas_mes': plata(r['total_cuotas_mes']),
+        'disponible': plata(r['disponible']),
 
-        'atrasado_arrastrado': redondear(r['atrasado_arrastrado']),
+        'atrasado_arrastrado': plata(r['atrasado_arrastrado']),
         'cuotas_arrastradas': r['cuotas_arrastradas'],
         'n_cuotas_arrastradas': len(r['cuotas_arrastradas']),
-        'por_pagar': redondear(r['cuotas_pendientes_mes'] + r['servicios_pendientes_mes']
+        'por_pagar': plata(r['cuotas_pendientes_mes'] + r['servicios_pendientes_mes']
                            + r['debo_pendiente_mes']),
         'dias_restantes': r['dias_restantes'],
-        'por_dia': redondear(r['por_dia']),
+        'por_dia': plata(r['por_dia']),
         'pct_gastado': r['pct_gastado'],
         'pct_por_pagar': r['pct_por_pagar'],
         'pct_disponible': r['pct_disponible'],
@@ -178,7 +187,7 @@ def dashboard(request):
         'pendientes': pagos_mes,
         'pendientes_sin_pagar': sin_pagar,
         'pendientes_atrasados': atrasados,
-        'monto_sin_pagar': redondear(suma(i['monto'] for i in sin_pagar)),
+        'monto_sin_pagar': plata(suma(i['monto'] for i in sin_pagar)),
 
         'insights': insights,
         'ultimas': ultimas,

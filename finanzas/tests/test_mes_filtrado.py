@@ -53,7 +53,7 @@ class DeudasDelMesTests(TestCase):
         self._deuda('Fecha editada', inicio, 2, [_periodo(inicio), fuera])
         self.assertIn('Fecha editada', self._nombres(True))
         r = resumen_mes(self.ana, self.hoy.year, self.hoy.month)
-        self.assertEqual(r['exacto']['comprometido'], Decimal('10000'))
+        self.assertEqual(r['comprometido'], Decimal('10000'))
 
     def test_las_cuotas_del_mes_dan_lo_mismo_que_antes(self):
         self._deuda('A', self.este - relativedelta(months=1), 3, [_periodo(self.este - relativedelta(months=1))])

@@ -1,5 +1,6 @@
 from datetime import timedelta
 
+from ..dinero import a_decimal, suma
 from ..models import TopeCategoria
 from ..templatetags.moneda import money
 from .mes import resumen_mes
@@ -35,7 +36,7 @@ def _aviso_cobros(items, cuando, montos, simbolo):
             cuerpo += f' y {len(items) - 4} más'
         cuerpo += '.'
         if montos:
-            cuerpo += f' En total, {money(sum(float(i["monto"]) for i in items), simbolo)}.'
+            cuerpo += f' En total, {money(suma(i["monto"] for i in items), simbolo)}.'
     return {'titulo': titulo, 'cuerpo': cuerpo, 'url': '/', 'etiqueta': f'cobros-{cuando.lower()}'}
 
 
@@ -69,10 +70,10 @@ def avisos_topes(usuario, hoy, montos, simbolo):
         nombre = mapa.get(t.categoria, {}).get('label', t.categoria)
         if nivel == 100:
             titulo = f'Pasaste tu tope de {nombre}'
-            detalle = f'Vas {money(float(g) - float(t.monto), simbolo)} por encima.'
+            detalle = f'Vas {money(a_decimal(g) - a_decimal(t.monto), simbolo)} por encima.'
         else:
             titulo = f'Vas en {pct} % de {nombre}'
-            detalle = f'Te quedan {money(float(t.monto) - float(g), simbolo)} este mes.'
+            detalle = f'Te quedan {money(a_decimal(t.monto) - a_decimal(g), simbolo)} este mes.'
         avisos.append({'titulo': titulo,
                        'cuerpo': detalle if montos else 'Toca para ver tus categorías.',
                        'url': '/categorias/', 'etiqueta': f'tope-{t.categoria}'})

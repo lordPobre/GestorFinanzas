@@ -154,6 +154,6 @@ class MontosExactos(TestCase):
             Transaccion.objects.create(usuario=ana, tipo='EGRESO', monto=Decimal(monto),
                                        categoria='Comida', fecha=hoy)
         r = resumen_mes(ana, hoy.year, hoy.month)
-        self.assertIsInstance(r['exacto']['gastos'], Decimal)
-        self.assertEqual(r['exacto']['gastos'], Decimal('0.90'))
-        self.assertEqual(r['exacto']['disponible'], Decimal('-0.90'))
+        self.assertIsInstance(r['gastos'], Decimal)
+        self.assertEqual(r['gastos'], Decimal('0.90'))
+        self.assertEqual(r['disponible'], Decimal('-0.90'))
