@@ -1,0 +1,46 @@
+{% extends 'finanzas/base.html' %}
+{% block title %}Anotar desde afuera · Fintora{% endblock %}
+
+{% block content %}
+<div class="sec-top centrado">
+  <a href="{% url 'perfil' %}" class="sec-volver" aria-label="Volver a Perfil"><i class="fas fa-chevron-left"></i></a>
+  <h1 class="sec-titulo">Anotar desde afuera</h1>
+  <span class="sec-hueco" aria-hidden="true"></span>
+</div>
+
+<section class="sec-hoja">
+  <p class="sec-mas-nota">Una clave personal para el Atajo del iPhone u otra app. Solo sirve para anotar movimientos y deshacer lo que anotó en las últimas 24 horas.</p>
+
+  {% if nueva %}
+  <div class="sec-tip ambar">
+    <span class="sec-tip-icono"><i class="fas fa-key"></i></span>
+    <span class="sec-tip-txt">
+      <b>Cópiala ahora: no se vuelve a mostrar</b>
+      <span>Si la pierdes, crea otra. La anterior deja de funcionar.</span>
+    </span>
+  </div>
+  <input type="text" class="ca-diag-texto" value="{{ nueva }}" readonly aria-label="Tu clave personal" data-clave-nueva>
+  {% endif %}
+
+  {% if clave %}
+  <div class="sec-fila">
+    <span class="sec-ficha verde"><i class="fas fa-key"></i></span>
+    <span class="sec-txt">
+      <span class="sec-nombre">Clave activa · {{ clave.prefijo }}…</span>
+      <span class="sec-meta">Creada {{ clave.creada|date:"j b Y" }} · {% if clave.usada %}usada {{ clave.usada|timesince }} atrás{% else %}todavía sin usar{% endif %}</span>
+    </span>
+    <form method="post">
+      {% csrf_token %}
+      <input type="hidden" name="accion" value="revocar">
+      <button type="submit" class="sec-chico peligro"><i class="fas fa-ban"></i>Revocar</button>
+    </form>
+  </div>
+  {% endif %}
+
+  <form method="post">
+    {% csrf_token %}
+    <input type="hidden" name="accion" value="crear">
+    <button type="submit" class="sec-btn azul">{% if clave %}Crear una nueva y revocar la actual{% else %}Crear clave{% endif %}</button>
+  </form>
+</section>
+{% endblock %}

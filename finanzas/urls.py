@@ -8,6 +8,8 @@ from .views import voz as vistas_voz
 from .views import preguntas as vistas_preguntas
 from .views import panel as vistas_panel
 from .views import proyeccion as vistas_proyeccion
+from .views import api as vistas_api
+from .views import clave_api as vistas_clave
 from .views import (actividad, analisis, cartola, categorias, cuenta, cuotas, descargas, encuesta,
                     estadisticas, landing, metas, movimientos, passkeys, plan, por_pagar,
                     prestamos, repetidos, sistema, suscripciones)
@@ -105,6 +107,9 @@ urlpatterns = [
     path('perfil/eliminar-cuenta/', cuenta.eliminar_cuenta, name='eliminar_cuenta'),
     path('perfil/sesiones/', cuenta.sesiones_activas, name='sesiones_activas'),
     path('perfil/actividad/', actividad.actividad, name='actividad_cuenta'),
+    path('perfil/clave/', vistas_clave.clave_api, name='clave_api'),
+    path('api/v1/movimientos/', vistas_api.movimientos, name='api_movimientos'),
+    path('api/v1/movimientos/<int:transaccion_id>/', vistas_api.movimiento, name='api_movimiento'),
     path('perfil/recordatorios/suscribir/', recordatorios.suscribir, name='push_suscribir'),
     path('perfil/recordatorios/quitar/', recordatorios.quitar, name='push_quitar'),
     path('perfil/recordatorios/probar/', recordatorios.probar, name='push_probar'),

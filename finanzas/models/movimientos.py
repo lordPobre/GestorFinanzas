@@ -89,12 +89,14 @@ class Transaccion(VinculoCategoria):
     PENDIENTE = 'pendiente'
     CUOTA = 'cuota'
     CARTOLA = 'cartola'
+    API = 'api'
     ORIGENES = [
         (MANUAL, 'Anotado a mano'),
         (SUSCRIPCION, 'Cobro de suscripción'),
         (PENDIENTE, 'Cuenta por pagar'),
         (CUOTA, 'Pago de cuota'),
         (CARTOLA, 'Cartola'),
+        (API, 'Anotado desde afuera'),
     ]
     PREFIJOS = {SUSCRIPCION: 'Suscripción: ', PENDIENTE: 'Pendiente: '}
 

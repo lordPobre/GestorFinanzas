@@ -1,4 +1,5 @@
 from .altas import AltaPendiente
+from .api import ClaveApi
 from .cuotas import Deuda, PagoCuota
 from .encuesta import RespuestaEncuesta
 from .metas import MetaAhorro, AporteMeta
@@ -14,6 +15,7 @@ from .sugerencias import SugerenciaDescartada
 
 __all__ = [
     'AltaPendiente',
+    'ClaveApi',
     'Transaccion',
     'Categoria',
     'Presupuesto',
