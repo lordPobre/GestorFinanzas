@@ -18,6 +18,9 @@ CAMBIOS = (
      'para una compra. Tu pregunta y los totales que hacen falta para responderla se envían a '
      'Anthropic. Los nombres de tus deudas, metas y de las personas salen como alias y se agregan '
      'a la respuesta en el servidor. La respuesta se lee con la voz de la esfera.'),
+    ('Dónde queda el audio de la voz',
+     'El audio que genera ElevenLabs para la voz de la esfera queda hasta 6 horas en Cloudflare R2, '
+     'en un almacenamiento privado, para no pedirlo dos veces. Después se borra.'),
     ('Movimientos repetidos con IA',
      'Si tienes el análisis con IA activado, cuando dos movimientos tienen el mismo monto y '
      'fechas cercanas pero no está claro si son el mismo, se envían a Anthropic las fechas, el '
