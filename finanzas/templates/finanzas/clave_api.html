@@ -8,6 +8,30 @@
   <span class="sec-hueco" aria-hidden="true"></span>
 </div>
 
+{% if telegram_listo %}
+<section class="sec-hoja">
+  <p class="sec-mas-nota">Escríbele al bot de Fintora en Telegram lo que gastaste, como «5 lucas en café», o mándale un audio. Lo anota al tiro y te deja deshacerlo.</p>
+
+  {% if chat_telegram %}
+  <div class="sec-fila">
+    <span class="sec-ficha verde"><i class="fas fa-paper-plane"></i></span>
+    <span class="sec-txt">
+      <span class="sec-nombre">Telegram conectado{% if chat_telegram.nombre %} · {{ chat_telegram.nombre }}{% endif %}</span>
+      <span class="sec-meta">Desde {{ chat_telegram.conectado|date:"j b Y" }} · {% if chat_telegram.usado %}usado {{ chat_telegram.usado|timesince }} atrás{% else %}todavía sin usar{% endif %}</span>
+    </span>
+    <form method="post">
+      {% csrf_token %}
+      <input type="hidden" name="accion" value="telegram_quitar">
+      <button type="submit" class="sec-chico peligro"><i class="fas fa-ban"></i>Desconectar</button>
+    </form>
+  </div>
+  {% else %}
+  <a href="{{ enlace_telegram }}" class="sec-btn azul" rel="noopener noreferrer">Conectar Telegram</a>
+  <p class="sec-mas-nota">Se abre Telegram: toca «Iniciar». El enlace sirve por 10 minutos y una sola vez.</p>
+  {% endif %}
+</section>
+{% endif %}
+
 <section class="sec-hoja">
   <p class="sec-mas-nota">Una clave personal para el Atajo del iPhone u otra app. Solo sirve para anotar movimientos y deshacer lo que anotó en las últimas 24 horas.</p>
 

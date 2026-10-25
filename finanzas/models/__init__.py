@@ -12,10 +12,12 @@ from .seguridad import (SegundoFactor, CodigoRespaldo, SesionActiva, Passkey, Ev
                         Contador, DispositivoConocido)
 from .suscripciones import Suscripcion, PagoServicio
 from .sugerencias import SugerenciaDescartada
+from .telegram import ChatTelegram
 
 __all__ = [
     'AltaPendiente',
     'ClaveApi',
+    'ChatTelegram',
     'Transaccion',
     'Categoria',
     'Presupuesto',

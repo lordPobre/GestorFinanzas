@@ -7,10 +7,10 @@ from finanzas.views.api import _texto_cuerpo
 
 class CuerpoConAcentosTests(TestCase):
     def test_utf8(self):
-        self.assertEqual(json.loads(_texto_cuerpo('{"texto":"café"}'.encode('utf-8')))['texto'], 'café')
+        self.assertEqual(json.loads(_texto_cuerpo('{"texto":"café"}'.encode()))['texto'], 'café')
 
     def test_utf8_con_bom(self):
-        crudo = b'\xef\xbb\xbf' + '{"texto":"café"}'.encode('utf-8')
+        crudo = b'\xef\xbb\xbf' + '{"texto":"café"}'.encode()
         self.assertEqual(json.loads(_texto_cuerpo(crudo))['texto'], 'café')
 
     def test_latin1_de_powershell(self):
