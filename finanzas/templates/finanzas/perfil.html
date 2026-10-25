@@ -349,6 +349,18 @@
             <i class="fas fa-chevron-right pf-flecha"></i>
           </a>
 
+          {% with clave=user.clave_api %}
+          <a href="{% url 'clave_api' %}" class="pf-fila">
+            <span class="pf-icono azul"><i class="fas fa-key"></i></span>
+            <span class="pf-txt">
+              <span class="pf-titulo">Anotar desde afuera</span>
+              <span class="pf-meta">{% if clave %}Clave {{ clave.prefijo }}… · {% if clave.usada %}usada hace {{ clave.usada|timesince }}{% else %}sin usar todavía{% endif %}{% else %}Crea una clave para el Atajo del iPhone u otra app{% endif %}</span>
+            </span>
+            {% if clave %}<span class="sec-badge verde">Activa</span>{% endif %}
+            <i class="fas fa-chevron-right pf-flecha"></i>
+          </a>
+          {% endwith %}
+
           <a href="{% url 'actividad_cuenta' %}" class="pf-fila">
             <span class="pf-icono azul"><i class="fas fa-clock-rotate-left"></i></span>
             <span class="pf-txt">
@@ -454,8 +466,8 @@
 {% endblock %}
 
 {% block extra_js %}
-<script type="module" src="{% static 'js/pantallas/recordatorios.js' %}" nonce="{{ csp_nonce }}"></script>
-<script type="module" src="{% static 'js/dispositivo.js' %}" nonce="{{ csp_nonce }}"></script>
-<script type="module" data-js="perfil" src="{% static 'js/pantallas/perfil.js' %}" nonce="{{ csp_nonce }}" data-foto="{{ perfil_form.foto.id_for_label }}"></script>
-<script type="module" data-js="perfil-2" src="{% static 'js/pantallas/perfil-2.js' %}" nonce="{{ csp_nonce }}" {% if pw_form.errors %}data-pw-errores="1" {% endif %}data-p1="{{ pw_form.new_password1.id_for_label }}" data-p2="{{ pw_form.new_password2.id_for_label }}"></script>
+<script src="{% static 'js/pantallas/recordatorios.js' %}" nonce="{{ csp_nonce }}"></script>
+<script src="{% static 'js/dispositivo.js' %}" nonce="{{ csp_nonce }}"></script>
+<script src="{% static 'js/pantallas/perfil.js' %}" nonce="{{ csp_nonce }}" data-foto="{{ perfil_form.foto.id_for_label }}"></script>
+<script src="{% static 'js/pantallas/perfil-2.js' %}" nonce="{{ csp_nonce }}" {% if pw_form.errors %}data-pw-errores="1" {% endif %}data-p1="{{ pw_form.new_password1.id_for_label }}" data-p2="{{ pw_form.new_password2.id_for_label }}"></script>
 {% endblock %}
