@@ -24,6 +24,7 @@ ENTRADAS = (
     _entrada('encuesta', 'Danos tu opinión', 'fa-comment-dots', hoja=10, tinta='orange', cuenta=True),
     _entrada('encuesta_resultados', 'Resultados encuesta', 'fa-square-poll-vertical', hoja=11, tinta='blue',
              cuenta=True, solo_personal=True),
+    _entrada('clave_api', 'Anotar desde afuera', 'fa-key', hoja=12, tinta='blue', cuenta=True),
 )
 
 EN_LA_BARRA = frozenset(e['clave'] for e in ENTRADAS if e.get('barra'))

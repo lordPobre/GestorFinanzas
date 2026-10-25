@@ -18,6 +18,10 @@ CAMBIOS = (
      'para una compra. Tu pregunta y los totales que hacen falta para responderla se envían a '
      'Anthropic. Los nombres de tus deudas, metas y de las personas salen como alias y se agregan '
      'a la respuesta en el servidor. La respuesta se lee con la voz de la esfera.'),
+    ('Anotar desde afuera',
+     'Puedes crear una clave personal para anotar desde un Atajo del iPhone u otra app. Si tienes el '
+     'análisis con IA activado y no entendemos la frase que escribiste, como «5 lucas en café», se envía '
+     'solo esa frase a Anthropic para leer el monto. La clave se guarda cifrada y la puedes revocar en Perfil.'),
     ('Dónde queda el audio de la voz',
      'El audio que genera ElevenLabs para la voz de la esfera queda hasta 6 horas en Cloudflare R2, '
      'en un almacenamiento privado, para no pedirlo dos veces. Después se borra.'),
