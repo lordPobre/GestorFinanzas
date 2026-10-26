@@ -44,6 +44,12 @@ def a_dict(cartola):
             'reemplaza_seguro': m.reemplaza_seguro,
             'reemplaza_desc': m.reemplaza_desc,
             'reemplaza_fecha': m.reemplaza_fecha,
+            'deuda_id': m.deuda_id,
+            'deuda_periodo': m.deuda_periodo,
+            'deuda_texto': m.deuda_texto,
+            'prestamo_id': m.prestamo_id,
+            'prestamo_texto': m.prestamo_texto,
+            'vinculo_seguro': m.vinculo_seguro,
         } for m in cartola.movimientos],
     }
 
@@ -52,6 +58,7 @@ def leer_ahora(usuario, contenido, banco, nombre):
     from ..cartolas import enriquecer, leer_cartola
     from ..cartolas.base import ErrorCartola
     from ..cartolas.ciclo import reubicar_anteriores
+    from ..cartolas.cuotas_conocidas import reconocer_cuotas
     from .repetidos import marcar_repetidas
 
     archivo = (nombre or '')[:80]
@@ -59,6 +66,7 @@ def leer_ahora(usuario, contenido, banco, nombre):
         cartola = leer_cartola(BytesIO(contenido), banco, nombre)
         enriquecer(cartola, usuario)
         reubicar_anteriores(cartola, usuario)
+        reconocer_cuotas(cartola, usuario)
         marcar_repetidas(cartola, usuario)
     except ErrorCartola as e:
         return {'listo': True, 'ok': False, 'msg': str(e), 'muestra': getattr(e, 'muestra', ''),

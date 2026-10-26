@@ -55,6 +55,34 @@ def _entregar(request, datos):
     return reverse('importar_cartola')
 
 
+def _deuda_previa(request, m, i):
+    if not (m.get('deuda_id') and m.get('deuda_periodo') and request.POST.get(f'cuota_{i}')):
+        return None
+    return Deuda.objects.select_for_update().filter(pk=m['deuda_id'], usuario=request.user).first()
+
+
+def _unir_a_la_cuota(deuda, periodo, monto, fecha, tx):
+    if periodo not in deuda.periodos_programados or PagoCuota.objects.filter(transaccion=tx).exists():
+        return 0
+    pago = deuda.pagos.filter(periodo=periodo).first()
+    if pago is None:
+        PagoCuota.objects.create(deuda=deuda, periodo=periodo, monto=monto, fecha_pago=fecha,
+                                 transaccion=tx)
+        return 1
+    if pago.transaccion_id is None:
+        pago.transaccion = tx
+        pago.fecha_pago = fecha
+        pago.save(update_fields=['transaccion', 'fecha_pago'])
+        return 1
+    return 0
+
+
+def _prestamo_previo(request, m, i):
+    return bool(m.get('prestamo_id') and request.POST.get(f'prestamo_{i}')
+                and Prestamo.objects.filter(pk=m['prestamo_id'], persona__usuario=request.user,
+                                            persona__lado='ME_DEBE').exists())
+
+
 @login_required
 @limitar(20, 3600, 'Demasiadas cartolas seguidas. Prueba en un rato.')
 def importar_cartola(request):
@@ -130,6 +158,7 @@ def revisar_cartola(request):
         'nuevas': len(nuevas),
         'repetidas': len(filas) - len(nuevas),
         'reemplazos': sum(1 for f in nuevas if f.get('reemplaza_id')),
+        'conocidas': sum(1 for f in nuevas if f.get('deuda_id') or f.get('prestamo_id')),
         'descuadre': Decimal(datos.get('descuadre') or 0),
         'suma_ingresos': sum(f['monto_dec'] for f in nuevas if f['tipo'] == 'INGRESO'),
         'suma_egresos': sum(f['monto_dec'] for f in nuevas if f['tipo'] == 'EGRESO'),
@@ -152,7 +181,7 @@ def confirmar_cartola(request):
         return redirect('importar_cartola')
 
     movs = datos['movimientos']
-    creados = movidos = reemplazados = subs = deudas = prestamos = 0
+    creados = movidos = reemplazados = subs = deudas = prestamos = pagadas = ajenas = 0
     cats = Categoria.opciones_por_tipo(request.user)
     validas = {tipo: {slug for slug, _ in cats[tipo]} | SLUGS_BASE
               for tipo in ('INGRESO', 'EGRESO')}
@@ -186,15 +215,25 @@ def confirmar_cartola(request):
             if m.get('reemplaza_id') and request.POST.get(f'reemplazar_{i}'):
                 previa = Transaccion.objects.filter(
                     pk=m['reemplaza_id'], usuario=request.user, tipo=m['tipo']).first()
+            deuda_previa = _deuda_previa(request, m, i)
+            if deuda_previa is not None and previa is None:
+                pago = (deuda_previa.pagos.filter(periodo=m['deuda_periodo'], transaccion__isnull=False)
+                        .select_related('transaccion').first())
+                if pago is not None:
+                    previa = pago.transaccion
             if previa is not None:
                 previa.fecha = fecha
                 previa.descripcion = desc
                 previa.pagado = True
                 previa.fecha_pago = fecha
+                if deuda_previa is not None:
+                    previa.es_cuota = True
                 GastoPendiente.objects.filter(transaccion=previa, pagado=False).update(
                     pagado=True, fecha_pago=fecha)
                 previa.save()
                 reemplazados += 1
+                if deuda_previa is not None:
+                    pagadas += _unir_a_la_cuota(deuda_previa, m['deuda_periodo'], monto, fecha, previa)
                 continue
 
             tx = Transaccion.objects.create(
@@ -223,7 +262,9 @@ def confirmar_cartola(request):
                 )
                 subs += 1
 
-            if request.POST.get(f'deuda_{i}') and es_cuota:
+            if deuda_previa is not None:
+                pagadas += _unir_a_la_cuota(deuda_previa, m['deuda_periodo'], monto, fecha, tx)
+            elif request.POST.get(f'deuda_{i}') and es_cuota:
                 restantes = m['cuota_total'] - m['cuota_actual'] + 1
                 deuda = Deuda.objects.create(
                     usuario=request.user,
@@ -241,7 +282,9 @@ def confirmar_cartola(request):
                 )
                 deudas += 1
 
-            if request.POST.get(f'deben_{i}') and m['tipo'] == 'EGRESO':
+            if _prestamo_previo(request, m, i):
+                ajenas += 1
+            elif deuda_previa is None and request.POST.get(f'deben_{i}') and m['tipo'] == 'EGRESO':
                 persona = None
                 pk = (request.POST.get(f'deben_persona_{i}') or '').strip()
                 if pk.isdigit():
@@ -284,6 +327,11 @@ def confirmar_cartola(request):
         partes.append(f'{deudas} compra{"s" if deudas != 1 else ""} en cuotas')
     if prestamos:
         partes.append(f'{prestamos} en Me deben')
+    if pagadas:
+        partes.append(f'{pagadas} cuota{"s" if pagadas != 1 else ""} '
+                      f'pagada{"s" if pagadas != 1 else ""} en Cuotas')
+    if ajenas:
+        partes.append(f'{ajenas} cuota{"s" if ajenas != 1 else ""} de compras que ya estaban en Préstamos')
     messages.success(request, 'Importado: ' + ', '.join(partes) + '.')
     return redirect('dashboard')
 

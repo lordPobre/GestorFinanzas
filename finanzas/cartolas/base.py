@@ -67,6 +67,12 @@ class MovimientoLeido:
     reemplaza_seguro: bool = False
     reemplaza_desc: str = ''
     reemplaza_fecha: str = ''
+    deuda_id: int = None
+    deuda_periodo: int = None
+    deuda_texto: str = ''
+    prestamo_id: int = None
+    prestamo_texto: str = ''
+    vinculo_seguro: bool = False
 
     @property
     def es_cuota(self):

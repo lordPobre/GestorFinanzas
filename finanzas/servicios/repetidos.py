@@ -81,10 +81,11 @@ def _rango(nivel):
 
 
 def marcar_repetidas(cartola, usuario):
-    from ..models import Transaccion
+    from ..models import PagoCuota, Transaccion
 
     filas = [m for m in cartola.movimientos
-             if not m.ya_existe and not m.mover_id and 'no es un gasto' not in m.aviso.lower()]
+             if not m.ya_existe and not m.mover_id and not m.reemplaza_id
+             and 'no es un gasto' not in m.aviso.lower()]
     if not filas:
         return cartola
 
@@ -93,13 +94,17 @@ def marcar_repetidas(cartola, usuario):
     base = list(Transaccion.objects.filter(
         usuario=usuario, fecha__range=(desde, hasta), monto__in={m.monto for m in filas},
     ).order_by('fecha', 'pk'))
+    con_cuota = set()
+    if any(m.deuda_id for m in filas):
+        con_cuota = set(PagoCuota.objects.filter(
+            transaccion_id__in=[t.pk for t in base]).values_list('transaccion_id', flat=True))
 
     exactas = {}
     for m in cartola.movimientos:
         if m.ya_existe:
             k = (m.fecha, m.tipo, m.monto, m.descripcion.strip().lower())
             exactas[k] = exactas.get(k, 0) + 1
-    usadas = set()
+    usadas = {m.reemplaza_id for m in cartola.movimientos if m.reemplaza_id}
     for t in base:
         k = (t.fecha, t.tipo, Decimal(t.monto), (t.descripcion or '').strip().lower())
         if exactas.get(k):
@@ -111,6 +116,8 @@ def marcar_repetidas(cartola, usuario):
         dm, mejor = _datos_mov(m), None
         for t in base:
             if t.pk in usadas or t.tipo != m.tipo or Decimal(t.monto) != m.monto:
+                continue
+            if m.deuda_id and t.pk in con_cuota:
                 continue
             nivel = clasificar(dm, _datos_tx(t))
             if not nivel:

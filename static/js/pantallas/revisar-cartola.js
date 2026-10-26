@@ -52,6 +52,31 @@
     sel.addEventListener('change', pintar);
   });
 
+  form.querySelectorAll('[data-vinculo]').forEach(function (cb) {
+    var detalle = cb.closest('.cartola-detalle');
+    var otros = detalle ? detalle.querySelectorAll('[data-sin-vinculo]') : [];
+
+    function pintar() {
+      otros.forEach(function (caja) {
+        caja.hidden = cb.checked;
+        if (!cb.checked) return;
+        caja.querySelectorAll('input[type=checkbox]').forEach(function (x) {
+          if (!x.checked) return;
+          x.checked = false;
+          x.dispatchEvent(new Event('change'));
+        });
+      });
+    }
+    cb.addEventListener('change', function () {
+      if (cb.checked) {
+        var fila = cb.closest('.cartola-fila').querySelector('.cartola-check');
+        if (fila && !fila.checked) { fila.checked = true; actualizar(); }
+      }
+      pintar();
+    });
+    pintar();
+  });
+
   form.querySelectorAll('[data-marcar]').forEach(function (b) {
     b.addEventListener('click', function () {
       var modo = b.dataset.marcar;
