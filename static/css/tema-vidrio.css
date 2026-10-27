@@ -375,6 +375,11 @@ a.btn-green[href*="wa.me"], a.btn-green[href*="whatsapp"] {
   ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) { animation: none !important; }
 }
 
+html.android-app body::before {
+  -webkit-mask-image: linear-gradient(transparent, #000 110px);
+  mask-image: linear-gradient(transparent, #000 110px);
+}
+
 @media print {
   body::before { display: none; }
 }

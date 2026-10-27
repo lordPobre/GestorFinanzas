@@ -17,11 +17,12 @@
   transform: translateZ(0);
   box-shadow: 0 0 50px color-mix(in srgb, var(--cg) 40%, transparent);
 }
-.lpo-nucleo i { filter: blur(calc(var(--tam) * .1)); mix-blend-mode: screen; animation-timing-function: linear; animation-iteration-count: infinite; }
-.lpo-nucleo .b1 { width: 82%; height: 82%; left: -10%; top: -8%; background: var(--c1); transform-origin: 62% 62%; animation-name: lpoGiro1; animation-duration: calc(6.5s * var(--vel)); }
-.lpo-nucleo .b2 { width: 72%; height: 72%; left: 36%; top: 30%; background: var(--c2); transform-origin: 28% 30%; animation-name: lpoGiro2; animation-duration: calc(8s * var(--vel)); }
-.lpo-nucleo .b3 { width: 54%; height: 54%; left: 18%; top: 46%; background: var(--c3); transform-origin: 62% 18%; animation-name: lpoGiro1; animation-duration: calc(5s * var(--vel)); }
-.lpo-nucleo .b4 { width: 40%; height: 40%; left: 50%; top: 6%; background: var(--c1); transform-origin: 20% 80%; animation-name: lpoGiro2; animation-duration: calc(7s * var(--vel)); }
+.lpo-nucleo i { filter: blur(calc(var(--tam) * .1)); background: var(--cb); mix-blend-mode: screen; animation-timing-function: linear; animation-iteration-count: infinite; }
+html.android .lpo-nucleo i { filter: none; background: radial-gradient(circle closest-side, var(--cb) 35%, color-mix(in srgb, var(--cb) 50%, transparent) 72%, transparent 100%); }
+.lpo-nucleo .b1 { width: 82%; height: 82%; left: -10%; top: -8%; --cb: var(--c1); transform-origin: 62% 62%; animation-name: lpoGiro1; animation-duration: calc(6.5s * var(--vel)); }
+.lpo-nucleo .b2 { width: 72%; height: 72%; left: 36%; top: 30%; --cb: var(--c2); transform-origin: 28% 30%; animation-name: lpoGiro2; animation-duration: calc(8s * var(--vel)); }
+.lpo-nucleo .b3 { width: 54%; height: 54%; left: 18%; top: 46%; --cb: var(--c3); transform-origin: 62% 18%; animation-name: lpoGiro1; animation-duration: calc(5s * var(--vel)); }
+.lpo-nucleo .b4 { width: 40%; height: 40%; left: 50%; top: 6%; --cb: var(--c1); transform-origin: 20% 80%; animation-name: lpoGiro2; animation-duration: calc(7s * var(--vel)); }
 .lpo-luz { inset: 24%; background: radial-gradient(circle, rgba(255, 255, 255, .6), rgba(255, 255, 255, 0) 70%); filter: blur(calc(var(--tam) * .05)); mix-blend-mode: overlay; }
 .lpo-reflejo { inset: 0; background: radial-gradient(58% 42% at 34% 20%, rgba(255, 255, 255, .5), rgba(255, 255, 255, 0) 62%); }
 .lpo-borde { inset: 0; box-shadow: inset 0 calc(var(--tam) * -.1) calc(var(--tam) * .2) rgba(0, 0, 0, .5), inset 0 2px 6px rgba(255, 255, 255, .28), inset 0 0 0 1px rgba(255, 255, 255, .1); }

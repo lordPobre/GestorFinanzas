@@ -8,7 +8,7 @@ RAIZ = Path(settings.BASE_DIR)
 PLANTILLAS = RAIZ / 'finanzas' / 'templates' / 'finanzas'
 JS = RAIZ / 'static' / 'js'
 ETIQUETA = re.compile(r"<script([^>]*?)\ssrc=\"\{% static 'js/([\w/-]+)\.js' %\}\"([^>]*)>")
-CLASICOS = {'pantallas/modales-temprano', 'pantallas/registro-sw', 'pantallas/barra-estado', 'pantallas/saludo-hora'}
+CLASICOS = {'pantallas/modales-temprano', 'pantallas/registro-sw', 'pantallas/barra-estado', 'pantallas/saludo-hora', 'pantallas/android-app'}
 AL_USAR = ('pantallas/anotar', 'pantallas/anotar-tope', 'pantallas/panel-anotar', 'tour')
 
 
