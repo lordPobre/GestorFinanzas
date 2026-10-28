@@ -39,6 +39,7 @@
   let audioPara = '';
   let pedido = null;
   let cuadro = 0;
+  let tamFijo = false;
 
   function claveAudio() {
     const conCambio = cambio && raiz.classList.contains('esfera-bienvenida');
@@ -99,9 +100,10 @@
   }
 
   function ajustarTam(arriba, zona) {
-    esfera.style.removeProperty('--esfera-tam');
+    if (tamFijo) { esfera.style.setProperty('--esfera-tam', ''); tamFijo = false; }
     const sobra = esfera.offsetHeight - (zona - arriba - 14);
-    if (sobra <= 0 || !bola) return;
+    if (!(sobra > 0) || !bola || !bola.offsetHeight) return;
+    tamFijo = true;
     esfera.style.setProperty('--esfera-tam', Math.max(96, Math.round(bola.offsetHeight - sobra)) + 'px');
   }
 
