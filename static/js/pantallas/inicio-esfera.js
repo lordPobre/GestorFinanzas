@@ -81,9 +81,10 @@
     const cab = tope.getBoundingClientRect().bottom - r.top + (pestanas ? 12 : 4);
     d = Math.max(0, Math.round(navTop - 12 - cab - topeArriba));
     const rh = hero.getBoundingClientRect();
+    const zona = navTop - 12 - cab;
     if (raiz.classList.contains('esfera-bienvenida')) {
+      ajustarTam(16, zona);
       const alto = esfera.offsetHeight;
-      const zona = navTop - 12 - cab;
       const arriba = Math.max(16, Math.round((zona - alto) / 2));
       esfera.style.setProperty('--esfera-top', Math.round(arriba - rh.top) + 'px');
       return;
@@ -94,6 +95,14 @@
       if (re.height) top = Math.max(top, re.bottom - rh.top + 24);
     });
     if (top) esfera.style.setProperty('--esfera-top', Math.round(top) + 'px');
+    ajustarTam(rh.top + window.scrollY + (top || 150), zona);
+  }
+
+  function ajustarTam(arriba, zona) {
+    esfera.style.removeProperty('--esfera-tam');
+    const sobra = esfera.offsetHeight - (zona - arriba - 14);
+    if (sobra <= 0 || !bola) return;
+    esfera.style.setProperty('--esfera-tam', Math.max(96, Math.round(bola.offsetHeight - sobra)) + 'px');
   }
 
   function aplicar() {
