@@ -221,6 +221,11 @@ def confirmar_cartola(request):
                         .select_related('transaccion').first())
                 if pago is not None:
                     previa = pago.transaccion
+            if previa is not None and deuda_previa is None and previa.por_pagar and previa.fecha > fecha:
+                previa.descripcion = desc
+                previa.save(update_fields=['descripcion'])
+                reemplazados += 1
+                continue
             if previa is not None:
                 previa.fecha = fecha
                 previa.descripcion = desc

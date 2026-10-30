@@ -63,7 +63,7 @@ def leer_ahora(usuario, contenido, banco, nombre):
 
     archivo = (nombre or '')[:80]
     try:
-        cartola = leer_cartola(BytesIO(contenido), banco, nombre)
+        cartola = leer_cartola(BytesIO(contenido), banco, nombre, usuario)
         enriquecer(cartola, usuario)
         reubicar_anteriores(cartola, usuario)
         reconocer_cuotas(cartola, usuario)

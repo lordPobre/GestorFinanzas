@@ -5,6 +5,7 @@ from decimal import Decimal
 from difflib import SequenceMatcher
 
 DIAS = 3
+DIAS_PENDIENTE = 62
 SEGURO = 0.9
 MINIMO = 0.45
 MAX_DUDOSOS = 60
@@ -80,7 +81,15 @@ def _rango(nivel):
     return 2 if nivel == 'seguro' else 1
 
 
+def _adelantado(t, m):
+    dias = (t.fecha - m.fecha).days
+    return (t.tipo == 'EGRESO' and not t.es_cuota and not t.pagado
+            and 0 < dias <= DIAS_PENDIENTE)
+
+
 def marcar_repetidas(cartola, usuario):
+    from django.db.models import Q
+
     from ..models import PagoCuota, Transaccion
 
     filas = [m for m in cartola.movimientos
@@ -91,8 +100,11 @@ def marcar_repetidas(cartola, usuario):
 
     desde = min(m.fecha for m in filas) - timedelta(days=DIAS)
     hasta = max(m.fecha for m in filas) + timedelta(days=DIAS)
+    pendientes = Q(tipo='EGRESO', es_cuota=False, pagado=False, fecha__gt=hasta,
+                   fecha__lte=hasta + timedelta(days=DIAS_PENDIENTE))
     base = list(Transaccion.objects.filter(
-        usuario=usuario, fecha__range=(desde, hasta), monto__in={m.monto for m in filas},
+        Q(fecha__range=(desde, hasta)) | pendientes,
+        usuario=usuario, monto__in={m.monto for m in filas},
     ).order_by('fecha', 'pk'))
     con_cuota = set()
     if any(m.deuda_id for m in filas):
@@ -119,21 +131,25 @@ def marcar_repetidas(cartola, usuario):
                 continue
             if m.deuda_id and t.pk in con_cuota:
                 continue
-            nivel = clasificar(dm, _datos_tx(t))
+            dt = _datos_tx(t)
+            adelantado = _adelantado(t, m)
+            if adelantado:
+                dt['fecha'] = m.fecha
+            nivel = clasificar(dm, dt) or ('dudoso' if adelantado else None)
             if not nivel:
                 continue
             dias = abs((t.fecha - m.fecha).days)
             if mejor is None or (_rango(nivel), -dias) > (_rango(mejor[1]), -mejor[2]):
-                mejor = (t, nivel, dias)
+                mejor = (t, nivel, dias, adelantado)
         if mejor:
             usadas.add(mejor[0].pk)
-            candidatos.append((m, mejor[0], mejor[1]))
+            candidatos.append((m, mejor[0], mejor[1], mejor[3]))
 
-    dudosos = [(str(i), _datos_mov(m), _datos_tx(t))
-               for i, (m, t, nivel) in enumerate(candidatos) if nivel == 'dudoso']
+    dudosos = [(str(i), _datos_mov(m), dict(_datos_tx(t), fecha=m.fecha) if adelantado else _datos_tx(t))
+               for i, (m, t, nivel, adelantado) in enumerate(candidatos) if nivel == 'dudoso']
     respuesta = _consultar(dudosos, usuario)
 
-    for i, (m, t, nivel) in enumerate(candidatos):
+    for i, (m, t, nivel, adelantado) in enumerate(candidatos):
         veredicto = respuesta.get(str(i))
         if nivel == 'dudoso' and veredicto is False:
             continue
@@ -142,6 +158,14 @@ def marcar_repetidas(cartola, usuario):
         m.reemplaza_fecha = t.fecha.strftime('%d/%m')
         m.reemplaza_seguro = nivel == 'seguro' or veredicto is True
         if m.aviso:
+            continue
+        if adelantado:
+            if m.reemplaza_seguro:
+                m.aviso = (f'La dejaste pendiente para el {m.reemplaza_fecha}. Al guardar se queda '
+                           f'en esa fecha, sigue por pagar y toma la descripción del banco.')
+            else:
+                m.aviso = (f'Podría ser la que dejaste pendiente para el {m.reemplaza_fecha}. '
+                           f'Si es la misma, marca «reemplazarla».')
             continue
         if nivel == 'seguro':
             m.aviso = (f'Ya la tenías anotada el {m.reemplaza_fecha}. Al guardar se reemplaza '

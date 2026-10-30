@@ -2,6 +2,7 @@ import re
 from dataclasses import dataclass, field
 from datetime import date
 from decimal import Decimal
+from io import BytesIO
 
 
 class ErrorCartola(Exception):
@@ -106,6 +107,10 @@ def plata(txt):
 
 
 def texto_de_pdf(binario):
+    return '\n'.join(paginas_de_pdf(binario))
+
+
+def paginas_de_pdf(binario):
     try:
         from pypdf import PdfReader
     except ImportError as e:
@@ -133,7 +138,7 @@ def texto_de_pdf(binario):
                     'El PDF trae demasiado texto para procesarlo de una. '
                     'Súbelo por partes, o revisa que sea una cartola y no otro documento.')
             piezas.append(trozo)
-        return '\n'.join(piezas)
+        return piezas
     except ErrorCartola:
         raise
     except Exception as e:
@@ -190,11 +195,30 @@ def _topar(cartola):
     return cartola
 
 
-def leer_cartola(binario, banco='', nombre=''):
+FOTO_SIN_IA = ('Las fotos y los PDF escaneados se leen con IA, y ahora no está disponible. '
+               'Sube el PDF o el Excel que descarga el banco.')
+
+
+def leer_cartola(binario, banco='', nombre='', usuario=None):
+    contenido = binario.getvalue() if hasattr(binario, 'getvalue') else binario.read()
+
+    def respaldo():
+        return _leer_clasico(BytesIO(contenido), banco, nombre)
+
+    if usuario is None:
+        return respaldo()
+    from .lector_ia import leer_con_ia
+    return _topar(leer_con_ia(contenido, nombre, banco, usuario, respaldo))
+
+
+def _leer_clasico(binario, banco, nombre):
+    from .lector_ia import es_imagen
     from .tabla import es_tabla, leer_tabla
 
     if es_tabla(nombre):
         return _topar(leer_tabla(binario, nombre))
+    if es_imagen(binario.getvalue()[:16]):
+        raise ErrorCartola(FOTO_SIN_IA)
 
     texto = texto_de_pdf(binario)
     try:
