@@ -194,6 +194,34 @@
   en el servidor 30 minutos para poder seguirla y después se borra. Puedes hacer
   hasta 30 preguntas al día.
 </p>
+<h3>Lectura de cartolas</h3>
+<p>
+  Cuando importas una cartola o un estado de cuenta, el servidor le pide a la
+  API de Anthropic que lea los movimientos. Después comprueba en el propio
+  servidor que cada monto esté en el archivo y que los saldos o el total
+  cuadren. Si la IA no está disponible, la cartola se lee con el motor propio
+  y nada sale del servidor.
+</p>
+<div class="legal-par">
+  <div class="legal-par-si">
+    <div class="legal-par-etq"><i class="fas fa-arrow-up-right-from-square"></i>Lo que se envía, exactamente</div>
+    <p>El texto del PDF, del Excel o del CSV, con las fechas, descripciones,
+    montos y saldos de los movimientos. Si subes una foto o un PDF escaneado,
+    se envía la imagen completa.</p>
+  </div>
+  <div class="legal-par-no">
+    <div class="legal-par-etq"><i class="fas fa-lock"></i>Lo que no se envía</div>
+    <p>En los PDF con texto, Excel y CSV se tapan antes de enviar tu RUT, tu
+    nombre, tu correo, tu teléfono, tu dirección y los números de cuenta y de
+    tarjeta. Tampoco se envían tu usuario ni el resto de tus movimientos. En
+    una foto o un escaneo no se pueden tapar.</p>
+  </div>
+</div>
+<p>
+  El archivo no se guarda: se lee en memoria y se descarta. Se pueden leer
+  hasta 20 cartolas al mes con IA; pasado ese número se usa el motor propio.
+  Esta lectura no depende del ajuste de análisis con IA.
+</p>
 <h3>Movimientos repetidos</h3>
 <p>
   Al importar una cartola y en <em>Perfil → Movimientos repetidos</em>, la app
@@ -220,21 +248,16 @@
   tú confirmas qué se reemplaza y qué se borra.
 </p>
 <p>
-  Si anotas desde afuera, con un Atajo del iPhone o el acceso rápido, y no entendemos la frase
-  que escribiste, se envía solo esa frase a Anthropic para leer el monto y la descripción. Pasa
-  únicamente si el análisis con IA está activado.
-</p>
-<p>
   Puedes apagar todo esto en <em>Perfil → Análisis con IA</em>. Apagado, el
   análisis, el plan y la búsqueda de repetidos siguen funcionando con el motor
-  propio y nada sale del servidor.
+  propio y nada de eso sale del servidor. La lectura de cartolas no depende de
+  este ajuste.
 </p>
 <h3>La voz de la esfera</h3>
 <p>
   En el teléfono, al tocar la esfera se escucha el resumen de la pantalla. La
   voz la genera ElevenLabs a partir del texto, solo si el análisis con IA está
-  activado. El audio queda guardado hasta 6 horas en Cloudflare R2, en un
-  almacenamiento privado, para no pedirlo dos veces, y después se borra.
+  activado.
 </p>
 <div class="legal-par">
   <div class="legal-par-si">
@@ -335,7 +358,7 @@
   </div>
   <div class="legal-proveedor">
     <div class="legal-proveedor-cabeza"><b>Cloudflare R2</b><span class="legal-pais"><i class="fas fa-location-dot"></i>Red global</span></div>
-    <p>La foto de perfil, si subiste una, las copias de respaldo de la base y, por unas horas, el audio de la voz de la esfera, en un almacenamiento privado</p>
+    <p>La foto de perfil, si subiste una, y las copias de respaldo de la base, en un almacenamiento privado</p>
   </div>
   <div class="legal-proveedor">
     <div class="legal-proveedor-cabeza"><b>Resend</b><span class="legal-pais"><i class="fas fa-location-dot"></i>Estados Unidos</span></div>
@@ -343,7 +366,7 @@
   </div>
   <div class="legal-proveedor">
     <div class="legal-proveedor-cabeza"><b>Anthropic</b><span class="legal-pais"><i class="fas fa-location-dot"></i>Estados Unidos</span></div>
-    <p>Los agregados numéricos del análisis, los montos del plan para tu plata y las fechas, montos, categorías y descripciones de los pares de movimientos que parecen repetidos, si tienes el análisis con IA activado, el texto de lo que escribas en el chat de ayuda y las preguntas que le hagas a la esfera, con los totales que hacen falta para responderlas</p>
+    <p>Los agregados numéricos del análisis, los montos del plan para tu plata y las fechas, montos, categorías y descripciones de los pares de movimientos que parecen repetidos, si tienes el análisis con IA activado, el texto de lo que escribas en el chat de ayuda y las preguntas que le hagas a la esfera, con los totales que hacen falta para responderlas, y el contenido de las cartolas que importas, con tus datos personales tapados salvo en fotos y escaneos</p>
   </div>
   <div class="legal-proveedor">
     <div class="legal-proveedor-cabeza"><b>ElevenLabs</b><span class="legal-pais"><i class="fas fa-location-dot"></i>Estados Unidos</span></div>

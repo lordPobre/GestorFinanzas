@@ -16,6 +16,8 @@ MODELOS = {
     'ayuda': ('IA_MODELO_AYUDA', 'claude-haiku-4-5'),
     'preguntas': ('IA_MODELO_PREGUNTAS', 'claude-sonnet-4-6'),
     'anotar': ('IA_MODELO_ANOTAR', 'claude-haiku-4-5'),
+    'cartola': ('IA_MODELO_CARTOLA', 'claude-haiku-4-5'),
+    'cartola_revision': ('IA_MODELO_CARTOLA_REVISION', 'claude-sonnet-4-6'),
 }
 PRECIOS = {
     'claude-sonnet-4-6': (3.0, 15.0),

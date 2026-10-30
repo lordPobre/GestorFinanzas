@@ -26,15 +26,15 @@
     <form method="post" enctype="multipart/form-data" id="formCartola" class="ca-form" data-url-tarea="{% url 'tarea_cartola' %}">
       {% csrf_token %}
       <label class="cartola-zona ca-zona" id="zona" data-tour="cartola">
-        <input type="file" name="cartola" accept=".pdf,.csv,.tsv,.txt,.xlsx,.xlsm,application/pdf,text/csv" id="inputCartola" class="visually-hidden">
+        <input type="file" name="cartola" accept=".pdf,.csv,.tsv,.txt,.xlsx,.xlsm,.jpg,.jpeg,.png,.webp,application/pdf,text/csv,image/jpeg,image/png,image/webp" id="inputCartola" class="visually-hidden">
         <span class="ca-zona-icono"><i class="fas fa-file-arrow-up"></i></span>
         <span class="cartola-titulo ca-zona-titulo" id="zonaTitulo">Toca para elegir el archivo</span>
-        <span class="cartola-nota ca-zona-nota" id="zonaNota">o arrástralo aquí · PDF, CSV o Excel · máximo 6 MB</span>
+        <span class="cartola-nota ca-zona-nota" id="zonaNota">o arrástralo aquí · PDF, Excel, CSV o foto · máximo 6 MB</span>
       </label>
 
       <div class="ca-fila-leer">
       <div class="ca-banco" data-tour="cartola-cuotas">
-        <label class="ca-banco-label" for="banco">Banco o tarjeta</label>
+        <label class="ca-banco-label" for="banco">Banco o tarjeta (opcional)</label>
         <div class="ca-banco-caja">
         <span class="ca-banco-icono"><i class="fas fa-building-columns"></i></span>
         <select name="banco" id="banco">
@@ -73,12 +73,12 @@
 
       <div class="ca-pasos-como">
         <b class="ca-pasos-como-titulo">Cómo funciona</b>
-        <div class="ca-paso"><span>1</span><p><b>Se lee el archivo.</b> Tiene que ser el que descarga el banco, no una foto.</p></div>
-        <div class="ca-paso"><span>2</span><p><b>Se comprueba.</b> Si los saldos o el total no cuadran, te avisa y no guarda nada.</p></div>
+        <div class="ca-paso"><span>1</span><p><b>Se lee el archivo.</b> Sirve el PDF o el Excel del banco o de tu tarjeta, y también una foto o un escaneo.</p></div>
+        <div class="ca-paso"><span>2</span><p><b>Se comprueba.</b> Cada monto se busca en el archivo y se revisa contra los saldos o el total. Lo que no cuadra queda marcado.</p></div>
         <div class="ca-paso"><span>3</span><p><b>Tú eliges.</b> Cambias categorías, corriges descripciones y guardas solo lo marcado.</p></div>
       </div>
 
-      <p class="ca-privacidad"><i class="fas fa-lock"></i><span>El archivo no se guarda ni sale de tu servidor. Se lee en memoria y se descarta.</span></p>
+      <p class="ca-privacidad"><i class="fas fa-lock"></i><span>El archivo no se guarda. Para leerlo se envía a Anthropic con tu RUT, nombre y números de cuenta tapados; en una foto no se pueden tapar.</span></p>
       <a href="{% url 'movimientos_repetidos' %}" class="ca-privacidad"><i class="fas fa-clone"></i><span>¿Importaste una cartola dos veces? Revisa tus movimientos repetidos</span></a>
     </div>
   </div>
