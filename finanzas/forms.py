@@ -102,7 +102,7 @@ class TransaccionForm(forms.ModelForm):
         label='Fecha',
         input_formats=['%Y-%m-%d', '%d/%m/%Y', '%d-%m-%Y'],
         widget=forms.DateInput(attrs={'type': 'date'}, format='%Y-%m-%d'),
-        help_text='Días anteriores siempre. Un ingreso también puede ir a futuro.',
+        help_text='Días anteriores siempre. Un ingreso o un gasto que aún debes también puede ir a futuro.',
     )
 
     categoria = forms.ChoiceField(label='Categoría')
@@ -165,14 +165,17 @@ class TransaccionForm(forms.ModelForm):
             self.add_error('categoria', 'Esa categoría es de ingresos. Elige a qué gasto corresponde.')
         return datos
 
+    def _queda_pendiente(self):
+        return bool(self.data.get('es_pendiente') or self.data.get('sin_pagar'))
+
     def _validar_fecha(self, fecha, tipo):
         if not fecha or fecha <= fechas.hoy():
             return
 
-        if tipo != 'INGRESO':
+        if tipo != 'INGRESO' and not self._queda_pendiente():
             self.add_error('fecha',
-                           'Un gasto no se puede anotar con fecha futura. '
-                           'Si es una cuenta por pagar, regístrala como gasto pendiente.')
+                           'Un gasto ya pagado no puede tener fecha futura. '
+                           'Si lo pagas más adelante, marca «Aún la debo».')
             return
 
         if fecha > fechas.hoy() + timedelta(days=self.DIAS_FUTURO_INGRESO):

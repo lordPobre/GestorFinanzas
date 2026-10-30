@@ -1,6 +1,7 @@
 from datetime import date, timedelta
 from decimal import Decimal
 import json
+import time
 
 from django.contrib.auth.models import User
 from django.test import TestCase
@@ -29,6 +30,36 @@ class FechaDeUnMovimiento(TestCase):
         form = TransaccionForm(self._datos('EGRESO', manana, 'Comida'), usuario=self.ana)
         self.assertFalse(form.is_valid())
         self.assertIn('fecha', form.errors)
+
+    def test_un_gasto_que_aun_debo_puede_ir_al_proximo_mes(self):
+        proximo = date.today() + timedelta(days=30)
+        for campo in ('es_pendiente', 'sin_pagar'):
+            datos = dict(self._datos('EGRESO', proximo, 'Comida'), **{campo: '1'})
+            form = TransaccionForm(datos, usuario=self.ana)
+            self.assertTrue(form.is_valid(), f'{campo}: {form.errors.as_json()}')
+
+    def test_un_gasto_que_aun_debo_a_mas_de_un_ano_se_rechaza(self):
+        lejano = date.today() + timedelta(days=400)
+        datos = dict(self._datos('EGRESO', lejano, 'Comida'), es_pendiente='1')
+        form = TransaccionForm(datos, usuario=self.ana)
+        self.assertFalse(form.is_valid())
+        self.assertIn('fecha', form.errors)
+
+    def test_el_gasto_pendiente_futuro_cuenta_en_su_mes(self):
+        from ..servicios.mes import resumen_mes
+        from ..servicios.pendientes import pendientes_del_mes
+
+        self.client.force_login(self.ana)
+        hoy = date.today()
+        futuro = hoy + timedelta(days=45)
+        self.client.post(reverse('registrar_transaccion'),
+                         dict(self._datos('EGRESO', futuro, 'Comida'), sin_pagar='1'))
+        t = Transaccion.objects.get(usuario=self.ana)
+        self.assertFalse(t.pagado)
+        self.assertEqual(t.fecha, futuro)
+        self.assertEqual(resumen_mes(self.ana, hoy.year, hoy.month)['gastos'], 0)
+        nombres = [i['nombre'] for i in pendientes_del_mes(self.ana, futuro.year, futuro.month)]
+        self.assertIn('prueba', nombres)
 
     def test_un_ingreso_a_mas_de_un_ano_se_rechaza(self):
         lejano = date.today() + timedelta(days=400)
@@ -172,7 +203,7 @@ class BloqueoDelSegundoFactor(TestCase):
     def test_tras_cinco_codigos_malos_queda_bloqueado(self):
         sesion = self.client.session
         sesion['2fa_pendiente'] = self.ana.pk
-        sesion['2fa_desde'] = __import__('time').time()
+        sesion['2fa_desde'] = time.time()
         sesion.save()
 
         for _ in range(5):

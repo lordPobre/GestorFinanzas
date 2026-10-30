@@ -61,7 +61,7 @@
           <button type="button" class="{% if pendiente_inicial %}on-coral{% endif %}" data-pendiente="1">Aún la debo</button>
         </div>
         <div class="hint txt-12 arriba-8" id="notaPagoForm">
-          {% if pendiente_inicial %}Queda en la lista de pagos del mes para marcarlo cuando lo pagues.{% else %}Cuenta como gasto del mes en los dos casos. La diferencia es si la plata ya se fue.{% endif %}
+          {% if pendiente_inicial %}Cuenta en el mes de la fecha. Si lo pagas más adelante, pon el día en que lo pagarás.{% else %}Cuenta como gasto del mes en los dos casos. La diferencia es si la plata ya se fue.{% endif %}
         </div>
       </div>
 
@@ -85,5 +85,5 @@
 {% endblock %}
 
 {% block extra_js %}
-<script type="module" data-js="form-transaccion" src="{% static 'js/pantallas/form-transaccion.js' %}" nonce="{{ csp_nonce }}" data-tipo="{{ form.tipo.id_for_label }}" data-monto="{{ form.monto.id_for_label }}"></script>
+<script type="module" src="{% static 'js/pantallas/form-transaccion.js' %}" nonce="{{ csp_nonce }}" data-js="form-transaccion" data-tipo="{{ form.tipo.id_for_label }}" data-monto="{{ form.monto.id_for_label }}"></script>
 {% endblock %}

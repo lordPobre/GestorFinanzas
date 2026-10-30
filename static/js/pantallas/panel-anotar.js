@@ -129,12 +129,10 @@
     });
     notaPago.textContent = yaPago
       ? 'Cuenta como gasto del mes en los dos casos. La diferencia es si la plata ya se fue.'
-      : 'Queda en la lista de pagos del mes para marcarlo cuando lo pagues.';
+      : 'Cuenta en el mes de la fecha. Si lo pagas más adelante, elige con «Otra» el día en que lo pagarás.';
   });
 
-  var preset = script ? script.dataset.presetTipo : '';
-  setTipo(preset === 'INGRESO' ? 'INGRESO' : 'EGRESO');
-  if (preset && avisoMonto) avisoMonto.style.display = 'none';
+  setTipo('EGRESO');
   pintarMonto();
 
   if (abrirPanel) {

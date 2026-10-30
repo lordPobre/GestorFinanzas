@@ -1,5 +1,5 @@
 (function () {
-  var script = (document.currentScript || document.querySelector('script[data-js="form-transaccion"]'));
+  var script = document.querySelector('script[data-js="form-transaccion"]');
   if (!script) return;
   var oculto = document.getElementById(script.dataset.tipo);
   var seg = document.getElementById('segTipoMov');
@@ -38,7 +38,7 @@
         x.className = x === b ? (pendiente ? 'on-coral' : 'on-green') : '';
       });
       nota.textContent = pendiente
-        ? 'Queda en la lista de pagos del mes para marcarlo cuando lo pagues.'
+        ? 'Cuenta en el mes de la fecha. Si lo pagas más adelante, pon el día en que lo pagarás.'
         : 'Cuenta como gasto del mes en los dos casos. La diferencia es si la plata ya se fue.';
     });
   }
