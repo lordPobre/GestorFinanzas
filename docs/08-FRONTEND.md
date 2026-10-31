@@ -59,7 +59,7 @@ Tipografía: Manrope para todo el texto y JetBrains Mono para cifras que se comp
 
 ### Prefijos por zona
 
-`.lp-` landing · `.legal-` páginas legales · `.auth-` acceso · `.ob-` bienvenida · `.tour-` recorrido · `.cartola-` importar · `.deuda-` cuotas · `.subs-` suscripciones · `.prestamo-` me deben · `.ia-` análisis con IA.
+`.lp-` landing · `.legal-` páginas legales · `.auth-` acceso · `.ob-` bienvenida · `.tour-` recorrido · `.cartola-` importar · `.deuda-` cuotas · `.subs-` suscripciones · `.prestamo-` me deben · `.pm-` me deben mes a mes · `.ia-` análisis con IA.
 
 ### Teléfono
 
@@ -79,15 +79,6 @@ Tipografía: Manrope para todo el texto y JetBrains Mono para cifras que se comp
 ### Pruebas
 
 `pruebas_js/` tiene pruebas con el ejecutor que trae Node (`node:test`), sin dependencias: cargan el archivo real con `vm` sobre un DOM mínimo escrito en la misma prueba. Hoy cubren `anotar-tope.js` y los avisos de `sw.js`. Se corren con `node --test pruebas_js/*.test.js`, y el CI lo hace en el trabajo `javascript`. La carpeta está fuera de `static/` para que no se publique.
-
-### Módulos (lote 191)
-
-En las pantallas con sesión (`base.html` y las plantillas que la extienden) los scripts se cargan con `type="module"`:
-
-- Corren en modo estricto y después de que el navegador termina de leer la página, en el orden en que aparecen. No hay `import` ni `export`: cada archivo sigue siendo un bloque que se ejecuta solo, y lo que se comparte entre archivos sigue en `window` (`finappOpen`, `finappEsfera`, `finappTour`, `FintoraPasskeys`, `FintoraDispositivo`). Así las pruebas de `pruebas_js/` los siguen cargando igual.
-- En un módulo `document.currentScript` no existe. Los archivos que leen sus `data-*` buscan su etiqueta con `document.currentScript || document.querySelector('script[data-js="nombre"]')`, y la etiqueta lleva `data-js="nombre"`. `test_modulos.py` revisa que no falte.
-- Siguen clásicos, a propósito: `modales-temprano.js`, `registro-sw.js` y `barra-estado.js` en `<head>`, y `saludo-hora.js` dentro de `<main>`, porque tienen que correr antes de pintar. También los que se cargan al usarlos (`tour.js`, `anotar.js`, `anotar-tope.js`, `panel-anotar.js`), Chart.js, `consentimiento.js` (que puede ir dos veces en una página, y un módulo corre una sola vez) y las páginas sin sesión (acceso, landing, legales).
-- Un archivo nuevo para una pantalla con sesión va con `type="module"`. Si lee `data-*`, con `data-js`.
 
 ### Global: `static/js/finapp.js`
 
@@ -117,6 +108,7 @@ Hay 50 archivos, uno o más por plantilla, con el nombre de la plantilla (`dashb
 - `plan-proyeccion.js`: los gráficos del fondo para imprevistos y del depósito a plazo.
 - `inicio-esfera.js`: la hoja que se baja, la esfera, el saludo al entrar y la voz (ver [02](02-ARQUITECTURA.md#la-voz-de-la-esfera)). Deja `window.finappEsfera` para el tour.
 - `saludo-cielo.js`: el sol o la luna del saludo según la hora, actualizado cada minuto.
+- `me-deben-mes.js`: la sección «Mes a mes» de Me deben. Barras, cambio de mes con flechas, toque o teclado, y el detalle del mes elegido (ver [02](02-ARQUITECTURA.md#me-deben-mes-a-mes)).
 - `categorias-2.js`: porcentaje y barra de cada categoría.
 - Los de `base.html`, con nombre por lo que hacen (lote 189; antes `base.js` a `base-5.js`):
   - `modales-temprano.js` (en `<head>`): abre y cierra los modales mientras `finapp.js` no ha cargado, y esconde la lista de primeros pasos si se ocultó.

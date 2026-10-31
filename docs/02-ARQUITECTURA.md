@@ -159,7 +159,7 @@ Las cuatro funciones con IA (análisis, plan, repetidos y chat de ayuda) pasan p
 
 ## Suscripciones: cómo aparecen solas cada mes
 
-`servicios/suscripciones.generar_cobros_suscripciones(usuario)` recorre las suscripciones activas que tienen meses sin generar. Cada una se bloquea con `select_for_update` y se crea un egreso por mes que falte, con `origen='suscripcion'` y `periodo_cobro`; el del mes en curso queda por pagar y los anteriores, pagados. Usa `get_or_create` sobre `(suscripcion, periodo_cobro)` y la base tiene una restricción única, así que dos pestañas o un reactivar en el mismo mes no duplican el cobro. Se llama al abrir el inicio, al crear o reactivar una suscripción y antes de mandar el aviso mensual.
+`servicios/suscripciones.generar_cobros_suscripciones(usuario)` recorre las suscripciones activas y crea un egreso `Suscripción: {nombre}` por cada mes que falte, desde `ultimo_mes_generado` hasta el mes en curso. El del mes en curso queda por pagar y los anteriores, pagados. Se llama al abrir el inicio, al crear o reactivar una suscripción y antes de mandar el aviso mensual. No hay un proceso de fondo: los cobros se generan cuando el usuario vuelve.
 
 ## Ritmo de gasto
 
@@ -181,6 +181,18 @@ Las cuatro funciones con IA (análisis, plan, repetidos y chat de ayuda) pasan p
 ## Simulador de cuotas
 
 `static/js/pantallas/plan-simulador.js` corre entero en el navegador con los datos que `plan.armar_plan` ya entrega. Parte de lo que sobra al mes y, mes a mes, suma la cuota de cada compra activa que ya terminó y resta la cuota nueva mientras dure. Verde si alcanza y sigue el plan, ámbar si alcanza pero no para lo apartado en ahorro y deudas, rojo si falta plata.
+
+## Me deben mes a mes
+
+`servicios/me_deben_mes.por_mes(personas, hoy, simbolo)` arma la sección «Mes a mes» de Préstamos → Me deben con los préstamos que la vista ya trajo (`prefetch_related('prestamos__abonos')`). Si no hay préstamos devuelve `None` y la sección no aparece. En Debo no se calcula.
+
+- Son 13 meses: los 6 anteriores (`ATRAS`), el actual y los 6 siguientes (`ADELANTE`).
+- La cuota 1 vence en el mes de la fecha del préstamo, como en `compromiso_del_mes`. La última se ajusta para que la suma dé el monto.
+- Cada abono cuenta en el mes de su fecha.
+- El atraso se calcula: lo que venció hasta el mes anterior menos lo abonado hasta hoy (ver D-32 en [12](12-DECISIONES.md)).
+- «Si pagan al día»: cada cuota llega en su mes y lo atrasado entra en el mes actual. «Según cómo pagan»: a lo que vence cada mes se le aplica la proporción de cuotas que la persona pagó a tiempo, y lo que no paga pasa al mes siguiente.
+- Los pagos únicos no tienen plazo: suman en el saldo, quedan fuera de la proyección y un aviso dice quién debe cuánto sin fecha.
+- El gráfico, el cambio de mes y el detalle del mes los dibuja `me-deben-mes.js` con el JSON de `json_script`.
 
 ## La esfera
 
@@ -245,4 +257,4 @@ La lista completa y dónde se configura cada una está en [09 · Instalación y 
 
 - **Un solo proceso de negocio.** Todo corre dentro de la petición, sin colas. Las llamadas a la IA, a ElevenLabs y a Resend bloquean el hilo hasta 10 s (correo) o lo que tarde Anthropic. Con 2 × 4 hilos alcanza para el uso actual, pero con carga habría que pasarlas a una tarea en segundo plano.
 - **Cálculos en Python sobre listas.** Muchas pantallas traen todos los objetos del usuario con `prefetch_related` y calculan en memoria. Es correcto y está probado que no hace consultas extra por fila, pero crece linealmente con el historial. El primer lugar donde se va a notar es `resumen_mes`, que recorre todas las compras en cuotas del usuario.
-- **Vínculos.** Desde el lote 162, el tipo de un movimiento sale de `origen` y de sus relaciones (`suscripcion`, `gasto_pendiente`, `pago_cuota`). La descripción solo se muestra.
+- **Vínculos por texto.** El egreso de una suscripción se encuentra por su descripción (`Suscripción: {nombre}`). Ver [13 · Deuda técnica](13-DEUDA-TECNICA-Y-HOJA-DE-RUTA.md).

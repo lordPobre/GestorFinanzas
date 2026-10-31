@@ -10,21 +10,17 @@ ruff check .
 python manage.py check --deploy        # con DEBUG=False
 python manage.py makemigrations --check --dry-run
 node --test pruebas_js/*.test.js        # JavaScript, con Node 22
-PRUEBAS_NAVEGADOR=1 python manage.py test finanzas.tests.test_navegador   # en Chromium
 ```
-
-Las pruebas en navegador usan Playwright con Chromium. La primera vez hay que bajar el navegador con `python -m playwright install chromium`. Sin `PRUEBAS_NAVEGADOR=1` se saltan, así que `python manage.py test` sigue igual.
 
 Durante las pruebas, `core/settings.py` quita `RESEND_API_KEY` del entorno, así que no sale ningún correo aunque tengas la clave en `.env`. Las llamadas a Anthropic, Google y ElevenLabs siempre se simulan con `unittest.mock`.
 
 ## Integración continua
 
-`.github/workflows/ci.yml` corre en cada push a `main` y en cada pull request. Tiene siete trabajos:
+`.github/workflows/ci.yml` corre en cada push a `main` y en cada pull request. Tiene seis trabajos:
 
 | Trabajo | Qué hace | Si falla |
 | --- | --- | --- |
 | `pruebas` | Levanta Postgres 18. Instala con `--require-hashes`, corre `ruff check` (con las reglas S, B, DJ y UP desde el lote 91), `makemigrations --check`, `coverage run manage.py test` y `coverage report`. Desde el lote 107 instala el cliente de Postgres 18, migra la base del servicio y corre `respaldar_postgres --seco`: hace la copia, la verifica y no la sube | Build en rojo. La cobertura mínima es 55 % (`fail_under` en `pyproject.toml`) |
-| `navegador` | Levanta Postgres 18, instala Chromium con Playwright y corre `test_navegador` con `PRUEBAS_NAVEGADOR=1`: un servidor de verdad y un navegador de verdad. Entra en el computador y en el teléfono (abre y cierra la hoja del login), anota un gasto con el teclado y paga una cuota | Build en rojo |
 | `despliegue` | `check --deploy --fail-level WARNING` con `DEBUG=False` | Build en rojo: significa que falta un ajuste de seguridad de producción |
 | `dependencias` | `pip-audit --strict` sobre `requirements.txt` y `requirements-dev.txt` | Build en rojo: hay una dependencia con una vulnerabilidad conocida |
 | `javascript` | `node --test pruebas_js/*.test.js` con Node 22 | Build en rojo |
@@ -80,6 +76,7 @@ Son 57 archivos en `finanzas/tests/` con 548 pruebas, contadas sobre las entrega
 | `test_recordatorios.py` | 46 | Cifrado: el aparato descifra lo enviado, sal y clave nuevas en cada envío, otro aparato no puede leerlo, firma VAPID válida con el destino y la vigencia. Claves: el par generado calza, sin clave no hay recordatorios, una clave rota se anota, `generar_vapid` entrega la variable lista. Solo servicios de avisos conocidos por HTTPS. Envío: cifrado y firmado, 404 y 410 borran el aparato, una falla no lo borra, sin clave no sale nada. Suscribir, quitar solo lo propio, 10 aparatos, probar con pausa de 30 s, opciones del perfil, descarga de datos. Invitación de Inicio. Avisos de hoy, de mañana, agrupados, de lo que debes, del domingo y sin montos por defecto. `enviar_recordatorios`: una vez al día, `--forzar`, cuentas inactivas fuera y una cuenta con error no frena a las demás |
 | `test_topes.py` | 21 | Tonos en 80 y 100 %, lo que queda y lo que se pasó. Poner, cambiar y quitar un tope; categorías de ingreso, ajenas y montos en cero rechazados; borrar una categoría borra su tope. Promedio de los 3 meses anteriores, lo que recibe el panel de anotar y un recordatorio por nivel y por mes |
 | `test_debo.py` | 28 | Día de pago en meses cortos y a fin de mes. Lo que falta del mes con abonos parciales o de más. La cuota en «Por pagar» solo del mes en curso y de la cuenta. Resta de «Puedes gastar» sin contarse dos veces. Marcar pagada solo por POST, solo en Debo y solo lo propio. Pestañas, alta en Debo, WhatsApp solo para cobrar y el botón de pago en Inicio |
+| `test_me_deben_mes.py` | 12 | La cuota 1 vence en el mes del préstamo. Los meses cerrados usan los abonos y la cuota que no llegó aparece en su mes. «Si pagan al día» cobra lo atrasado este mes; «Según cómo pagan» usa las cuotas pagadas a tiempo. El pago único queda fuera de la proyección. Cuenta las personas con saldo y no las saldadas. Sin préstamos no hay sección, Debo no la trae y no mezcla cuentas |
 | `test_aviso_politica.py` | 8 | `avisar_politica`: una vez por cuenta y por versión, el correo trae la versión, la fecha, los cambios y los enlaces, `--seco` no envía, un correo que no sale deja la cuenta pendiente, sin correo o inactiva no se avisa, usa el correo del perfil si la cuenta no tiene, `--limite` |
 | `test_recordatorios_hilos.py` | 1 | `enviar_recordatorios --hilos 3` atiende a todas las cuentas una sola vez y marca el día. Usa `TransactionTestCase` para que los hilos vean los datos |
 | `test_franja_politica.py` | 5 | La franja del Inicio sale a quien no aceptó la versión vigente y no a quien sí, aceptar desde ella vuelve al Inicio y la quita, y `next` no lleva fuera del sitio |
