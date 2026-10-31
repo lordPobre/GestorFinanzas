@@ -126,11 +126,11 @@ El detalle está en [05 · Cartolas](05-CARTOLAS.md).
 | `/exportar/` | `exportar_excel` | L. `Fintora_movimientos_AAAA-MM-DD.xlsx` (openpyxl). Si openpyxl no está instalado, entrega el CSV |
 | `/exportar/csv/` | `exportar_csv` | L. Separador `;` y UTF-8 con BOM, para que Excel en español lo abra bien |
 
-### Cuenta y perfil (`views/cuenta.py`, `views/passkeys.py`, `google_login.py`)
+### Cuenta y perfil (`views/cuenta.py`, `views/acceso.py`, `views/perfil.py`, `views/passkeys.py`, `google_login.py`)
 
 | Ruta | Nombre | Notas |
 | --- | --- | --- |
-| `/login/` | `login` | `cuenta.entrar`. Contraseña, con topes. Si hay 2FA, deriva a `/verificar/` |
+| `/login/` | `login` | `acceso.entrar`. Contraseña, con topes. Si hay 2FA, deriva a `/verificar/` |
 | `/logout/` | `logout` | `Salir`: cierra la sesión, responde `Clear-Site-Data: "cache"` y redirige a `/login/` |
 | `/verificar/` | `verificar_codigo` | Segundo paso: código TOTP o de respaldo, dentro de 5 minutos desde la contraseña |
 | `/registro/` | `registro` | T 5/h. Correo obligatorio, más la aceptación de la política. **No crea la cuenta**: guarda un `AltaPendiente` y manda el enlace para crearla. Si el correo ya tiene cuenta, manda en cambio el aviso a esa dirección (2 al día como máximo). En los dos casos vuelve al acceso con el mismo mensaje |

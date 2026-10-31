@@ -3,7 +3,8 @@ from django.http import HttpResponseRedirect
 from django.urls import path, reverse
 
 from . import google_login, legal
-from .views import recordatorios
+from .views import acceso, recordatorios
+from .views import perfil as vistas_perfil
 from .views import voz as vistas_voz
 from .views import preguntas as vistas_preguntas
 from .views import panel as vistas_panel
@@ -103,9 +104,9 @@ urlpatterns = [
     path('exportar/', descargas.exportar_excel, name='exportar_excel'),
     path('exportar/csv/', descargas.exportar_csv, name='exportar_csv'),
 
-    path('perfil/', cuenta.perfil, name='perfil'),
-    path('perfil/mis-datos/', cuenta.mis_datos, name='mis_datos'),
-    path('perfil/eliminar-cuenta/', cuenta.eliminar_cuenta, name='eliminar_cuenta'),
+    path('perfil/', vistas_perfil.perfil, name='perfil'),
+    path('perfil/mis-datos/', vistas_perfil.mis_datos, name='mis_datos'),
+    path('perfil/eliminar-cuenta/', vistas_perfil.eliminar_cuenta, name='eliminar_cuenta'),
     path('perfil/sesiones/', cuenta.sesiones_activas, name='sesiones_activas'),
     path('perfil/actividad/', actividad.actividad, name='actividad_cuenta'),
     path('perfil/clave/', vistas_clave.clave_api, name='clave_api'),
@@ -120,12 +121,12 @@ urlpatterns = [
     path('perfil/recordatorios/suscribir/', recordatorios.suscribir, name='push_suscribir'),
     path('perfil/recordatorios/quitar/', recordatorios.quitar, name='push_quitar'),
     path('perfil/recordatorios/probar/', recordatorios.probar, name='push_probar'),
-    path('perfil/dos-pasos/', cuenta.configurar_2fa, name='configurar_2fa'),
+    path('perfil/dos-pasos/', acceso.configurar_2fa, name='configurar_2fa'),
     path('perfil/face-id/', passkeys.passkeys, name='passkeys'),
     path('perfil/face-id/opciones/', passkeys.registro_opciones, name='passkey_registro_opciones'),
     path('perfil/face-id/verificar/', passkeys.registro_verificar, name='passkey_registro_verificar'),
     path('perfil/reenviar-confirmacion/', cuenta.reenviar_verificacion, name='reenviar_verificacion'),
-    path('perfil/confirmar-correo/<str:token>/', cuenta.confirmar_cambio_correo, name='confirmar_cambio_correo'),
+    path('perfil/confirmar-correo/<str:token>/', vistas_perfil.confirmar_cambio_correo, name='confirmar_cambio_correo'),
 
     path('suscripciones/', suscripciones.suscripciones, name='suscripciones'),
     path('suscripciones/nueva/', suscripciones.crear_suscripcion, name='crear_suscripcion'),
@@ -137,9 +138,9 @@ urlpatterns = [
     path('suscripciones/<int:sub_id>/cancelar/', suscripciones.cancelar_suscripcion, name='cancelar_suscripcion'),
     path('suscripciones/<int:sub_id>/eliminar/', suscripciones.eliminar_suscripcion, name='eliminar_suscripcion'),
 
-    path('login/', cuenta.entrar, name='login'),
+    path('login/', acceso.entrar, name='login'),
     path('logout/', Salir.as_view(next_page='/login/'), name='logout'),
-    path('verificar/', cuenta.verificar_codigo, name='verificar_codigo'),
+    path('verificar/', acceso.verificar_codigo, name='verificar_codigo'),
     path('entrar/google/', google_login.entrar_google, name='google_entrar'),
     path('entrar/google/listo/', google_login.google_listo, name='google_listo'),
     path('entrar/face-id/opciones/', passkeys.entrar_opciones, name='passkey_entrar_opciones'),

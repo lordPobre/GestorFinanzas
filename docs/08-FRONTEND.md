@@ -94,7 +94,7 @@ Se carga en `base.html`. Marca `window.__finappJsCargado`, para no inicializar d
 
 ### Por pantalla: `static/js/pantallas/*.js`
 
-Hay 50 archivos, uno o más por plantilla, con el nombre de la plantilla (`dashboard.js`, `deudas.js`, `revisar-cartola.js`…). Los que terminan en `-2`, `-3`, etc. son bloques distintos de la misma plantilla que se separaron al sacar los `<script>` en línea (lote 4). Casos destacados:
+Hay 66 archivos, uno o más por plantilla, con el nombre de la plantilla (`dashboard.js`, `deudas.js`, `revisar-cartola.js`…). Los que terminan en `-2`, `-3`, etc. son bloques distintos de la misma plantilla que se separaron al sacar los `<script>` en línea (lote 4). Casos destacados:
 
 - `dashboard.js` y `estadisticas.js`: gráficos con Chart.js, con formato chileno y cifras cortas en pantallas angostas.
 - `analisis-2.js`: pide la interpretación a `/analisis/ia/` y la pinta con `textContent`.

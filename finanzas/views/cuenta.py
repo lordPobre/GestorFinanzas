@@ -19,9 +19,6 @@ from ..models import (AltaPendiente, CodigoRespaldo, Deuda, Presupuesto, Segundo
                       Transaccion, UserProfile)
 from ..seguridad import _ip, limitar, limpiar_intentos, red, sumar
 from .comun import contadores, get_or_create_profile, monto_post
-from .acceso import _clave_sesion, configurar_2fa, entrar, verificar_codigo  # noqa: F401
-from .perfil import HORAS_CAMBIO_CORREO, SAL_CAMBIO_CORREO, PerfilForm  # noqa: F401
-from .perfil import confirmar_cambio_correo, eliminar_cuenta, mis_datos, perfil  # noqa: F401
 
 logger = logging.getLogger('finanzas')
 

@@ -45,7 +45,7 @@ Casi todos son botones en la app, sin pedir permiso:
 
 | Derecho | Cómo | Código |
 | --- | --- | --- |
-| Acceso y portabilidad | *Perfil → Descargar todos mis datos*: JSON con todo, al instante. Además, Excel y CSV de los movimientos, y *Perfil → Actividad de la cuenta* con los accesos de 90 días | `cuenta.mis_datos`, `views/actividad.py` |
+| Acceso y portabilidad | *Perfil → Descargar todos mis datos*: JSON con todo, al instante. Además, Excel y CSV de los movimientos, y *Perfil → Actividad de la cuenta* con los accesos de 90 días | `perfil.mis_datos`, `views/actividad.py` |
 | Rectificación | Cada dato se edita en su pantalla | |
 | Supresión | *Perfil → Seguridad → Eliminar mi cuenta*: hay que escribir ELIMINAR y la contraseña | `cuenta.eliminar_cuenta` |
 | Oposición a la IA | *Perfil → Análisis con IA*: con el interruptor apagado el servidor no llama a Anthropic ni a ElevenLabs | `analisis.analisis_ia`, `templatetags/voz.puede_usar` |
@@ -125,7 +125,7 @@ C1, C2 y C3 se resolvieron en la entrega de arreglos (ver [13 · Deuda técnica]
 | --- | --- |
 | ¿Qué datos se tratan y por qué? | `docs/REGISTRO-TRATAMIENTOS.md`, `/privacidad/` |
 | ¿Qué acepta el usuario? | `/privacidad/`, `/terminos/`, `registration/registro.html`, `UserProfile.politica_*` |
-| ¿Se pueden ejercer los derechos? | `views/cuenta.py` (`mis_datos`, `eliminar_cuenta`), `test_derechos.py` |
+| ¿Se pueden ejercer los derechos? | `views/perfil.py` (`mis_datos`, `eliminar_cuenta`), `test_derechos.py` |
 | ¿Se respetan los plazos? | `inactividad.py`, `auditoria.purgar`, `respaldar_postgres._rotar`, `test_conservacion.py` |
 | ¿Qué sale hacia terceros? | `ia._construir_prompt`, `chat_ayuda`, `voz.py` y `views/voz.py`, `correo.py`, `marketing.py`, `test_terceros_fotos_cache.py`, `test_voz.py`, `push.py` y `servicios/recordatorios.py` con `test_recordatorios.py`, la CSP en `middleware.py` |
 | ¿Cómo se protege? | [06 · Seguridad](06-SEGURIDAD.md) |

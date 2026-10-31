@@ -10,7 +10,7 @@ from django.utils import timezone
 from ..aparatos import COOKIE
 from ..models import Contador, EventoSeguridad, SegundoFactor, UserProfile
 from ..seguridad import MAX_INTENTOS, esta_bloqueado, red, registrar_fallo, sumar
-from ..views.cuenta import SAL_CAMBIO_CORREO
+from ..views.perfil import SAL_CAMBIO_CORREO
 
 CLAVE = 'clave-larga-123'
 

@@ -1,7 +1,7 @@
 from django.test import SimpleTestCase
 from django.urls import resolve, reverse
 
-from ..views import acceso, cuenta
+from ..views import acceso
 
 
 class SeparacionDeCuentaTests(SimpleTestCase):
@@ -10,8 +10,3 @@ class SeparacionDeCuentaTests(SimpleTestCase):
         for nombre, vista in (('login', acceso.entrar), ('verificar_codigo', acceso.verificar_codigo),
                               ('configurar_2fa', acceso.configurar_2fa)):
             self.assertIs(resolve(reverse(nombre)).func, vista, nombre)
-
-    def test_cuenta_sigue_exponiendo_lo_que_movi(self):
-        self.assertIs(cuenta.entrar, acceso.entrar)
-        self.assertIs(cuenta.configurar_2fa, acceso.configurar_2fa)
-        self.assertIs(cuenta._clave_sesion, acceso._clave_sesion)

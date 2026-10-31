@@ -1038,55 +1038,6 @@ label { display: block; }
 }
 .icon-tile.tile-avatar img[hidden] { display: none; }
 
-.mes-nav {
-  display: flex; align-items: center; gap: 10px;
-
-  max-width: 420px;
-}
-
-.mes-flecha {
-  display: flex; align-items: center; justify-content: center;
-  width: 42px; height: 42px; flex-shrink: 0;
-  border-radius: 50%; font-size: 12px;
-  background: var(--surface); color: var(--text-secondary);
-  text-decoration: none;
-  transition: background .18s var(--ease-out), color .18s;
-}
-.mes-flecha:hover { background: var(--surface-2); color: var(--text-primary); }
-.mes-flecha:active { transform: scale(.94); }
-
-.mes-actual {
-  flex: 1; min-width: 0;
-  display: flex; align-items: center; justify-content: center;
-  gap: 9px; flex-wrap: wrap;
-  padding: 10px 14px; border-radius: 100px;
-  background: var(--surface);
-}
-.mes-nombre {
-  font-family: 'Manrope', sans-serif; font-size: 14px; font-weight: 700;
-  letter-spacing: -.02em; white-space: nowrap;
-}
-.mes-ahora {
-  font-size: 10px; font-weight: 700; letter-spacing: .04em;
-  text-transform: uppercase;
-  padding: 3px 9px; border-radius: 100px;
-  background: var(--amber-tenue); color: var(--amber);
-}
-
-.mes-hoy {
-  font-size: 11px; font-weight: 700; color: var(--amber);
-  text-decoration: none; white-space: nowrap;
-}
-.mes-hoy:hover { color: var(--amber-claro); }
-
-@media (max-width: 720px) {
-
-  .mes-nav { gap: 8px; margin-bottom: 14px; max-width: none; }
-  .mes-flecha { width: 46px; height: 46px; }
-  .mes-actual { padding: 12px 12px; gap: 8px; }
-  .mes-nombre { font-size: 13.5px; }
-}
-
 .registro-overlay {
   position: fixed; inset: 0; z-index: 200; display: none;
   align-items: center; justify-content: center; padding: 20px;
