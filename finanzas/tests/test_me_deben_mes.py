@@ -81,30 +81,22 @@ class PorMesTests(Base):
         datos = self.datos()['escenarios']['ritmo']
         self.assertEqual(datos['meses'][ATRAS]['proy'], 100000)
         self.assertEqual(datos['meses'][ATRAS + 1]['proy'], 60000)
-        claude = next(p for p in datos['personas'] if p['nombre'] == 'Claude')
-        self.assertEqual(claude['ritmo_txt'], 'Pagó 1 de 2 cuotas a tiempo')
 
     def test_el_pago_unico_queda_fuera_de_la_proyeccion(self):
         datos = self.datos()
         self.assertIn('Camila', datos['sin_fecha_txt'])
         self.assertIn(money(10000), datos['escenarios']['aldia']['resumen']['cero_sub'])
-        camila = next(p for p in datos['escenarios']['aldia']['personas'] if p['nombre'] == 'Camila')
-        self.assertEqual(camila['estado'], 'sinfecha')
-        self.assertEqual(camila['fin_txt'], 'Sin fecha de pago')
 
-    def test_las_personas_van_de_mayor_a_menor_deuda(self):
-        personas = self.datos()['escenarios']['aldia']['personas']
-        self.assertEqual([p['nombre'] for p in personas], ['Claude', 'Mamá', 'Camila'])
-        self.assertEqual(personas[0]['estado'], 'atrasado')
-        self.assertEqual(personas[0]['estado_txt'], f'Atrasado {money(100000)}')
-        self.assertEqual(personas[1]['estado'], 'aldia')
-        self.assertEqual(personas[1]['fin_txt'], 'Termina en dic 2026')
+    def test_cuenta_las_personas_con_saldo(self):
+        resumen = self.datos()['escenarios']['aldia']['resumen']
+        self.assertTrue(resumen['hoy_sub'].startswith('3 personas'))
+        self.assertIn(money(100000), resumen['hoy_sub'])
 
-    def test_un_prestamo_saldado_no_aparece_en_personas(self):
+    def test_un_prestamo_saldado_no_cuenta(self):
         self.abonar(self.unico, '10000', date(2026, 10, 5))
-        nombres = [p['nombre'] for p in self.datos()['escenarios']['aldia']['personas']]
-        self.assertNotIn('Camila', nombres)
-        self.assertEqual(self.datos()['sin_fecha_txt'], '')
+        datos = self.datos()
+        self.assertTrue(datos['escenarios']['aldia']['resumen']['hoy_sub'].startswith('2 personas'))
+        self.assertEqual(datos['sin_fecha_txt'], '')
 
 
 class SinPrestamosTests(Base):

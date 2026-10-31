@@ -13,7 +13,6 @@ function iniciar(d, raiz) {
   var estado = { esc: 'aldia', vista: 'saldo', sel: d.hoy };
   var contBarras = raiz.querySelector('#pmBarras');
   var contEventos = raiz.querySelector('#pmEventos');
-  var contPersonas = raiz.querySelector('#pmPersonas');
   var leyendaEsperado = raiz.querySelector('[data-pm-leyenda-esperado]');
   var total = d.escenarios.aldia.meses.length;
   var barras = [];
@@ -135,26 +134,6 @@ function iniciar(d, raiz) {
     });
   }
 
-  function pintarPersonas(lista) {
-    contPersonas.replaceChildren();
-    lista.forEach(function (p) {
-      var caja = nuevo('div', 'pm-persona');
-      var cab = nuevo('div', 'pm-persona-cab');
-      var txt = nuevo('span', 'sec-txt');
-      txt.append(nuevo('span', 'sec-nombre', p.nombre), nuevo('span', 'sec-meta', p.detalle));
-      cab.append(nuevo('span', 'md-avatar', p.inicial), txt, nuevo('span', 'pm-persona-monto', p.pendiente));
-      var barra = nuevo('span', 'pm-progreso');
-      var lleno = nuevo('span');
-      lleno.style.width = p.pct + '%';
-      barra.append(lleno);
-      var pie = nuevo('div', 'pm-persona-pie');
-      pie.append(nuevo('span', 'pm-estado ' + p.estado, p.estado_txt), nuevo('span', 'pm-fin', p.fin_txt));
-      if (p.ritmo_txt) pie.append(nuevo('span', '', p.ritmo_txt));
-      caja.append(cab, barra, pie);
-      contPersonas.append(caja);
-    });
-  }
-
   function pintar() {
     var esc = d.escenarios[estado.esc];
     var m = esc.meses[estado.sel];
@@ -182,7 +161,6 @@ function iniciar(d, raiz) {
 
     pintarBarras(esc.meses);
     pintarEventos(m);
-    pintarPersonas(esc.personas);
   }
 
   pintar();

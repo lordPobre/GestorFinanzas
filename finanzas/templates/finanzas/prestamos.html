@@ -210,19 +210,13 @@
       {% if por_mes.sin_fecha_txt %}<p class="pm-aviso"><i class="fas fa-circle-info"></i><span>{{ por_mes.sin_fecha_txt }}</span></p>{% endif %}
     </div>
 
-    <div class="pm-cols">
-      <div class="pm-bloque">
-        <span class="pm-bloque-titulo" data-pm-lectura="mes"></span>
-        <div class="pm-totales">
-          <div class="pm-total"><span class="pm-total-etq" data-pm-det="saldo_etq"></span><span class="pm-total-monto" data-pm-det="saldo"></span></div>
-          <div class="pm-total"><span class="pm-total-etq" data-pm-det="cobros_etq"></span><span class="pm-total-monto" data-pm-det="cobros"></span></div>
-        </div>
-        <div class="pm-filas" id="pmEventos"></div>
+    <div class="pm-bloque">
+      <span class="pm-bloque-titulo" data-pm-lectura="mes"></span>
+      <div class="pm-totales">
+        <div class="pm-total"><span class="pm-total-etq" data-pm-det="saldo_etq"></span><span class="pm-total-monto" data-pm-det="saldo"></span></div>
+        <div class="pm-total"><span class="pm-total-etq" data-pm-det="cobros_etq"></span><span class="pm-total-monto" data-pm-det="cobros"></span></div>
       </div>
-      <div class="pm-bloque">
-        <span class="pm-bloque-cab"><span class="pm-bloque-titulo">Por persona</span><span class="pm-bloque-meta">{{ por_mes.n_personas }} con saldo</span></span>
-        <div class="pm-filas" id="pmPersonas"></div>
-      </div>
+      <div class="pm-filas" id="pmEventos"></div>
     </div>
     {{ por_mes|json_script:"datosPorMes" }}
   </section>

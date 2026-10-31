@@ -238,57 +238,6 @@ def _resumen(hoy, hasta, planes, dinero, clave, n_personas):
     }
 
 
-def _personas(hoy, hasta, planes, personas, ritmos, dinero):
-    salida = []
-    for persona in personas:
-        suyos = [p for p in planes if p.persona.id == persona.id and p.pendiente_en(hoy) >= UNO]
-        if not suyos:
-            continue
-        pend = _suma(p.pendiente_en(hoy) for p in suyos)
-        total = _suma(p.monto for p in suyos)
-        atraso = _suma(p.atraso_en(hoy) for p in suyos)
-        cuotas = [p for p in suyos if p.cuotas]
-        fin = None
-        if cuotas:
-            fin = next((i for i in range(hoy, hasta + 1)
-                        if _suma(p.filas[i]['despues'] for p in cuotas) < UNO), None)
-        if not cuotas:
-            fin_txt = 'Sin fecha de pago'
-        elif fin is None:
-            fin_txt = f'Sigue después de {_corto(hasta)}'
-        elif len(cuotas) < len(suyos):
-            fin_txt = f'Cuotas listas en {_corto(fin)}'
-        else:
-            fin_txt = f'Termina en {_corto(fin)}'
-        vencidas, a_tiempo = ritmos[persona.id]
-        if vencidas:
-            ritmo_txt = f'Pagó {a_tiempo} de {vencidas} cuota{"s" if vencidas != 1 else ""} a tiempo'
-        else:
-            ritmo_txt = 'Aún no vence ninguna cuota' if cuotas else ''
-        if atraso >= UNO:
-            estado, estado_txt = 'atrasado', f'Atrasado {dinero(atraso)}'
-        elif cuotas:
-            estado, estado_txt = 'aldia', 'Al día'
-        else:
-            estado, estado_txt = 'sinfecha', 'Sin fecha'
-        salida.append({
-            'nombre': persona.nombre,
-            'inicial': persona.inicial,
-            'detalle': ' · '.join(p.prestamo.descripcion for p in suyos),
-            'pendiente': dinero(pend),
-            'pct': int(round((total - pend) / total * 100)) if total > 0 else 0,
-            'estado': estado,
-            'estado_txt': estado_txt,
-            'fin_txt': fin_txt,
-            'ritmo_txt': ritmo_txt,
-            'orden': float(pend),
-        })
-    salida.sort(key=lambda x: x['orden'], reverse=True)
-    for x in salida:
-        del x['orden']
-    return salida
-
-
 def _sin_fecha_txt(hoy, planes, personas, dinero):
     por_persona = []
     for persona in personas:
@@ -318,6 +267,7 @@ def por_mes(personas, hoy_fecha, simbolo='$'):
     desde, hasta = hoy - ATRAS, hoy + ADELANTE
     ritmos = {persona.id: _ritmo([p for p in planes if p.persona.id == persona.id], hoy)
               for persona in personas}
+    n_personas = len({p.persona.id for p in planes if p.pendiente_en(hoy) >= UNO})
 
     escenarios = {}
     for clave in ('aldia', 'ritmo'):
@@ -325,16 +275,13 @@ def por_mes(personas, hoy_fecha, simbolo='$'):
             vencidas, a_tiempo = ritmos[p.persona.id]
             factor = UNO if clave == 'aldia' or not vencidas else Decimal(a_tiempo) / Decimal(vencidas)
             p.filas = _proyectar(p, hoy, hasta, factor)
-        lista = _personas(hoy, hasta, planes, personas, ritmos, dinero)
         escenarios[clave] = {
             'meses': [_mes(i, hoy, planes, dinero) for i in range(desde, hasta + 1)],
-            'resumen': _resumen(hoy, hasta, planes, dinero, clave, len(lista)),
-            'personas': lista,
+            'resumen': _resumen(hoy, hasta, planes, dinero, clave, n_personas),
         }
 
     return {
         'hoy': ATRAS,
-        'n_personas': len(escenarios['aldia']['personas']),
         'sin_fecha_txt': _sin_fecha_txt(hoy, planes, personas, dinero),
         'escenarios': escenarios,
     }

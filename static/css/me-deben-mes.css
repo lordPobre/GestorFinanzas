@@ -51,11 +51,8 @@
 .pm-aviso { display: flex; align-items: flex-start; gap: 10px; margin: 0; padding: 12px 14px; border-radius: 14px; background: rgba(0, 0, 0, .2); font-size: 13px; line-height: 1.5; color: rgba(245, 245, 245, .78); }
 .pm-aviso i { margin-top: 3px; color: rgba(245, 245, 245, .58); }
 
-.pm-cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr)); gap: 18px; align-items: start; }
 .pm-bloque { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
-.pm-bloque-cab { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
 .pm-bloque-titulo { font-size: 15px; font-weight: 800; }
-.pm-bloque-meta { font-size: 12.5px; font-weight: 700; color: rgba(245, 245, 245, .68); }
 .pm-totales { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
 .pm-total { display: flex; flex-direction: column; gap: 3px; min-width: 0; padding: 10px 12px; border-radius: 14px; background: rgba(0, 0, 0, .2); }
 .pm-total-etq { font-size: 12px; font-weight: 700; color: rgba(245, 245, 245, .68); }
@@ -74,19 +71,6 @@
 .pm-fila-monto.falta { color: var(--amarillo); }
 .pm-fila-tag { font-size: 11.5px; font-weight: 700; color: rgba(245, 245, 245, .6); font-variant-numeric: tabular-nums; }
 .pm-vacio { padding: 10px 2px; font-size: 13.5px; color: rgba(245, 245, 245, .68); }
-
-.pm-persona { display: flex; flex-direction: column; gap: 10px; padding: 12px 14px; border-radius: 18px; background: rgba(0, 0, 0, .18); }
-.pm-persona-cab { display: flex; align-items: center; gap: 12px; min-width: 0; }
-.pm-persona-cab .md-avatar { width: 38px; height: 38px; font-size: 15px; }
-.pm-persona-monto { flex-shrink: 0; font-size: 15px; font-weight: 800; color: var(--green-texto); font-variant-numeric: tabular-nums; }
-.pm-progreso { display: block; height: 6px; overflow: hidden; border-radius: 100px; background: rgba(255, 255, 255, .1); }
-.pm-progreso > span { display: block; height: 100%; border-radius: 100px; background: var(--green-texto); }
-.pm-persona-pie { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; font-size: 12.5px; color: rgba(245, 245, 245, .72); }
-.pm-estado { padding: 3px 10px; border-radius: 100px; font-size: 11.5px; font-weight: 800; }
-.pm-estado.aldia { background: rgba(110, 232, 115, .14); color: var(--green-texto); }
-.pm-estado.atrasado { background: var(--amarillo-tenue); color: var(--amarillo); }
-.pm-estado.sinfecha { background: rgba(255, 255, 255, .08); color: rgba(245, 245, 245, .78); }
-.pm-fin { font-weight: 700; }
 
 @media (max-width: 720px) {
   .pm { padding: 16px; }
