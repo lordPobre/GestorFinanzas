@@ -14,6 +14,16 @@
   color: #f5f5f5; font-family: 'Manrope', sans-serif; font-size: 15px; font-weight: 700; cursor: pointer; outline: none;
 }
 .ca-banco-caja select option, .ca-banco-caja select optgroup { color: #191919; background: #fff; }
+.ca-banco-caja input[type="password"] {
+  flex: 1; min-width: 0; width: 100%; height: 100%; margin: 0; padding: 0 20px 0 56px; box-sizing: border-box;
+  background: transparent; border: none; border-radius: 100px; box-shadow: none; outline: none;
+  color: #f5f5f5; font-family: 'Manrope', sans-serif; font-size: 15px; font-weight: 700;
+}
+.ca-banco-caja input[type="password"]::placeholder { color: rgba(245, 245, 245, .5); font-weight: 600; }
+.ca-clave[hidden] { display: none; }
+.ca-clave-nota { padding: 0 6px; font-size: 12.5px; line-height: 1.45; color: rgba(245, 245, 245, .72); }
+.ca-clave.mal .ca-banco-caja { border-color: rgba(255, 120, 110, .7); }
+.ca-clave.mal .ca-clave-nota { color: #ff9a90; }
 .ca-banco-flecha { position: absolute; right: 18px; top: 50%; transform: translateY(-50%); font-size: 12px; color: rgba(245, 245, 245, .5); pointer-events: none; }
 .ca-cuerpo > *, .ca-form, .ca-zona { min-width: 0; }
 .ca-zona { width: 100%; box-sizing: border-box; text-align: center; }
@@ -44,11 +54,4 @@
 @media (max-width: 720px) {
   .ca-paso > p, .ca-privacidad { font-size: 13px; }
 }
-
-.ca-zona.leyendo { pointer-events: none; }
-.ca-zona.leyendo .ca-zona-icono i { animation: caLeyendo 1.2s ease-in-out infinite; }
-@media (prefers-reduced-motion: reduce) {
-  .ca-zona.leyendo .ca-zona-icono i { animation: none; }
-}
-@keyframes caLeyendo { 0%, 100% { opacity: 1; transform: translateY(0); } 50% { opacity: .45; transform: translateY(-3px); } }
 }

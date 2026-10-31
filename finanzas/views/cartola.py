@@ -11,6 +11,7 @@ from django.urls import reverse
 from django.views.decorators.http import require_GET
 
 from ..cartolas import BANCOS
+from ..cartolas.base import ClaveCartola, ErrorCartola, abrir_pdf
 from ..categorias_base import SLUGS_BASE
 from ..models import (Categoria, Deuda, GastoPendiente, PagoCuota, Persona, Prestamo, Suscripcion,
                       Transaccion)
@@ -22,6 +23,7 @@ log = logging.getLogger('finanzas')
 
 SESION = 'cartola_pendiente'
 DIAGNOSTICO = 'cartola_diagnostico'
+PIDE_CLAVE = 'cartola_pide_clave'
 MAX_MB = 6
 
 
@@ -98,6 +100,7 @@ def importar_cartola(request):
 
         request.session.pop(DIAGNOSTICO, None)
         request.session.pop(SESION, None)
+        request.session.pop(PIDE_CLAVE, None)
         banco = request.POST.get('banco', '')
         nombre = archivo.name
         try:
@@ -105,7 +108,23 @@ def importar_cartola(request):
         finally:
             archivo.close()
 
-        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        por_fetch = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
+        try:
+            contenido = abrir_pdf(contenido, request.POST.get('clave_pdf', '')[:128])
+        except ClaveCartola as e:
+            if por_fetch:
+                return JsonResponse({'ok': False, 'pide_clave': True, 'incorrecta': e.incorrecta,
+                                     'msg': str(e)})
+            request.session[PIDE_CLAVE] = True
+            messages.error(request, f'{e} Vuelve a elegir el archivo.')
+            return redirect('importar_cartola')
+        except ErrorCartola as e:
+            if por_fetch:
+                return JsonResponse({'ok': False, 'msg': str(e)})
+            messages.error(request, str(e))
+            return redirect('importar_cartola')
+
+        if por_fetch:
             firmado = lectura_cartola.lanzar(request.user, contenido, banco, nombre)
             del contenido
             if firmado is None:
@@ -124,7 +143,8 @@ def importar_cartola(request):
 
     ctx = {'grupos': [('Cartola de cuenta corriente, vista o ahorro', cuentas),
                       ('Estado de cuenta de tarjeta', tarjetas)],
-           'diagnostico': request.session.pop(DIAGNOSTICO, None)}
+           'diagnostico': request.session.pop(DIAGNOSTICO, None),
+           'pide_clave': request.session.pop(PIDE_CLAVE, False)}
     ctx.update(contadores(request.user))
     return render(request, 'finanzas/importar_cartola.html', ctx)
 

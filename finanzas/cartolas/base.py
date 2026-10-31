@@ -9,6 +9,13 @@ class ErrorCartola(Exception):
     pass
 
 
+class ClaveCartola(ErrorCartola):
+    def __init__(self, incorrecta=False):
+        self.incorrecta = incorrecta
+        super().__init__('Esa clave no abre el PDF. Revísala y vuelve a intentarlo.' if incorrecta
+                         else 'Este PDF está protegido con clave. Escríbela para abrirlo.')
+
+
 MAX_PAGINAS = 80
 MAX_CARACTERES = 1_500_000
 MAX_MOVIMIENTOS = 2_000
@@ -110,6 +117,44 @@ def texto_de_pdf(binario):
     return '\n'.join(paginas_de_pdf(binario))
 
 
+def _descifrar(lector, clave):
+    from pypdf.errors import DependencyError
+    try:
+        for intento in ([clave] if clave else []) + ['']:
+            if lector.decrypt(intento):
+                return True
+    except DependencyError as e:
+        raise ErrorCartola(
+            'Falta la librería para abrir PDF con clave. Instálala con: pip install --user cryptography'
+        ) from e
+    return False
+
+
+def abrir_pdf(contenido, clave=''):
+    if b'%PDF' not in contenido[:1024]:
+        return contenido
+    try:
+        from pypdf import PdfReader, PdfWriter
+        lector = PdfReader(BytesIO(contenido))
+        if not lector.is_encrypted:
+            return contenido
+    except Exception:
+        return contenido
+
+    if not _descifrar(lector, clave):
+        raise ClaveCartola(incorrecta=bool(clave))
+
+    try:
+        escritor = PdfWriter()
+        for pagina in lector.pages:
+            escritor.add_page(pagina)
+        salida = BytesIO()
+        escritor.write(salida)
+    except Exception as e:
+        raise ErrorCartola('No se pudo abrir el PDF. ¿Seguro que es la cartola?') from e
+    return salida.getvalue()
+
+
 def paginas_de_pdf(binario):
     try:
         from pypdf import PdfReader
@@ -120,8 +165,8 @@ def paginas_de_pdf(binario):
 
     try:
         lector = PdfReader(binario)
-        if lector.is_encrypted:
-            raise ErrorCartola('El PDF está protegido con clave. Guárdalo sin clave y vuelve a subirlo.')
+        if lector.is_encrypted and not _descifrar(lector, ''):
+            raise ClaveCartola()
 
         paginas = len(lector.pages)
         if paginas > MAX_PAGINAS:

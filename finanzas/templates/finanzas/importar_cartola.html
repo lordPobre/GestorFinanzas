@@ -32,6 +32,15 @@
         <span class="cartola-nota ca-zona-nota" id="zonaNota">o arrástralo aquí · PDF, Excel, CSV o foto · máximo 6 MB</span>
       </label>
 
+      <div class="ca-banco ca-clave" id="cajaClave"{% if not pide_clave %} hidden{% endif %}>
+        <label class="ca-banco-label" for="clavePdf">Clave del PDF</label>
+        <div class="ca-banco-caja">
+          <span class="ca-banco-icono"><i class="fas fa-key"></i></span>
+          <input type="password" name="clave_pdf" id="clavePdf" maxlength="128" autocomplete="off" placeholder="La que pide el banco al abrirlo"{% if not pide_clave %} disabled{% endif %}>
+        </div>
+        <span class="ca-clave-nota" id="claveNota">Solo se usa para abrir el archivo. No se guarda ni se envía a nadie.</span>
+      </div>
+
       <div class="ca-fila-leer">
       <div class="ca-banco" data-tour="cartola-cuotas">
         <label class="ca-banco-label" for="banco">Banco o tarjeta (opcional)</label>

@@ -4,7 +4,11 @@
   var titulo = document.getElementById('zonaTitulo');
   var nota = document.getElementById('zonaNota');
   var btn = document.getElementById('btnLeer');
+  var cajaClave = document.getElementById('cajaClave');
+  var clave = document.getElementById('clavePdf');
+  var claveNota = document.getElementById('claveNota');
   if (!input) return;
+  var claveNotaInicial = claveNota ? claveNota.textContent : '';
 
   function kb(n) { return (n / 1024 / 1024).toFixed(1) + ' MB'; }
 
@@ -16,7 +20,26 @@
     btn.disabled = false;
   }
 
-  input.addEventListener('change', function () { mostrar(input.files[0]); });
+  function limpiarClave() {
+    if (!clave) return;
+    clave.value = '';
+    cajaClave.classList.remove('mal');
+    claveNota.textContent = claveNotaInicial;
+  }
+
+  function pedirClave(d) {
+    cajaClave.hidden = false;
+    clave.disabled = false;
+    clave.value = '';
+    cajaClave.classList.toggle('mal', !!d.incorrecta);
+    claveNota.textContent = d.msg;
+    zona.classList.remove('leyendo');
+    btn.textContent = 'Abrir y leer';
+    mostrar(input.files[0]);
+    clave.focus();
+  }
+
+  input.addEventListener('change', function () { limpiarClave(); mostrar(input.files[0]); });
 
   ['dragenter', 'dragover'].forEach(function (ev) {
     zona.addEventListener(ev, function (e) {
@@ -34,6 +57,7 @@
     var f = e.dataTransfer && e.dataTransfer.files[0];
     if (!f) return;
     input.files = e.dataTransfer.files;
+    limpiarClave();
     mostrar(f);
   });
 
@@ -78,6 +102,7 @@
       return r.json();
     }).then(function (d) {
       if (!d) return null;
+      if (d.pide_clave && cajaClave) { pedirClave(d); return null; }
       if (!d.ok || !d.tarea) { volver(d.msg || 'No se pudo leer la cartola.'); return null; }
       return esperar(d.tarea, 120).then(function (f) {
         if (f && f.url) { window.location.href = f.url; return; }
