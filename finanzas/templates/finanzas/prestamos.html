@@ -5,7 +5,8 @@
 {% block title %}Préstamos · Fintora{% endblock %}
 
 {% block extra_head %}<link rel="stylesheet" href="{% static 'css/inicio-esfera.css' %}">
-<link rel="stylesheet" href="{% static 'css/prestamos-acciones.css' %}">{% endblock %}
+<link rel="stylesheet" href="{% static 'css/prestamos-acciones.css' %}">
+{% if por_mes %}<link rel="stylesheet" href="{% static 'css/me-deben-mes.css' %}">{% endif %}{% endblock %}
 
 {% block content %}
 
@@ -146,6 +147,87 @@
     </div>
     {% endif %}
   </div>
+
+  {% if por_mes %}
+  {% with r=por_mes.escenarios.aldia.resumen %}
+  <section class="pm" id="porMes" aria-labelledby="pmTitulo">
+    <div class="pm-cab">
+      <span class="sec-txt">
+        <h2 class="pm-titulo" id="pmTitulo">Mes a mes</h2>
+        <span class="pm-sub">Lo que te deben y lo que te pagan cada mes, con los próximos 6 meses proyectados.</span>
+      </span>
+      <div class="seg" role="group" aria-label="Proyección">
+        <button type="button" class="on-green" data-pm-esc="aldia" aria-pressed="true">Si pagan al día</button>
+        <button type="button" data-pm-esc="ritmo" aria-pressed="false">Según cómo pagan</button>
+      </div>
+    </div>
+    <p class="pm-nota" data-pm-nota="aldia">Cada cuota se paga en su mes y lo atrasado se pone al día este mes.</p>
+    <p class="pm-nota" data-pm-nota="ritmo" hidden>Usa cómo ha pagado cada persona sus cuotas. Si pagó 1 de 2 a tiempo, se espera la mitad de lo que le vence cada mes y el resto pasa al siguiente.</p>
+
+    <div class="pm-resumen">
+      <div class="pm-dato">
+        <span class="pm-dato-etq">Te deben hoy</span>
+        <span class="pm-dato-valor verde" data-pm="hoy_total">{{ r.hoy_total }}</span>
+        <span class="pm-dato-sub" data-pm="hoy_sub">{{ r.hoy_sub }}</span>
+      </div>
+      <div class="pm-dato">
+        <span class="pm-dato-etq" data-pm="mes_etq">{{ r.mes_etq }}</span>
+        <span class="pm-dato-valor" data-pm="mes_valor">{{ r.mes_valor }}</span>
+        <span class="pm-dato-sub" data-pm="mes_sub">{{ r.mes_sub }}</span>
+      </div>
+      <div class="pm-dato">
+        <span class="pm-dato-etq">Quedaría en cero</span>
+        <span class="pm-dato-valor" data-pm="cero_valor">{{ r.cero_valor }}</span>
+        <span class="pm-dato-sub" data-pm="cero_sub">{{ r.cero_sub }}</span>
+      </div>
+    </div>
+
+    <div class="pm-grafico">
+      <div class="pm-lectura">
+        <div class="pm-nav">
+          <button type="button" class="pm-flecha" data-pm-mover="-1" aria-label="Mes anterior"><i class="fas fa-chevron-left"></i></button>
+          <span class="pm-mes">
+            <span class="pm-mes-nombre" data-pm-lectura="mes"></span>
+            <span class="pm-mes-etq" data-pm-lectura="etiqueta"></span>
+          </span>
+          <button type="button" class="pm-flecha" data-pm-mover="1" aria-label="Mes siguiente"><i class="fas fa-chevron-right"></i></button>
+        </div>
+        <div class="seg" role="group" aria-label="Qué mostrar">
+          <button type="button" class="on-green" data-pm-vista="saldo" aria-pressed="true">Saldo pendiente</button>
+          <button type="button" data-pm-vista="cobros" aria-pressed="false">Cobros del mes</button>
+        </div>
+      </div>
+      <div class="pm-valor" aria-live="polite">
+        <span class="pm-valor-monto" data-pm-lectura="valor"></span>
+        <span class="pm-valor-nota" data-pm-lectura="nota"></span>
+      </div>
+      <div class="pm-barras" id="pmBarras" role="group" aria-label="Meses"></div>
+      <div class="pm-leyenda">
+        <span><span class="pm-muestra real"></span>Real</span>
+        <span><span class="pm-muestra proy"></span>Proyección</span>
+        <span data-pm-leyenda-esperado hidden><span class="pm-muestra esperado"></span>Lo que vence</span>
+      </div>
+      {% if por_mes.sin_fecha_txt %}<p class="pm-aviso"><i class="fas fa-circle-info"></i><span>{{ por_mes.sin_fecha_txt }}</span></p>{% endif %}
+    </div>
+
+    <div class="pm-cols">
+      <div class="pm-bloque">
+        <span class="pm-bloque-titulo" data-pm-lectura="mes"></span>
+        <div class="pm-totales">
+          <div class="pm-total"><span class="pm-total-etq" data-pm-det="saldo_etq"></span><span class="pm-total-monto" data-pm-det="saldo"></span></div>
+          <div class="pm-total"><span class="pm-total-etq" data-pm-det="cobros_etq"></span><span class="pm-total-monto" data-pm-det="cobros"></span></div>
+        </div>
+        <div class="pm-filas" id="pmEventos"></div>
+      </div>
+      <div class="pm-bloque">
+        <span class="pm-bloque-cab"><span class="pm-bloque-titulo">Por persona</span><span class="pm-bloque-meta">{{ por_mes.n_personas }} con saldo</span></span>
+        <div class="pm-filas" id="pmPersonas"></div>
+      </div>
+    </div>
+    {{ por_mes|json_script:"datosPorMes" }}
+  </section>
+  {% endwith %}
+  {% endif %}
 </section>
 
 {% endblock %}
@@ -335,4 +417,5 @@
 {% block extra_js %}
 <script type="module" src="{% static 'js/pantallas/inicio-esfera.js' %}" nonce="{{ csp_nonce }}"></script>
 <script type="module" src="{% static 'js/pantallas/prestamos.js' %}" nonce="{{ csp_nonce }}"></script>
+{% if por_mes %}<script type="module" src="{% static 'js/pantallas/me-deben-mes.js' %}" nonce="{{ csp_nonce }}"></script>{% endif %}
 {% endblock %}

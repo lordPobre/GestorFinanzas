@@ -11,6 +11,7 @@ from django.views.decorators.http import require_POST
 from .. import fechas
 from ..models import AbonoPrestamo, Persona, Prestamo
 from ..servicios.esfera import esfera_debo, esfera_me_deben
+from ..servicios.me_deben_mes import por_mes
 from .comun import contadores, monto_post, redirigir, simbolo_de, texto_post
 
 
@@ -54,8 +55,10 @@ def _pantalla(request, lado, persona_id=None):
         'total_debo': round(sum(p.total_pendiente for p in todas if p.lado == 'LE_DEBO')),
     }
     context.update(totales)
+    simbolo = simbolo_de(request.user)
     armar = esfera_debo if debo else esfera_me_deben
-    context['esfera'] = armar(request.user, personas, simbolo_de(request.user))
+    context['esfera'] = armar(request.user, personas, simbolo)
+    context['por_mes'] = None if debo else por_mes(personas, fechas.hoy(), simbolo)
     context.update(contadores(request.user))
     context['total_lado'] = totales['total_por_cobrar']
     return render(request, 'finanzas/prestamos.html', context)
