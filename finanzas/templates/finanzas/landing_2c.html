@@ -1,0 +1,271 @@
+{% load static marketing %}<!DOCTYPE html>
+<html lang="es" class="t2c f2c">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#F3EFE7">
+  <title>Fintora: app gratis para controlar gastos y cuotas en Chile</title>
+  <meta name="description" content="Anota gastos, compras en cuotas, lo que te deben y tus suscripciones, y mira cuánto puedes gastar este mes. Gratis y sin pedir la clave del banco.">
+  <meta property="og:title" content="Fintora · Cuánto puedes gastar, sin planilla">
+  <meta property="og:description" content="Gastos, cuotas y lo que te deben, en una sola cifra. Gratis y sin pedir la clave del banco.">
+  <meta property="og:type" content="website">
+  <meta name="twitter:title" content="Fintora · Cuánto puedes gastar, sin planilla">
+  <meta name="twitter:description" content="Gastos, cuotas y lo que te deben, en una sola cifra. Gratis y sin pedir la clave del banco.">
+  {% marketing_head %}
+
+  <link rel="manifest" href="{% static 'site.webmanifest' %}">
+  <meta name="application-name" content="Fintora">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Fintora">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <link rel="icon" type="image/svg+xml" href="{% static 'img/favicon.svg' %}">
+  <link rel="alternate icon" href="{% static 'img/favicon.png' %}">
+  <link rel="apple-touch-icon" href="{% static 'img/favicon-180.png' %}">
+  <link rel="stylesheet" href="{% static 'css/capas.css' %}">
+  <link rel="stylesheet" href="{% static 'css/fintora-2c.css' %}">
+  <link rel="stylesheet" href="{% static 'css/landing-2c.css' %}">
+  <script src="{% static 'js/pantallas/android-app.js' %}" nonce="{{ csp_nonce }}"></script>
+  <script src="{% static 'js/pantallas/landing.js' %}" nonce="{{ csp_nonce }}"></script>
+  <script type="module" src="{% static 'js/pantallas/landing-2c.js' %}" nonce="{{ csp_nonce }}"></script>
+  <script type="application/ld+json" nonce="{{ csp_nonce }}">{"@context":"https://schema.org","@graph":[{"@type":"Organization","@id":"https://fintora.cl/#organizacion","name":"Fintora","url":"https://fintora.cl/","logo":"https://fintora.cl/static/img/icon-512.png","sameAs":["https://www.instagram.com/fintora.cl/","https://x.com/fintoracl"]},{"@type":"WebApplication","name":"Fintora","url":"https://fintora.cl/","applicationCategory":"FinanceApplication","operatingSystem":"Web, iOS, Android","inLanguage":"es-CL","description":"Anota gastos, compras en cuotas, lo que te deben y tus suscripciones, y mira cuánto puedes gastar este mes. Gratis y sin pedir la clave del banco.","offers":{"@type":"Offer","price":"0","priceCurrency":"CLP"},"publisher":{"@id":"https://fintora.cl/#organizacion"}},{"@type":"FAQPage","mainEntity":[{"@type":"Question","name":"¿Cuánto cuesta?","acceptedAnswer":{"@type":"Answer","text":"Nada. Crear la cuenta y usar la app es gratis."}},{"@type":"Question","name":"¿Tengo que conectar mi banco?","acceptedAnswer":{"@type":"Answer","text":"No. Fintora no se conecta a tu banco y nunca te va a pedir la clave. Lo que ve es lo que tú anotas o decides subir."}},{"@type":"Question","name":"¿Qué pasa con la cartola que subo?","acceptedAnswer":{"@type":"Answer","text":"Se lee en memoria para sacar los movimientos y las cuotas, y el PDF se descarta ahí mismo. No queda guardado en ninguna parte."}},{"@type":"Question","name":"¿Cómo la instalo en el teléfono?","acceptedAnswer":{"@type":"Answer","text":"En iPhone: abre Fintora en Safari, toca el botón Compartir (el cuadrado con la flecha hacia arriba, abajo al centro), baja y elige “Agregar a inicio”. Luego toca “Agregar”. En Android: abre Fintora en Chrome, toca el menú de los tres puntos arriba a la derecha y elige “Instalar app” o “Agregar a pantalla principal”. El ícono de Fintora queda en tu pantalla de inicio y se abre como cualquier otra app, sin pasar por la tienda."}},{"@type":"Question","name":"¿Puedo llevarme mis datos?","acceptedAnswer":{"@type":"Answer","text":"Sí. Desde tu perfil descargas todo en Excel, CSV o JSON cuando quieras."}},{"@type":"Question","name":"¿Puedo borrar mi cuenta?","acceptedAnswer":{"@type":"Answer","text":"Sí, cuando quieras y desde tu perfil. Se borra la cuenta junto con todo lo que anotaste."}}]}]}</script>
+</head>
+<body class="l2c">
+
+<header class="l2c-cab">
+  <nav class="l2c-nav">
+    <span class="l2c-marca">Fintora</span>
+    <span class="l2c-nav-acciones"><a href="{% url 'login' %}" class="l2c-nav-entrar">Entrar</a><a href="{% url 'registro' %}" class="l2c-nav-crear">Crear cuenta</a></span>
+  </nav>
+  <div class="l2c-hero">
+    <div class="l2c-hero-txt">
+      <h1>Cuánto puedes gastar, sin planilla.</h1>
+      <p>Registra en dos toques, mira una sola cifra clara y deja que la app te avise antes de que se te pase una cuota.</p>
+      <div class="l2c-hero-acciones">
+        <a href="{% url 'registro' %}" class="l2c-btn">Crear cuenta gratis<i class="fas fa-arrow-right"></i></a>
+        <span>Gratis. No pide la clave del banco.</span>
+      </div>
+    </div>
+    <div class="l2c-hero-tel" aria-hidden="true">
+      <div class="l2c-tel">
+        <div class="l2c-tel-pantalla">
+          <span class="l2c-tel-esfera"></span>
+          <div class="l2c-tel-top"><span>Noviembre <i class="fas fa-chevron-down"></i></span><span class="l2c-tel-avatar">C</span></div>
+          <div class="l2c-tel-cifra"><span>Puedes gastar</span><b>$412.300</b><small>Te tocan <b>$17.926 por día</b> hasta el 30.</small></div>
+          <div class="l2c-tel-tiles">
+            <div class="verde"><i class="fas fa-basket-shopping"></i><span>Supermercado</span><b>$182.300</b></div>
+            <div class="naranja"><i class="fas fa-utensils"></i><span>Comida y salidas</span><b>$96.400</b></div>
+            <div class="azul"><i class="fas fa-bus"></i><span>Transporte</span><b>$74.200</b></div>
+            <div class="lila"><i class="fas fa-house-chimney"></i><span>Hogar</span><b>$168.600</b></div>
+          </div>
+          <div class="l2c-tel-hoja">
+            <span class="l2c-tel-asa"></span>
+            <b>Por pagar</b>
+            <div class="l2c-tel-pago"><span class="l2c-ficha"><i class="fas fa-credit-card"></i></span><span><b>Notebook</b><small>Cuota 3 de 12 · vence 18</small></span><b>$54.990</b></div>
+            <div class="l2c-tel-pago"><span class="l2c-ficha ambar"><i class="fas fa-rotate"></i></span><span><b>Plan celular</b><small>Suscripción · 20</small></span><b>$12.990</b></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<section class="l2c-oscura">
+  <div class="l2c-ancho l2c-cifra-sec">
+    <span class="l2c-eyebrow">La cifra</span>
+    <span class="l2c-gigante">$412.300</span>
+    <div class="l2c-cifra-fila">
+      <p><b>Lo que te queda libre de verdad.</b> Lo que entró, menos tus gastos, las cuotas y lo que todavía tienes por pagar.</p>
+      <div class="l2c-ecuacion">
+        <div><span>Entró</span><b class="verde">$1.250.000</b></div>
+        <div><span><i>−</i>Gastos</span><b>$512.800</b></div>
+        <div><span><i>−</i>Cuotas</span><b class="ambar">$186.900</b></div>
+        <div><span><i>−</i>Por pagar</span><b class="coral">$138.000</b></div>
+        <div class="total"><span><i>=</i>Libre</span><b>$412.300</b></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="l2c-ancho l2c-dos">
+  <div class="l2c-dos-txt">
+    <span class="l2c-eyebrow">La esfera</span>
+    <h2>Baja la hoja y la app te dice cómo vas.</h2>
+    <p>En el teléfono, detrás de tus pagos hay una esfera con el color de tu mes. Tócala y te dice en voz alta cuánto llevas gastado. En Cuotas te lee lo que debes y en Me deben, quién te debe y cuánto.</p>
+    <p class="l2c-voz-estado" data-l2c-voz-estado><i class="fas fa-volume-high"></i><span>Toca una esfera para escucharla.</span></p>
+  </div>
+  <div class="l2c-esferas">
+    <button type="button" class="l2c-esfera verde" data-l2c-voz="Este mes llevas el 48 por ciento de tu presupuesto. Vas bien: te quedan 412.300 pesos para el mes." aria-label="Escuchar el ejemplo verde"><span class="l2c-bola"></span><b><i></i>Vas bien</b><small>Menos del 80% del presupuesto</small></button>
+    <button type="button" class="l2c-esfera amarillo" data-l2c-voz="Este mes llevas el 86 por ciento de tu presupuesto. Estás cerca del límite: te quedan 112.000 pesos hasta fin de mes." aria-label="Escuchar el ejemplo amarillo"><span class="l2c-bola"></span><b><i></i>Cerca del límite</b><small>Entre 80% y 99%</small></button>
+    <button type="button" class="l2c-esfera rojo" data-l2c-voz="Este mes llevas el 112 por ciento de tu presupuesto. Te pasaste por 96.000 pesos. Revisa qué gastos puedes mover al próximo mes." aria-label="Escuchar el ejemplo rojo"><span class="l2c-bola"></span><b><i></i>Pasaste el límite</b><small>100% o más</small></button>
+  </div>
+</section>
+
+<section class="l2c-arena">
+  <div class="l2c-ancho l2c-hace">
+    <div class="l2c-hace-fila">
+      <div class="l2c-hace-txt">
+        <span class="l2c-eyebrow">Lo que hace</span>
+        <h2>Todo lo que sale de tu bolsillo.</h2>
+        <div class="l2c-tabs" role="tablist" data-l2c-tabs>
+          <button type="button" role="tab" id="l2c-tab-cuotas" aria-selected="true" aria-controls="l2c-panel-cuotas" class="on"><span class="l2c-ficha"><i class="fas fa-credit-card"></i></span><span><b>Compras en cuotas</b><small>Una cuota en cada mes y lo que falta a la vista.</small></span></button>
+          <button type="button" role="tab" id="l2c-tab-cartola" aria-selected="false" aria-controls="l2c-panel-cartola" tabindex="-1"><span class="l2c-ficha azul"><i class="fas fa-file-import"></i></span><span><b>La cartola, en vez de anotar</b><small>Sube el PDF del banco o de la tarjeta.</small></span></button>
+          <button type="button" role="tab" id="l2c-tab-deben" aria-selected="false" aria-controls="l2c-panel-deben" tabindex="-1"><span class="l2c-ficha verde"><i class="fas fa-hand-holding-dollar"></i></span><span><b>Lo que te deben</b><small>Préstamos por persona, con abonos parciales.</small></span></button>
+          <button type="button" role="tab" id="l2c-tab-subs" aria-selected="false" aria-controls="l2c-panel-subs" tabindex="-1"><span class="l2c-ficha ambar"><i class="fas fa-rotate"></i></span><span><b>Suscripciones</b><small>Se anotan una vez y se cobran solas cada mes.</small></span></button>
+        </div>
+      </div>
+      <div class="l2c-panel-caja">
+        <div class="l2c-panel" id="l2c-panel-cuotas" role="tabpanel" aria-labelledby="l2c-tab-cuotas" data-texto="Pones el valor de la cuota y cuántas son. La app deja una cuota en cada mes y te muestra cuánto falta.">
+          <div class="l2c-panel-cab"><span><small>Notebook · 12 cuotas</small><b>$54.990 <em>al mes</em></b></span><span class="l2c-chip">Cuota 3 de 12</span></div>
+          <div class="l2c-meses"><span class="pagado"><i class="fas fa-check"></i>oct</span><span class="pagado"><i class="fas fa-check"></i>nov</span><span class="actual"><b>3</b>dic</span><span><b>4</b>ene</span><span><b>5</b>feb</span><span><b>6</b>mar</span><span><b>7</b>abr</span><span><b>8</b>may</span><span><b>9</b>jun</span><span><b>10</b>jul</span><span><b>11</b>ago</span><span><b>12</b>sep</span></div>
+          <div class="l2c-trio"><span><small>Total</small><b>$659.880</b></span><span><small>Te faltan</small><b class="ambar">$494.910</b></span><span><small>Terminas en</small><b>septiembre</b></span></div>
+        </div>
+        <div class="l2c-panel" id="l2c-panel-cartola" role="tabpanel" aria-labelledby="l2c-tab-cartola" data-texto="Sube el PDF del banco o de la tarjeta. Las cuotas salen solas y el archivo se descarta." hidden>
+          <div class="l2c-cartola">
+            <div class="l2c-pdf" aria-hidden="true"><span class="l2c-pdf-etq">PDF</span><i></i><i></i><i></i><i></i><i></i><i></i><small>cartola-septiembre.pdf</small></div>
+            <i class="fas fa-arrow-right l2c-flecha"></i>
+            <div class="l2c-filas">
+              <div><span class="l2c-ficha ambar"><i class="fas fa-credit-card"></i></span><span><b>Notebook</b><small>Cuota 3 de 12</small></span><b>$54.990</b></div>
+              <div><span class="l2c-ficha naranja"><i class="fas fa-cart-shopping"></i></span><span><b>Supermercado</b><small>Comida</small></span><b>$38.420</b></div>
+              <div><span class="l2c-ficha verde"><i class="fas fa-rotate"></i></span><span><b>Plan celular</b><small>Suscripción</small></span><b>$12.990</b></div>
+              <p class="l2c-descarte"><i class="fas fa-trash-can"></i>El PDF se descartó</p>
+            </div>
+          </div>
+        </div>
+        <div class="l2c-panel" id="l2c-panel-deben" role="tabpanel" aria-labelledby="l2c-tab-deben" data-texto="Anota a quién le prestaste, registra los abonos parciales y mira cuánto falta." hidden>
+          <div class="l2c-deben">
+            <div class="l2c-anillo"><div><b>$30.000</b><small>de $75.000</small></div></div>
+            <div class="l2c-deben-txt">
+              <div class="l2c-persona"><span class="l2c-ficha verde redonda">J</span><span><b>Javiera</b><small>Le prestaste $75.000</small></span></div>
+              <div class="l2c-abono"><span>Abono · 12 ago</span><b>+$10.000</b></div>
+              <div class="l2c-abono"><span>Abono · 2 sep</span><b>+$20.000</b></div>
+              <div class="l2c-abono total"><b>Falta</b><b>$45.000</b></div>
+            </div>
+          </div>
+        </div>
+        <div class="l2c-panel" id="l2c-panel-subs" role="tabpanel" aria-labelledby="l2c-tab-subs" data-texto="El streaming, el gimnasio, el plan del celular. Se anotan una vez y se cobran solas cada mes." hidden>
+          <div class="l2c-filas">
+            <div><span class="l2c-ficha azul">S</span><span><b>Streaming</b><small>Se cobra el 5</small></span><b>$7.990</b></div>
+            <div><span class="l2c-ficha verde">G</span><span><b>Gimnasio</b><small>Se cobra el 10</small></span><b>$24.990</b></div>
+            <div><span class="l2c-ficha ambar">C</span><span><b>Plan celular</b><small>Se cobra el 15</small></span><b>$12.990</b></div>
+            <p class="l2c-subs-total"><span>Al mes, anotado solo</span><b>$45.970</b></p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <p class="l2c-tab-texto" data-l2c-tab-texto>Pones el valor de la cuota y cuántas son. La app deja una cuota en cada mes y te muestra cuánto falta.</p>
+  </div>
+</section>
+
+<section class="l2c-ancho l2c-dos l2c-privacidad">
+  <div class="l2c-dos-txt">
+    <span class="l2c-sello"><span><i class="fas fa-fingerprint"></i></span><span><b>PRIVACIDAD</b><small>SIN CLAVE DEL BANCO</small></span></span>
+    <h2>Lo que hacemos con tus datos cabe en una boleta.</h2>
+    <p>Fintora no se conecta a tu banco. Todo lo que ve es lo que tú anotas o decides subir, y la cartola se lee en memoria y se descarta ahí mismo.</p>
+    <div class="l2c-notas">
+      <a href="https://www.ssllabs.com/ssltest/analyze.html?d=fintora.cl" target="_blank" rel="noopener"><b>A+</b><span><b>SSL Labs</b><small>Conexión cifrada</small></span><i class="fas fa-arrow-up-right-from-square"></i></a>
+      <a href="https://developer.mozilla.org/es/observatory/analyze?host=fintora.cl" target="_blank" rel="noopener"><b>A</b><span><b>Mozilla Observatory</b><small>Cabeceras de seguridad</small></span><i class="fas fa-arrow-up-right-from-square"></i></a>
+    </div>
+    <a href="{% url 'seguridad' %}" class="l2c-enlace">Cómo se protege tu cuenta<i class="fas fa-arrow-right"></i></a>
+  </div>
+  <div class="l2c-boleta-caja">
+    <div class="l2c-boleta">
+      <div class="l2c-boleta-cab"><b>FINTORA</b><small>BOLETA DE PRIVACIDAD</small></div>
+      <hr>
+      <div class="l2c-boleta-fila"><span>Claves del banco pedidas</span><i></i><b>0</b></div>
+      <div class="l2c-boleta-fila"><span>Cartolas guardadas</span><i></i><b>0</b></div>
+      <div class="l2c-boleta-fila"><span>Datos de tu cuenta compartidos</span><i></i><b>0</b></div>
+      <div class="l2c-boleta-fila"><span>Face ID y dos pasos</span><i></i><b>incluido</b></div>
+      <div class="l2c-boleta-fila"><span>Excel · CSV · JSON</span><i></i><b>cuando quieras</b></div>
+      <div class="l2c-boleta-fila"><span>Borrar tu cuenta</span><i></i><b>cuando quieras</b></div>
+      <hr>
+      <div class="l2c-boleta-total"><span>TOTAL</span><span>$0</span></div>
+      <span class="l2c-barcode" aria-hidden="true"></span>
+      <small class="l2c-boleta-pie">Gracias por no darnos tu clave.</small>
+    </div>
+  </div>
+</section>
+
+<section id="preguntas" class="l2c-arena">
+  <div class="l2c-ancho l2c-faq">
+    <div class="l2c-faq-cab"><span class="l2c-eyebrow">Preguntas frecuentes</span><h2>Lo que suelen preguntar.</h2></div>
+    <div class="l2c-faq-lista">
+      <details open><summary>¿Cuánto cuesta?<i class="fas fa-plus"></i></summary><p>Nada. Crear la cuenta y usar la app es gratis.</p></details>
+      <details><summary>¿Tengo que conectar mi banco?<i class="fas fa-plus"></i></summary><p>No. Fintora no se conecta a tu banco y nunca te va a pedir la clave. Lo que ve es lo que tú anotas o decides subir.</p></details>
+      <details><summary>¿Qué pasa con la cartola que subo?<i class="fas fa-plus"></i></summary><p>Se lee en memoria para sacar los movimientos y las cuotas, y el PDF se descarta ahí mismo. No queda guardado en ninguna parte.</p></details>
+      <details><summary>¿Cómo la instalo en el teléfono?<i class="fas fa-plus"></i></summary><p><b>En iPhone: </b>abre Fintora en Safari, toca el botón Compartir (el cuadrado con la flecha hacia arriba, abajo al centro), baja y elige “Agregar a inicio”. Luego toca “Agregar”.</p><p><b>En Android: </b>abre Fintora en Chrome, toca el menú de los tres puntos arriba a la derecha y elige “Instalar app” o “Agregar a pantalla principal”.</p><p>El ícono de Fintora queda en tu pantalla de inicio y se abre como cualquier otra app, sin pasar por la tienda.</p></details>
+      <details><summary>¿Puedo llevarme mis datos?<i class="fas fa-plus"></i></summary><p>Sí. Desde tu perfil descargas todo en Excel, CSV o JSON cuando quieras.</p></details>
+      <details><summary>¿Puedo borrar mi cuenta?<i class="fas fa-plus"></i></summary><p>Sí, cuando quieras y desde tu perfil. Se borra la cuenta junto con todo lo que anotaste.</p></details>
+    </div>
+    <aside id="ayuda" class="l2c-ayuda">
+      <b><i class="fas fa-life-ring"></i>¿Necesitas ayuda?</b>
+      <p>Si tu pregunta no está aquí o algo no funciona, escríbenos. Si ya tienes cuenta, cuéntanos con qué correo entras.</p>
+      <a href="mailto:hola@fintora.cl"><span>hola@fintora.cl</span><i class="fas fa-arrow-right"></i></a>
+    </aside>
+  </div>
+</section>
+
+<footer class="l2c-oscura">
+  <div class="l2c-ancho l2c-pie">
+    <div class="l2c-pie-cab">
+      <h2>Empieza con una sola cifra.</h2>
+      <div class="l2c-pie-acciones">
+        <a href="{% url 'registro' %}" class="l2c-btn claro">Crear cuenta gratis<i class="fas fa-arrow-right"></i></a>
+        <span>¿Ya tienes cuenta? <a href="{% url 'login' %}">Entrar</a></span>
+      </div>
+    </div>
+    <div class="l2c-pie-fila">
+      <div class="l2c-pie-col">
+        <span>Se instala en el teléfono como una app, sin pasar por la tienda.</span>
+        <span class="l2c-redes"><a href="https://www.instagram.com/fintora.cl/" target="_blank" rel="noopener" aria-label="Fintora en Instagram"><i class="fa-brands fa-instagram"></i></a><a href="https://x.com/fintoracl" target="_blank" rel="noopener" aria-label="Fintora en X"><i class="fa-brands fa-x-twitter"></i></a></span>
+        <span>© {% now "Y" %} Fintora. Todos los derechos reservados.</span>
+      </div>
+      <nav class="l2c-pie-enlaces"><a href="#preguntas">Preguntas frecuentes</a><a href="#ayuda">Ayuda</a><a href="{% url 'privacidad' %}">Privacidad</a><a href="{% url 'terminos' %}">Términos de uso</a><a href="{% url 'seguridad' %}">Seguridad</a></nav>
+    </div>
+  </div>
+</footer>
+
+<div class="lp-chat" data-lp-chat>
+  {% csrf_token %}
+  <div class="lp-chat-fondo" data-lp-chat-fondo hidden></div>
+  <div class="lp-chat-panel" id="lp-chat-panel" role="dialog" aria-label="Ayuda de Fintora" data-lp-chat-panel hidden>
+    <div class="lp-chat-asa" aria-hidden="true"><span></span></div>
+    <div class="lp-chat-cabeza">
+      <span class="lp-chat-logo">{% include "finanzas/marca_icono.html" %}</span>
+      <div>
+        <div class="lp-chat-nombre">Ayuda de Fintora</div>
+        <div class="lp-chat-sub">Responde una IA, solo sobre Fintora</div>
+      </div>
+      <button type="button" class="lp-chat-cerrar" data-lp-chat-cerrar aria-label="Cerrar"><i class="fas fa-xmark"></i></button>
+    </div>
+    <div class="lp-chat-cuerpo" data-lp-chat-cuerpo aria-live="polite">
+      <div class="lp-burbuja lp-burbuja-bot">Hola. Pregúntame lo que quieras sobre Fintora: cómo funciona, qué pasa con tus datos o cómo instalarla.</div>
+      <div class="lp-chat-sugerencias" data-lp-sugerencias>
+        <button type="button">¿Es gratis?</button>
+        <button type="button">¿Sirve con cualquier banco?</button>
+        <button type="button">¿Cómo la instalo en el teléfono?</button>
+      </div>
+    </div>
+    <div class="lp-chat-pie">
+      <form class="lp-chat-entrada" data-lp-chat-form data-url="{% url 'ayuda_chat' %}">
+        <input type="text" name="pregunta" maxlength="600" autocomplete="off" placeholder="Escribe tu pregunta" aria-label="Tu pregunta">
+        <button type="submit" aria-label="Enviar"><i class="fas fa-arrow-up"></i></button>
+      </form>
+      <div class="lp-chat-aviso">Puede equivocarse. No escribas claves ni datos del banco.</div>
+    </div>
+  </div>
+  <button type="button" class="lp-chat-boton" data-lp-chat-abrir aria-expanded="false" aria-controls="lp-chat-panel"><i class="fas fa-comment-dots"></i><span>¿Dudas? Pregúntale a Fintora</span></button>
+  <template data-lp-plantilla-form>
+    <form class="lp-chat-contacto" data-url="{% url 'ayuda_contacto' %}" novalidate>
+      <div class="lp-chat-contacto-titulo">Te respondemos por correo</div>
+      <input type="email" name="correo" required maxlength="254" autocomplete="email" placeholder="Tu correo" aria-label="Tu correo">
+      <textarea name="mensaje" rows="3" required maxlength="2000" placeholder="Tu pregunta" aria-label="Tu pregunta"></textarea>
+      <input type="text" name="sitio" class="lp-trampa" tabindex="-1" autocomplete="off" aria-hidden="true">
+      <div class="lp-chat-error" hidden></div>
+      <button type="submit">Enviar</button>
+    </form>
+  </template>
+</div>
+
+{% marketing_consentimiento %}
+</body>
+</html>

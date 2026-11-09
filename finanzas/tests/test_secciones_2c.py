@@ -4,6 +4,18 @@ from django.urls import reverse
 
 from finanzas import diseno
 
+PLANTILLAS = {
+    'prestamos': 'finanzas/prestamos_2c.html',
+    'metas': 'finanzas/metas_2c.html',
+    'plan_plata': 'finanzas/plan_2c.html',
+    'estadisticas': 'finanzas/estadisticas_2c.html',
+    'analisis_predictivo': 'finanzas/analisis_2c.html',
+    'perfil': 'finanzas/perfil_2c.html',
+    'categorias': 'finanzas/categorias_2c.html',
+    'importar_cartola': 'finanzas/importar_cartola_2c.html',
+    'clave_api': 'finanzas/clave_api_2c.html',
+}
+
 
 class Secciones2cTests(TestCase):
     def setUp(self):
@@ -15,18 +27,30 @@ class Secciones2cTests(TestCase):
         respuesta = self.client.get(reverse('prestamos'))
         self.assertContains(respuesta, 'aria-current="page">Préstamos</a>')
         self.assertContains(respuesta, 'css/pagos-2c.css')
+        self.assertContains(respuesta, 'id="modalPersona"')
+        self.assertContains(respuesta, 'id="segTipoPersona"')
 
     def test_prestamos_sin_la_cookie_no_cambia(self):
         respuesta = self.client.get(reverse('prestamos'))
         self.assertNotContains(respuesta, 'p2c-pestanas')
         self.assertNotContains(respuesta, 'css/pagos-2c.css')
+        self.assertTemplateUsed(respuesta, 'finanzas/prestamos.html')
 
-    def test_plan_y_tu_cargan_el_tema_2c(self):
+    def test_plan_y_tu_tienen_su_plantilla_2c(self):
         self.client.cookies[diseno.COOKIE] = diseno.VALOR
-        for nombre in ('metas', 'plan_plata', 'estadisticas', 'analisis_predictivo',
-                       'perfil', 'categorias', 'importar_cartola', 'clave_api'):
+        for nombre, plantilla in PLANTILLAS.items():
             with self.subTest(pantalla=nombre):
                 respuesta = self.client.get(reverse(nombre), follow=True)
                 self.assertEqual(respuesta.status_code, 200)
-                self.assertContains(respuesta, '<html lang="es" class="t2c">')
-                self.assertContains(respuesta, 'css/tema-2c.css')
+                self.assertTemplateUsed(respuesta, plantilla)
+                self.assertTemplateUsed(respuesta, 'finanzas/base_2c.html')
+                self.assertContains(respuesta, '<html lang="es" class="t2c f2c">')
+                self.assertContains(respuesta, 'css/secciones-2c.css')
+                self.assertNotContains(respuesta, 'css/finapp.css')
+
+    def test_sin_la_cookie_siguen_las_plantillas_de_siempre(self):
+        for nombre, plantilla in PLANTILLAS.items():
+            with self.subTest(pantalla=nombre):
+                respuesta = self.client.get(reverse(nombre), follow=True)
+                self.assertTemplateUsed(respuesta, plantilla.replace('_2c', ''))
+                self.assertTemplateNotUsed(respuesta, 'finanzas/base_2c.html')

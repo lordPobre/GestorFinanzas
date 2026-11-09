@@ -29,7 +29,6 @@
   {% block extra_head %}{% endblock %}
   {% if esfera and profile.analisis_ia %}<link rel="stylesheet" href="{% static 'css/esfera-preguntas.css' %}">{% endif %}
   <link rel="stylesheet" href="{% static 'css/sesion.css' %}">
-  {% if t2c %}<link rel="stylesheet" href="{% static 'css/tema-2c.css' %}">{% endif %}
   <script src="{% static 'js/pantallas/modales-temprano.js' %}" nonce="{{ csp_nonce }}"></script>
 
   <script src="{% static 'js/pantallas/registro-sw.js' %}" nonce="{{ csp_nonce }}"></script>
@@ -79,12 +78,12 @@
   <div class="layout-cuerpo">
 
     <header class="topbar">
-      {% block topbar_left %}
+      {% block topbar_left %}{% if t2c %}{% menu 'titulo' %}{% else %}
       <div class="topbar-saludo saludo-pastilla">
         <span class="saludo-cielo" data-cielo aria-hidden="true"></span>
         <span class="saludo-pastilla-txt"><span class="saludo-pastilla-hola"><span data-saludo>Buenos días</span>, </span><b data-nombre-corto>{{ profile.nombre_display|default:user.username }}</b></span>
       </div>
-      {% endblock %}
+      {% endif %}{% endblock %}
 
       <div class="spacer"></div>
 
@@ -98,7 +97,7 @@
         <span class="kbd hide-mobile">⌘K</span>
       </div>
 
-      {% block topbar_actions %}
+      {% block topbar_actions %}{% if not t2c %}
       <button class="btn btn-green solo-ancho" data-open="#modalGasto" data-preset-tipo="INGRESO"
               title="Anotar ingreso" aria-label="Anotar ingreso">
         <i class="fas fa-arrow-down"></i><span>Anotar ingreso</span>
@@ -111,7 +110,7 @@
               title="Anotar un movimiento" aria-label="Anotar un movimiento">
         <i class="fas fa-plus"></i><span>Anotar</span>
       </button>
-      {% endblock %}
+      {% endif %}{% endblock %}
 
       {% include 'finanzas/_campana.html' with clase='topbar-campana' %}
 

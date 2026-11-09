@@ -1,0 +1,77 @@
+{% extends 'finanzas/base_2c.html' %}
+{% load static %}
+{% block title %}Anotar desde afuera · Fintora{% endblock %}
+{% block extra_head %}<link rel="stylesheet" href="{% static 'css/secciones-2c.css' %}">{% endblock %}
+
+{% block content %}
+<div class="f2c-pagina tg2c">
+  <div class="p2c-top ca2c-top">
+    <a href="{% url 'perfil' %}" class="sec-volver" aria-label="Volver a Tú"><i class="fas fa-chevron-left"></i></a>
+    <h1 class="f2c-titulo-tel">Anotar desde Telegram</h1>
+  </div>
+
+  <div class="f2c-grid">
+    <div class="f2c-col">
+      {% if telegram_listo %}
+      <p class="f2c-sub">Escríbele al bot como le hablarías a alguien, o mándale un audio. Lo anota en el momento y te deja deshacerlo.</p>
+      <div class="tg2c-chat" aria-hidden="true">
+        <span class="tg2c-yo">5 lucas en café</span>
+        <div class="tg2c-bot">
+          <span>Anotado: <b>$5.000</b> en Comida</span>
+          <span class="tg2c-botones"><span>Deshacer</span></span>
+        </div>
+      </div>
+
+      {% if chat_telegram %}
+      <div class="f2c-aviso verde">
+        <span class="f2c-ficha redonda tg2c-ok"><i class="fas fa-check"></i></span>
+        <span class="f2c-txt"><b>Conectado{% if chat_telegram.nombre %} como {{ chat_telegram.nombre }}{% endif %}</b><span>Desde {{ chat_telegram.conectado|date:"j b Y" }} · {% if chat_telegram.usado %}usado hace {{ chat_telegram.usado|timesince }}{% else %}todavía sin usar{% endif %}. Escribe /desconectar en el bot para cortarlo desde allá.</span></span>
+      </div>
+      <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="accion" value="telegram_quitar">
+        <button type="submit" class="f2c-btn borde ancho">Desconectar</button>
+      </form>
+      {% else %}
+      <a href="{{ enlace_telegram }}" class="f2c-btn ancho tg2c-conectar" rel="noopener noreferrer"><i class="fab fa-telegram"></i>Conectar Telegram</a>
+      <p class="tg2c-pie">Se abre Telegram: toca «Iniciar». El enlace dura 10 minutos y sirve una sola vez.</p>
+      {% endif %}
+      {% else %}
+      <div class="f2c-vacio">
+        <i class="fab fa-telegram"></i>
+        <b>El bot de Telegram todavía no está listo</b>
+        <span>Mientras tanto puedes anotar desde el Atajo del iPhone u otra app con tu clave personal.</span>
+      </div>
+      {% endif %}
+    </div>
+
+    <aside class="f2c-col">
+      <section class="f2c-tarjeta">
+        <div class="pl2c-cab"><span class="f2c-ficha azul"><i class="fas fa-key"></i></span><span class="f2c-txt"><b>Clave personal</b><span>Para el Atajo del iPhone u otra app. Solo sirve para anotar movimientos y deshacer lo que anotó en las últimas 24 horas.</span></span></div>
+        {% if nueva %}
+        <div class="f2c-aviso ambar">
+          <span class="f2c-aviso-icono"><i class="fas fa-key"></i></span>
+          <span class="f2c-txt"><b>Cópiala ahora: no se vuelve a mostrar</b><span>Si la pierdes, crea otra. La anterior deja de funcionar.</span></span>
+        </div>
+        <input type="text" class="tg2c-clave" value="{{ nueva }}" readonly aria-label="Tu clave personal" data-clave-nueva>
+        {% endif %}
+        {% if clave %}
+        <div class="f2c-fila">
+          <span class="f2c-txt"><b>Clave activa · {{ clave.prefijo }}…</b><span>Creada {{ clave.creada|date:"j b Y" }} · {% if clave.usada %}usada hace {{ clave.usada|timesince }}{% else %}todavía sin usar{% endif %}</span></span>
+          <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="accion" value="revocar">
+            <button type="submit" class="f2c-btn rojo chico">Revocar</button>
+          </form>
+        </div>
+        {% endif %}
+        <form method="post">
+          {% csrf_token %}
+          <input type="hidden" name="accion" value="crear">
+          <button type="submit" class="f2c-btn {% if clave %}borde {% endif %}ancho">{% if clave %}Crear una nueva y revocar la actual{% else %}Crear clave{% endif %}</button>
+        </form>
+      </section>
+    </aside>
+  </div>
+</div>
+{% endblock %}

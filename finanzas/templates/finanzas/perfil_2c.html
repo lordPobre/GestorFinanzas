@@ -1,0 +1,227 @@
+{% extends 'finanzas/base_2c.html' %}
+{% load static %}
+{% block title %}Tú · Fintora{% endblock %}
+{% block extra_head %}<link rel="stylesheet" href="{% static 'css/secciones-2c.css' %}">{% endblock %}
+
+{% block content %}
+<div class="f2c-pagina tu2c">
+  <div class="p2c-top"><h1 class="f2c-titulo-tel">Tú</h1></div>
+
+  <div class="tu2c-quien">
+    <label class="tu2c-avatar" for="{{ perfil_form.foto.id_for_label }}" title="{% if profile.foto_url %}Cambiar foto{% else %}Subir una foto{% endif %}">
+      <span id="vistaInicial">{{ profile.inicial }}</span>
+      <img id="vistaAvatar" alt=""{% if profile.foto_url %} src="{{ profile.foto_url }}"{% else %} hidden{% endif %}>
+      <span class="tu2c-camara"><i class="fas fa-camera"></i></span>
+    </label>
+    <span class="f2c-txt">
+      <b class="tu2c-nombre">{{ profile.nombre_display }}</b>
+      <span>{{ profile.email|default:request.user.email|default:"Sin email" }}</span>
+      <small>{{ total_trans }} movimiento{{ total_trans|pluralize:"s" }} · desde {{ miembro_desde|lower }}</small>
+    </span>
+    <div class="tu2c-nota-foto" id="notaFoto" hidden><span>La foto se sube cuando guardas</span><button type="submit" form="formPerfil" class="f2c-btn chico">Guardar foto</button></div>
+  </div>
+
+  {% if not profile.email and not request.user.email %}
+  <div class="f2c-aviso ambar">
+    <span class="f2c-aviso-icono"><i class="fas fa-envelope"></i></span>
+    <span class="f2c-txt"><b>Agrega tu email</b><span>Sin un correo guardado no podemos enviarte el enlace si olvidas tu contraseña. Escríbelo en «Tus datos» y guarda.</span></span>
+  </div>
+  {% endif %}
+  {% for e in perfil_form.foto.errors %}
+  <div class="f2c-aviso rojo"><span class="f2c-aviso-icono"><i class="fas fa-triangle-exclamation"></i></span><span class="f2c-txt"><span>{{ e }}</span></span></div>
+  {% endfor %}
+
+  <div class="f2c-grid">
+    <div class="f2c-col">
+      <div class="f2c-lista">
+        <a href="{% url 'categorias' %}" class="f2c-fila"><span class="f2c-ficha verde"><i class="fas fa-tags"></i></span><span class="f2c-txt"><b>Categorías y topes</b></span><i class="fas fa-chevron-right f2c-flecha"></i></a>
+        <a href="{% url 'importar_cartola' %}" class="f2c-fila"><span class="f2c-ficha azul"><i class="fas fa-file-import"></i></span><span class="f2c-txt"><b>Importar cartola</b></span><i class="fas fa-chevron-right f2c-flecha"></i></a>
+        {% with clave=user.clave_api %}
+        <a href="{% url 'clave_api' %}" class="f2c-fila"><span class="f2c-ficha azul"><i class="fab fa-telegram"></i></span><span class="f2c-txt"><b>Anotar desde Telegram</b><span>Y desde el Atajo del iPhone</span></span>{% if clave %}<span class="tu2c-estado">Clave activa</span>{% endif %}<i class="fas fa-chevron-right f2c-flecha"></i></a>
+        {% endwith %}
+      </div>
+
+      <div class="f2c-lista">
+        <div class="f2c-fila" data-tour="aviso">
+          <span class="f2c-txt"><b>Aviso mensual por correo</b>{% if not profile.email and not request.user.email %}<span class="ambar">Falta tu email para recibirlo</span>{% elif profile.aviso_mensual %}<span>Te llega el día {{ profile.aviso_dia }} de cada mes</span>{% else %}<span>Apagado. No te mandamos recordatorios</span>{% endif %}</span>
+          <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="accion" value="aviso_mensual">
+            <input type="hidden" name="activar" value="{% if profile.aviso_mensual %}0{% else %}1{% endif %}">
+            <button type="submit" class="switch{% if profile.aviso_mensual %} on{% endif %}" aria-label="{% if profile.aviso_mensual %}Apagar{% else %}Encender{% endif %} el aviso mensual"><span class="knob"></span></button>
+          </form>
+        </div>
+        {% if profile.aviso_mensual %}
+        <form method="post" class="f2c-fila tu2c-dia">
+          {% csrf_token %}
+          <input type="hidden" name="accion" value="aviso_dia">
+          <label class="f2c-txt" for="avisoDia"><span>Día del envío. Llegan las cuotas, las suscripciones y las cuentas sin pagar, con el total.</span></label>
+          <select name="aviso_dia" id="avisoDia">{% for d in dias_aviso %}<option value="{{ d }}"{% if d == profile.aviso_dia %} selected{% endif %}>Día {{ d }}</option>{% endfor %}</select>
+          <button type="submit" class="f2c-btn borde chico">Cambiar</button>
+        </form>
+        {% endif %}
+
+        {% if push_clave %}
+        <div class="f2c-fila" data-push data-clave="{{ push_clave }}" data-suscribir="{% url 'push_suscribir' %}" data-quitar="{% url 'push_quitar' %}">
+          <span class="f2c-txt"><b>Avisos antes de cada cobro</b><span data-push-estado>Revisando este aparato…</span></span>
+          <span data-push-icono hidden></span>
+          <button type="button" class="switch" data-push-switch hidden aria-label="Avisos en este aparato"><span class="knob"></span></button>
+        </div>
+        <div class="tu2c-push">
+          {% for op in opciones_push %}
+          <div class="f2c-fila">
+            <span class="f2c-txt"><b>{{ op.titulo }}</b><span>{{ op.nota }}</span></span>
+            <form method="post">
+              {% csrf_token %}
+              <input type="hidden" name="accion" value="recordatorios">
+              <input type="hidden" name="campo" value="{{ op.campo }}">
+              <input type="hidden" name="activar" value="{% if op.activo %}0{% else %}1{% endif %}">
+              <button type="submit" class="switch{% if op.activo %} on{% endif %}" aria-label="{% if op.activo %}Apagar{% else %}Encender{% endif %}: {{ op.titulo }}"><span class="knob"></span></button>
+            </form>
+          </div>
+          {% endfor %}
+          <div class="f2c-fila">
+            {% if n_push %}
+            <span class="f2c-txt"><span>Salen a las 9:00, hora de tu teléfono. Los recibe{{ n_push|pluralize:"n" }} {{ n_push }} aparato{{ n_push|pluralize:"s" }}.</span></span>
+            <button type="button" class="f2c-btn borde chico" data-push-probar="{% url 'push_probar' %}">Probar aviso</button>
+            {% else %}
+            <span class="f2c-txt"><span>Activa los avisos en este aparato para empezar a recibirlos. Lo que elijas aquí vale para todos tus aparatos.</span></span>
+            {% endif %}
+          </div>
+        </div>
+        {% else %}
+        <div class="f2c-fila">
+          <span class="f2c-txt"><b>Avisos antes de cada cobro</b><span>{% if request.user.is_staff %}No disponibles: falta VAPID_PRIVADA en las variables del servicio web{% else %}Todavía no están disponibles{% endif %}</span></span>
+        </div>
+        {% endif %}
+
+        <div class="f2c-fila">
+          <span class="f2c-txt"><b>Análisis con IA</b><span>{% if profile.analisis_ia %}Números y, en los repetidos dudosos, sus descripciones{% else %}Apagado. Solo las cartolas se leen con IA{% endif %}</span></span>
+          <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="accion" value="analisis_ia">
+            <input type="hidden" name="activar" value="{% if profile.analisis_ia %}0{% else %}1{% endif %}">
+            <button type="submit" class="switch{% if profile.analisis_ia %} on{% endif %}" aria-label="{% if profile.analisis_ia %}Desactivar{% else %}Activar{% endif %} el análisis con IA"><span class="knob"></span></button>
+          </form>
+        </div>
+
+        {% with n_passkeys=user.passkeys.count %}
+        <a href="{% url 'passkeys' %}" class="f2c-fila" data-tour="face-id" data-solo-movil>
+          <span class="f2c-txt"><b>Entrar con Face ID o huella</b><span>{% if n_passkeys %}{{ n_passkeys }} dispositivo{{ n_passkeys|pluralize:"s" }} entra{{ n_passkeys|pluralize:"n" }} sin contraseña{% else %}Sin escribir la contraseña{% endif %}</span></span>
+          {% if n_passkeys %}<span class="tu2c-estado">Activo</span>{% endif %}<i class="fas fa-chevron-right f2c-flecha"></i>
+        </a>
+        {% endwith %}
+      </div>
+
+      <div class="f2c-lista">
+        <a href="{% url 'encuesta' %}" class="f2c-fila"><span class="f2c-txt"><b>Danos tu opinión</b></span><i class="fas fa-chevron-right f2c-flecha"></i></a>
+        <details class="tu2c-det"{% if not politica_al_dia %} open{% endif %}>
+          <summary class="f2c-fila"><span class="f2c-txt"><b>Privacidad y términos</b>{% if politica_al_dia %}<span>Aceptaste la versión {{ profile.politica_version }} el {{ profile.politica_aceptada|date:"j b Y" }}</span>{% else %}<span class="ambar">Hay una versión más reciente que la que aceptaste</span>{% endif %}</span><i class="fas fa-chevron-down f2c-flecha"></i></summary>
+          <div class="tu2c-det-cuerpo fila">
+            <a href="{% url 'privacidad' %}" class="f2c-btn borde chico">Privacidad</a>
+            <a href="{% url 'terminos' %}" class="f2c-btn borde chico">Términos</a>
+            {% if not politica_al_dia %}
+            <form method="post">{% csrf_token %}<input type="hidden" name="accion" value="aceptar_politica"><button type="submit" class="f2c-btn chico">Aceptar la nueva</button></form>
+            {% endif %}
+          </div>
+        </details>
+        <button type="button" class="f2c-fila" data-tour-iniciar><span class="f2c-txt"><b>Cómo funciona la app</b><span>Un recorrido por cada pantalla</span></span><i class="fas fa-chevron-right f2c-flecha"></i></button>
+      </div>
+
+      <form method="post" action="{% url 'logout' %}">
+        {% csrf_token %}
+        <button type="submit" class="f2c-btn rojo ancho">Salir</button>
+      </form>
+    </div>
+
+    <div class="f2c-col">
+      <div class="f2c-grupo">
+        <span class="f2c-grupo-titulo">Tus datos</span>
+        <div class="f2c-lista">
+          <details class="tu2c-det"{% if perfil_form.errors %} open{% endif %}>
+            <summary class="f2c-fila"><span class="f2c-ficha"><i class="fas fa-user-pen"></i></span><span class="f2c-txt"><b>Nombre, email y teléfono</b><span>Moneda {{ profile.moneda }} · solo el nombre se muestra en la app</span></span><i class="fas fa-chevron-down f2c-flecha"></i></summary>
+            <form method="post" enctype="multipart/form-data" id="formPerfil" class="tu2c-det-cuerpo f2c-form">
+              {% csrf_token %}
+              <input type="hidden" name="accion" value="perfil">
+              <div class="visually-hidden">{{ perfil_form.foto }}</div>
+              <div class="f2c-campos">
+                <label class="f2c-campo" for="{{ perfil_form.nombre_completo.id_for_label }}"><span>Nombre completo</span>{{ perfil_form.nombre_completo }}</label>
+                <div class="f2c-campo"><label for="{{ perfil_form.email.id_for_label }}">Email</label>{{ perfil_form.email }}{% if profile.email_pendiente %}<small>Pendiente: {{ profile.email_pendiente }}. Abre el enlace que te mandamos a esa dirección.</small>{% endif %}</div>
+                {% if user.has_usable_password %}
+                <label class="f2c-campo" for="idPasswordActual"><span>Contraseña actual</span><input type="password" name="password_actual" id="idPasswordActual" autocomplete="current-password" placeholder="Solo si cambias el email"></label>
+                {% elif user.segundo_factor.activo %}
+                <label class="f2c-campo" for="idCodigoActual"><span>Código de tu app</span><input type="text" name="codigo_actual" id="idCodigoActual" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="Solo si cambias el email"></label>
+                {% endif %}
+                <label class="f2c-campo" for="{{ perfil_form.telefono.id_for_label }}"><span>Teléfono</span>{{ perfil_form.telefono }}</label>
+                <label class="f2c-campo" for="{{ perfil_form.ciudad.id_for_label }}"><span>Ciudad</span>{{ perfil_form.ciudad }}</label>
+                <label class="f2c-campo" for="{{ perfil_form.pais.id_for_label }}"><span>País</span>{{ perfil_form.pais }}</label>
+                <label class="f2c-campo" for="{{ perfil_form.moneda.id_for_label }}"><span>Moneda</span>{{ perfil_form.moneda }}<small>Cambia el símbolo en toda la app. No convierte los montos que ya registraste.</small></label>
+              </div>
+              <button type="submit" class="f2c-btn ancho">Guardar cambios</button>
+            </form>
+          </details>
+          <div class="f2c-fila" data-tour="exportar">
+            <span class="f2c-ficha verde"><i class="fas fa-file-excel"></i></span>
+            <span class="f2c-txt"><b>Exportar movimientos</b><span>Excel o CSV, mes por mes</span></span>
+            <span class="tu2c-botones"><a href="{% url 'exportar_excel' %}" class="f2c-btn borde chico">Excel</a><a href="{% url 'exportar_csv' %}" class="f2c-btn borde chico">CSV</a></span>
+          </div>
+          <a href="{% url 'mis_datos' %}" class="f2c-fila"><span class="f2c-ficha"><i class="fas fa-download"></i></span><span class="f2c-txt"><b>Descargar todos mis datos</b><span>Perfil, metas, personas y movimientos</span></span><i class="fas fa-chevron-right f2c-flecha"></i></a>
+          <a href="{% url 'movimientos_repetidos' %}" class="f2c-fila"><span class="f2c-ficha ambar"><i class="fas fa-clone"></i></span><span class="f2c-txt"><b>Movimientos repetidos</b><span>Encuentra los que quedaron dos veces y bórralos</span></span><i class="fas fa-chevron-right f2c-flecha"></i></a>
+        </div>
+      </div>
+
+      <div class="f2c-grupo" data-tour="seguridad">
+        <span class="f2c-grupo-titulo">Seguridad</span>
+        {% with n_pk=user.passkeys.count %}
+        <div class="tu2c-prot">
+          <div class="tu2c-prot-barra"><i class="on"></i><i{% if n_pk %} class="on"{% endif %}></i><i{% if user.segundo_factor.activo %} class="on"{% endif %}></i><i{% if profile.correo_verificado %} class="on"{% endif %}></i></div>
+          {% if not user.segundo_factor.activo %}
+          <span class="f2c-sub">Con la verificación en dos pasos nadie entra solo con tu contraseña.</span>
+          {% elif not n_pk %}
+          <span class="f2c-sub">Con Face ID o huella entras sin escribir la contraseña.</span>
+          {% elif not profile.correo_verificado %}
+          <span class="f2c-sub">Confirma tu correo para recuperar la cuenta si olvidas la contraseña.</span>
+          {% else %}
+          <span class="f2c-sub">Tienes todo activo: contraseña, Face ID o huella, dos pasos y correo confirmado.</span>
+          {% endif %}
+        </div>
+        {% endwith %}
+        <div class="f2c-lista">
+          <a href="{% url 'configurar_2fa' %}" class="f2c-fila" data-tour="dos-pasos"><span class="f2c-ficha{% if user.segundo_factor.activo %} verde{% else %} ambar{% endif %}"><i class="fas fa-shield-halved"></i></span><span class="f2c-txt"><b>Verificación en dos pasos</b><span>{% if user.segundo_factor.activo %}Te pedimos un código al entrar{% else %}Tu cuenta depende solo de la contraseña{% endif %}</span></span>{% if user.segundo_factor.activo %}<span class="f2c-estado verde">Activa</span>{% else %}<span class="f2c-estado ambar">Recomendado</span>{% endif %}</a>
+          <a href="{% url 'sesiones_activas' %}" class="f2c-fila" data-tour="sesiones"><span class="f2c-ficha azul"><i class="fas fa-laptop"></i></span><span class="f2c-txt"><b>Sesiones abiertas</b><span>{{ sesiones_abiertas }} aparato{{ sesiones_abiertas|pluralize:"s" }} con tu cuenta abierta</span></span><i class="fas fa-chevron-right f2c-flecha"></i></a>
+          <a href="{% url 'actividad_cuenta' %}" class="f2c-fila"><span class="f2c-ficha azul"><i class="fas fa-clock-rotate-left"></i></span><span class="f2c-txt"><b>Actividad de la cuenta</b><span>Entradas, intentos fallidos y cambios de seguridad</span></span><i class="fas fa-chevron-right f2c-flecha"></i></a>
+          <div class="f2c-fila">
+            <span class="f2c-ficha{% if profile.correo_verificado %} verde{% else %} rojo{% endif %}"><i class="fas fa-envelope-circle-check"></i></span>
+            <span class="f2c-txt"><b>Correo de recuperación</b><span>{{ user.email|default:"Sin correo guardado" }}{% if user.email and not profile.correo_verificado %} · sin confirmar{% endif %}</span></span>
+            {% if profile.correo_verificado %}<span class="f2c-estado verde">Confirmado</span>{% elif user.email %}<form method="post" action="{% url 'reenviar_verificacion' %}">{% csrf_token %}<button type="submit" class="f2c-btn borde chico">Confirmar</button></form>{% endif %}
+          </div>
+          <details class="tu2c-det" data-tour="contrasena"{% if pw_form.errors %} open{% endif %}>
+            <summary class="f2c-fila"><span class="f2c-ficha"><i class="fas fa-key"></i></span><span class="f2c-txt"><b>Cambiar contraseña</b><span>Necesitas la actual. No se cierra tu sesión</span></span><i class="fas fa-chevron-down f2c-flecha"></i></summary>
+            <form method="post" class="tu2c-det-cuerpo f2c-form">
+              {% csrf_token %}
+              <input type="hidden" name="accion" value="password">
+              {% if pw_form.errors %}<div class="f2c-aviso rojo"><span class="f2c-txt">{% for campo, errores in pw_form.errors.items %}{% for e in errores %}<span>{{ e }}</span>{% endfor %}{% endfor %}</span></div>{% endif %}
+              <label class="f2c-campo" for="{{ pw_form.old_password.id_for_label }}"><span>Contraseña actual</span><input type="password" name="old_password" id="{{ pw_form.old_password.id_for_label }}" autocomplete="current-password" placeholder="••••••••"></label>
+              <div class="f2c-campos">
+                <label class="f2c-campo" for="{{ pw_form.new_password1.id_for_label }}"><span>Nueva contraseña</span><input type="password" name="new_password1" id="{{ pw_form.new_password1.id_for_label }}" autocomplete="new-password" placeholder="al menos 8 caracteres"></label>
+                <div class="f2c-campo"><label for="{{ pw_form.new_password2.id_for_label }}">Repítela</label><input type="password" name="new_password2" id="{{ pw_form.new_password2.id_for_label }}" autocomplete="new-password" placeholder="••••••••"><small id="coincide"></small></div>
+              </div>
+              <button type="submit" class="f2c-btn ancho">Cambiar contraseña</button>
+            </form>
+          </details>
+          <div class="f2c-fila"><span class="f2c-ficha"><i class="fas fa-user"></i></span><span class="f2c-txt"><b>Usuario</b><span>Con el que entras. No se puede cambiar</span></span><b class="f2c-valor">{{ request.user.username }}</b></div>
+        </div>
+      </div>
+
+      <a href="{% url 'eliminar_cuenta' %}" class="f2c-texto-btn rojo" data-tour="eliminar-cuenta"><i class="fas fa-trash-can"></i>Eliminar mi cuenta</a>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script type="module" src="{% static 'js/pantallas/recordatorios.js' %}" nonce="{{ csp_nonce }}"></script>
+<script type="module" src="{% static 'js/dispositivo.js' %}" nonce="{{ csp_nonce }}"></script>
+<script type="module" data-js="perfil" src="{% static 'js/pantallas/perfil.js' %}" nonce="{{ csp_nonce }}" data-foto="{{ perfil_form.foto.id_for_label }}"></script>
+<script type="module" data-js="perfil-2" src="{% static 'js/pantallas/perfil-2.js' %}" nonce="{{ csp_nonce }}" {% if pw_form.errors %}data-pw-errores="1" {% endif %}data-p1="{{ pw_form.new_password1.id_for_label }}" data-p2="{{ pw_form.new_password2.id_for_label }}"></script>
+{% endblock %}

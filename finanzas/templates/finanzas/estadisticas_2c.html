@@ -1,0 +1,65 @@
+{% extends 'finanzas/base_2c.html' %}
+{% load static moneda f2c %}
+{% block title %}Estadísticas · Fintora{% endblock %}
+{% block topbar_mes %}{% include 'finanzas/_mes_topbar.html' %}{% endblock %}
+{% block extra_head %}<link rel="stylesheet" href="{% static 'css/mes-elegir.css' %}">
+<link rel="stylesheet" href="{% static 'css/secciones-2c.css' %}">{% endblock %}
+
+{% block content %}
+<div class="f2c-pagina">
+  <div class="p2c-top"><h1 class="f2c-titulo-tel" data-tour="graficos">Plan</h1>{% include 'finanzas/_mes_elegir.html' %}</div>
+
+  <div class="f2c-grid">
+    <div class="f2c-col">
+      {% barras meses_json gastos_json 6 as barras_gasto %}
+      <section class="f2c-tarjeta">
+        <div class="es2c-cab">
+          <span class="f2c-grupo-titulo">Gastos por mes</span>
+          <b class="es2c-titulo">{% if ranking %}{{ ranking.0.label }} es tu mayor gasto {{ mes_sel.en_mes }}{% else %}Sin gastos {{ mes_sel.en_mes }}{% endif %}</b>
+          <span class="f2c-sub">Gastas {{ promedio_gasto|money }} en un mes promedio.</span>
+        </div>
+        <div class="es2c-barras" role="img" aria-label="Gastos de los últimos meses">
+          {% for b in barras_gasto %}
+          <span class="es2c-barra{% if b.actual %} actual{% endif %}">
+            <b>{% if b.valor %}{{ b.valor|corto:simbolo_moneda }}{% else %}—{% endif %}</b>
+            <i data-alto-pct="{{ b.alto }}"></i>
+            <small>{{ b.etiqueta }}</small>
+          </span>
+          {% endfor %}
+        </div>
+      </section>
+
+      <section class="f2c-tarjeta">
+        <b class="es2c-titulo">Por categoría, {{ mes_sel.en_mes|cut:"en " }}</b>
+        {% for r in ranking %}
+        <div class="es2c-cat" data-searchable>
+          <div class="es2c-cat-cab"><span>{{ r.label }}</span><b>{{ r.total|money }}</b></div>
+          <span class="f2c-barra"><i data-ancho-pct="{{ r.ancho }}" data-fondo="{{ r.color }}"></i></span>
+          {% if r.delta != None %}<small class="es2c-delta{% if r.subio %} sube{% else %} baja{% endif %}">{% if r.subio %}{{ r.delta }}% más{% else %}{{ r.delta|cut:"-" }}% menos{% endif %} que {{ mes_sel.ref_anterior }}</small>{% else %}<small class="es2c-delta">Nueva {{ mes_sel.en_mes }}</small>{% endif %}
+        </div>
+        {% empty %}
+        <div class="f2c-vacio"><i class="fas fa-chart-pie"></i><b>Sin gastos {{ mes_sel.en_mes }}</b><span>Anota un gasto y aquí verás en qué se te va.</span></div>
+        {% endfor %}
+      </section>
+    </div>
+
+    <aside class="f2c-col">
+      <section class="f2c-tarjeta">
+        <div class="f2c-cifra">
+          <span class="f2c-etq">Ahorro del último año</span>
+          <span class="f2c-monto{% if ahorro_anual < 0 %} rojo{% endif %}">{{ ahorro_anual|money }}</span>
+        </div>
+        <div class="es2c-metricas">
+          <div><span>Gasto promedio</span><b>{{ promedio_gasto|money }}</b><small>al mes</small></div>
+          <div><span>Mejor mes</span>{% if mejor_ahorro > 0 %}<b class="verde">{{ mejor_ahorro|money }}</b><small>Ahorraste en {{ mejor_mes }}</small>{% else %}<b>—</b><small>Aún sin un mes en positivo</small>{% endif %}</div>
+          <div><span>Mes más caro</span><b class="rojo">{{ peor_gasto|money }}</b><small>{% if peor_mes %}Salidas de {{ peor_mes }}{% else %}Sin datos todavía{% endif %}</small></div>
+          <div><span>Tasa de ahorro</span><b>{{ tasa_ahorro }}%</b><small>{% if tasa_ahorro > 0 %}De cada $100 guardas ${{ tasa_ahorro }}{% else %}Gastas más de lo que entra{% endif %}</small></div>
+        </div>
+      </section>
+      <a href="{% url 'deudas' %}" class="f2c-btn borde ancho">Ver tus cuotas mes a mes<i class="fas fa-chevron-right"></i></a>
+    </aside>
+  </div>
+</div>
+{% endblock %}
+
+{% block modals %}{% include 'finanzas/_mes_modal.html' %}{% endblock %}

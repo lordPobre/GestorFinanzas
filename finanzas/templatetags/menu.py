@@ -22,6 +22,7 @@ def menu(context, modo):
             'barra': barra,
             'pestanas': navegacion.pestanas_2c(actual),
             'seccion': navegacion.seccion_2c(actual),
+            'titulo': next((i['etiqueta'] for i in barra if i['activa']), 'Fintora'),
             'hoja': [],
             'cuenta': navegacion.menu_cuenta(navegacion.armar(actual, {}, bool(getattr(usuario, 'is_staff', False)))),
             'profile': context.get('profile'),

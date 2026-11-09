@@ -62,6 +62,7 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'finanzas.plantillas_2c.Diseno2cMiddleware',
     'finanzas.middleware.SinCacheMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'finanzas.middleware.SesionAbsolutaMiddleware',
@@ -75,8 +76,14 @@ TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [],
-        'APP_DIRS': True,
+        'APP_DIRS': False,
         'OPTIONS': {
+            'loaders': [
+                ('finanzas.plantillas_2c.Cargador', [
+                    'django.template.loaders.filesystem.Loader',
+                    'django.template.loaders.app_directories.Loader',
+                ]),
+            ],
             'context_processors': [
                 'django.template.context_processors.debug',
                 'django.template.context_processors.request',
@@ -235,6 +242,8 @@ Q_CLUSTER = {
     'label': 'Cola',
     'sync': sys.argv[1:2] == ['test'] or _COLA_SINCRONA,
 }
+
+DISENO_2C_PARA_TODOS = os.environ.get('DISENO_2C_PARA_TODOS', '').strip().lower() in ('1', 'true', 'si')
 
 RESPUESTA_LENTA_MS = int(os.environ.get('RESPUESTA_LENTA_MS', '1500') or 1500)
 

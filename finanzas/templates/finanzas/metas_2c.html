@@ -1,0 +1,116 @@
+{% extends 'finanzas/base_2c.html' %}
+{% load static moneda %}
+{% block title %}Metas · Fintora{% endblock %}
+{% block extra_head %}<link rel="stylesheet" href="{% static 'css/secciones-2c.css' %}">{% endblock %}
+
+{% block content %}
+<div class="f2c-pagina">
+  <div class="p2c-top"><h1 class="f2c-titulo-tel">Plan</h1></div>
+
+  <div class="f2c-grid">
+    <div class="f2c-col">
+      {% if metas_datos %}
+      <div class="me2c-lista">
+        {% for d in metas_datos %}
+        <article class="me2c-meta{% if d.meta.esta_completa %} completa{% endif %}" id="meta{{ d.meta.pk }}" data-searchable>
+          <div class="me2c-cab">
+            <span class="f2c-ficha redonda verde"><i class="fas {% if d.meta.esta_completa %}fa-trophy{% else %}fa-bullseye{% endif %}"></i></span>
+            <span class="f2c-txt"><b class="me2c-nombre">{{ d.meta.nombre }}</b><span>{{ d.meta.monto_actual|money }} de {{ d.meta.monto_meta|money }}</span></span>
+            <b class="me2c-pct">{{ d.meta.porcentaje|floatformat:0 }}%</b>
+          </div>
+          <span class="f2c-barra gruesa"><i data-ancho-pct="{{ d.meta.porcentaje|floatformat:'0u' }}"></i></span>
+          <span class="me2c-nota">{% if d.meta.esta_completa %}Llegaste a la meta.{% elif d.meta.ahorro_mensual_sugerido %}{{ d.meta.ahorro_mensual_sugerido|money }} al mes para llegar{% if d.meta.fecha_limite %} en {{ d.meta.fecha_limite|date:"F Y"|lower }}{% endif %}.{% else %}Faltan {{ d.meta.monto_faltante|money }}.{% endif %}{% if d.aportado_6m %} Aportaste {{ d.aportado_6m|money }} en 6 meses.{% endif %}</span>
+          <div class="me2c-acciones">
+            {% if d.meta.esta_completa %}
+            <span class="f2c-estado verde"><i class="fas fa-trophy"></i>Cumplida</span>
+            {% else %}
+            <button type="button" class="f2c-btn chico" data-open="#modalAporte{{ d.meta.pk }}">Aportar</button>
+            {% if d.meses_quieta and d.meses_quieta >= 2 %}<span class="f2c-estado ambar">Quieta {{ d.meses_quieta }} meses</span>{% endif %}
+            {% endif %}
+            <span class="me2c-mas">
+              <a href="{% url 'editar_meta' d.meta.pk %}" class="f2c-texto-btn"><i class="fas fa-pen"></i>Editar</a>
+              <form method="post" action="{% url 'eliminar_meta' d.meta.pk %}" data-confirm="¿Eliminar la meta {{ d.meta.nombre }}?">
+                {% csrf_token %}
+                <input type="hidden" name="next" value="{% url 'metas' %}">
+                <button type="submit" class="f2c-texto-btn rojo" aria-label="Eliminar {{ d.meta.nombre }}"><i class="fas fa-trash-can"></i></button>
+              </form>
+            </span>
+          </div>
+        </article>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div class="f2c-vacio">
+        <i class="fas fa-bullseye"></i>
+        <b>Todavía no tienes metas</b>
+        <span>Una meta le pone nombre a tu ahorro. Con una fecha, calculamos cuánto aportar cada mes para llegar.</span>
+      </div>
+      {% endif %}
+      <button type="button" class="f2c-btn borde ancho" data-open="#modalMeta" data-tour="metas"><i class="fas fa-plus"></i>Nueva meta</button>
+    </div>
+
+    <aside class="f2c-col me2c-lado">
+      <div class="f2c-tarjeta">
+        <div class="f2c-cifra">
+          <span class="f2c-etq">Llevas ahorrado</span>
+          <span class="f2c-monto">{{ total_ahorrado|default:0|money }}</span>
+          {% if metas_datos %}<span class="f2c-chips"><span>de {{ total_meta|money }}</span><span>Te faltan {{ total_faltante|money }}</span></span>{% endif %}
+        </div>
+      </div>
+    </aside>
+  </div>
+</div>
+{% endblock %}
+
+{% block modals %}
+<div class="modal-overlay" id="modalMeta">
+  <div class="modal-box caja-420">
+    <div class="modal-head">
+      <div>
+        <div class="modal-title">Nueva meta</div>
+        <div class="modal-sub">Con una fecha calculamos cuánto aportar al mes.</div>
+      </div>
+      <button class="modal-close" data-close aria-label="Cerrar"><i class="fas fa-xmark"></i></button>
+    </div>
+    <form method="post" action="{% url 'crear_meta' %}" class="f2c-form">
+      {% csrf_token %}
+      <input type="hidden" name="next" value="{% url 'metas' %}">
+      <label class="f2c-campo" for="{{ form.nombre.id_for_label }}"><span>Nombre de la meta</span>{{ form.nombre }}</label>
+      <label class="f2c-campo" for="{{ form.monto_meta.id_for_label }}"><span>Cuánto necesitas</span>{{ form.monto_meta }}</label>
+      <label class="f2c-campo" for="{{ form.monto_actual.id_for_label }}"><span>Ya tienes (opcional)</span>{{ form.monto_actual }}</label>
+      <label class="f2c-campo" for="{{ form.fecha_limite.id_for_label }}"><span>{{ form.fecha_limite.label }}</span>{{ form.fecha_limite }}<small>{{ form.fecha_limite.help_text }}</small></label>
+      <button type="submit" class="f2c-btn ancho">Crear meta</button>
+    </form>
+  </div>
+</div>
+
+{% for d in metas_datos %}{% if not d.meta.esta_completa %}
+<div class="modal-overlay" id="modalAporte{{ d.meta.pk }}">
+  <div class="modal-box caja-400">
+    <div class="modal-head">
+      <div>
+        <div class="modal-title">Aportar a {{ d.meta.nombre }}</div>
+        <div class="modal-sub">Faltan {{ d.meta.monto_faltante|money }} para llegar.</div>
+      </div>
+      <button class="modal-close" data-close aria-label="Cerrar"><i class="fas fa-xmark"></i></button>
+    </div>
+    <form method="post" action="{% url 'aportar_meta' d.meta.pk %}" class="f2c-form">
+      {% csrf_token %}
+      <input type="hidden" name="next" value="{% url 'metas' %}">
+      <div class="chips me2c-montos" data-montos="#id_aporte_{{ d.meta.pk }}">
+        {% if d.meta.ahorro_mensual_sugerido %}<button type="button" class="chip" data-monto="{{ d.meta.ahorro_mensual_sugerido|floatformat:0 }}">Lo que necesitas · {{ d.meta.ahorro_mensual_sugerido|money }}</button>{% endif %}
+        {% if d.promedio_mes %}<button type="button" class="chip" data-monto="{{ d.promedio_mes }}">Tu promedio · {{ d.promedio_mes|money }}</button>{% endif %}
+        <button type="button" class="chip" data-monto="{{ d.meta.monto_faltante|floatformat:0 }}">Todo lo que falta</button>
+      </div>
+      <label class="f2c-campo"><span>Cuánto aportas</span><input type="number" name="monto" id="id_aporte_{{ d.meta.pk }}" class="input-amount" min="1" inputmode="numeric" required></label>
+      <label class="f2c-campo"><span>Nota (opcional)</span><input type="text" name="nota" id="id_nota_{{ d.meta.pk }}" placeholder="Ej: sueldo de noviembre"></label>
+      <button type="submit" class="f2c-btn verde ancho">Registrar aporte</button>
+    </form>
+  </div>
+</div>
+{% endif %}{% endfor %}
+{% endblock %}
+
+{% block extra_js %}
+<script type="module" src="{% static 'js/pantallas/metas.js' %}" nonce="{{ csp_nonce }}"></script>
+{% endblock %}
