@@ -69,3 +69,38 @@ def menu_cuenta(items):
 
 def mas_activo(actual):
     return actual not in EN_LA_BARRA
+
+
+SECCIONES_2C = (
+    ('inicio', 'Inicio', 'fa-house', 'dashboard', ('dashboard',)),
+    ('pagos', 'Pagos', 'fa-receipt', 'por_pagar',
+     ('por_pagar', 'deudas', 'crear_deuda', 'editar_deuda', 'suscripciones', 'editar_suscripcion', 'prestamos')),
+    ('plan', 'Plan', 'fa-chart-pie', 'metas', ('metas', 'plan_plata', 'estadisticas', 'analisis_predictivo')),
+    ('tu', 'Tú', 'fa-user', 'perfil',
+     ('perfil', 'categorias', 'importar_cartola', 'revisar_cartola', 'clave_api', 'encuesta',
+      'encuesta_resultados', 'sesiones_activas', 'actividad_cuenta', 'mis_datos')),
+)
+
+PESTANAS_2C = {
+    'plan': (('metas', 'Metas', ()), ('plan_plata', 'Tu plan', ()), ('estadisticas', 'Estadísticas', ()),
+             ('analisis_predictivo', 'Análisis IA', ())),
+    'tu': (('perfil', 'Perfil', ('sesiones_activas', 'actividad_cuenta', 'mis_datos')),
+           ('categorias', 'Categorías y topes', ()), ('importar_cartola', 'Importar cartola', ('revisar_cartola',)),
+           ('clave_api', 'Anotar desde afuera', ())),
+}
+
+
+def seccion_2c(actual):
+    return next((s[0] for s in SECCIONES_2C if actual in s[4]), None)
+
+
+def barra_2c(actual):
+    seccion = seccion_2c(actual)
+    return [{'clave': clave, 'etiqueta': etiqueta, 'icono': icono, 'url': reverse(url), 'activa': seccion == clave}
+            for clave, etiqueta, icono, url, _ in SECCIONES_2C]
+
+
+def pestanas_2c(actual):
+    seccion = seccion_2c(actual)
+    return [{'etiqueta': etiqueta, 'url': reverse(clave), 'activa': actual == clave or actual in tambien}
+            for clave, etiqueta, tambien in PESTANAS_2C.get(seccion, ())]

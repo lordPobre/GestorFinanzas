@@ -135,6 +135,7 @@
       {% block saludo_tel %}{% endblock %}
 
       <script src="{% static 'js/pantallas/saludo-hora.js' %}" nonce="{{ csp_nonce }}"></script>
+      {% if t2c %}{% menu 'pestanas' %}{% endif %}
       {% block content %}{% endblock %}
     </main>
   </div>
@@ -142,7 +143,7 @@
 
 {% menu 'barra' %}
 
-<div class="fab-group">
+{% if not t2c %}<div class="fab-group">
   {% block fab %}
   <button class="fab fab-mini" data-open="#modalGasto" data-preset-tipo="INGRESO"
           aria-label="Registrar un ingreso" title="Registrar un ingreso">
@@ -153,7 +154,7 @@
     <i class="fas fa-plus ico-18"></i>
   </button>
   {% endblock %}
-</div>
+</div>{% endif %}
 
 <div class="modal-overlay hoja-overlay" id="modalMas">
   <div class="modal-box hoja-box">

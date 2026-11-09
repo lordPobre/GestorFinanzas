@@ -1,12 +1,21 @@
 {% if modo == 'lateral' %}<nav class="sidebar-nav">
 {% for g in grupos %}      <div class="nav-group">
-        <div class="nav-title">{{ g.titulo }}</div>
+        {% if g.titulo %}<div class="nav-title">{{ g.titulo }}</div>{% endif %}
 {% for i in g.items %}        <a href="{{ i.url }}" data-label="{{ i.etiqueta }}" class="nav-item {% if i.activa %}active{% endif %}"{% if i.activa %} aria-current="page"{% endif %}>
           <i class="fas {{ i.icono }}"></i><span>{{ i.etiqueta }}</span>
           {% if i.cuenta_items %}<span class="nav-count">{{ i.cuenta_items }}</span>{% endif %}
         </a>
 {% endfor %}      </div>
-{% endfor %}    </nav>{% elif modo == 'barra' %}<nav class="bottomnav">
+{% endfor %}    </nav>{% if dos_c %}
+    <button type="button" class="sidebar-anotar" data-open="#modalGasto" data-preset-tipo="EGRESO" data-tour="registrar"><i class="fas fa-plus"></i>Anotar</button>{% endif %}{% elif modo == 'barra2c' %}<nav class="bottomnav barra-2c">
+{% for i in barra %}{% if forloop.counter == 3 %}  <button type="button" class="nav-item nav-anotar" data-open="#modalGasto" data-preset-tipo="EGRESO" data-label="Anotar" aria-label="Anotar"><span class="nav-anotar-boton"><i class="fas fa-plus"></i></span><span>Anotar</span></button>
+{% endif %}  <a href="{{ i.url }}" data-label="{{ i.etiqueta }}" class="nav-item {% if i.activa %}active{% endif %}"{% if i.activa %} aria-current="page"{% endif %}>
+    <i class="fas {{ i.icono }}"></i><span>{{ i.etiqueta }}</span>
+  </a>
+{% endfor %}</nav>{% elif modo == 'pestanas' %}{% if pestanas %}<nav class="sec-2c-pestanas" aria-label="{% if seccion == 'plan' %}Plan{% else %}Tú{% endif %}">
+{% for p in pestanas %}  <a href="{{ p.url }}" class="sec-2c-pestana{% if p.activa %} on{% endif %}"{% if p.activa %} aria-current="page"{% endif %}>{{ p.etiqueta }}</a>
+{% endfor %}{% if seccion == 'tu' %}  <a href="{% url 'diseno_actual' %}" class="sec-2c-pestana volver">Volver al diseño actual</a>
+{% endif %}</nav>{% endif %}{% elif modo == 'barra' %}<nav class="bottomnav">
 {% for i in barra %}  <a href="{{ i.url }}" data-label="{{ i.etiqueta }}" class="nav-item {% if i.activa %}active{% endif %}"{% if i.activa %} aria-current="page"{% endif %}>
     <i class="fas {{ i.icono }}"></i><span>{{ i.etiqueta }}</span>
   </a>
