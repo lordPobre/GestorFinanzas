@@ -8,7 +8,7 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
 from django.urls import reverse
 
-from .. import fechas
+from .. import diseno, fechas
 from ..dinero import redondear, suma
 from .. import encuesta as encuesta_mod
 from .. import legal, push
@@ -16,6 +16,7 @@ from ..models import Deuda, GastoPendiente, MetaAhorro, Presupuesto, Transaccion
 from ..servicios.cuotas import proyecciones_deuda_activas
 from ..servicios.esfera import estado_esfera
 from ..servicios.esfera_bienvenida import bienvenida_esfera
+from ..servicios.inicio_2c import datos_inicio_2c
 from ..servicios.mes import MESES_LARGOS, nombre_mes_es, resumen_mes, salud_financiera
 from ..servicios.panel import insights_panel, primeros_pasos, serie_seis_meses
 from ..servicios.pendientes import calendario_del_mes, pendientes_del_mes
@@ -244,4 +245,7 @@ def dashboard(request):
     context['politica_vigente'] = legal.VIGENTE_DESDE
     context['politica_cambios'] = legal.CAMBIOS
     context['mostrar_encuesta'] = encuesta_mod.debe_mostrar(request)
+    if diseno.activo(request):
+        context.update(datos_inicio_2c(request.user, r, plata, proyecciones_deuda))
+        return render(request, 'finanzas/dashboard_2c.html', context)
     return render(request, 'finanzas/dashboard.html', context)

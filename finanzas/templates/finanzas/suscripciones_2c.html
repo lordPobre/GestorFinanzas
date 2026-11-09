@@ -1,0 +1,194 @@
+{% extends 'finanzas/base.html' %}
+{% load static moneda marcas %}
+{% block search_placeholder %}Filtrar suscripciones{% endblock %}
+{% block title %}Suscripciones · Fintora{% endblock %}
+{% block extra_head %}<link rel="stylesheet" href="{% static 'css/pagos-2c.css' %}">
+<link rel="stylesheet" href="{% static 'css/suscripciones-2c.css' %}">{% endblock %}
+
+{% block content %}
+<div class="p2c">
+  <div class="p2c-top">
+    <h1 class="p2c-titulo">Pagos</h1>
+  </div>
+  {% include 'finanzas/_pagos_pestanas.html' with activa='subs' %}
+
+  {% if atrasadas %}
+  <div class="s2c-alerta"><i class="fas fa-triangle-exclamation"></i><span><b>{{ atrasadas }} suscripci{{ atrasadas|pluralize:"ón,ones" }} con meses sin pagar</b> Suman {{ monto_atrasado|money }} de cobros que ya pasaron.</span></div>
+  {% endif %}
+
+  <div class="p2c-grid">
+    <div class="p2c-col">
+      {% if sugerencias %}
+      <section class="s2c-tarjeta">
+        <div class="s2c-cab"><b>¿Estas son suscripciones?</b><span>Cobros que se repiten cada mes en tus movimientos y cartolas</span></div>
+        {% for g in sugerencias %}
+        <div class="s2c-fila">
+          {% marca_de g.nombre as m %}{% if m %}{% include 'finanzas/_marca.html' with clase="s2c-ficha" %}{% else %}<span class="s2c-ficha">{{ g.nombre|first|upper }}</span>{% endif %}
+          <span class="p2c-txt"><b>{{ g.nombre }}</b><span>{{ g.monto|money }} · {{ g.meses }} meses seguidos · {{ g.anual|money }} al año</span></span>
+          <span class="s2c-botones">
+            <form method="post" action="{% url 'agregar_sugerencia' %}">{% csrf_token %}<input type="hidden" name="clave" value="{{ g.clave }}"><button type="submit" class="p2c-pagar">Agregar</button></form>
+            <form method="post" action="{% url 'descartar_sugerencia' %}">{% csrf_token %}<input type="hidden" name="clave" value="{{ g.clave }}"><button type="submit" class="s2c-chico" aria-label="{{ g.nombre }} no es una suscripción">No es</button></form>
+          </span>
+        </div>
+        {% endfor %}
+      </section>
+      {% endif %}
+
+      {% if suscripciones %}
+      <section class="p2c-grupo">
+        {% for s in suscripciones %}
+        <div class="s2c-sub{% if not s.activa %} pausada{% endif %}{% if s.estado_mes == 'atrasada' %} atrasada{% endif %}" data-desplegable data-searchable>
+          <div class="s2c-linea">
+            <button type="button" class="s2c-abrir" data-desplegar aria-expanded="false">
+              {% marca_de s.nombre as m %}{% if m %}{% include 'finanzas/_marca.html' with clase="s2c-ficha" %}{% else %}<span class="s2c-ficha">{{ s.nombre|first|upper }}</span>{% endif %}
+              <span class="p2c-txt"><b>{{ s.nombre }}</b><span>{% if not s.activa %}Pausada · ahorras {{ s.monto_anual|money }} al año{% elif s.estado_mes == 'atrasada' %}Atrasada · se cobra el {{ s.dia_cobro }}{% else %}Se cobra el {{ s.dia_cobro }}{% endif %}</span></span>
+              <b class="p2c-fila-monto">{{ s.monto|money }}</b>
+            </button>
+            {% if s.activa %}
+              {% if s.periodo_a_pagar %}
+              <form method="post" action="{% url 'pagar_servicio' s.pk %}">
+                {% csrf_token %}
+                <input type="hidden" name="periodo" value="{{ s.periodo_a_pagar }}">
+                <button type="submit" class="p2c-pagar" title="{{ s.texto_a_pagar }}">Pagar</button>
+              </form>
+              {% else %}
+              <form method="post" action="{% url 'anular_pago_servicio' s.pk %}" data-confirm="¿Marcar {{ s.nombre }} como no pagada este mes?">
+                {% csrf_token %}
+                <button type="submit" class="p2c-pagado" aria-label="Pagada. Deshacer el pago del mes"><i class="fas fa-check"></i>Pagada</button>
+              </form>
+              {% endif %}
+            {% else %}
+            <form method="post" action="{% url 'cancelar_suscripcion' s.pk %}">
+              {% csrf_token %}
+              <button type="submit" class="s2c-chico" aria-label="Reactivar {{ s.nombre }}">Reactivar</button>
+            </form>
+            {% endif %}
+          </div>
+          <div class="s2c-mas">
+            <span class="s2c-nota">{{ s.monto_anual|money }} al año · {{ s.texto_cobro }}</span>
+            <div class="s2c-botones">
+              <a href="{% url 'editar_suscripcion' s.pk %}" class="s2c-chico"><i class="fas fa-pen"></i>Editar</a>
+              {% if s.activa %}
+              <form method="post" action="{% url 'cancelar_suscripcion' s.pk %}" data-confirm="¿Dejar de pagar {{ s.nombre }}? Ahorras {{ s.monto_anual|money }} al año.">
+                {% csrf_token %}
+                <button type="submit" class="s2c-chico"><i class="fas fa-pause"></i>Pausar</button>
+              </form>
+              {% endif %}
+              <button type="button" class="s2c-chico rojo" data-open="#eliminarSub{{ s.pk }}"><i class="fas fa-trash-can"></i>Eliminar</button>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </section>
+      {% else %}
+      <div class="p2c-vacio-grande">
+        <i class="fas fa-rotate"></i>
+        <b>No tienes suscripciones registradas</b>
+        <span>Agrega las que pagas todos los meses y Fintora las cobra sola, para que aparezcan en tus gastos sin anotarlas.</span>
+        <button type="button" class="s2c-nueva" data-open="#modalSub">Agregar la primera</button>
+      </div>
+      {% endif %}
+    </div>
+
+    <aside class="p2c-col s2c-lado">
+      <section class="p2c-resumen">
+        <span class="p2c-etq">Pagas al mes</span>
+        <span class="p2c-monto">{{ total_mensual|default:0|money }}</span>
+        <span class="p2c-nota">{{ total_anual|default:0|money }} al año{% if monto_pendiente_mes %} · falta pagar {{ monto_pendiente_mes|money }}{% elif suscripciones %} · al día{% endif %}</span>
+        <button type="button" class="s2c-nueva" data-open="#modalSub" data-tour="suscripciones"><i class="fas fa-plus"></i>Nueva suscripción</button>
+      </section>
+
+      {% if duplicadas %}
+      <section class="s2c-tarjeta" data-consejos>
+        <div class="s2c-cab"><b>Para ahorrar</b><span>Hasta <b data-consejos-total>{{ ahorro_total|money }}</b> al año</span></div>
+        {% for g in duplicadas %}
+        <article class="s2c-tip" data-consejo="{{ g.clave }}" data-ahorro="{{ g.ahorro_anual }}">
+          <span class="p2c-txt"><b>{% for i in g.items %}{{ i.nombre }}{% if not forloop.last %}{% if forloop.revcounter == 2 %} y {% else %}, {% endif %}{% endif %}{% endfor %}</b><span>{{ g.items|length }} en {{ g.categoria }} · quedándote con uno ahorras hasta {{ g.ahorro_anual|money }} al año</span></span>
+          <div class="s2c-elegir" data-consejo-lista hidden>
+            {% for i in g.items %}
+            <div class="s2c-op">
+              <span>{{ i.nombre }} · {{ i.monto|money }} al mes</span>
+              <form method="post" action="{% url 'cancelar_suscripcion' i.pk %}" data-confirm="¿Pausar {{ i.nombre }}? Ahorras {{ i.monto_anual|money }} al año.">
+                {% csrf_token %}
+                <button type="submit" class="s2c-chico"><i class="fas fa-pause"></i>Pausar</button>
+              </form>
+            </div>
+            {% endfor %}
+          </div>
+          <div class="s2c-botones">
+            <button type="button" class="s2c-chico" data-consejo-elegir aria-expanded="false">Elegir con cuál me quedo<i class="fas fa-chevron-down"></i></button>
+            <button type="button" class="s2c-chico" data-consejo-ocultar>No son lo mismo</button>
+          </div>
+        </article>
+        {% endfor %}
+      </section>
+      {% endif %}
+    </aside>
+  </div>
+</div>
+{% endblock %}
+
+{% block modals %}
+<div class="modal-overlay c2c-modal" id="modalSub">
+  <div class="modal-box caja-420">
+    <div class="modal-head">
+      <div>
+        <div class="modal-title">Nueva suscripción</div>
+        <div class="modal-sub">Se cobra sola cada mes hasta que la pauses.</div>
+      </div>
+      <button class="modal-close" data-close aria-label="Cerrar"><i class="fas fa-xmark"></i></button>
+    </div>
+    <form method="post" action="{% url 'crear_suscripcion' %}" class="s2c-form">
+      {% csrf_token %}
+      <label class="s2c-campo"><span>Servicio</span><input type="text" name="nombre" id="id_sub_nombre" placeholder="Ej: Netflix, Spotify, Gimnasio" required></label>
+      <div class="s2c-dos">
+        <label class="s2c-campo"><span>Monto mensual</span><input type="number" name="monto" id="id_sub_monto" placeholder="9900" min="1" required></label>
+        <label class="s2c-campo"><span>Día de cobro</span><input type="number" name="dia_cobro" id="id_sub_dia" min="1" max="28" value="1" aria-describedby="ayudaSubDia"><small id="ayudaSubDia">Del 1 al 28, así se cobra todos los meses, incluso en febrero.</small></label>
+      </div>
+      <div class="s2c-campo"><span>Categoría</span>
+        <input type="hidden" name="categoria" id="id_sub_categoria" value="Suscripciones">
+        <div class="chips c2c-chips-cat" data-field="#id_sub_categoria">
+          <button type="button" class="chip on" data-value="Suscripciones">Suscripciones</button>
+          <button type="button" class="chip" data-value="Ocio">Entretenimiento</button>
+          <button type="button" class="chip" data-value="Servicios">Servicios</button>
+          <button type="button" class="chip" data-value="Salud">Salud</button>
+        </div>
+      </div>
+      <div class="s2c-previo">
+        <span class="s2c-previo-etq">Lo que te costaría</span>
+        <div><span>Al año</span><b id="subAnual">$0</b></div>
+        <span id="subNota">Se suma a tus {{ total_mensual|default:0|money }} mensuales actuales.</span>
+      </div>
+      <button type="submit" class="s2c-guardar">Agregar suscripción</button>
+    </form>
+  </div>
+</div>
+
+{% for s in suscripciones %}
+<div class="modal-overlay" id="eliminarSub{{ s.pk }}">
+  <div class="modal-box caja-400">
+    <div class="modal-head">
+      <div>
+        <div class="modal-title">Eliminar {{ s.nombre }}</div>
+        <div class="modal-sub">Se borra por completo y no se puede deshacer.</div>
+      </div>
+      <button class="modal-close" data-close aria-label="Cerrar"><i class="fas fa-xmark"></i></button>
+    </div>
+    <form method="post" action="{% url 'eliminar_suscripcion' s.pk %}" class="s2c-form">
+      {% csrf_token %}
+      {% if s.cobros_cantidad %}
+      <label class="s2c-borrar">
+        <input type="checkbox" name="borrar_gastos" value="1"{% if s.borrar_cobros_sugerido %} checked{% endif %}>
+        <span><b>Borrar también {{ s.cobros_cantidad }} gasto{{ s.cobros_cantidad|pluralize }} de {{ s.cobros_total|money }}</b>Márcalo si fue una prueba o un error. Si la pagaste de verdad, déjalo sin marcar para no cambiar tus meses anteriores.</span>
+      </label>
+      {% endif %}
+      <button type="submit" class="s2c-eliminar">Eliminar suscripción</button>
+    </form>
+  </div>
+</div>
+{% endfor %}
+{% endblock %}
+
+{% block extra_js %}
+<script type="module" data-js="suscripciones" src="{% static 'js/pantallas/suscripciones.js' %}" nonce="{{ csp_nonce }}" data-total-mensual="{{ total_mensual|default:0 }}"></script>
+{% endblock %}

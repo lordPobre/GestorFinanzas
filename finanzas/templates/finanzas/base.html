@@ -1,9 +1,9 @@
-{% load static l10n moneda marketing esfera_salud menu %}<!DOCTYPE html>
-<html lang="es">
+{% load static l10n moneda marketing esfera_salud menu diseno %}{% diseno_2c as t2c %}<!DOCTYPE html>
+<html lang="es"{% if t2c %} class="t2c"{% endif %}>
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#151412">
+  <meta name="theme-color" content="{% if t2c %}#F3EFE7{% else %}#151412{% endif %}">
   <title>{% block title %}Fintora{% endblock %}</title>
 
   <link rel="manifest" href="{% static 'site.webmanifest' %}">
@@ -11,7 +11,7 @@
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Fintora">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-status-bar-style" content="{% if t2c %}default{% else %}black-translucent{% endif %}">
   <meta name="format-detection" content="telephone=no">
 
   <link rel="icon" type="image/svg+xml" href="{% static 'img/favicon.svg' %}">
@@ -29,6 +29,7 @@
   {% block extra_head %}{% endblock %}
   {% if esfera and profile.analisis_ia %}<link rel="stylesheet" href="{% static 'css/esfera-preguntas.css' %}">{% endif %}
   <link rel="stylesheet" href="{% static 'css/sesion.css' %}">
+  {% if t2c %}<link rel="stylesheet" href="{% static 'css/tema-2c.css' %}">{% endif %}
   <script src="{% static 'js/pantallas/modales-temprano.js' %}" nonce="{{ csp_nonce }}"></script>
 
   <script src="{% static 'js/pantallas/registro-sw.js' %}" nonce="{{ csp_nonce }}"></script>
@@ -121,6 +122,7 @@
         </summary>
         <div class="topbar-menu">
           {% menu 'cuenta' %}
+          {% if t2c %}<a href="{% url 'diseno_actual' %}"><i class="fas fa-rotate-left"></i>Volver al diseño actual</a>{% endif %}
           <form method="post" action="{% url 'logout' %}">
             {% csrf_token %}
             <button type="submit"><i class="fas fa-right-from-bracket"></i>Salir</button>
@@ -166,6 +168,7 @@
         <i class="fas fa-right-from-bracket ico-11"></i>Salir
       </button>
     </form>
+    {% if t2c %}<a href="{% url 'diseno_actual' %}" class="btn btn-glass btn-block diseno-volver">Volver al diseño actual</a>{% endif %}
   </div>
 </div>
 

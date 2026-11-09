@@ -3,9 +3,9 @@ from datetime import timedelta
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
 
-from .. import fechas
+from .. import diseno, fechas
 from ..dinero import suma
-from ..servicios.mes import nombre_mes_es
+from ..servicios.mes import nombre_mes_es, resumen_mes
 from ..servicios.mes_elegido import mes_pedido, selector_mes
 from ..servicios.pendientes import pendientes_del_mes
 from .comun import contadores
@@ -18,10 +18,32 @@ FILTROS = (
 )
 ICONOS = {'cuota': 'fa-credit-card', 'servicio': 'fa-rotate', 'cuenta': 'fa-file-invoice',
           'gasto': 'fa-receipt', 'debo': 'fa-hand-holding-dollar'}
+DESGLOSE_2C = (
+    ('cuota', 'Cuotas de este mes'),
+    ('servicio', 'Suscripciones'),
+    ('cuenta', 'Cuentas y gastos'),
+    ('debo', 'A personas'),
+)
 
 
 def _filtro_de(tipo):
     return next((clave for clave, _, tipos in FILTROS if tipo in tipos), 'cuenta')
+
+
+def _arrastradas(usuario, hoy):
+    r = resumen_mes(usuario, hoy.year, hoy.month)
+    salida = []
+    for c in r['cuotas_arrastradas']:
+        d = c['deuda']
+        salida.append({
+            'nombre': d.acreedor,
+            'detalle': f'Cuota {d.periodos_programados.index(c["periodo"]) + 1} de {d.cuotas_totales}',
+            'etiqueta': c['etiqueta'].lower(),
+            'monto': c['monto'],
+            'periodo': c['periodo'],
+            'deuda_id': d.pk,
+        })
+    return salida, r['atrasado_arrastrado']
 
 
 @login_required(login_url='/login/')
@@ -66,4 +88,21 @@ def por_pagar(request):
         'mes_sel': selector_mes(request.user, year, month, hoy),
     }
     contexto.update(contadores(request.user))
-    return render(request, 'finanzas/por_pagar.html', contexto)
+
+    if not diseno.activo(request):
+        return render(request, 'finanzas/por_pagar.html', contexto)
+
+    arrastradas, arrastrado = _arrastradas(request.user, hoy) if es_actual else ([], 0)
+    for f in contexto['filtros']:
+        if f['clave'] == 'cuota':
+            f['cuantos'] += len(arrastradas)
+    contexto.update({
+        'n_todo': len(pendientes) + len(arrastradas),
+        'items': items,
+        'n_pagados': len(items) - len(pendientes),
+        'arrastradas': arrastradas,
+        'arrastrado': arrastrado,
+        'desglose': [{'nombre': n, 'monto': suma(i['monto'] for i in pendientes if i['filtro'] == c)}
+                     for c, n in DESGLOSE_2C if any(i['filtro'] == c for i in pendientes)],
+    })
+    return render(request, 'finanzas/por_pagar_2c.html', contexto)
