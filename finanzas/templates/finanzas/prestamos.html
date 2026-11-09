@@ -6,9 +6,16 @@
 
 {% block extra_head %}<link rel="stylesheet" href="{% static 'css/inicio-esfera.css' %}">
 <link rel="stylesheet" href="{% static 'css/prestamos-acciones.css' %}">
-{% if por_mes %}<link rel="stylesheet" href="{% static 'css/me-deben-mes.css' %}">{% endif %}{% endblock %}
+{% if por_mes %}<link rel="stylesheet" href="{% static 'css/me-deben-mes.css' %}">{% endif %}
+{% if t2c %}<link rel="stylesheet" href="{% static 'css/pagos-2c.css' %}">{% endif %}{% endblock %}
 
 {% block content %}
+{% if t2c %}
+<div class="p2c p2c-cabecera">
+  <div class="p2c-top"><h1 class="p2c-titulo">Pagos</h1></div>
+  {% include 'finanzas/_pagos_pestanas.html' with activa='prestamos' %}
+</div>
+{% endif %}
 
 <div class="sec-top">
   <div class="sec-titulo-caja">
