@@ -66,7 +66,7 @@ def tope_pct(valor, tope):
 
 @register.simple_tag
 def barras(etiquetas, valores, cuantos=6):
-    pares = list(zip(etiquetas or [], valores or []))[-int(cuantos):]
+    pares = list(zip(etiquetas or [], valores or [], strict=False))[-int(cuantos):]
     tope = max([_numero(v) for _, v in pares] + [Decimal('1')])
     ultimo = len(pares) - 1
     return [{'etiqueta': str(e), 'valor': _numero(v), 'alto': max(4, round(_numero(v) / tope * 100)) if _numero(v) else 4,
