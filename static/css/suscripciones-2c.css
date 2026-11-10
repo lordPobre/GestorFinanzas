@@ -95,4 +95,22 @@ span.s2c-ficha { background: #1E1A15; color: #F3EFE7; }
   .s2c-sub.abierta .s2c-linea > form .p2c-pagar { min-height: 40px; }
   .s2c-sub .p2c-txt span { white-space: nowrap; }
 }
+
+.s2c-reparto, .s2c-leyenda { display: none; }
+@media (min-width: 721px) {
+  .s2c-reparto { display: flex; height: 10px; margin-top: 6px; border-radius: 999px; overflow: hidden; background: rgba(30, 26, 21, .08); }
+  .s2c-reparto i { display: block; height: 100%; min-width: 4px; }
+  .s2c-reparto i + i { box-shadow: inset 2px 0 0 #FBF8F2; }
+  .s2c-leyenda { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 12px; font-weight: 500; color: rgba(30, 26, 21, .72); }
+  .s2c-leyenda span { display: inline-flex; align-items: center; gap: 6px; }
+  .s2c-leyenda i { width: 8px; height: 8px; border-radius: 50%; }
+  .s2c-reparto .t-coral, .s2c-leyenda .t-coral { background: #A4482A; }
+  .s2c-reparto .t-azul, .s2c-leyenda .t-azul { background: #2F4F86; }
+  .s2c-reparto .t-lila, .s2c-leyenda .t-lila { background: #5B3F7A; }
+  .s2c-reparto .t-verde, .s2c-leyenda .t-verde { background: #1F6B3F; }
+  .s2c-reparto .t-ambar, .s2c-leyenda .t-ambar { background: #C98A1B; }
+  .s2c-reparto .t-rosa, .s2c-leyenda .t-rosa { background: #9A3550; }
+  .s2c-lado > .p2c-resumen:has(.s2c-nueva-esc) > .s2c-reparto, .s2c-lado > .p2c-resumen:has(.s2c-nueva-esc) > .s2c-leyenda { grid-column: 1 / -1; }
+  .s2c-consejo { display: flex; align-items: center; padding: 18px 22px; border-radius: 22px; }
+}
 }

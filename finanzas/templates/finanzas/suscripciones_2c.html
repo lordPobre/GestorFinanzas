@@ -99,6 +99,8 @@
         <span class="p2c-monto">{{ total_mensual|default:0|money }}</span>
         <span class="s2c-resumen-sub">{% if cantidad_activas %}{{ cantidad_activas }} suscripci{{ cantidad_activas|pluralize:"ón,ones" }} · {% endif %}{{ total_anual|default:0|money }} al año</span>
         {% if monto_pendiente_mes %}<span class="p2c-nota s2c-falta">Falta pagar {{ monto_pendiente_mes|money }} este mes</span>{% endif %}
+        {% if cantidad_activas and total_mensual %}<div class="s2c-reparto" aria-hidden="true">{% for s in suscripciones %}{% if s.activa %}<i class="t-{{ s.nombre|tono_nombre }}" data-ancho-pct="{% widthratio s.monto total_mensual 100 %}" title="{{ s.nombre }}"></i>{% endif %}{% endfor %}</div>
+        <div class="s2c-leyenda" aria-hidden="true">{% for s in suscripciones %}{% if s.activa %}<span><i class="t-{{ s.nombre|tono_nombre }}"></i>{{ s.nombre }}</span>{% endif %}{% endfor %}</div>{% endif %}
         <button type="button" class="s2c-nueva s2c-nueva-esc" data-open="#modalSub" data-tour="suscripciones"><i class="fas fa-plus"></i>Nueva suscripción</button>
       </section>
 

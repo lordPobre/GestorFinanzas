@@ -1,6 +1,6 @@
 
 
-const VERSION = 'v119';
+const VERSION = 'v120';
 const CACHE_ESTATICOS = `finapp-estaticos-${VERSION}`;
 
 const ORIGENES_CACHEABLES = [];
@@ -88,6 +88,7 @@ self.addEventListener('fetch', (evento) => {
       return respuesta;
     }).catch(() => null);
 
+    if (/\.(css|js|json)$/.test(url.pathname)) return (await red) || guardado || Response.error();
     return guardado || (await red) || Response.error();
   })());
 });
