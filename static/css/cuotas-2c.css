@@ -97,10 +97,8 @@
 .c2c-guardar { min-height: 56px; border: none; border-radius: 999px; background: #1E1A15; color: #F3EFE7; font-size: 17px; font-weight: 700; cursor: pointer; }
 .c2c-eliminar { width: 100%; min-height: 44px; margin-top: 10px; border: none; border-radius: 999px; background: none; color: #A8361F; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 15px; font-weight: 700; cursor: pointer; }
 
-@media (max-width: 1000px) {
-  .c2c-lado { display: contents; }
-  .c2c-lado > [data-mes-a-mes] { order: -1; }
-}
+.c2c-lado { display: contents; }
+.c2c-lado > [data-mes-a-mes] { order: -1; }
 
 @media (max-width: 720px) {
   .c2c-cab { align-items: flex-start; }

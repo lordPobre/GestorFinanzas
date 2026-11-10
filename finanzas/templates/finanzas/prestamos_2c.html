@@ -14,7 +14,7 @@
   </div>
   <div class="pr2c-top-lista">{% include 'finanzas/_pagos_pestanas.html' with activa='prestamos' %}</div>
 
-  <div class="f2c-grid">
+  <div class="f2c-grid dos">
     <div class="f2c-col pr2c-lista-col">
       <nav class="f2c-seg" aria-label="Lo que te deben y lo que debes">
         <a href="{% url 'prestamos' %}" class="{% if not debo %}on{% endif %}"{% if not debo %} aria-current="page"{% endif %}>Me deben</a>

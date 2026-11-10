@@ -32,7 +32,7 @@
   <a href="{% url 'estadisticas' %}" class="f2c-btn borde">Ver estadísticas</a>
 
   {% else %}
-  <div class="f2c-grid">
+  <div class="f2c-grid pl2c-grid">
     <div class="f2c-col">
       <section class="f2c-oscura pl2c-hero">
         <span class="f2c-etq">Este mes puedes apartar</span>
@@ -75,27 +75,31 @@
       {% endif %}
       {% if plan.pocos_datos %}<p class="sec-mas-nota">Calculado con {% if plan.meses_base %}{{ plan.meses_base }} mes{{ plan.meses_base|pluralize:"es" }} cerrado{{ plan.meses_base|pluralize }}{% else %}lo que llevas de este mes{% endif %}. Se ajusta solo a medida que anotes.</p>{% endif %}
 
-
-      <section class="f2c-tarjeta pl-bloque" data-simulador>
-        <b class="pl2c-titulo">¿Me alcanza algo en cuotas?</b>
-        <span class="f2c-sub">Mira cómo quedarían tus próximos 12 meses antes de comprar.</span>
-        <div class="f2c-campos pl-sim-campos">
-          <div class="f2c-campo pl-sim-campo">
-            <label class="pl-extra-cab" for="simCuota"><span>Valor de la cuota</span></label>
-            <input id="simCuota" type="number" inputmode="numeric" min="1" step="1" placeholder="Ej: 45.000">
+      <section class="f2c-tarjeta pl-bloque pl2c-bloque" data-simulador>
+        <div class="pl2c-cab"><span class="f2c-ficha tinta"><i class="fas fa-cart-shopping"></i></span><span class="f2c-txt"><b>¿Me alcanza algo en cuotas?</b><span>Mira cómo quedarían tus próximos 12 meses antes de comprar</span></span></div>
+        <div class="pl2c-dos">
+          <div class="pl2c-ctrl">
+            <div class="f2c-campos pl-sim-campos">
+              <div class="f2c-campo pl-sim-campo">
+                <label class="pl-extra-cab" for="simCuota"><span>Valor de la cuota</span></label>
+                <input id="simCuota" type="number" inputmode="numeric" min="1" step="1" placeholder="Ej: 45.000">
+              </div>
+              <div class="f2c-campo pl-sim-campo">
+                <label class="pl-extra-cab" for="simCuotas"><span>Cuántas cuotas</span></label>
+                <input id="simCuotas" type="number" inputmode="numeric" min="1" max="48" step="1" value="12">
+              </div>
+            </div>
+            <p class="sec-mas-nota">Parte de lo que te sobra hoy y suma cada cuota que termina. No cuenta el extra a deudas.</p>
           </div>
-          <div class="f2c-campo pl-sim-campo">
-            <label class="pl-extra-cab" for="simCuotas"><span>Cuántas cuotas</span></label>
-            <input id="simCuotas" type="number" inputmode="numeric" min="1" max="48" step="1" value="12">
+          <div class="pl2c-vista">
+            <div class="pl-sim-grafico" id="simGrafico" aria-hidden="true"></div>
+            <div class="pl-sim-leyenda" id="simLeyenda" hidden>
+              <span><i class="con"></i>Libre con la compra</span>
+              <span><i class="sin"></i>Sin la compra</span>
+            </div>
+            <div class="pl-resultado pl2c-veredicto" id="simResultado"></div>
           </div>
         </div>
-        <div class="pl-sim-grafico" id="simGrafico" aria-hidden="true"></div>
-        <div class="pl-sim-leyenda" id="simLeyenda" hidden>
-          <span><i class="con"></i>Libre con la compra</span>
-          <span><i class="sin"></i>Sin la compra</span>
-        </div>
-        <div class="pl-resultado pl2c-veredicto" id="simResultado"></div>
-        <p class="sec-mas-nota">Parte de lo que te sobra hoy y suma cada cuota que termina. No cuenta el extra a deudas.</p>
       </section>
     </div>
 
@@ -103,131 +107,148 @@
       <details class="pl2c-mas" data-abrir-escritorio>
         <summary class="f2c-tarjeta pl2c-mas-cab"><span class="f2c-ficha verde"><i class="fas fa-toolbox"></i></span><span class="f2c-txt"><b>Más para tu plan</b><span>Fondo para imprevistos, salir de tus cuotas, depósito a plazo y suscripciones</span></span><i class="fas fa-chevron-down f2c-flecha"></i></summary>
         <div class="pl2c-mas-cuerpo">
-      <section class="f2c-tarjeta pl-bloque">
-        <div class="pl2c-cab"><span class="f2c-ficha verde"><i class="fas fa-piggy-bank"></i></span><span class="f2c-txt"><b>Ahorro para imprevistos</b><span>La meta son 3 meses de tus gastos y cuotas: {{ plan.meta|money }}</span></span></div>
-        <div class="pl-control">
-          <label for="planAhorro" class="pl-extra-cab"><span>Apartar al mes</span><b data-plan="ahorro"></b></label>
-          <input id="planAhorro" class="pl-slider chico verde" type="range" min="0" max="{{ plan.sobra }}" step="5000" value="{{ plan.datos.ahorro }}">
-          <div class="pl-escala"><span>$0</span><span>{{ plan.sobra|money }}</span></div>
-        </div>
-        {% if plan.tiene_fondo %}
-        <div class="pl-fondo-avance">
-          <div><b>{{ plan.llevas|money }}</b><span id="planFondoPct"></span></div>
-          <span class="f2c-barra"><i id="planFondoBar"></i></span>
-        </div>
-        {% endif %}
-        <div class="f2c-campos pl-sim-campos pl-proy-campos">
-          <div class="f2c-campo pl-sim-campo">
-            <label class="pl-extra-cab" for="cuentaLlevas"><span>Ya tienes guardado</span></label>
-            <input id="cuentaLlevas" type="text" inputmode="numeric" autocomplete="off" placeholder="$0" value="{% if plan.llevas %}{{ plan.llevas|money }}{% endif %}">
-            <small class="pl-ayuda">Lo que ya juntaste para el fondo</small>
-          </div>
-          <div class="f2c-campo pl-sim-campo">
-            <label class="pl-extra-cab" for="cuentaTasa"><span>Tasa anual de la cuenta de ahorro</span></label>
-            <span class="pl-porcentaje"><input id="cuentaTasa" type="text" inputmode="decimal" autocomplete="off" placeholder="Ej: 0,50"><i>%</i></span>
-            <small class="pl-ayuda">La que informa tu banco. Si tu cuenta no paga intereses, déjala vacía</small>
-          </div>
-        </div>
-        <div class="pl-graf verde">
-          <div class="pl-graf-cab"><span class="pl-graf-etq"><i class="fas fa-building-columns"></i><span id="cuentaHoverMes">Tu fondo en la cuenta de ahorro</span></span><b id="cuentaHoverValor"></b></div>
-          <div class="pl-graf-caja" id="cuentaGrafico"></div>
-          <div class="pl-graf-eje" id="cuentaEje"></div>
-        </div>
-        <div class="pl-resultado verde" id="planCuentaResultado"></div>
-        <div id="planFondoResultado" hidden></div>
-        {% if not plan.tiene_fondo %}<p class="sec-mas-nota">Para seguir tu avance, crea una meta llamada «Fondo para imprevistos» en <a href="{% url 'metas' %}">Metas</a>.</p>{% endif %}
-      </section>
+          <section class="f2c-tarjeta pl-bloque pl2c-bloque">
+            <div class="pl2c-cab"><span class="f2c-ficha verde"><i class="fas fa-piggy-bank"></i></span><span class="f2c-txt"><b>Ahorro para imprevistos</b><span>La meta son 3 meses de tus gastos y cuotas: {{ plan.meta|money }}</span></span></div>
+            <div class="pl2c-dos">
+              <div class="pl2c-ctrl">
+                <div class="pl-control">
+                  <label for="planAhorro" class="pl-extra-cab"><span>Apartar al mes</span><b data-plan="ahorro"></b></label>
+                  <input id="planAhorro" class="pl-slider chico verde" type="range" min="0" max="{{ plan.sobra }}" step="5000" value="{{ plan.datos.ahorro }}">
+                  <div class="pl-escala"><span>$0</span><span>{{ plan.sobra|money }}</span></div>
+                </div>
+                {% if plan.tiene_fondo %}
+                <div class="pl-fondo-avance">
+                  <div><b>{{ plan.llevas|money }}</b><span id="planFondoPct"></span></div>
+                  <span class="f2c-barra"><i id="planFondoBar"></i></span>
+                </div>
+                {% endif %}
+                <div class="f2c-campos pl-sim-campos pl-proy-campos">
+                  <div class="f2c-campo pl-sim-campo">
+                    <label class="pl-extra-cab" for="cuentaLlevas"><span>Ya tienes guardado</span></label>
+                    <input id="cuentaLlevas" type="text" inputmode="numeric" autocomplete="off" placeholder="$0" value="{% if plan.llevas %}{{ plan.llevas|money }}{% endif %}">
+                    <small class="pl-ayuda">Lo que ya juntaste para el fondo</small>
+                  </div>
+                  <div class="f2c-campo pl-sim-campo">
+                    <label class="pl-extra-cab" for="cuentaTasa"><span>Tasa anual de tu cuenta</span></label>
+                    <span class="pl-porcentaje"><input id="cuentaTasa" type="text" inputmode="decimal" autocomplete="off" placeholder="Ej: 0,50"><i>%</i></span>
+                    <small class="pl-ayuda">La que informa tu banco. Si no paga intereses, déjala vacía</small>
+                  </div>
+                </div>
+              </div>
+              <div class="pl2c-vista">
+                <div class="pl-graf verde">
+                  <div class="pl-graf-cab"><span class="pl-graf-etq"><i class="fas fa-building-columns"></i><span id="cuentaHoverMes">Tu fondo en la cuenta de ahorro</span></span><b id="cuentaHoverValor"></b></div>
+                  <div class="pl-graf-caja" id="cuentaGrafico"></div>
+                  <div class="pl-graf-eje" id="cuentaEje"></div>
+                </div>
+                <div class="pl-resultado verde" id="planCuentaResultado"></div>
+                <div id="planFondoResultado" hidden></div>
+                {% if not plan.tiene_fondo %}<p class="sec-mas-nota">Para seguir tu avance, crea una meta llamada «Fondo para imprevistos» en <a href="{% url 'metas' %}">Metas</a>.</p>{% endif %}
+              </div>
+            </div>
+          </section>
 
-      {% if plan.deudas %}
-      <section class="f2c-tarjeta pl-bloque">
-        <div class="pl2c-cab"><span class="f2c-ficha ambar"><i class="fas fa-credit-card"></i></span><span class="f2c-txt"><b>Salir antes de tus cuotas</b><span>Un extra al mes adelanta el fin de tus compras a plazo</span></span></div>
-        <div class="pl-control">
-          <label for="planExtra" class="pl-extra-cab"><span>Extra al mes para deudas</span><b data-plan="extra"></b></label>
-          <input id="planExtra" class="pl-slider chico ambar" type="range" min="0" max="{{ plan.sobra }}" step="5000" value="{{ plan.datos.extra }}">
-          <div class="pl-escala"><span>$0</span><span id="planExtraTope">{{ plan.sobra|money }}</span></div>
-        </div>
-        <div class="pl-control">
-          <span class="pl-extra-cab"><span>En qué orden pagar</span></span>
-          <div class="sec-pestanas pl-estrategia" role="group" aria-label="Orden de pago">
-            <button type="button" data-estrategia="saldo" aria-pressed="true">Menor saldo primero</button>
-            <button type="button" data-estrategia="cuota" aria-pressed="false">Mayor cuota primero</button>
-          </div>
-          <div class="pl-nota" id="planEstrategiaNota"></div>
-        </div>
-        <div id="planDeudas" class="pl-deudas"></div>
-        <div class="pl-resultado" id="planDeudaResultado"></div>
-      </section>
-      {% endif %}
+          {% if plan.deudas %}
+          <section class="f2c-tarjeta pl-bloque pl2c-bloque">
+            <div class="pl2c-cab"><span class="f2c-ficha ambar"><i class="fas fa-credit-card"></i></span><span class="f2c-txt"><b>Salir antes de tus cuotas</b><span>Un extra al mes adelanta el fin de tus compras a plazo</span></span></div>
+            <div class="pl2c-dos">
+              <div class="pl2c-ctrl">
+                <div class="pl-control">
+                  <label for="planExtra" class="pl-extra-cab"><span>Extra al mes para deudas</span><b data-plan="extra"></b></label>
+                  <input id="planExtra" class="pl-slider chico ambar" type="range" min="0" max="{{ plan.sobra }}" step="5000" value="{{ plan.datos.extra }}">
+                  <div class="pl-escala"><span>$0</span><span id="planExtraTope">{{ plan.sobra|money }}</span></div>
+                </div>
+                <div class="pl-control">
+                  <span class="pl-extra-cab"><span>En qué orden pagar</span></span>
+                  <div class="sec-pestanas pl-estrategia" role="group" aria-label="Orden de pago">
+                    <button type="button" data-estrategia="saldo" aria-pressed="true">Menor saldo primero</button>
+                    <button type="button" data-estrategia="cuota" aria-pressed="false">Mayor cuota primero</button>
+                  </div>
+                  <div class="pl-nota" id="planEstrategiaNota"></div>
+                </div>
+              </div>
+              <div class="pl2c-vista">
+                <div id="planDeudas" class="pl-deudas"></div>
+                <div class="pl-resultado" id="planDeudaResultado"></div>
+              </div>
+            </div>
+          </section>
+          {% endif %}
 
+          <section class="f2c-tarjeta pl-bloque pl-dap pl2c-bloque">
+            <div class="pl2c-cab"><span class="f2c-ficha azul"><i class="fas fa-chart-line"></i></span><span class="f2c-txt"><b>Depósito a plazo</b><span>Cuando completes el fondo, en <span data-dap="inicio"></span>, puedes dejarlo en un depósito y seguir sumando</span></span></div>
+            <div class="pl2c-dos">
+              <div class="pl2c-ctrl">
+                <div class="sec-pestanas pl-dap-plazo" role="group" aria-label="Cada cuánto se renueva el depósito">
+                  <button type="button" data-dap-plazo="30" aria-pressed="true">Cada 30 días</button>
+                  <button type="button" data-dap-plazo="90" aria-pressed="false">Cada 90 días</button>
+                </div>
+                <div class="f2c-campos pl-sim-campos pl-proy-campos">
+                  <div class="f2c-campo pl-sim-campo">
+                    <label class="pl-extra-cab" for="dapInicial"><span>Monto inicial</span></label>
+                    <input id="dapInicial" type="text" inputmode="numeric" autocomplete="off" placeholder="$0" value="{{ plan.meta|money }}">
+                    <small class="pl-ayuda">Por defecto, tu fondo completo</small>
+                  </div>
+                  <div class="f2c-campo pl-sim-campo">
+                    <label class="pl-extra-cab" for="dapTasa"><span id="dapTasaLabel">Tasa por 30 días</span></label>
+                    <span class="pl-porcentaje"><input id="dapTasa" type="text" inputmode="decimal" autocomplete="off" placeholder="Ej: 0,40"><i>%</i></span>
+                    <small class="pl-ayuda">La que te ofrece tu banco. El ejemplo es solo una referencia</small>
+                  </div>
+                </div>
+                <div class="pl-control">
+                  <label for="dapAporte" class="pl-extra-cab"><span>Sumar al mes</span><b data-dap="aporte"></b></label>
+                  <input id="dapAporte" class="pl-slider chico azul" type="range" min="0" max="{{ plan.sobra }}" step="5000" value="{{ plan.datos.ahorro }}">
+                  <div class="pl-escala"><span>$0</span><span>{{ plan.sobra|money }}</span></div>
+                </div>
+                <div class="pl-control">
+                  <label for="dapMeses" class="pl-extra-cab"><span>Por cuántos meses</span><b data-dap="meses"></b></label>
+                  <input id="dapMeses" class="pl-slider chico azul" type="range" min="3" max="60" step="1" value="24">
+                  <div class="pl-escala"><span>3 meses</span><span>5 años</span></div>
+                </div>
+              </div>
+              <div class="pl2c-vista">
+                <div class="pl-cifras">
+                  <div class="pl-cifra total"><span>Tendrías</span><b id="dapTotal"></b></div>
+                  <div class="pl-cifra azul"><span><i></i>Pusiste</span><b id="dapPuesto"></b></div>
+                  <div class="pl-cifra verde" id="dapInteresCaja"><span><i></i>Intereses</span><b id="dapInteres"></b></div>
+                </div>
+                <div class="pl-graf">
+                  <div class="pl-graf-cab"><span class="pl-graf-etq"><span id="dapHoverMes">Pasa el dedo por el gráfico</span></span><b id="dapHoverValor"></b></div>
+                  <div class="pl-graf-caja" id="dapGrafico"></div>
+                  <div class="pl-graf-eje" id="dapEje"></div>
+                </div>
+                <div class="pl-resultado" id="dapResultado"></div>
+                <p class="sec-mas-nota" id="dapNota"></p>
+              </div>
+            </div>
+          </section>
 
-      <section class="f2c-tarjeta pl-bloque pl-dap">
-        <div class="pl2c-cab"><span class="f2c-ficha azul"><i class="fas fa-chart-line"></i></span><span class="f2c-txt"><b>Depósito a plazo</b><span>Cuando completes el fondo, en <span data-dap="inicio"></span>, puedes dejarlo en un depósito y seguir sumando.</span></span></div>
-        <div class="sec-pestanas pl-dap-plazo" role="group" aria-label="Cada cuánto se renueva el depósito">
-          <button type="button" data-dap-plazo="30" aria-pressed="true">Cada 30 días</button>
-          <button type="button" data-dap-plazo="90" aria-pressed="false">Cada 90 días</button>
-        </div>
-        <div class="f2c-campos pl-sim-campos pl-proy-campos">
-          <div class="f2c-campo pl-sim-campo">
-            <label class="pl-extra-cab" for="dapInicial"><span>Monto inicial</span></label>
-            <input id="dapInicial" type="text" inputmode="numeric" autocomplete="off" placeholder="$0" value="{{ plan.meta|money }}">
-            <small class="pl-ayuda">Por defecto, tu fondo completo</small>
-          </div>
-          <div class="f2c-campo pl-sim-campo">
-            <label class="pl-extra-cab" for="dapTasa"><span id="dapTasaLabel">Tasa por 30 días</span></label>
-            <span class="pl-porcentaje"><input id="dapTasa" type="text" inputmode="decimal" autocomplete="off" placeholder="Ej: 0,40"><i>%</i></span>
-            <small class="pl-ayuda">La que te ofrece tu banco. El ejemplo es solo una referencia</small>
-          </div>
-        </div>
-        <div class="pl-control">
-          <label for="dapAporte" class="pl-extra-cab"><span>Sumar al mes</span><b data-dap="aporte"></b></label>
-          <input id="dapAporte" class="pl-slider chico azul" type="range" min="0" max="{{ plan.sobra }}" step="5000" value="{{ plan.datos.ahorro }}">
-          <div class="pl-escala"><span>$0</span><span>{{ plan.sobra|money }}</span></div>
-        </div>
-        <div class="pl-control">
-          <label for="dapMeses" class="pl-extra-cab"><span>Por cuántos meses</span><b data-dap="meses"></b></label>
-          <input id="dapMeses" class="pl-slider chico azul" type="range" min="3" max="60" step="1" value="24">
-          <div class="pl-escala"><span>3 meses</span><span>5 años</span></div>
-        </div>
-        <div class="pl-cifras">
-          <div class="pl-cifra total"><span>Tendrías</span><b id="dapTotal"></b></div>
-          <div class="pl-cifra azul"><span><i></i>Pusiste</span><b id="dapPuesto"></b></div>
-          <div class="pl-cifra verde" id="dapInteresCaja"><span><i></i>Intereses</span><b id="dapInteres"></b></div>
-        </div>
-        <div class="pl-graf">
-          <div class="pl-graf-cab"><span class="pl-graf-etq"><span id="dapHoverMes">Pasa el dedo por el gráfico</span></span><b id="dapHoverValor"></b></div>
-          <div class="pl-graf-caja" id="dapGrafico"></div>
-          <div class="pl-graf-eje" id="dapEje"></div>
-        </div>
-        <div class="pl-resultado" id="dapResultado"></div>
-        <p class="sec-mas-nota" id="dapNota"></p>
-      </section>
+          {% if plan.suscripciones %}
+          <section class="f2c-tarjeta pl-bloque pl2c-bloque">
+            <div class="pl2c-cab"><span class="f2c-ficha naranja"><i class="fas fa-rotate"></i></span><span class="f2c-txt"><b>Suscripciones para revisar</b><span>Servicios que se parecen entre sí</span></span><a href="{% url 'suscripciones' %}" class="f2c-btn borde chico pl2c-cab-btn">Ver suscripciones</a></div>
+            <div class="pl2c-subs-lista">
+              {% for g in plan.suscripciones %}
+              <div class="pl2c-subs">
+                <span class="sec-mas-nota">{{ g.titulo }}. Juntas suman {{ g.anual|money }} al año.</span>
+                {% for s in g.items %}<div class="pl2c-sub"><span>{{ s.nombre }}</span><b>{{ s.monto|money }}</b></div>{% endfor %}
+                <div class="pl2c-sub total"><span>Al mes</span><b>{{ g.mensual|money }}</b></div>
+              </div>
+              {% endfor %}
+            </div>
+          </section>
+          {% endif %}
 
-      {% if plan.suscripciones %}
-      <section class="f2c-tarjeta pl-bloque">
-        <div class="pl2c-cab"><span class="f2c-ficha naranja"><i class="fas fa-rotate"></i></span><span class="f2c-txt"><b>Suscripciones para revisar</b><span>Servicios que se parecen entre sí</span></span></div>
-        {% for g in plan.suscripciones %}
-        <div class="pl2c-subs">
-          <span class="sec-mas-nota">{{ g.titulo }}. Juntas suman {{ g.anual|money }} al año.</span>
-          {% for s in g.items %}<div class="pl2c-sub"><span>{{ s.nombre }}</span><b>{{ s.monto|money }}</b></div>{% endfor %}
-          <div class="pl2c-sub total"><span>Al mes</span><b>{{ g.mensual|money }}</b></div>
-        </div>
-        {% endfor %}
-        <a href="{% url 'suscripciones' %}" class="f2c-btn borde">Ver suscripciones</a>
-      </section>
-      {% endif %}
+          <section class="f2c-tarjeta pl2c-bloque pl2c-ia">{% include 'finanzas/_plan_ia.html' %}</section>
 
-      <section class="f2c-tarjeta">{% include 'finanzas/_plan_ia.html' %}</section>
-
-      <details class="f2c-tarjeta pl2c-aprender">
-        <summary class="pl2c-cab"><span class="f2c-ficha azul"><i class="fas fa-book-open"></i></span><span class="f2c-txt"><b>Para aprender antes de invertir</b><span>Cuando completes tu fondo. Fintora no recomienda instrumentos ni instituciones.</span></span><i class="fas fa-chevron-down f2c-flecha"></i></summary>
-        <div class="pl2c-aprender-cuerpo">
-          <div><b>Depósito a plazo</b><span>Dejas una suma por un plazo fijo y recibes el interés pactado al inicio. Si lo sacas antes, normalmente pierdes ese interés.</span></div>
-          <div><b>Fondo mutuo</b><span>Tu plata se junta con la de otras personas y una administradora la invierte. Su valor sube y baja, y cobra una comisión.</span></div>
-          <div><b>APV</b><span>Ahorro para la jubilación con beneficio tributario. Tiene dos regímenes, A y B, con reglas distintas para retirar.</span></div>
-          <a href="https://www.cmfchile.cl/educa" target="_blank" rel="noopener" class="ini-link">Más en CMF Educa<i class="fas fa-arrow-up-right-from-square"></i></a>
-        </div>
-      </details>
-
+          <details class="f2c-tarjeta pl2c-aprender">
+            <summary class="pl2c-cab"><span class="f2c-ficha azul"><i class="fas fa-book-open"></i></span><span class="f2c-txt"><b>Para aprender antes de invertir</b><span>Cuando completes tu fondo. Fintora no recomienda instrumentos ni instituciones.</span></span><i class="fas fa-chevron-down f2c-flecha"></i></summary>
+            <div class="pl2c-aprender-cuerpo">
+              <div><b>Depósito a plazo</b><span>Dejas una suma por un plazo fijo y recibes el interés pactado al inicio. Si lo sacas antes, normalmente pierdes ese interés.</span></div>
+              <div><b>Fondo mutuo</b><span>Tu plata se junta con la de otras personas y una administradora la invierte. Su valor sube y baja, y cobra una comisión.</span></div>
+              <div><b>APV</b><span>Ahorro para la jubilación con beneficio tributario. Tiene dos regímenes, A y B, con reglas distintas para retirar.</span></div>
+              <a href="https://www.cmfchile.cl/educa" target="_blank" rel="noopener" class="ini-link">Más en CMF Educa<i class="fas fa-arrow-up-right-from-square"></i></a>
+            </div>
+          </details>
         </div>
       </details>
 
@@ -240,6 +261,7 @@
 
 {% block extra_js %}
 <script type="module" src="{% static 'js/pantallas/abrir-escritorio.js' %}" nonce="{{ csp_nonce }}"></script>
+<script type="module" src="{% static 'js/pantallas/plan-2c.js' %}" nonce="{{ csp_nonce }}"></script>
 {% if plan.tiene_datos and plan.sobra > 0 %}
 {{ plan_json|json_script:"d-plan" }}
 <script type="module" data-js="plan" src="{% static 'js/pantallas/plan.js' %}" nonce="{{ csp_nonce }}" data-url-ia="{% url 'plan_ia' %}" data-url-tarea="{% url 'tarea_ia' %}"></script>

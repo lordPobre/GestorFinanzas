@@ -12,6 +12,20 @@
   {% menu 'pestanas' %}
 
   <div class="f2c-grid">
+    <aside class="f2c-col es2c-resumen">
+      <section class="f2c-tarjeta">
+        <div class="f2c-cifra">
+          <span class="f2c-etq">Ahorro del último año</span>
+          <span class="f2c-monto{% if ahorro_anual < 0 %} rojo{% endif %}">{{ ahorro_anual|money }}</span>
+        </div>
+        <div class="es2c-metricas">
+          <div><span>Gasto promedio</span><b>{{ promedio_gasto|money }}</b><small>al mes</small></div>
+          <div><span>Mejor mes</span>{% if mejor_ahorro > 0 %}<b class="verde">{{ mejor_ahorro|money }}</b><small>Ahorraste en {{ mejor_mes }}</small>{% else %}<b>—</b><small>Aún sin un mes en positivo</small>{% endif %}</div>
+          <div><span>Mes más caro</span><b class="rojo">{{ peor_gasto|money }}</b><small>{% if peor_mes %}Salidas de {{ peor_mes }}{% else %}Sin datos todavía{% endif %}</small></div>
+          <div><span>Tasa de ahorro</span><b>{{ tasa_ahorro }}%</b><small>{% if tasa_ahorro > 0 %}De cada $100 guardas ${{ tasa_ahorro }}{% else %}Gastas más de lo que entra{% endif %}</small></div>
+        </div>
+      </section>
+    </aside>
     <div class="f2c-col">
       {% barras meses_json gastos_json 6 as barras_gasto %}
       <section class="f2c-tarjeta">
@@ -31,7 +45,7 @@
         </div>
       </section>
 
-      <section class="f2c-tarjeta">
+      <section class="f2c-tarjeta es2c-cats">
         <b class="es2c-titulo">Por categoría, {{ mes_sel.en_mes|cut:"en " }}</b>
         {% for r in ranking %}
         <div class="es2c-cat" data-searchable>
@@ -45,19 +59,7 @@
       </section>
     </div>
 
-    <aside class="f2c-col">
-      <section class="f2c-tarjeta">
-        <div class="f2c-cifra">
-          <span class="f2c-etq">Ahorro del último año</span>
-          <span class="f2c-monto{% if ahorro_anual < 0 %} rojo{% endif %}">{{ ahorro_anual|money }}</span>
-        </div>
-        <div class="es2c-metricas">
-          <div><span>Gasto promedio</span><b>{{ promedio_gasto|money }}</b><small>al mes</small></div>
-          <div><span>Mejor mes</span>{% if mejor_ahorro > 0 %}<b class="verde">{{ mejor_ahorro|money }}</b><small>Ahorraste en {{ mejor_mes }}</small>{% else %}<b>—</b><small>Aún sin un mes en positivo</small>{% endif %}</div>
-          <div><span>Mes más caro</span><b class="rojo">{{ peor_gasto|money }}</b><small>{% if peor_mes %}Salidas de {{ peor_mes }}{% else %}Sin datos todavía{% endif %}</small></div>
-          <div><span>Tasa de ahorro</span><b>{{ tasa_ahorro }}%</b><small>{% if tasa_ahorro > 0 %}De cada $100 guardas ${{ tasa_ahorro }}{% else %}Gastas más de lo que entra{% endif %}</small></div>
-        </div>
-      </section>
+    <aside class="f2c-col es2c-ir">
       <a href="{% url 'deudas' %}" class="f2c-btn borde ancho">Ver tus cuotas mes a mes<i class="fas fa-chevron-right"></i></a>
     </aside>
   </div>

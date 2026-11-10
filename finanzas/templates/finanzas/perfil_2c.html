@@ -18,6 +18,7 @@
       <span>{{ profile.email|default:request.user.email|default:"Sin email" }}</span>
       <small>{{ total_trans }} movimiento{{ total_trans|pluralize:"s" }} · desde {{ miembro_desde|lower }}</small>
     </span>
+    <span class="tu2c-quien-datos"><span>Moneda {{ profile.moneda }}</span><span>Usuario {{ request.user.username }}</span></span>
     <div class="tu2c-nota-foto" id="notaFoto" hidden><span>La foto se sube cuando guardas</span><button type="submit" form="formPerfil" class="f2c-btn chico">Guardar foto</button></div>
   </div>
 
@@ -31,16 +32,17 @@
   <div class="f2c-aviso rojo"><span class="f2c-aviso-icono"><i class="fas fa-triangle-exclamation"></i></span><span class="f2c-txt"><span>{{ e }}</span></span></div>
   {% endfor %}
 
-  <div class="f2c-grid">
+  <div class="f2c-grid tu2c-grid">
     <div class="f2c-col tu2c-main">
-      <div class="f2c-lista">
-        <a href="{% url 'categorias' %}" class="f2c-fila"><span class="f2c-ficha verde"><i class="fas fa-tags"></i></span><span class="f2c-txt"><b>Categorías y topes</b></span><i class="fas fa-chevron-right f2c-flecha"></i></a>
-        <a href="{% url 'importar_cartola' %}" class="f2c-fila"><span class="f2c-ficha azul"><i class="fas fa-file-import"></i></span><span class="f2c-txt"><b>Importar cartola</b></span><i class="fas fa-chevron-right f2c-flecha"></i></a>
+      <div class="f2c-lista tu2c-herramientas">
+        <a href="{% url 'categorias' %}" class="f2c-fila"><span class="f2c-ficha verde"><i class="fas fa-tags"></i></span><span class="f2c-txt"><b>Categorías y topes</b><small class="tu2c-desc">Ordena en qué se va y ponle un límite a cada una</small></span><i class="fas fa-chevron-right f2c-flecha"></i></a>
+        <a href="{% url 'importar_cartola' %}" class="f2c-fila"><span class="f2c-ficha azul"><i class="fas fa-file-import"></i></span><span class="f2c-txt"><b>Importar cartola</b><small class="tu2c-desc">Sube el PDF del banco y saca los movimientos solos</small></span><i class="fas fa-chevron-right f2c-flecha"></i></a>
         {% with clave=user.clave_api %}
-        <a href="{% url 'clave_api' %}" class="f2c-fila"><span class="f2c-ficha azul"><i class="fab fa-telegram"></i></span><span class="f2c-txt"><b>Anotar desde Telegram</b></span>{% if clave %}<span class="tu2c-estado">Clave activa</span>{% endif %}<i class="fas fa-chevron-right f2c-flecha"></i></a>
+        <a href="{% url 'clave_api' %}" class="f2c-fila"><span class="f2c-ficha ambar"><i class="fab fa-telegram"></i></span><span class="f2c-txt"><b>Anotar desde Telegram</b><small class="tu2c-desc">Escribe o graba un audio y queda anotado</small></span>{% if clave %}<span class="tu2c-estado">Clave activa</span>{% endif %}<i class="fas fa-chevron-right f2c-flecha"></i></a>
         {% endwith %}
       </div>
 
+      <div class="tu2c-rapidos">
       <div class="f2c-lista">
         {% if push_clave %}
         <div class="f2c-fila" data-push data-clave="{{ push_clave }}" data-suscribir="{% url 'push_suscribir' %}" data-quitar="{% url 'push_quitar' %}">
@@ -66,17 +68,25 @@
         <a href="{% url 'encuesta' %}" class="f2c-fila"><span class="f2c-txt"><b>Danos tu opinión</b></span><i class="fas fa-chevron-right f2c-flecha"></i></a>
         <a href="#mas" class="f2c-fila tu2c-ir-mas" data-tu2c-abrir><span class="f2c-txt"><b>Privacidad y seguridad</b></span><i class="fas fa-chevron-right f2c-flecha"></i></a>
       </div>
+      </div>
 
-      <form method="post" action="{% url 'logout' %}">
+      <form method="post" action="{% url 'logout' %}" class="tu2c-salir">
         {% csrf_token %}
-        <button type="submit" class="f2c-btn rojo ancho">Salir</button>
+        <button type="submit" class="f2c-btn rojo ancho"><i class="fas fa-right-from-bracket"></i>Salir</button>
       </form>
     </div>
 
-    <section class="f2c-col tu2c-sub{% if perfil_form.errors or pw_form.errors %} abierta{% endif %}" id="mas" aria-label="Privacidad y seguridad">
+    <section class="f2c-col tu2c-sub{% if perfil_form.errors or pw_form.errors %} abierta{% endif %}" id="mas" aria-label="Privacidad y seguridad" data-ver="{% if pw_form.errors %}seguridad{% elif perfil_form.errors %}datos{% elif not politica_al_dia %}privacidad{% else %}avisos{% endif %}"{% if perfil_form.errors or pw_form.errors or not politica_al_dia %} data-ver-fijo{% endif %}>
       <div class="p2c-top ca2c-top tu2c-sub-cab"><a href="#" class="sec-volver" data-tu2c-volver aria-label="Volver a Tú"><i class="fas fa-chevron-left"></i></a><h2 class="f2c-titulo-tel">Privacidad y seguridad</h2></div>
 
-      <div class="f2c-grupo">
+      <nav class="tu2c-vistas" aria-label="Ajustes">
+        <button type="button" data-tu2c-ver="avisos" aria-pressed="false"><i class="fas fa-bell"></i>Avisos</button>
+        <button type="button" data-tu2c-ver="datos" aria-pressed="false"><i class="fas fa-user-pen"></i>Tus datos</button>
+        <button type="button" data-tu2c-ver="seguridad" aria-pressed="false"><i class="fas fa-shield-halved"></i>Seguridad</button>
+        <button type="button" data-tu2c-ver="privacidad" aria-pressed="false"><i class="fas fa-lock"></i>Privacidad</button>
+      </nav>
+
+      <div class="f2c-grupo" data-tu2c-panel="avisos">
         <span class="f2c-grupo-titulo">Avisos y análisis</span>
         <div class="f2c-lista">
         <div class="f2c-fila" data-tour="aviso">
@@ -133,7 +143,7 @@
         </div>
       </div>
 
-      <div class="f2c-grupo">
+      <div class="f2c-grupo" data-tu2c-panel="privacidad">
         <span class="f2c-grupo-titulo">Privacidad</span>
         <div class="f2c-lista">
         <details class="tu2c-det"{% if not politica_al_dia %} open{% endif %}>
@@ -150,7 +160,7 @@
         </div>
       </div>
 
-      <div class="f2c-grupo">
+      <div class="f2c-grupo" data-tu2c-panel="datos">
         <span class="f2c-grupo-titulo">Tus datos</span>
         <div class="f2c-lista">
           <details class="tu2c-det"{% if perfil_form.errors %} open{% endif %}>
@@ -185,7 +195,7 @@
         </div>
       </div>
 
-      <div class="f2c-grupo" data-tour="seguridad">
+      <div class="f2c-grupo" data-tour="seguridad" data-tu2c-panel="seguridad">
         <span class="f2c-grupo-titulo">Seguridad</span>
         {% with n_pk=user.passkeys.count %}
         <div class="tu2c-prot">
@@ -228,7 +238,7 @@
         </div>
       </div>
 
-      <a href="{% url 'eliminar_cuenta' %}" class="f2c-texto-btn rojo" data-tour="eliminar-cuenta"><i class="fas fa-trash-can"></i>Eliminar mi cuenta</a>
+      <a href="{% url 'eliminar_cuenta' %}" class="f2c-texto-btn rojo tu2c-eliminar" data-tour="eliminar-cuenta" data-tu2c-panel="seguridad"><i class="fas fa-trash-can"></i>Eliminar mi cuenta</a>
     </section>
   </div>
 </div>

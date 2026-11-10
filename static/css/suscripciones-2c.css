@@ -74,9 +74,12 @@ span.s2c-ficha { background: #1E1A15; color: #F3EFE7; }
 .s2c-consejo-txt b { font-size: 15px; }
 .s2c-consejo-txt span { font-size: 15px; font-weight: 500; line-height: 1.4; color: rgba(30, 26, 21, .75); }
 .s2c-nueva-tel { display: none; }
-@media (max-width: 1000px) {
-  .s2c-lado { display: contents; }
-  .s2c-lado > .p2c-resumen { order: -1; }
+.s2c-lado { display: contents; }
+.s2c-lado > .p2c-resumen { order: -1; }
+@media (min-width: 721px) {
+  .s2c-lado > .p2c-resumen:has(.s2c-nueva-esc) { display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: 32px; row-gap: 10px; align-items: center; }
+  .s2c-lado > .p2c-resumen:has(.s2c-nueva-esc) > * { grid-column: 1; }
+  .s2c-lado > .p2c-resumen > .s2c-nueva-esc { grid-column: 2; grid-row: 1 / span 3; width: auto; margin: 0; padding: 0 24px; }
 }
 @media (max-width: 720px) {
   .p2c-grid:has(.s2c-sub) { gap: 20px; }

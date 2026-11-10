@@ -46,7 +46,7 @@
 <div class="f2c-app">
 
   <aside class="sidebar f2c-lado">
-    <a href="{% url 'dashboard' %}" class="f2c-marca">Fintora</a>
+    <a href="{% url 'dashboard' %}" class="f2c-marca"><span class="f2c-logo">{% include 'finanzas/marca_color.html' %}</span><span>Fintora</span></a>
     {% menu 'lateral' %}
     <span class="f2c-espacio"></span>
     {% estado_salud as salud_estado %}

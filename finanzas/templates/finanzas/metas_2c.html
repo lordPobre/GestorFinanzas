@@ -56,8 +56,9 @@
         <div class="f2c-cifra">
           <span class="f2c-etq">Llevas ahorrado</span>
           <span class="f2c-monto">{{ total_ahorrado|default:0|money }}</span>
-          {% if metas_datos %}<span class="f2c-chips"><span>de {{ total_meta|money }}</span><span>Te faltan {{ total_faltante|money }}</span></span>{% endif %}
+          {% if metas_datos %}<span class="f2c-chips"><span>de {{ total_meta|money }}</span><span>Te faltan {{ total_faltante|money }}</span><span>{{ metas_datos|length }} meta{{ metas_datos|length|pluralize }}</span></span>{% endif %}
         </div>
+        {% if metas_datos and total_meta %}<span class="f2c-barra gruesa me2c-total"><i data-ancho-pct="{% widthratio total_ahorrado total_meta 100 %}"></i></span>{% endif %}
       </div>
     </aside>
   </div>
