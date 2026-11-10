@@ -251,6 +251,7 @@
           <span class="anotar-marca" id="anotarMarca" aria-hidden="true"><i class="fas fa-receipt"></i></span>
           <div class="amount-display" id="montoView">$0</div>
         </div>
+        {% if dias_restantes %}<div class="anotar-impacto" id="cajaImpacto"><span>Te quedarían</span><b data-preview data-base="{{ disponible|unlocalize }}" data-dias="{{ dias_restantes }}" data-sign="-1">{{ disponible|money }}</b><span>·</span><b data-preview-dia>{{ por_dia|money }}</b><span>por día</span></div>{% endif %}
 
         <div id="avisoMonto" class="anotar-aviso" role="alert" aria-live="polite">
           Escribe un monto para continuar
@@ -258,25 +259,6 @@
 
         <div id="avisoTope" class="anotar-tope" role="status" aria-live="polite" hidden
              data-topes="{{ topes_json|a_json }}" data-mes="{{ hoy_iso|slice:':7' }}" data-simbolo="{{ simbolo_moneda }}"></div>
-
-        <div class="anotar-grupo">
-          <label class="anotar-fila" for="campoDesc">
-            <i class="fas fa-pen" aria-hidden="true"></i>
-            <span class="visually-hidden">Descripción</span>
-            <input type="text" name="descripcion" id="campoDesc" placeholder="Dónde, ej: Líder, Copec, Spotify" autocomplete="off">
-          </label>
-          <div class="anotar-fila">
-            <i class="fas fa-calendar" aria-hidden="true"></i>
-            <label class="visually-hidden" for="campoFecha" id="labelFecha">Fecha del gasto</label>
-            <span class="anotar-fecha-texto" id="fechaTexto">Hoy</span>
-            <input type="date" name="fecha" id="campoFecha" class="anotar-fecha" value="{{ hoy_iso }}" required hidden>
-            <div class="seg anotar-fechas" id="segFecha" data-hoy="{{ hoy_iso }}">
-              <button type="button" class="on" data-fecha="hoy">Hoy</button>
-              <button type="button" data-fecha="ayer">Ayer</button>
-              <button type="button" data-fecha="otra">Otra</button>
-            </div>
-          </div>
-        </div>
 
         <div class="anotar-cats">
           <div class="visually-hidden" id="labelCat">Categoría</div>
@@ -289,6 +271,32 @@
           </div>
         </div>
 
+        <div class="anotar-opciones">
+          <div class="anotar-dia">
+            <i class="fas fa-calendar" aria-hidden="true"></i>
+            <label class="visually-hidden" for="campoFecha" id="labelFecha">Fecha del gasto</label>
+            <span class="anotar-fecha-texto" id="fechaTexto">Hoy</span>
+            <input type="date" name="fecha" id="campoFecha" class="anotar-fecha" value="{{ hoy_iso }}" required hidden>
+            <div class="seg anotar-fechas" id="segFecha" data-hoy="{{ hoy_iso }}">
+              <button type="button" class="on" data-fecha="hoy">Hoy</button>
+              <button type="button" data-fecha="ayer">Ayer</button>
+              <button type="button" data-fecha="otra">Otra</button>
+            </div>
+          </div>
+          <div id="bloquePago" class="anotar-pago">
+            <input type="hidden" name="sin_pagar" id="campoSinPagar" value="">
+            <div class="seg" id="segPago" aria-label="¿Ya la pagaste?">
+              <button type="button" class="on-green" data-pagado="1"><i class="fas fa-check"></i>Pagado</button>
+              <button type="button" data-pagado="0"><i class="fas fa-clock"></i>Aún la debo</button>
+            </div>
+            <div class="visually-hidden" id="notaPago">Cuenta como gasto del mes en los dos casos. La diferencia es si la plata ya se fue.</div>
+          </div>
+          <label class="anotar-nota" for="campoDesc">
+            <span class="visually-hidden">Descripción</span>
+            <input type="text" name="descripcion" id="campoDesc" placeholder="Nota · ej: Líder, Copec, Spotify" autocomplete="off">
+          </label>
+        </div>
+
         <div class="keypad" data-keypad data-target="#campoMonto" data-display="#montoView">
             <button type="button" data-key="1">1</button><button type="button" data-key="2">2</button><button type="button" data-key="3">3</button>
             <button type="button" data-key="4">4</button><button type="button" data-key="5">5</button><button type="button" data-key="6">6</button>
@@ -296,32 +304,6 @@
             <button type="button" data-key="000">000</button><button type="button" data-key="0">0</button><button type="button" data-key="del" aria-label="Borrar"><i class="fas fa-delete-left"></i></button>
           </div>
 
-        <div id="bloquePago">
-            <div class="label abajo-9">¿Ya la pagaste?</div>
-            <input type="hidden" name="sin_pagar" id="campoSinPagar" value="">
-            <div class="seg" id="segPago">
-              <button type="button" class="on-green" data-pagado="1">Sí, ya salió</button>
-              <button type="button" data-pagado="0">Aún la debo</button>
-            </div>
-            <div class="hint txt-12 arriba-8" id="notaPago">
-              Cuenta como gasto del mes en los dos casos. La diferencia es si la plata ya se fue.
-            </div>
-          </div>
-
-        {% if dias_restantes %}
-          <div class="preview-box abajo-0" id="cajaImpacto">
-            <div class="label tinta-ambar abajo-8">Si guardas esto</div>
-            <div class="impacto-fila abajo-5">
-              <span class="txt-13 tinta-sec">Te queda libre</span>
-              <span class="mono txt-15" data-preview data-base="{{ disponible|unlocalize }}"
-                    data-dias="{{ dias_restantes }}" data-sign="-1">{{ disponible|money }}</span>
-            </div>
-            <div class="impacto-fila">
-              <span class="txt-13 tinta-sec">Por día ({{ dias_restantes }} días)</span>
-              <span class="mono txt-13 tinta-sec" data-preview-dia>{{ por_dia|money }}</span>
-            </div>
-          </div>
-          {% endif %}
       </div>
       <button type="submit" class="btn btn-purple btn-block" id="btnGuardar">Guardar</button>
       <div class="anotar-atajos">

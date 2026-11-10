@@ -413,4 +413,42 @@ html.f2c .mes-tel .ini-top-mes { min-height: 36px; padding: 0 14px; color: #1E1A
 html.f2c .mes-tel .ini-top-mes.otro { background: #F2EAD3; border-color: rgba(201, 138, 27, .4); color: #7A5A12; }
 html.f2c .mes-tel .ini-top-mes.otro i { color: #7A5A12; }
 html.f2c .toast { padding: 12px 18px; border-radius: 999px; font-size: 15px; font-weight: 500; box-shadow: 0 12px 30px -10px rgba(30, 26, 21, .5); }
+html.f2c #montoView { color: #1E1A15 !important; }
+html.f2c #avisoMonto { display: none; }
+html.f2c .registro-box .anotar-grid { gap: 16px; }
+html.f2c .registro-box .amount-display { font-size: 52px; letter-spacing: -.04em; }
+html.f2c .anotar-marca:not(:has(img)) { display: none; }
+html.f2c .anotar-impacto { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px; margin-top: -8px; font-size: 15px; font-weight: 500; color: rgba(30, 26, 21, .7); text-align: center; }
+html.f2c .anotar-impacto b { color: #1E1A15; font-weight: 700; font-variant-numeric: tabular-nums; }
+html.f2c .anotar-cats .chips { margin: 0 -24px; padding: 0 24px; gap: 8px; }
+html.f2c .anotar-chips .chip { min-height: 40px; font-size: 15px; }
+html.f2c .anotar-opciones { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+html.f2c .anotar-dia { display: flex; align-items: center; gap: 8px; }
+html.f2c .anotar-dia > i { margin-left: 6px; font-size: 12px; color: rgba(30, 26, 21, .68); }
+html.f2c .anotar-dia .anotar-fecha-texto { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+html.f2c .anotar-dia .anotar-fecha:not([hidden]) { width: auto; height: 40px; padding: 0 12px; border-radius: 999px; border: 1px solid rgba(30, 26, 21, .12); background: #fff; font-size: 15px; }
+html.f2c .anotar-opciones .seg { flex: none; padding: 3px; }
+html.f2c .anotar-opciones .seg button { flex: none; min-height: 34px; padding: 0 12px; font-size: 14px; display: inline-flex; align-items: center; gap: 6px; }
+html.f2c .anotar-pago .seg button i { font-size: 11px; }
+html.f2c .anotar-pago .seg button[data-pagado="1"] i { color: #0D6E55; }
+html.f2c .anotar-pago .seg button[data-pagado="0"] i { color: #8A5F0F; }
+html.f2c .anotar-nota { flex: 1 1 100%; display: block; }
+html.f2c .anotar-nota input { width: 100%; height: 44px; box-sizing: border-box; padding: 0 16px; border-radius: 999px; border: 1px solid rgba(30, 26, 21, .12); background: #fff; color: #1E1A15; font-size: 15px; outline-color: #0D6E55; }
+html.f2c .registro-box .btn-block { margin-top: 16px; }
+@media (max-width: 720px) {
+  html.f2c .anotar-cats .chips { margin: 0 -20px; padding: 0 20px; }
+}
+html.f2c .tu2c-ir-mas, html.f2c .tu2c-sub-cab { display: none; }
+@media (max-width: 720px) {
+  html.f2c .tu2c-ir-mas { display: flex; }
+  html.f2c .tu2c-quien .f2c-txt > small { display: none; }
+  html.f2c .tu2c-sub { display: none; }
+  html.f2c .tu2c-sub:target, html.f2c .tu2c-sub.abierta { display: flex; }
+  html.f2c .tu2c-sub-cab { display: flex; }
+  html.f2c .tu2c:has(.tu2c-sub:target) > .p2c-top, html.f2c .tu2c:has(.tu2c-sub.abierta) > .p2c-top,
+  html.f2c .tu2c:has(.tu2c-sub:target) > .tu2c-quien, html.f2c .tu2c:has(.tu2c-sub.abierta) > .tu2c-quien,
+  html.f2c .tu2c:has(.tu2c-sub:target) > .f2c-aviso, html.f2c .tu2c:has(.tu2c-sub.abierta) > .f2c-aviso,
+  html.f2c .tu2c:has(.tu2c-sub:target) .tu2c-main, html.f2c .tu2c:has(.tu2c-sub.abierta) .tu2c-main { display: none; }
+  html.f2c .tu2c .f2c-btn.rojo { min-height: 52px; }
+}
 }

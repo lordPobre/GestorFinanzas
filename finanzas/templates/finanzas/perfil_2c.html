@@ -32,16 +32,53 @@
   {% endfor %}
 
   <div class="f2c-grid">
-    <div class="f2c-col">
+    <div class="f2c-col tu2c-main">
       <div class="f2c-lista">
         <a href="{% url 'categorias' %}" class="f2c-fila"><span class="f2c-ficha verde"><i class="fas fa-tags"></i></span><span class="f2c-txt"><b>Categorías y topes</b></span><i class="fas fa-chevron-right f2c-flecha"></i></a>
         <a href="{% url 'importar_cartola' %}" class="f2c-fila"><span class="f2c-ficha azul"><i class="fas fa-file-import"></i></span><span class="f2c-txt"><b>Importar cartola</b></span><i class="fas fa-chevron-right f2c-flecha"></i></a>
         {% with clave=user.clave_api %}
-        <a href="{% url 'clave_api' %}" class="f2c-fila"><span class="f2c-ficha azul"><i class="fab fa-telegram"></i></span><span class="f2c-txt"><b>Anotar desde Telegram</b><span>Y desde el Atajo del iPhone</span></span>{% if clave %}<span class="tu2c-estado">Clave activa</span>{% endif %}<i class="fas fa-chevron-right f2c-flecha"></i></a>
+        <a href="{% url 'clave_api' %}" class="f2c-fila"><span class="f2c-ficha azul"><i class="fab fa-telegram"></i></span><span class="f2c-txt"><b>Anotar desde Telegram</b></span>{% if clave %}<span class="tu2c-estado">Clave activa</span>{% endif %}<i class="fas fa-chevron-right f2c-flecha"></i></a>
         {% endwith %}
       </div>
 
       <div class="f2c-lista">
+        {% if push_clave %}
+        <div class="f2c-fila" data-push data-clave="{{ push_clave }}" data-suscribir="{% url 'push_suscribir' %}" data-quitar="{% url 'push_quitar' %}">
+          <span class="f2c-txt"><b>Avisos antes de cada cobro</b><span data-push-estado>Revisando este aparato…</span></span>
+          <span data-push-icono hidden></span>
+          <button type="button" class="switch" data-push-switch hidden aria-label="Avisos en este aparato"><span class="knob"></span></button>
+        </div>
+        {% else %}
+        <div class="f2c-fila">
+          <span class="f2c-txt"><b>Avisos antes de cada cobro</b><span>{% if request.user.is_staff %}No disponibles: falta VAPID_PRIVADA en las variables del servicio web{% else %}Todavía no están disponibles{% endif %}</span></span>
+        </div>
+        {% endif %}
+
+        {% with n_passkeys=user.passkeys.count %}
+        <a href="{% url 'passkeys' %}" class="f2c-fila" data-tour="face-id" data-solo-movil>
+          <span class="f2c-txt"><b>Entrar con Face ID o huella</b><span>{% if n_passkeys %}{{ n_passkeys }} dispositivo{{ n_passkeys|pluralize:"s" }} entra{{ n_passkeys|pluralize:"n" }} sin contraseña{% else %}Sin escribir la contraseña{% endif %}</span></span>
+          {% if n_passkeys %}<span class="tu2c-estado">Activo</span>{% endif %}<i class="fas fa-chevron-right f2c-flecha"></i>
+        </a>
+        {% endwith %}
+      </div>
+
+      <div class="f2c-lista">
+        <a href="{% url 'encuesta' %}" class="f2c-fila"><span class="f2c-txt"><b>Danos tu opinión</b></span><i class="fas fa-chevron-right f2c-flecha"></i></a>
+        <a href="#mas" class="f2c-fila tu2c-ir-mas" data-tu2c-abrir><span class="f2c-txt"><b>Privacidad y seguridad</b></span><i class="fas fa-chevron-right f2c-flecha"></i></a>
+      </div>
+
+      <form method="post" action="{% url 'logout' %}">
+        {% csrf_token %}
+        <button type="submit" class="f2c-btn rojo ancho">Salir</button>
+      </form>
+    </div>
+
+    <section class="f2c-col tu2c-sub{% if perfil_form.errors or pw_form.errors %} abierta{% endif %}" id="mas" aria-label="Privacidad y seguridad">
+      <div class="p2c-top ca2c-top tu2c-sub-cab"><a href="#" class="sec-volver" data-tu2c-volver aria-label="Volver a Tú"><i class="fas fa-chevron-left"></i></a><h2 class="f2c-titulo-tel">Privacidad y seguridad</h2></div>
+
+      <div class="f2c-grupo">
+        <span class="f2c-grupo-titulo">Avisos y análisis</span>
+        <div class="f2c-lista">
         <div class="f2c-fila" data-tour="aviso">
           <span class="f2c-txt"><b>Aviso mensual por correo</b>{% if not profile.email and not request.user.email %}<span class="ambar">Falta tu email para recibirlo</span>{% elif profile.aviso_mensual %}<span>Te llega el día {{ profile.aviso_dia }} de cada mes</span>{% else %}<span>Apagado. No te mandamos recordatorios</span>{% endif %}</span>
           <form method="post">
@@ -60,13 +97,7 @@
           <button type="submit" class="f2c-btn borde chico">Cambiar</button>
         </form>
         {% endif %}
-
         {% if push_clave %}
-        <div class="f2c-fila" data-push data-clave="{{ push_clave }}" data-suscribir="{% url 'push_suscribir' %}" data-quitar="{% url 'push_quitar' %}">
-          <span class="f2c-txt"><b>Avisos antes de cada cobro</b><span data-push-estado>Revisando este aparato…</span></span>
-          <span data-push-icono hidden></span>
-          <button type="button" class="switch" data-push-switch hidden aria-label="Avisos en este aparato"><span class="knob"></span></button>
-        </div>
         <div class="tu2c-push">
           {% for op in opciones_push %}
           <div class="f2c-fila">
@@ -89,12 +120,7 @@
             {% endif %}
           </div>
         </div>
-        {% else %}
-        <div class="f2c-fila">
-          <span class="f2c-txt"><b>Avisos antes de cada cobro</b><span>{% if request.user.is_staff %}No disponibles: falta VAPID_PRIVADA en las variables del servicio web{% else %}Todavía no están disponibles{% endif %}</span></span>
-        </div>
         {% endif %}
-
         <div class="f2c-fila">
           <span class="f2c-txt"><b>Análisis con IA</b><span>{% if profile.analisis_ia %}Números y, en los repetidos dudosos, sus descripciones{% else %}Apagado. Solo las cartolas se leen con IA{% endif %}</span></span>
           <form method="post">
@@ -104,17 +130,12 @@
             <button type="submit" class="switch{% if profile.analisis_ia %} on{% endif %}" aria-label="{% if profile.analisis_ia %}Desactivar{% else %}Activar{% endif %} el análisis con IA"><span class="knob"></span></button>
           </form>
         </div>
-
-        {% with n_passkeys=user.passkeys.count %}
-        <a href="{% url 'passkeys' %}" class="f2c-fila" data-tour="face-id" data-solo-movil>
-          <span class="f2c-txt"><b>Entrar con Face ID o huella</b><span>{% if n_passkeys %}{{ n_passkeys }} dispositivo{{ n_passkeys|pluralize:"s" }} entra{{ n_passkeys|pluralize:"n" }} sin contraseña{% else %}Sin escribir la contraseña{% endif %}</span></span>
-          {% if n_passkeys %}<span class="tu2c-estado">Activo</span>{% endif %}<i class="fas fa-chevron-right f2c-flecha"></i>
-        </a>
-        {% endwith %}
+        </div>
       </div>
 
-      <div class="f2c-lista">
-        <a href="{% url 'encuesta' %}" class="f2c-fila"><span class="f2c-txt"><b>Danos tu opinión</b></span><i class="fas fa-chevron-right f2c-flecha"></i></a>
+      <div class="f2c-grupo">
+        <span class="f2c-grupo-titulo">Privacidad</span>
+        <div class="f2c-lista">
         <details class="tu2c-det"{% if not politica_al_dia %} open{% endif %}>
           <summary class="f2c-fila"><span class="f2c-txt"><b>Privacidad y términos</b>{% if politica_al_dia %}<span>Aceptaste la versión {{ profile.politica_version }} el {{ profile.politica_aceptada|date:"j b Y" }}</span>{% else %}<span class="ambar">Hay una versión más reciente que la que aceptaste</span>{% endif %}</span><i class="fas fa-chevron-down f2c-flecha"></i></summary>
           <div class="tu2c-det-cuerpo fila">
@@ -126,15 +147,9 @@
           </div>
         </details>
         <button type="button" class="f2c-fila" data-tour-iniciar><span class="f2c-txt"><b>Cómo funciona la app</b><span>Un recorrido por cada pantalla</span></span><i class="fas fa-chevron-right f2c-flecha"></i></button>
+        </div>
       </div>
 
-      <form method="post" action="{% url 'logout' %}">
-        {% csrf_token %}
-        <button type="submit" class="f2c-btn rojo ancho">Salir</button>
-      </form>
-    </div>
-
-    <div class="f2c-col">
       <div class="f2c-grupo">
         <span class="f2c-grupo-titulo">Tus datos</span>
         <div class="f2c-lista">
@@ -214,13 +229,14 @@
       </div>
 
       <a href="{% url 'eliminar_cuenta' %}" class="f2c-texto-btn rojo" data-tour="eliminar-cuenta"><i class="fas fa-trash-can"></i>Eliminar mi cuenta</a>
-    </div>
+    </section>
   </div>
 </div>
 {% endblock %}
 
 {% block extra_js %}
 <script type="module" src="{% static 'js/pantallas/recordatorios.js' %}" nonce="{{ csp_nonce }}"></script>
+<script type="module" src="{% static 'js/pantallas/tu-2c.js' %}" nonce="{{ csp_nonce }}"></script>
 <script type="module" src="{% static 'js/dispositivo.js' %}" nonce="{{ csp_nonce }}"></script>
 <script type="module" data-js="perfil" src="{% static 'js/pantallas/perfil.js' %}" nonce="{{ csp_nonce }}" data-foto="{{ perfil_form.foto.id_for_label }}"></script>
 <script type="module" data-js="perfil-2" src="{% static 'js/pantallas/perfil-2.js' %}" nonce="{{ csp_nonce }}" {% if pw_form.errors %}data-pw-errores="1" {% endif %}data-p1="{{ pw_form.new_password1.id_for_label }}" data-p2="{{ pw_form.new_password2.id_for_label }}"></script>

@@ -83,5 +83,7 @@
   .p2c-filtros::-webkit-scrollbar { display: none; }
   .p2c-filtros button { flex: none; }
   .p2c-resumen { padding: 0; background: none; border: none; border-radius: 0; }
+  .p2c-desglose, .p2c-aviso, .p2c-filtros { display: none; }
+  .p2c-txt span { white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
 }
 }

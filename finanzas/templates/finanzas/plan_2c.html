@@ -1,7 +1,7 @@
 {% extends 'finanzas/base_2c.html' %}
 {% load static moneda %}
 {% block title %}Tu plan · Fintora{% endblock %}
-{% block extra_head %}<link rel="stylesheet" href="{% static 'css/plan-proyeccion.css' %}">
+{% block extra_head %}<link rel="stylesheet" href="{% static 'css/plan-proyeccion.css' %}"><link rel="stylesheet" href="{% static 'css/plan-2c.css' %}">
 <link rel="stylesheet" href="{% static 'css/secciones-2c.css' %}">{% endblock %}
 
 {% block pestanas %}{% endblock %}
@@ -75,6 +75,34 @@
       {% endif %}
       {% if plan.pocos_datos %}<p class="sec-mas-nota">Calculado con {% if plan.meses_base %}{{ plan.meses_base }} mes{{ plan.meses_base|pluralize:"es" }} cerrado{{ plan.meses_base|pluralize }}{% else %}lo que llevas de este mes{% endif %}. Se ajusta solo a medida que anotes.</p>{% endif %}
 
+
+      <section class="f2c-tarjeta pl-bloque" data-simulador>
+        <b class="pl2c-titulo">¿Me alcanza algo en cuotas?</b>
+        <span class="f2c-sub">Mira cómo quedarían tus próximos 12 meses antes de comprar.</span>
+        <div class="f2c-campos pl-sim-campos">
+          <div class="f2c-campo pl-sim-campo">
+            <label class="pl-extra-cab" for="simCuota"><span>Valor de la cuota</span></label>
+            <input id="simCuota" type="number" inputmode="numeric" min="1" step="1" placeholder="Ej: 45.000">
+          </div>
+          <div class="f2c-campo pl-sim-campo">
+            <label class="pl-extra-cab" for="simCuotas"><span>Cuántas cuotas</span></label>
+            <input id="simCuotas" type="number" inputmode="numeric" min="1" max="48" step="1" value="12">
+          </div>
+        </div>
+        <div class="pl-sim-grafico" id="simGrafico" aria-hidden="true"></div>
+        <div class="pl-sim-leyenda" id="simLeyenda" hidden>
+          <span><i class="con"></i>Libre con la compra</span>
+          <span><i class="sin"></i>Sin la compra</span>
+        </div>
+        <div class="pl-resultado pl2c-veredicto" id="simResultado"></div>
+        <p class="sec-mas-nota">Parte de lo que te sobra hoy y suma cada cuota que termina. No cuenta el extra a deudas.</p>
+      </section>
+    </div>
+
+    <div class="f2c-col">
+      <details class="pl2c-mas" data-abrir-escritorio>
+        <summary class="f2c-tarjeta pl2c-mas-cab"><span class="f2c-ficha verde"><i class="fas fa-toolbox"></i></span><span class="f2c-txt"><b>Más para tu plan</b><span>Fondo para imprevistos, salir de tus cuotas, depósito a plazo y suscripciones</span></span><i class="fas fa-chevron-down f2c-flecha"></i></summary>
+        <div class="pl2c-mas-cuerpo">
       <section class="f2c-tarjeta pl-bloque">
         <div class="pl2c-cab"><span class="f2c-ficha verde"><i class="fas fa-piggy-bank"></i></span><span class="f2c-txt"><b>Ahorro para imprevistos</b><span>La meta son 3 meses de tus gastos y cuotas: {{ plan.meta|money }}</span></span></div>
         <div class="pl-control">
@@ -130,30 +158,7 @@
         <div class="pl-resultado" id="planDeudaResultado"></div>
       </section>
       {% endif %}
-    </div>
 
-    <div class="f2c-col">
-      <section class="f2c-tarjeta pl-bloque" data-simulador>
-        <b class="pl2c-titulo">¿Me alcanza algo en cuotas?</b>
-        <span class="f2c-sub">Mira cómo quedarían tus próximos 12 meses antes de comprar.</span>
-        <div class="f2c-campos pl-sim-campos">
-          <div class="f2c-campo pl-sim-campo">
-            <label class="pl-extra-cab" for="simCuota"><span>Valor de la cuota</span></label>
-            <input id="simCuota" type="number" inputmode="numeric" min="1" step="1" placeholder="Ej: 45.000">
-          </div>
-          <div class="f2c-campo pl-sim-campo">
-            <label class="pl-extra-cab" for="simCuotas"><span>Cuántas cuotas</span></label>
-            <input id="simCuotas" type="number" inputmode="numeric" min="1" max="48" step="1" value="12">
-          </div>
-        </div>
-        <div class="pl-sim-grafico" id="simGrafico" aria-hidden="true"></div>
-        <div class="pl-sim-leyenda" id="simLeyenda" hidden>
-          <span><i class="con"></i>Libre con la compra</span>
-          <span><i class="sin"></i>Sin la compra</span>
-        </div>
-        <div class="pl-resultado pl2c-veredicto" id="simResultado"></div>
-        <p class="sec-mas-nota">Parte de lo que te sobra hoy y suma cada cuota que termina. No cuenta el extra a deudas.</p>
-      </section>
 
       <section class="f2c-tarjeta pl-bloque pl-dap">
         <div class="pl2c-cab"><span class="f2c-ficha azul"><i class="fas fa-chart-line"></i></span><span class="f2c-txt"><b>Depósito a plazo</b><span>Cuando completes el fondo, en <span data-dap="inicio"></span>, puedes dejarlo en un depósito y seguir sumando.</span></span></div>
@@ -223,6 +228,9 @@
         </div>
       </details>
 
+        </div>
+      </details>
+
       <p class="pl2c-legal"><i class="fas fa-circle-info"></i>Esto es orientación general hecha con tus propios números. No es asesoría financiera, de inversión ni crediticia, y no reemplaza a un profesional registrado en la CMF.</p>
     </div>
   </div>
@@ -231,6 +239,7 @@
 {% endblock %}
 
 {% block extra_js %}
+<script type="module" src="{% static 'js/pantallas/abrir-escritorio.js' %}" nonce="{{ csp_nonce }}"></script>
 {% if plan.tiene_datos and plan.sobra > 0 %}
 {{ plan_json|json_script:"d-plan" }}
 <script type="module" data-js="plan" src="{% static 'js/pantallas/plan.js' %}" nonce="{{ csp_nonce }}" data-url-ia="{% url 'plan_ia' %}" data-url-tarea="{% url 'tarea_ia' %}"></script>

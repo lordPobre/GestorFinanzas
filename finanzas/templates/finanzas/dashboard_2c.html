@@ -94,7 +94,7 @@
           {% if profile.analisis_ia %}<button type="button" class="i2c-btn borde" data-charla-abrir aria-haspopup="dialog"><i class="fas fa-comment-dots"></i>Pregúntame algo</button>{% endif %}
         </div>
       </div>
-      <button type="button" class="i2c-esfera" data-estado="{{ esfera.estado }}"{% if esfera.frase %} data-escuchar{% endif %} aria-label="{{ esfera.etiqueta }}. Escuchar el resumen" title="{{ esfera.etiqueta }}"></button>
+      <button type="button" class="i2c-esfera" data-estado="{{ esfera.estado }}"{% if esfera.frase %} data-escuchar{% endif %} aria-label="{{ esfera.etiqueta }}. Escuchar el resumen" title="{{ esfera.etiqueta }}"><b class="i2c-onda" aria-hidden="true"></b><b class="i2c-onda" aria-hidden="true"></b><span class="i2c-orbe" aria-hidden="true"><span class="i2c-orbe-giro"><i></i><i></i><i></i></span><span class="i2c-orbe-brillo"></span></span></button>
     </section>
 
     <section class="i2c-bloque i2c-solo-esc">
@@ -214,6 +214,22 @@
 
   </div>
 </div>
+{% if esfera.frase %}
+<div class="i2c-sol" data-sol data-estado="{{ esfera.estado }}" aria-hidden="true">
+  <div class="i2c-sol-velo" data-sol-cerrar></div>
+  <span class="i2c-sol-sombra" aria-hidden="true"></span>
+  <div class="i2c-sol-panel" role="dialog" aria-label="Tu mes, en voz alta">
+    <span class="i2c-sol-estado"><i class="fas fa-circle" aria-hidden="true"></i><span data-sol-estado>Tu mes, en voz alta</span></span>
+    <p class="i2c-sol-texto">{% for p in esfera.frase.split %}<span data-sol-palabra>{{ p }}</span> {% endfor %}</p>
+    <div class="i2c-sol-acciones">
+      <button type="button" class="i2c-btn borde" data-sol-detener><i class="fas fa-stop"></i>Detener</button>
+      <button type="button" class="i2c-btn tinta" data-sol-otra><i class="fas fa-rotate-right"></i>Escuchar otra vez</button>
+      {% if profile.analisis_ia %}<button type="button" class="i2c-btn borde" data-charla-abrir aria-haspopup="dialog"><i class="fas fa-microphone"></i>Preguntar</button>{% endif %}
+    </div>
+  </div>
+  <button type="button" class="i2c-sol-cerrar" data-sol-cerrar aria-label="Cerrar"><i class="fas fa-xmark"></i></button>
+</div>
+{% endif %}
 </div>
 {% endblock %}
 

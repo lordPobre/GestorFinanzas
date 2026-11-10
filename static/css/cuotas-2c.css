@@ -97,5 +97,6 @@
   .c2c-acciones form:first-child { flex: 1 1 100%; }
   .c2c-fila-campos { grid-template-columns: minmax(0, 1fr); }
   .p2c-grid:has(.c2c-lista) { gap: 20px; }
+  .c2c-alerta { display: none; }
 }
 }
