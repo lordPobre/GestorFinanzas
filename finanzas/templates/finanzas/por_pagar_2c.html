@@ -27,6 +27,7 @@
       {% if arrastradas %}
       <section class="p2c-grupo" data-pp-grupo>
         <span class="p2c-grupo-titulo rojo">De meses anteriores</span>
+        <div class="p2c-lista">
         {% for c in arrastradas %}
         <div class="p2c-fila atrasada" data-pp-tipo="cuota" data-searchable>
           <span class="p2c-icono cuota"><i class="fas fa-credit-card"></i></span>
@@ -40,15 +41,17 @@
           </form>
         </div>
         {% endfor %}
+        </div>
       </section>
       {% endif %}
 
       {% for clave, titulo, lista in secciones %}
       <section class="p2c-grupo" data-pp-grupo>
         <span class="p2c-grupo-titulo {{ clave }}">{{ titulo }}</span>
+        <div class="p2c-lista">
         {% for i in lista %}
         <div class="p2c-fila{% if clave == 'atrasado' %} atrasada{% endif %}{% if i.pagado %} pagada{% endif %}" data-pp-tipo="{{ i.filtro }}" data-searchable>
-          {% marca_de i.nombre as m %}{% if m %}{% include 'finanzas/_marca.html' with clase="p2c-icono" %}{% else %}<span class="p2c-icono {{ i.filtro }}"><i class="fas {{ i.icono_lista }}"></i></span>{% endif %}
+          {% if i.pagado %}<span class="p2c-icono hecho"><i class="fas fa-check"></i></span>{% else %}{% marca_de i.nombre as m %}{% if m %}{% include 'finanzas/_marca.html' with clase="p2c-icono" %}{% else %}<span class="p2c-icono {{ i.filtro }}"><i class="fas {{ i.icono_lista }}"></i></span>{% endif %}{% endif %}
           <span class="p2c-txt"><b>{{ i.nombre }}</b><span>{{ i.detalle }} · {% if i.pagado %}pagado{% if i.fecha_pago %} el {{ i.fecha_pago|date:"j b" }}{% endif %}{% elif clave == 'atrasado' %}venció el {{ i.fecha|date:"j b" }}{% else %}{{ i.fecha|date:"l j"|lower }}{% endif %}</span></span>
           <b class="p2c-fila-monto">{{ i.monto|money }}</b>
           {% if not i.pagado %}
@@ -63,13 +66,12 @@
             {% csrf_token %}
             <input type="hidden" name="next" value="{{ request.get_full_path }}">
             <input type="hidden" name="periodo" value="{{ i.periodo }}">
-            <button type="submit" class="p2c-pagado" aria-label="Deshacer el pago de {{ i.nombre }}"><i class="fas fa-check"></i>Pagado</button>
+            <button type="submit" class="p2c-deshacer" aria-label="Deshacer el pago de {{ i.nombre }}">Deshacer</button>
           </form>
-          {% else %}
-          <span class="p2c-pagado quieto"><i class="fas fa-check"></i>Pagado</span>
           {% endif %}
         </div>
         {% endfor %}
+        </div>
       </section>
       {% endfor %}
       <p class="p2c-vacio" data-pp-vacio hidden>Nada de este tipo {% if mes_sel.es_actual %}este mes{% else %}en {{ nombre_mes|lower }}{% endif %}.</p>

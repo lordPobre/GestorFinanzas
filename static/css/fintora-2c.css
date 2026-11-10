@@ -183,11 +183,13 @@ html.f2c .toast.success i { color: #6fd3a6; }
 @media (max-width: 720px) {
   html.f2c .f2c-app { grid-template-columns: minmax(0, 1fr); }
   html.f2c .f2c-lado, html.f2c .f2c-cab { display: none; }
-  html.f2c .f2c-main { padding: 8px 16px calc(130px + env(safe-area-inset-bottom)); }
+  html.f2c .f2c-main { padding: 8px 20px calc(130px + env(safe-area-inset-bottom)); }
   html.f2c .p2c-top { display: flex; }
-  html.f2c .sec-2c-pestanas { width: auto; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; margin: 8px 0 16px; }
+  html.f2c .sec-2c-pestanas { width: auto; max-width: none; flex-wrap: nowrap; gap: 8px; overflow-x: auto; scrollbar-width: none; margin: 0 -20px; padding: 0 20px; border-radius: 0; background: none; }
+  html.f2c .sec-2c-pestana { flex: none; min-height: 40px; padding: 0 16px; border: 1px solid rgba(30, 26, 21, .12); background: #FBF8F2; font-size: 15px; font-weight: 500; }
+  html.f2c .sec-2c-pestana.on { background: #1E1A15; border-color: #1E1A15; color: #F3EFE7; font-weight: 700; box-shadow: none; }
+  html.f2c .sec-2c-pestanas[data-seccion="tu"] { display: none; }
   html.f2c .sec-2c-pestanas::-webkit-scrollbar { display: none; }
-  html.f2c .i2c-col:first-child > .i2c-bloque:nth-child(2) { display: none; }
   html.f2c .bottomnav.barra-2c { position: fixed; left: 12px; right: 12px; bottom: calc(16px + env(safe-area-inset-bottom)); z-index: 60; height: 72px; padding: 0 6px; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); align-items: center; border-radius: 28px; background: rgba(251, 248, 242, .9); -webkit-backdrop-filter: blur(24px) saturate(160%); backdrop-filter: blur(24px) saturate(160%); border: 1px solid rgba(30, 26, 21, .07); box-shadow: 0 12px 32px -12px rgba(60, 45, 20, .3); }
   html.f2c .barra-2c .nav-item { height: 64px; padding: 0; border: none; background: none; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; color: rgba(30, 26, 21, .68); font-size: 12px; font-weight: 500; cursor: pointer; }
   html.f2c .barra-2c .nav-item i { font-size: 18px; }
@@ -402,4 +404,13 @@ html.f2c .columna-10 { display: flex; flex-direction: column; gap: 10px; }
   html.f2c .sec-hoja { padding: 16px; border-radius: 20px; }
   html.f2c .form-row { flex-direction: column; }
 }
+
+html.f2c .f2c-pagina > .sec-2c-pestanas { margin-bottom: 0; }
+html.f2c .sec-2c-pestana:hover { color: #1E1A15; }
+html.f2c .ini-top-mes { display: inline-flex; align-items: center; gap: 8px; min-height: 36px; padding: 0 14px; border-radius: 999px; border: 1px solid rgba(30, 26, 21, .12); background: transparent; color: #1E1A15; font-size: 15px; font-weight: 500; white-space: nowrap; cursor: pointer; }
+html.f2c .ini-top-mes i { font-size: 11px; color: rgba(30, 26, 21, .68); }
+html.f2c .mes-tel .ini-top-mes { min-height: 36px; padding: 0 14px; color: #1E1A15; }
+html.f2c .mes-tel .ini-top-mes.otro { background: #F2EAD3; border-color: rgba(201, 138, 27, .4); color: #7A5A12; }
+html.f2c .mes-tel .ini-top-mes.otro i { color: #7A5A12; }
+html.f2c .toast { padding: 12px 18px; border-radius: 999px; font-size: 15px; font-weight: 500; box-shadow: 0 12px 30px -10px rgba(30, 26, 21, .5); }
 }

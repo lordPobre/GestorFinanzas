@@ -12,7 +12,7 @@
 {% endif %}  <a href="{{ i.url }}" data-label="{{ i.etiqueta }}" class="nav-item {% if i.activa %}active{% endif %}"{% if i.activa %} aria-current="page"{% endif %}>
     <i class="fas {{ i.icono }}"></i><span>{{ i.etiqueta }}</span>
   </a>
-{% endfor %}</nav>{% elif modo == 'titulo' %}<span class="topbar-titulo-2c">{{ titulo }}</span>{% elif modo == 'pestanas' %}{% if pestanas %}<nav class="sec-2c-pestanas" aria-label="{% if seccion == 'plan' %}Plan{% else %}Tú{% endif %}">
+{% endfor %}</nav>{% elif modo == 'titulo' %}<span class="topbar-titulo-2c">{{ titulo }}</span>{% elif modo == 'pestanas' %}{% if pestanas %}<nav class="sec-2c-pestanas" data-seccion="{{ seccion }}" aria-label="{% if seccion == 'plan' %}Plan{% else %}Tú{% endif %}">
 {% for p in pestanas %}  <a href="{{ p.url }}" class="sec-2c-pestana{% if p.activa %} on{% endif %}"{% if p.activa %} aria-current="page"{% endif %}>{{ p.etiqueta }}</a>
 {% endfor %}{% if seccion == 'tu' %}  <a href="{% url 'diseno_actual' %}" class="sec-2c-pestana volver">Volver al diseño actual</a>
 {% endif %}</nav>{% endif %}{% elif modo == 'barra' %}<nav class="bottomnav">

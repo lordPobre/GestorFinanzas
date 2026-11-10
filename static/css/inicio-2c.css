@@ -202,4 +202,20 @@ a.i2c-fila { grid-template-columns: 38px minmax(0, 1fr) auto; }
   .i2c-sin-ingreso { grid-template-columns: auto minmax(0, 1fr); }
   .i2c-sin-ingreso .i2c-btn { grid-column: 1 / -1; width: 100%; }
 }
+
+.i2c-cab { align-items: baseline; }
+.i2c-tile { gap: 10px; border: none; }
+.i2c-tile:hover { color: #1E1A15; }
+.i2c-tile-icono { color: #1E1A15; }
+.i2c-tile-nota.rojo { color: #A8361F; font-weight: 700; }
+.i2c-caja { padding: 0 16px; border-radius: 20px; background: #FBF8F2; border: 1px solid rgba(30, 26, 21, .06); }
+.i2c-caja > .i2c-fila:first-child { border-top: none; }
+.i2c-caja .i2c-fila, .i2c-caja a.i2c-fila { grid-template-columns: 40px minmax(0, 1fr) auto; }
+.i2c-caja .i2c-ficha { width: 40px; height: 40px; font-size: 15px; background: rgba(30, 26, 21, .06); color: #1E1A15; }
+.i2c-caja .i2c-ficha.ingreso { background: rgba(15, 123, 95, .12); color: #0D6E55; }
+.i2c-caja .i2c-fila-txt span { font-size: 12px; }
+.i2c-caja .i2c-vacio { padding: 16px 0; }
+@media (min-width: 721px) {
+  .i2c-tile-barra { display: none; }
+}
 }

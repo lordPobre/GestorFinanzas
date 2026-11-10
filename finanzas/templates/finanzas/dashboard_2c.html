@@ -97,7 +97,7 @@
       <button type="button" class="i2c-esfera" data-estado="{{ esfera.estado }}"{% if esfera.frase %} data-escuchar{% endif %} aria-label="{{ esfera.etiqueta }}. Escuchar el resumen" title="{{ esfera.etiqueta }}"></button>
     </section>
 
-    <section class="i2c-bloque">
+    <section class="i2c-bloque i2c-solo-esc">
       <div class="i2c-cab"><h2>Cómo sale la cifra</h2><span>{{ nombre_mes }}</span></div>
       <div class="i2c-cuenta">
         {% for c in cifra_2c %}<div class="i2c-paso {{ c.tono }}"><span class="i2c-paso-etq"><b>{{ c.signo }}</b>{{ c.etiqueta }}</span><span class="i2c-paso-monto">{{ c.monto|money }}</span></div>
@@ -107,41 +107,14 @@
 
     {% if categorias_2c %}
     <section class="i2c-bloque">
-      <div class="i2c-cab"><h2>En qué se va</h2><span class="i2c-solo-tel">{{ total_gastos|money }} gastado</span><a href="{% url 'estadisticas' %}" class="i2c-link i2c-solo-esc">Estadísticas<i class="fas fa-chevron-right"></i></a></div>
+      <div class="i2c-cab"><h2>En qué se va</h2><span>{{ total_gastos|money }} gastado</span></div>
       <div class="i2c-tiles">
-        {% for c in categorias_2c %}<a href="{% url 'estadisticas' %}" class="i2c-tile" data-fondo="{{ c.color }}24"><span class="i2c-tile-icono" data-color="{{ c.color }}"><i class="fas fa-tag"></i></span><span class="i2c-tile-nombre">{{ c.label }}</span><span class="i2c-tile-monto">{{ c.total|money }}</span><span class="i2c-tile-barra"><i data-ancho-pct="{{ c.porcentaje }}" data-fondo="{{ c.color }}"></i></span><span class="i2c-tile-nota">{{ c.porcentaje }}% de lo gastado</span></a>
+        {% for c in categorias_2c %}{% tope_de topes_json c.nombre c.total as t %}<a href="{% url 'categorias' %}" class="i2c-tile" data-fondo="{{ c.color|fondo_suave }}"><span class="i2c-tile-icono" data-color="{{ c.color|tinta_suave }}"><i class="fas {{ c.nombre|icono_cat }}"></i></span><span class="i2c-tile-nombre">{{ c.label }}</span><span class="i2c-tile-monto">{{ c.total|money }}</span>{% if t %}<span class="i2c-tile-barra"><i data-ancho-pct="{{ t.ancho }}" data-fondo="{{ t.color }}"></i></span><span class="i2c-tile-nota{% if t.tono == 'rojo' %} rojo{% endif %}">{% if t.tono == 'rojo' %}Pasaste el tope por {{ t.exceso|money }}{% else %}{{ t.pct }}% del tope{% endif %}</span>{% else %}<span class="i2c-tile-barra"><i data-ancho-pct="{{ c.porcentaje }}" data-fondo="{{ c.color|tinta_suave }}"></i></span><span class="i2c-tile-nota">{{ c.porcentaje }}% de lo gastado</span>{% endif %}</a>
         {% endfor %}
       </div>
     </section>
     {% endif %}
 
-    <section class="i2c-tarjeta i2c-solo-esc">
-      <div class="i2c-cab"><h2>Por pagar</h2><span>{{ pendientes_sin_pagar|length }} de {{ pendientes|length }} sin pagar</span></div>
-      <span class="i2c-grande">{{ monto_sin_pagar|money }}</span>
-      {% if pendientes %}<div class="i2c-pips" aria-hidden="true">{% for i in pendientes %}<span class="{% if i.pagado %}pagado{% elif i.atrasado %}atrasado{% endif %}"></span>{% endfor %}</div>{% endif %}
-      {% if atrasado_arrastrado %}
-      <a href="{% url 'deudas' %}" class="i2c-arrastre"><i class="fas fa-triangle-exclamation"></i><span><b>{{ atrasado_arrastrado|money }} de cuotas que no pagaste</b>{% for c in cuotas_arrastradas|slice:":3" %}{{ c.deuda.acreedor }}, {{ c.etiqueta|lower }}{% if not forloop.last %} · {% endif %}{% endfor %}</span><i class="fas fa-chevron-right"></i></a>
-      {% endif %}
-      <div class="i2c-lista">
-        {% for i in pendientes_sin_pagar|slice:":5" %}
-        <div class="i2c-fila{% if i.atrasado %} atrasado{% endif %}">
-          <span class="i2c-ficha t-{{ i.tipo }}"><i class="fas {{ i.icono }}"></i></span>
-          <span class="i2c-fila-txt"><b>{{ i.nombre }}</b><span>{% if i.tipo == 'cuota' or i.tipo == 'debo' %}{{ i.detalle }} · {% endif %}{% if i.atrasado %}venció el {{ i.fecha|date:"j b" }}{% else %}vence el {{ i.fecha|date:"j b" }}{% endif %}</span></span>
-          <span class="i2c-fila-monto">{{ i.monto|money }}</span>
-          <form method="post" action="{{ i.url_pagar }}">
-            {% csrf_token %}
-            <input type="hidden" name="next" value="?year={{ year }}&amp;month={{ month }}">
-            <input type="hidden" name="next_path" value="{% url 'dashboard' %}">
-            <input type="hidden" name="periodo" value="{{ i.periodo }}">
-            <button type="submit" class="i2c-pagar" aria-label="Marcar {{ i.nombre }} como pagado">Pagar</button>
-          </form>
-        </div>
-        {% empty %}
-        <p class="i2c-vacio"><i class="fas fa-circle-check"></i>Estás al día.</p>
-        {% endfor %}
-      </div>
-      <a href="{% url 'por_pagar' %}" class="i2c-btn borde ancho">Ver todos los pagos</a>
-    </section>
 
     <section class="i2c-bloque i2c-solo-tel">
       <div class="i2c-cab"><h2>Lo que viene</h2><a href="{% url 'por_pagar' %}" class="i2c-link">Ver todo</a></div>
@@ -171,9 +144,9 @@
       {% endif %}
     </section>
 
-    <section class="i2c-tarjeta">
-      <div class="i2c-cab"><h2>Movimientos</h2><span class="i2c-cab-nota">Lo que ya pasó</span><button type="button" class="i2c-link" data-open="#modalMovimientos" data-mov-abrir="todo">Ver todo<i class="fas fa-chevron-right"></i></button></div>
-      <div class="i2c-lista">
+    <section class="i2c-bloque i2c-movs">
+      <div class="i2c-cab"><h2>Movimientos</h2><button type="button" class="i2c-link" data-open="#modalMovimientos" data-mov-abrir="todo">Ver todo</button></div>
+      <div class="i2c-lista i2c-caja">
         {% for t in ultimas|pasados:5 %}
         <a href="{% if t.es_cuota %}{% url 'deudas' %}{% else %}{% url 'editar_transaccion' t.pk %}{% endif %}" class="i2c-fila" data-searchable>
           <span class="i2c-ficha{% if t.es_ingreso %} ingreso{% endif %}"><i class="fas {{ t.icono }}"></i></span>
@@ -188,6 +161,34 @@
   </div>
 
   <div class="i2c-col lado">
+    <section class="i2c-tarjeta i2c-solo-esc">
+      <div class="i2c-cab"><h2>Por pagar</h2><span>{{ pendientes_sin_pagar|length }} de {{ pendientes|length }} sin pagar</span></div>
+      <span class="i2c-grande">{{ monto_sin_pagar|money }}</span>
+      {% if pendientes %}<div class="i2c-pips" aria-hidden="true">{% for i in pendientes %}<span class="{% if i.pagado %}pagado{% elif i.atrasado %}atrasado{% endif %}"></span>{% endfor %}</div>{% endif %}
+      {% if atrasado_arrastrado %}
+      <a href="{% url 'deudas' %}" class="i2c-arrastre"><i class="fas fa-triangle-exclamation"></i><span><b>{{ atrasado_arrastrado|money }} de cuotas que no pagaste</b>{% for c in cuotas_arrastradas|slice:":3" %}{{ c.deuda.acreedor }}, {{ c.etiqueta|lower }}{% if not forloop.last %} · {% endif %}{% endfor %}</span><i class="fas fa-chevron-right"></i></a>
+      {% endif %}
+      <div class="i2c-lista">
+        {% for i in pendientes_sin_pagar|slice:":5" %}
+        <div class="i2c-fila{% if i.atrasado %} atrasado{% endif %}">
+          <span class="i2c-ficha t-{{ i.tipo }}"><i class="fas {{ i.icono }}"></i></span>
+          <span class="i2c-fila-txt"><b>{{ i.nombre }}</b><span>{% if i.tipo == 'cuota' or i.tipo == 'debo' %}{{ i.detalle }} · {% endif %}{% if i.atrasado %}venció el {{ i.fecha|date:"j b" }}{% else %}vence el {{ i.fecha|date:"j b" }}{% endif %}</span></span>
+          <span class="i2c-fila-monto">{{ i.monto|money }}</span>
+          <form method="post" action="{{ i.url_pagar }}">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="?year={{ year }}&amp;month={{ month }}">
+            <input type="hidden" name="next_path" value="{% url 'dashboard' %}">
+            <input type="hidden" name="periodo" value="{{ i.periodo }}">
+            <button type="submit" class="i2c-pagar" aria-label="Marcar {{ i.nombre }} como pagado">Pagar</button>
+          </form>
+        </div>
+        {% empty %}
+        <p class="i2c-vacio"><i class="fas fa-circle-check"></i>Estás al día.</p>
+        {% endfor %}
+      </div>
+      <a href="{% url 'por_pagar' %}" class="i2c-btn borde ancho">Ver todos los pagos</a>
+    </section>
+
     <a href="{% url 'deudas' %}" class="i2c-tarjeta oscura i2c-solo-esc">
       <span class="i2c-oscura-etq">En cuotas este mes</span>
       <span class="i2c-grande">{{ total_cuotas_mes|money }}</span>

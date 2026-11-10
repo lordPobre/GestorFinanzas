@@ -3,9 +3,11 @@
 {% block title %}Análisis IA · Fintora{% endblock %}
 {% block extra_head %}<link rel="stylesheet" href="{% static 'css/secciones-2c.css' %}">{% endblock %}
 
-{% block content %}
+{% block pestanas %}{% endblock %}
+{% block content %}{% load menu %}
 <div class="f2c-pagina">
   <div class="p2c-top"><h1 class="f2c-titulo-tel">Plan</h1></div>
+  {% menu 'pestanas' %}
 
   {% if not analisis.tiene_datos %}
   <div class="f2c-vacio">

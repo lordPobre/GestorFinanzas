@@ -88,7 +88,7 @@
       {% block saludo_tel %}{% endblock %}
 
       <script src="{% static 'js/pantallas/saludo-hora.js' %}" nonce="{{ csp_nonce }}"></script>
-      {% menu 'pestanas' %}
+      {% block pestanas %}{% menu 'pestanas' %}{% endblock %}
       {% block content %}{% endblock %}
     </main>
   </div>

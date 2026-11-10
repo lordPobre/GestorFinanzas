@@ -5,9 +5,11 @@
 {% block extra_head %}<link rel="stylesheet" href="{% static 'css/mes-elegir.css' %}">
 <link rel="stylesheet" href="{% static 'css/secciones-2c.css' %}">{% endblock %}
 
-{% block content %}
+{% block pestanas %}{% endblock %}
+{% block content %}{% load menu %}
 <div class="f2c-pagina">
   <div class="p2c-top"><h1 class="f2c-titulo-tel" data-tour="graficos">Plan</h1>{% include 'finanzas/_mes_elegir.html' %}</div>
+  {% menu 'pestanas' %}
 
   <div class="f2c-grid">
     <div class="f2c-col">
@@ -34,7 +36,7 @@
         {% for r in ranking %}
         <div class="es2c-cat" data-searchable>
           <div class="es2c-cat-cab"><span>{{ r.label }}</span><b>{{ r.total|money }}</b></div>
-          <span class="f2c-barra"><i data-ancho-pct="{{ r.ancho }}" data-fondo="{{ r.color }}"></i></span>
+          <span class="f2c-barra"><i data-ancho-pct="{{ r.ancho }}" data-fondo="{{ r.color|tinta_suave }}"></i></span>
           {% if r.delta != None %}<small class="es2c-delta{% if r.subio %} sube{% else %} baja{% endif %}">{% if r.subio %}{{ r.delta }}% más{% else %}{{ r.delta|cut:"-" }}% menos{% endif %} que {{ mes_sel.ref_anterior }}</small>{% else %}<small class="es2c-delta">Nueva {{ mes_sel.en_mes }}</small>{% endif %}
         </div>
         {% empty %}
