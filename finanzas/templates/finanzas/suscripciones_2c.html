@@ -1,25 +1,24 @@
 {% extends 'finanzas/base_2c.html' %}
-{% load static moneda marcas %}
+{% load static moneda marcas f2c %}
+{% block topbar_mes %}{% load f2c %}{% mes_de_pagina as mes_sel %}{% include 'finanzas/_mes_topbar.html' %}{% endblock %}
 {% block search_placeholder %}Filtrar suscripciones{% endblock %}
 {% block title %}Suscripciones · Fintora{% endblock %}
 {% block extra_head %}<link rel="stylesheet" href="{% static 'css/pagos-2c.css' %}">
-<link rel="stylesheet" href="{% static 'css/suscripciones-2c.css' %}">{% endblock %}
+<link rel="stylesheet" href="{% static 'css/suscripciones-2c.css' %}">
+<link rel="stylesheet" href="{% static 'css/mes-elegir.css' %}">{% endblock %}
 
 {% block content %}
 <div class="p2c">
   <div class="p2c-top">
     <h1 class="p2c-titulo">Pagos</h1>
+    {% mes_de_pagina as mes_sel %}{% include 'finanzas/_mes_elegir.html' %}
   </div>
   {% include 'finanzas/_pagos_pestanas.html' with activa='subs' %}
-
-  {% if atrasadas %}
-  <div class="s2c-alerta"><i class="fas fa-triangle-exclamation"></i><span><b>{{ atrasadas }} suscripci{{ atrasadas|pluralize:"ón,ones" }} con meses sin pagar</b> Suman {{ monto_atrasado|money }} de cobros que ya pasaron.</span></div>
-  {% endif %}
 
   <div class="p2c-grid">
     <div class="p2c-col">
       {% if sugerencias %}
-      <section class="s2c-tarjeta">
+      <section class="s2c-tarjeta s2c-sugeridas">
         <div class="s2c-cab"><b>¿Estas son suscripciones?</b><span>Cobros que se repiten cada mes en tus movimientos y cartolas</span></div>
         {% for g in sugerencias %}
         <div class="s2c-fila">
@@ -41,8 +40,8 @@
           <div class="s2c-linea">
             <button type="button" class="s2c-abrir" data-desplegar aria-expanded="false">
               {% marca_de s.nombre as m %}{% if m %}{% include 'finanzas/_marca.html' with clase="s2c-ficha" %}{% else %}<span class="s2c-ficha">{{ s.nombre|first|upper }}</span>{% endif %}
-              <span class="p2c-txt"><b>{{ s.nombre }}</b><span>{% if not s.activa %}Pausada · ahorras {{ s.monto_anual|money }} al año{% elif s.estado_mes == 'atrasada' %}Atrasada · se cobra el {{ s.dia_cobro }}{% else %}Se cobra el {{ s.dia_cobro }}{% endif %}</span></span>
-              <b class="p2c-fila-monto">{{ s.monto|money }}</b>
+              <span class="p2c-txt"><b>{{ s.nombre }}</b><span>{% if not s.activa %}Pausada · ahorras {{ s.monto_anual|money }} al año{% else %}{{ s.monto_anual|money }} al año{% endif %}</span></span>
+              <span class="s2c-der"><b class="p2c-fila-monto">{{ s.monto|money }}</b><span class="s2c-estado{% if not s.activa %}{% elif s.estado_mes == 'atrasada' %} rojo{% elif s.pagada_este_mes %} verde{% endif %}">{% if not s.activa %}Pausada{% elif s.estado_mes == 'atrasada' %}Atrasada · día {{ s.dia_cobro }}{% elif s.pagada_este_mes %}Pagada este mes{% else %}Se cobra el {{ s.dia_cobro }}{% endif %}</span></span>
             </button>
             {% if s.activa %}
               {% if s.periodo_a_pagar %}
@@ -80,6 +79,9 @@
         </div>
         {% endfor %}
       </section>
+      {% mas_cara suscripciones total_mensual as top %}{% if top %}
+      <div class="s2c-consejo"><span class="s2c-consejo-ico"><i class="fas fa-lightbulb"></i></span><span class="s2c-consejo-txt"><b>{{ top.nombre }} es la más cara</b><span>Son {{ top.anual|money }} al año, el {{ top.pct }} % de lo que pagas en suscripciones.</span></span></div>
+      {% endif %}
       {% else %}
       <div class="p2c-vacio-grande">
         <i class="fas fa-rotate"></i>
@@ -88,14 +90,16 @@
         <button type="button" class="s2c-nueva" data-open="#modalSub">Agregar la primera</button>
       </div>
       {% endif %}
+      {% if suscripciones %}<button type="button" class="s2c-nueva s2c-nueva-tel" data-open="#modalSub"><i class="fas fa-plus"></i>Agregar suscripción</button>{% endif %}
     </div>
 
     <aside class="p2c-col s2c-lado">
       <section class="p2c-resumen">
         <span class="p2c-etq">Pagas al mes</span>
         <span class="p2c-monto">{{ total_mensual|default:0|money }}</span>
-        <span class="p2c-nota">{{ total_anual|default:0|money }} al año{% if monto_pendiente_mes %} · falta pagar {{ monto_pendiente_mes|money }}{% elif suscripciones %} · al día{% endif %}</span>
-        <button type="button" class="s2c-nueva" data-open="#modalSub" data-tour="suscripciones"><i class="fas fa-plus"></i>Nueva suscripción</button>
+        <span class="s2c-resumen-sub">{% if cantidad_activas %}{{ cantidad_activas }} suscripci{{ cantidad_activas|pluralize:"ón,ones" }} · {% endif %}{{ total_anual|default:0|money }} al año</span>
+        {% if monto_pendiente_mes %}<span class="p2c-nota s2c-falta">Falta pagar {{ monto_pendiente_mes|money }} este mes</span>{% endif %}
+        <button type="button" class="s2c-nueva s2c-nueva-esc" data-open="#modalSub" data-tour="suscripciones"><i class="fas fa-plus"></i>Nueva suscripción</button>
       </section>
 
       {% if duplicadas %}
@@ -129,6 +133,7 @@
 {% endblock %}
 
 {% block modals %}
+{% mes_de_pagina as mes_sel %}{% include 'finanzas/_mes_modal.html' %}
 <div class="modal-overlay c2c-modal" id="modalSub">
   <div class="modal-box caja-420">
     <div class="modal-head">

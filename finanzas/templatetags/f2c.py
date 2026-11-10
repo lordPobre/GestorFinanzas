@@ -6,6 +6,7 @@ from django import template
 
 from .. import fechas
 from ..categorias_base import BASE
+from ..servicios.mes_elegido import mes_pedido, selector_mes
 
 register = template.Library()
 
@@ -36,6 +37,8 @@ TONO_BASE = {
 }
 
 ICONOS_BASE = {fila[0]: fila[4] for fila in BASE}
+
+TONOS_PERSONA = ('coral', 'azul', 'lila', 'verde', 'ambar', 'rosa')
 
 COLORES_TOPE = {'rojo': '#C2412D', 'amarillo': '#C98A1B', 'verde': '#0D6E55'}
 
@@ -178,3 +181,30 @@ def barras(etiquetas, valores, cuantos=6):
     ultimo = len(pares) - 1
     return [{'etiqueta': str(e), 'valor': _numero(v), 'alto': max(4, round(_numero(v) / tope * 100)) if _numero(v) else 4,
              'actual': i == ultimo} for i, (e, v) in enumerate(pares)]
+
+
+@register.simple_tag(takes_context=True)
+def mes_de_pagina(context):
+    request = context.get('request')
+    usuario = getattr(request, 'user', None)
+    if request is None or not getattr(usuario, 'is_authenticated', False):
+        return None
+    hoy = fechas.hoy()
+    year, month = mes_pedido(request, hoy)
+    return selector_mes(usuario, year, month, hoy)
+
+
+@register.simple_tag
+def mas_cara(subs, total):
+    activas = [s for s in subs or [] if _campo(s, 'activa')]
+    if len(activas) < 2:
+        return None
+    top = max(activas, key=lambda s: _numero(_campo(s, 'monto')))
+    monto = _numero(_campo(top, 'monto'))
+    t = _numero(total)
+    return {'nombre': _campo(top, 'nombre'), 'anual': monto * 12, 'pct': round(monto / t * 100) if t > 0 else 0}
+
+
+@register.filter
+def tono_nombre(texto):
+    return TONOS_PERSONA[sum(ord(c) for c in str(texto or '')) % len(TONOS_PERSONA)]

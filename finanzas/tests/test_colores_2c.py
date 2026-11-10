@@ -35,3 +35,15 @@ class Colores2cTests(SimpleTestCase):
         self.assertEqual((pasado['tono'], pasado['ancho'], pasado['exceso']), ('rojo', 100, Decimal('20000')))
         self.assertIsNone(f2c.tope_de(topes, 'Ocio', Decimal('5000')))
         self.assertIsNone(f2c.tope_de('', 'Comida', Decimal('5000')))
+
+    def test_la_persona_siempre_tiene_el_mismo_tono(self):
+        self.assertEqual(f2c.tono_nombre('Camila'), f2c.tono_nombre('Camila'))
+        self.assertIn(f2c.tono_nombre('Claude'), f2c.TONOS_PERSONA)
+
+    def test_la_suscripcion_mas_cara(self):
+        subs = [{'nombre': 'Netflix', 'monto': 9990, 'activa': True},
+                {'nombre': 'Smart Fit', 'monto': 24990, 'activa': True},
+                {'nombre': 'Spotify', 'monto': 4990, 'activa': False}]
+        top = f2c.mas_cara(subs, 34980)
+        self.assertEqual((top['nombre'], top['anual'], top['pct']), ('Smart Fit', Decimal('299880'), 71))
+        self.assertIsNone(f2c.mas_cara(subs[:1], 9990))

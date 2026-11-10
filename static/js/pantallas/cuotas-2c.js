@@ -42,6 +42,16 @@
     }));
   }
 
+  document.querySelectorAll('[data-compra]').forEach((c) => {
+    const b = c.querySelector('[data-desplegar]');
+    if (!b) return;
+    b.addEventListener('click', () => {
+      const abierta = !c.classList.contains('abierta');
+      c.classList.toggle('abierta', abierta);
+      b.setAttribute('aria-expanded', abierta ? 'true' : 'false');
+    });
+  });
+
   const mm = document.querySelector('[data-mes-a-mes]');
   if (mm) {
     const titulo = mm.querySelector('[data-mm-titulo]');
@@ -57,5 +67,8 @@
       if (linea) linea.textContent = b.dataset.linea;
       if (nota) nota.textContent = b.dataset.nota;
     }));
+    const pedido = (mm.dataset.mesElegido || '').toLowerCase();
+    const elegida = pedido ? barras.find((b) => (b.dataset.titulo || '').toLowerCase().indexOf(pedido) === 0) : null;
+    if (elegida) elegida.click();
   }
 })();

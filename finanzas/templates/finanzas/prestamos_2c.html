@@ -1,14 +1,16 @@
 {% extends 'finanzas/base_2c.html' %}
 {% load static moneda f2c %}
 {% block title %}Préstamos · Fintora{% endblock %}
+{% block topbar_mes %}{% mes_de_pagina as mes_sel %}{% include 'finanzas/_mes_topbar.html' %}{% endblock %}
 {% block extra_head %}<link rel="stylesheet" href="{% static 'css/pagos-2c.css' %}">
 <link rel="stylesheet" href="{% static 'css/secciones-2c.css' %}">
-{% if por_mes %}<link rel="stylesheet" href="{% static 'css/me-deben-mes.css' %}">{% endif %}{% endblock %}
+<link rel="stylesheet" href="{% static 'css/mes-elegir.css' %}">{% endblock %}
 
 {% block content %}
 <div class="p2c pr2c{% if request.resolver_match.url_name == 'detalle_persona' %} en-persona{% endif %}">
   <div class="p2c-top pr2c-top-lista">
     <h1 class="f2c-titulo-tel">Pagos</h1>
+    {% mes_de_pagina as mes_sel %}{% include 'finanzas/_mes_elegir.html' %}
   </div>
   <div class="pr2c-top-lista">{% include 'finanzas/_pagos_pestanas.html' with activa='prestamos' %}</div>
 
@@ -20,21 +22,21 @@
       </nav>
 
       <div class="f2c-cifra">
-        <span class="f2c-etq">{% if debo %}Debes ahora{% else %}Te deben ahora{% endif %}</span>
+        <span class="f2c-etq">{% if debo %}Debes{% else %}Te deben{% endif %}</span>
         <span class="f2c-monto">{{ total_lado|money }}</span>
-        <span class="f2c-sub">{% if personas %}{{ personas|length }} persona{{ personas|length|pluralize:"s" }}{% if total_recuperado %} · {% if debo %}ya pagaste{% else %}te devolvieron{% endif %} {{ total_recuperado|money }}{% endif %}{% else %}{% if debo %}No le debes a nadie{% else %}Nadie te debe{% endif %}{% endif %}</span>
+        <span class="f2c-sub">{% if total_prestado %}{% if debo %}Has pagado{% else %}Te han devuelto{% endif %} {{ total_recuperado|default:0|money }} de {{ total_prestado|money }}{% elif debo %}No le debes a nadie{% else %}Nadie te debe{% endif %}</span>
       </div>
 
       {% for p in personas %}
       <a href="{% url 'detalle_persona' p.pk %}" class="pr2c-persona-card{% if persona and p.pk == persona.pk %} on{% endif %}" data-searchable{% if persona and p.pk == persona.pk %} aria-current="true"{% endif %}>
         <span class="pr2c-persona-cab">
-          <span class="pr2c-avatar{% if debo %} debo{% endif %}">{{ p.nombre|inicial }}</span>
+          <span class="pr2c-avatar t-{{ p.nombre|tono_nombre }}">{{ p.nombre|inicial }}</span>
           <span class="f2c-txt"><b class="pr2c-nombre">{{ p.nombre }}</b><span>{{ p.resumen_meta }}</span></span>
           <span class="pr2c-pendiente{% if not p.total_pendiente %} tenue{% endif %}">{{ p.total_pendiente|default:0|money }}</span>
           <i class="fas fa-chevron-right f2c-flecha" aria-hidden="true"></i>
         </span>
         <span class="f2c-barra"><i data-ancho-pct="{{ p.total_abonado|tope_pct:p.total_prestado }}"></i></span>
-        <span class="pr2c-detalle">{% if debo %}Le pagaste{% else %}Te devolvió{% endif %} {{ p.total_abonado|default:0|money }} de {{ p.total_prestado|default:0|money }}</span>
+        <span class="pr2c-detalle">{% if not p.total_pendiente %}{% if debo %}Le pagaste todo{% else %}Te devolvió todo{% endif %}{% else %}{% if debo %}Le has pagado{% else %}Te ha devuelto{% endif %} {{ p.total_abonado|default:0|money }} de {{ p.total_prestado|default:0|money }}{% endif %}</span>
       </a>
       {% empty %}
       <div class="f2c-vacio">
@@ -46,59 +48,6 @@
 
       <button type="button" class="f2c-btn borde ancho" data-open="#modalPersona" data-tour="prestamos"><i class="fas fa-plus"></i>Nuevo préstamo</button>
 
-      {% if por_mes %}
-      {% with r=por_mes.escenarios.aldia.resumen %}
-      <section class="pm f2c-tarjeta pr2c-mes" id="porMes" aria-labelledby="pmTitulo">
-        <div class="pm-cab">
-          <span class="f2c-txt">
-            <b class="pm-titulo" id="pmTitulo">Mes a mes</b>
-            <span class="pm-sub">Lo que te deben y lo que te pagan cada mes, con los próximos 6 meses proyectados.</span>
-          </span>
-          <div class="seg" role="group" aria-label="Proyección">
-            <button type="button" class="on-green" data-pm-esc="aldia" aria-pressed="true">Si pagan al día</button>
-            <button type="button" data-pm-esc="ritmo" aria-pressed="false">Según cómo pagan</button>
-          </div>
-        </div>
-        <p class="pm-nota" data-pm-nota="aldia">Cada cuota se paga en su mes y lo atrasado se pone al día este mes.</p>
-        <p class="pm-nota" data-pm-nota="ritmo" hidden>Usa cómo ha pagado cada persona sus cuotas. Si pagó 1 de 2 a tiempo, se espera la mitad de lo que le vence cada mes y el resto pasa al siguiente.</p>
-        <div class="pm-resumen">
-          <div class="pm-dato"><span class="pm-dato-etq">Te deben hoy</span><span class="pm-dato-valor verde" data-pm="hoy_total">{{ r.hoy_total }}</span><span class="pm-dato-sub" data-pm="hoy_sub">{{ r.hoy_sub }}</span></div>
-          <div class="pm-dato"><span class="pm-dato-etq" data-pm="mes_etq">{{ r.mes_etq }}</span><span class="pm-dato-valor" data-pm="mes_valor">{{ r.mes_valor }}</span><span class="pm-dato-sub" data-pm="mes_sub">{{ r.mes_sub }}</span></div>
-          <div class="pm-dato"><span class="pm-dato-etq">Quedaría en cero</span><span class="pm-dato-valor" data-pm="cero_valor">{{ r.cero_valor }}</span><span class="pm-dato-sub" data-pm="cero_sub">{{ r.cero_sub }}</span></div>
-        </div>
-        <div class="pm-grafico">
-          <div class="pm-lectura">
-            <div class="pm-nav">
-              <button type="button" class="pm-flecha" data-pm-mover="-1" aria-label="Mes anterior"><i class="fas fa-chevron-left"></i></button>
-              <span class="pm-mes"><span class="pm-mes-nombre" data-pm-lectura="mes"></span><span class="pm-mes-etq" data-pm-lectura="etiqueta"></span></span>
-              <button type="button" class="pm-flecha" data-pm-mover="1" aria-label="Mes siguiente"><i class="fas fa-chevron-right"></i></button>
-            </div>
-            <div class="seg" role="group" aria-label="Qué mostrar">
-              <button type="button" class="on-green" data-pm-vista="saldo" aria-pressed="true">Saldo pendiente</button>
-              <button type="button" data-pm-vista="cobros" aria-pressed="false">Cobros del mes</button>
-            </div>
-          </div>
-          <div class="pm-valor" aria-live="polite"><span class="pm-valor-monto" data-pm-lectura="valor"></span><span class="pm-valor-nota" data-pm-lectura="nota"></span></div>
-          <div class="pm-barras" id="pmBarras" role="group" aria-label="Meses"></div>
-          <div class="pm-leyenda">
-            <span><span class="pm-muestra real"></span>Real</span>
-            <span><span class="pm-muestra proy"></span>Proyección</span>
-            <span data-pm-leyenda-esperado hidden><span class="pm-muestra esperado"></span>Lo que vence</span>
-          </div>
-          {% if por_mes.sin_fecha_txt %}<p class="pm-aviso"><i class="fas fa-circle-info"></i><span>{{ por_mes.sin_fecha_txt }}</span></p>{% endif %}
-        </div>
-        <div class="pm-bloque">
-          <span class="pm-bloque-titulo" data-pm-lectura="mes"></span>
-          <div class="pm-totales">
-            <div class="pm-total"><span class="pm-total-etq" data-pm-det="saldo_etq"></span><span class="pm-total-monto" data-pm-det="saldo"></span></div>
-            <div class="pm-total"><span class="pm-total-etq" data-pm-det="cobros_etq"></span><span class="pm-total-monto" data-pm-det="cobros"></span></div>
-          </div>
-          <div class="pm-filas" id="pmEventos"></div>
-        </div>
-        {{ por_mes|json_script:"datosPorMes" }}
-      </section>
-      {% endwith %}
-      {% endif %}
     </div>
 
     {% if persona %}
@@ -108,7 +57,7 @@
         <span class="f2c-titulo-tel">Préstamos</span>
       </div>
       <div class="pr2c-quien">
-        <span class="pr2c-avatar grande{% if debo %} debo{% endif %}">{{ persona.nombre|inicial }}</span>
+        <span class="pr2c-avatar grande t-{{ persona.nombre|tono_nombre }}">{{ persona.nombre|inicial }}</span>
         <span class="f2c-txt"><b class="pr2c-nombre">{{ persona.nombre }}</b><span>{{ persona.resumen_meta }}</span></span>
         <button type="button" class="f2c-btn borde chico" data-open="#modalContacto" aria-label="Editar contacto de {{ persona.nombre }}"><i class="fas fa-pen"></i>Contacto</button>
       </div>
@@ -117,7 +66,7 @@
         <span class="f2c-etq">{% if debo %}Le debes{% else %}Te debe{% endif %}</span>
         <span class="f2c-monto">{{ persona.total_pendiente|default:0|money }}</span>
         <span class="f2c-barra"><i data-ancho-pct="{{ persona.total_abonado|tope_pct:persona.total_prestado }}"></i></span>
-        <span class="pr2c-detalle">{% if debo %}Le pagaste{% else %}Te devolvió{% endif %} {{ persona.total_abonado|default:0|money }} de {{ persona.total_prestado|default:0|money }}</span>
+        <span class="pr2c-detalle">{% if debo %}Le has pagado{% else %}Te ha devuelto{% endif %} {{ persona.total_abonado|default:0|money }} de {{ persona.total_prestado|default:0|money }}</span>
       </div>
 
       {% if persona.cobro_del_mes and persona.cobro_del_mes != persona.total_pendiente %}
@@ -180,6 +129,7 @@
 {% endblock %}
 
 {% block modals %}
+{% mes_de_pagina as mes_sel %}{% include 'finanzas/_mes_modal.html' %}
 <div class="modal-overlay" id="modalPersona">
   <div class="modal-box caja-420">
     <div class="modal-head">
@@ -288,5 +238,4 @@
 
 {% block extra_js %}
 <script type="module" src="{% static 'js/pantallas/prestamos.js' %}" nonce="{{ csp_nonce }}"></script>
-{% if por_mes %}<script type="module" src="{% static 'js/pantallas/me-deben-mes.js' %}" nonce="{{ csp_nonce }}"></script>{% endif %}
 {% endblock %}

@@ -1,14 +1,17 @@
 {% extends 'finanzas/base_2c.html' %}
-{% load static moneda marcas %}
+{% load static moneda marcas f2c %}
+{% block topbar_mes %}{% load f2c %}{% mes_de_pagina as mes_sel %}{% include 'finanzas/_mes_topbar.html' %}{% endblock %}
 {% block search_placeholder %}Filtrar compras en cuotas{% endblock %}
 {% block title %}Cuotas · Fintora{% endblock %}
 {% block extra_head %}<link rel="stylesheet" href="{% static 'css/pagos-2c.css' %}">
-<link rel="stylesheet" href="{% static 'css/cuotas-2c.css' %}">{% endblock %}
+<link rel="stylesheet" href="{% static 'css/cuotas-2c.css' %}">
+<link rel="stylesheet" href="{% static 'css/mes-elegir.css' %}">{% endblock %}
 
 {% block content %}
 <div class="p2c">
   <div class="p2c-top">
     <h1 class="p2c-titulo">Pagos</h1>
+    {% mes_de_pagina as mes_sel %}{% include 'finanzas/_mes_elegir.html' %}
   </div>
   {% include 'finanzas/_pagos_pestanas.html' with activa='cuotas' %}
 
@@ -31,20 +34,23 @@
   <div class="p2c-grid">
     <div class="p2c-col c2c-lista">
       {% for d in deudas %}
-      <article class="c2c-compra{% if d.urgencia == 'vencida' %} vencida{% endif %}" data-searchable>
-        <div class="c2c-compra-cab">
+      <article class="c2c-compra{% if d.urgencia == 'vencida' %} vencida{% endif %}" data-searchable data-compra>
+        <button type="button" class="c2c-compra-cab" data-desplegar aria-expanded="false">
           {% marca_de d.acreedor as m %}{% if m %}{% include 'finanzas/_marca.html' with clase="c2c-ficha" %}{% else %}<span class="c2c-ficha"><i class="fas fa-credit-card"></i></span>{% endif %}
           <span class="c2c-txt"><b>{{ d.acreedor }}</b><span>Cuota {{ d.cuota_actual }} de {{ d.cuotas_totales }} · {% if d.urgencia == 'vencida' %}{{ d.texto_urgencia }}{% else %}vence {{ d.proximo_vencimiento|date:"j b" }}{% endif %}</span></span>
           <span class="c2c-cuota"><b>{{ d.monto_cuota|money }}</b><span>al mes</span></span>
-        </div>
+          <i class="fas fa-chevron-down c2c-flecha" aria-hidden="true"></i>
+        </button>
         <div class="c2c-pips" data-columnas="{{ d.cuotas_totales }}">{% for m in d.rango_cuotas %}<span class="{{ m.clase }}" title="Cuota {{ m.indice }}"></span>{% endfor %}</div>
+        <div class="c2c-mas">
         <div class="c2c-datos">
-          {% with faltan=d.periodos_pendientes|length %}<span><i class="fas fa-flag-checkered"></i>Última cuota <b>{{ d.fecha_fin_estimada|date:"F Y" }}</b>{% if faltan %} · {{ faltan }} cuota{{ faltan|pluralize:"s" }} más{% endif %}</span>{% endwith %}
-          {% if d.fecha_fin_estimada == termina_todo and deudas|length > 1 %}<b>La última en terminar</b>{% endif %}
-          <span>Te queda {{ d.monto_restante|money }} de {{ d.monto_total|money }} · {{ d.nombre_categoria }}</span>
+          <span class="c2c-fin-ico"><i class="fas fa-flag-checkered"></i></span>
+          <span class="c2c-fin"><span>Última cuota</span><b>{{ d.fecha_fin_estimada|date:"F Y" }}</b></span>
+          {% with faltan=d.periodos_pendientes|length %}<span class="c2c-fin-lado">{% if faltan %}<span>{{ faltan }} cuota{{ faltan|pluralize:"s" }} más</span>{% endif %}{% if d.fecha_fin_estimada == termina_todo and deudas|length > 1 %}<b>La última en terminar</b>{% endif %}</span>{% endwith %}
         </div>
+        <span class="c2c-queda">Te queda {{ d.monto_restante|money }} de {{ d.monto_total|money }} · {{ d.nombre_categoria }}</span>
         <div class="c2c-acciones">
-          <form method="post" action="{% url 'pagar_cuota' d.pk %}">
+          <form method="post" action="{% url 'pagar_cuota' d.pk %}" class="c2c-pagar-form">
             {% csrf_token %}
             <input type="hidden" name="next" value="{% url 'deudas' %}">
             <input type="hidden" name="periodo" value="{{ d.periodo_a_pagar }}">
@@ -58,6 +64,12 @@
           </form>
           {% endif %}
           <button type="button" class="c2c-chico" data-open="#modalEditarDeuda" data-editar-compra data-accion="{% url 'editar_deuda' d.pk %}" data-eliminar="{% url 'eliminar_deuda' d.pk %}" data-acreedor="{{ d.acreedor }}" data-cuota="{{ d.monto_cuota|floatformat:'0u' }}" data-cuotas="{{ d.cuotas_totales }}" data-inicio="{{ d.fecha_inicio|date:'Y-m-d' }}" data-categoria="{{ d.categoria }}" data-pagadas="{{ d.cuotas_pagadas }}"><i class="fas fa-pen"></i>Editar</button>
+          <form method="post" action="{% url 'eliminar_deuda' d.pk %}" class="c2c-solo-tel" data-confirm="¿Eliminar {{ d.acreedor }}? Se borran también sus pagos registrados.">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{% url 'deudas' %}">
+            <button type="submit" class="c2c-chico rojo"><i class="fas fa-trash-can"></i>Eliminar</button>
+          </form>
+        </div>
         </div>
       </article>
       {% empty %}
@@ -68,15 +80,16 @@
         <button type="button" class="c2c-nueva" data-open="#modalDeuda">{% if saldadas %}Registrar una nueva{% else %}Registrar la primera{% endif %}</button>
       </div>
       {% endfor %}
+      <button type="button" class="c2c-nueva-tel" data-open="#modalDeuda"><i class="fas fa-plus"></i>Nueva compra en cuotas</button>
     </div>
 
     <div class="p2c-col c2c-lado">
       {% if mes_a_mes %}
-      <section class="c2c-tarjeta" data-mes-a-mes>
-        <div class="c2c-tarjeta-cab"><b>Mes a mes</b><span>Lo que pagas en cuotas cada mes</span></div>
+      <section class="c2c-tarjeta" data-mes-a-mes data-mes-elegido="{% if mes_sel and not mes_sel.es_actual %}{{ mes_sel.nombre }}{% endif %}">
+        <div class="c2c-tarjeta-cab c2c-mm-cab"><b>Mes a mes</b><span class="c2c-solo-esc">Lo que pagas en cuotas cada mes</span><span class="c2c-solo-tel">Toca un mes</span></div>
         <div class="c2c-barras" role="group" aria-label="Elegir un mes">
           {% for f in mes_a_mes %}
-          <button type="button" class="c2c-barra{% if f.es_mes_actual %} on{% endif %}{% if f.es_pasado %} pasado{% endif %}" aria-pressed="{% if f.es_mes_actual %}true{% else %}false{% endif %}" data-titulo="{{ f.titulo }}" data-linea="{% if f.total %}Total {{ f.total|money }} · pagado {{ f.pagado|money }} · falta {{ f.pendiente|money }}{% else %}Sin cuotas ese mes{% endif %}" data-nota="Después de {{ f.despues }} te quedan {{ f.restante|money }} en cuotas.">
+          <button type="button" class="c2c-barra{% if f.es_mes_actual %} on actual{% endif %}{% if f.es_pasado %} pasado{% if f.pendiente %} debe{% endif %}{% endif %}{% if not f.total %} vacia{% endif %}" aria-pressed="{% if f.es_mes_actual %}true{% else %}false{% endif %}" data-titulo="{{ f.titulo }}" data-linea="{% if f.total %}Total {{ f.total|money }} · pagado {{ f.pagado|money }} · falta {{ f.pendiente|money }}{% else %}Sin cuotas ese mes{% endif %}" data-nota="Después de {{ f.despues }} te quedan {{ f.restante|money }} en cuotas.">
             <span class="c2c-columna"><i class="pend" data-alto-pct="{{ f.alto_pendiente }}"></i><i class="pag" data-alto-pct="{{ f.alto_pagado }}"></i></span>
             <small>{{ f.corto }}</small>
           </button>
@@ -93,8 +106,9 @@
       {% endif %}
 
       {% if saldadas %}
-      <section class="c2c-tarjeta">
+      <section class="c2c-tarjeta c2c-saldadas">
         <div class="c2c-tarjeta-cab"><b>Compras que ya pagaste</b><span>{{ saldadas|length }} compra{{ saldadas|length|pluralize:"s" }} · {{ total_saldado|money }} en total</span></div>
+        <div class="c2c-saldadas-lista">
         {% for d in saldadas %}
         <div class="c2c-saldada" data-searchable>
           <span class="c2c-check"><i class="fas fa-check"></i></span>
@@ -107,6 +121,7 @@
           </form>
         </div>
         {% endfor %}
+        </div>
       </section>
       {% endif %}
     </div>
@@ -115,6 +130,7 @@
 {% endblock %}
 
 {% block modals %}
+{% mes_de_pagina as mes_sel %}{% include 'finanzas/_mes_modal.html' %}
 <div class="modal-overlay c2c-modal" id="modalDeuda">
   <div class="modal-box">
     <div class="modal-head">
