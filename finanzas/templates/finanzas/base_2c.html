@@ -50,10 +50,10 @@
     {% menu 'lateral' %}
     <span class="f2c-espacio"></span>
     {% estado_salud as salud_estado %}
-    <button type="button" class="f2c-salud" data-spot data-tour="salud"{% if esfera and profile.analisis_ia %} data-charla-abrir{% endif %} data-estado="{% firstof salud_estado_mes salud_estado 'neutro' %}">
+    <button type="button" class="f2c-salud" data-spot data-tour="salud"{% if esfera and profile.analisis_ia %} data-charla-abrir{% endif %} data-estado="{% if disponible < 0 %}rojo{% elif esfera.estado %}{{ esfera.estado }}{% else %}{% firstof salud_estado_mes salud_estado 'neutro' %}{% endif %}">
       <span class="f2c-salud-fila">
         <span class="f2c-salud-esfera" aria-hidden="true"></span>
-        <span class="f2c-salud-txt"><b>{% if salud_score != None %}{{ salud_label|capfirst }}{% else %}Tu mes{% endif %}</b><span>{% if salud_score != None %}Salud {{ salud_score }} de 100{% else %}Todavía sin datos del mes{% endif %}</span></span>
+        <span class="f2c-salud-txt"><b>{% if disponible < 0 %}Pasaste el límite{% elif esfera.etiqueta %}{{ esfera.etiqueta }}{% elif salud_score != None %}{{ salud_label|capfirst }}{% else %}Tu mes{% endif %}</b><span>{% if disponible < 0 %}Gastaste {{ disponible_abs|money }} más de lo que entró{% elif salud_score != None %}Salud {{ salud_score }} de 100{% elif esfera.frase %}Tu resumen del mes está listo{% else %}Todavía sin datos del mes{% endif %}</span></span>
       </span>
       {% if esfera and profile.analisis_ia %}<span class="f2c-salud-pista">Toca para preguntar</span>{% endif %}
     </button>

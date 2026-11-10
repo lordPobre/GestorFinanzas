@@ -94,7 +94,7 @@
           {% if profile.analisis_ia %}<button type="button" class="i2c-btn borde" data-charla-abrir aria-haspopup="dialog"><i class="fas fa-comment-dots"></i>Pregúntame algo</button>{% endif %}
         </div>
       </div>
-      <button type="button" class="i2c-esfera" data-estado="{{ esfera.estado }}"{% if esfera.frase %} data-escuchar{% endif %} aria-label="{{ esfera.etiqueta }}. Escuchar el resumen" title="{{ esfera.etiqueta }}"><b class="i2c-onda" aria-hidden="true"></b><b class="i2c-onda" aria-hidden="true"></b><span class="i2c-orbe" aria-hidden="true"><span class="i2c-orbe-giro"><i></i><i></i><i></i></span><span class="i2c-orbe-brillo"></span></span></button>
+      <button type="button" class="i2c-esfera" data-estado="{% if disponible < 0 %}rojo{% else %}{{ esfera.estado }}{% endif %}"{% if esfera.frase %} data-escuchar{% endif %} aria-label="{{ esfera.etiqueta }}. Escuchar el resumen" title="{{ esfera.etiqueta }}"><b class="i2c-onda" aria-hidden="true"></b><b class="i2c-onda" aria-hidden="true"></b><span class="i2c-orbe" aria-hidden="true"><span class="i2c-orbe-giro"><i></i><i></i><i></i></span><span class="i2c-orbe-brillo"></span></span></button>
     </section>
 
     <section class="i2c-bloque i2c-solo-esc">
@@ -215,7 +215,7 @@
   </div>
 </div>
 {% if esfera.frase %}
-<div class="i2c-sol" data-sol data-estado="{{ esfera.estado }}" aria-hidden="true">
+<div class="i2c-sol" data-sol data-estado="{% if disponible < 0 %}rojo{% else %}{{ esfera.estado }}{% endif %}" aria-hidden="true">
   <div class="i2c-sol-velo" data-sol-cerrar></div>
   <span class="i2c-sol-sombra" aria-hidden="true"></span>
   <div class="i2c-sol-panel" role="dialog" aria-label="Tu mes, en voz alta">

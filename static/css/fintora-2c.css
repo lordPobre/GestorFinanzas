@@ -473,4 +473,13 @@ html.f2c .p2c-top .mes-tel { flex: none; }
   html.f2c .an2c-ia #btnIA { border: 1px solid rgba(30, 26, 21, .18); background: transparent; color: #1E1A15; }
   html.f2c .es2c-barras { height: 170px; }
 }
+@media (min-width: 721px) {
+  html.f2c .f2c-app { background: linear-gradient(90deg, #ECE6DA 0, #ECE6DA 247px, rgba(30, 26, 21, .07) 247px, rgba(30, 26, 21, .07) 248px, #F3EFE7 248px); }
+  html.f2c .f2c-lado { overflow-x: hidden; align-self: start; }
+  html.f2c .f2c-lado .sidebar-nav { flex: none !important; overflow: visible !important; }
+  html.f2c .f2c-salud-pista { color: #1E1A15; }
+  html.f2c .f2c-salud[data-estado="verde"] .f2c-salud-pista { color: #0D6E55; }
+  html.f2c .f2c-salud[data-estado="amarillo"] .f2c-salud-pista { color: #8A5F0F; }
+  html.f2c .f2c-salud[data-estado="rojo"] .f2c-salud-pista { color: #A8361F; }
+}
 }

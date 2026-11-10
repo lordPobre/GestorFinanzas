@@ -86,4 +86,10 @@
   .p2c-desglose, .p2c-aviso, .p2c-filtros { display: none; }
   .p2c-txt span { white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
 }
+
+@media (min-width: 721px) {
+  .p2c-filtros { display: none; }
+  .p2c-resumen .p2c-monto { font-size: 44px; }
+  .p2c-resumen .p2c-pips span { height: 8px; }
+}
 }

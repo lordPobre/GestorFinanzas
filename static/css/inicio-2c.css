@@ -268,4 +268,12 @@ html.i2c-hablando .i2c-onda + .i2c-onda { animation-delay: .9s; }
   html.i2c-sol-abierto .i2c-sol-sombra { opacity: 1; transform: scale(1); }
   html.i2c-sol-abierto .i2c-sol-panel { opacity: 1; transform: none; pointer-events: auto; transition: opacity .45s ease .5s, transform .6s cubic-bezier(.3, .7, .2, 1) .5s; }
 }
+
+@media (min-width: 721px) {
+  .i2c-tiles { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); }
+  .i2c-tile-icono { width: 34px; height: 34px; background: rgba(255, 255, 255, .7); }
+  .i2c-chispa { height: 62px; gap: 6px; padding-top: 6px; }
+  .i2c-chispa b { display: none; }
+  .i2c-chispa i { max-height: calc(100% - 18px); min-height: 3px; }
+}
 }
