@@ -70,12 +70,12 @@ class Pantallas2cTests(TestCase):
         self.client.cookies[diseno.COOKIE] = diseno.VALOR
 
     def test_inicio_avisa_que_falta_el_ingreso_y_explica_como_sigue_tu_plata(self):
-        cuerpo = self.client.get(reverse('dashboard')).content.decode('utf-8')
+        response = self.client.get(reverse('dashboard'))
+        cuerpo = response.content.decode('utf-8')
         self.assertIn('Falta tu ingreso de', cuerpo)
-        self.assertIn('data-preset-tipo="INGRESO">Anotar ingreso</button>', cuerpo)
-        self.assertIn('class="sf-explica"', cuerpo)
-        self.assertIn('Lo que ya pasó', cuerpo)
-        self.assertNotIn('>Pagué<', cuerpo)
+        self.assertIn('Sin el sueldo, la cifra solo resta lo que gastas y pagas.', cuerpo)
+        self.assertIn('Cómo sigue tu plata', cuerpo)
+        self.assertIn('La línea es la plata que te va quedando cada día si sigues gastando como siempre', cuerpo)
 
     def test_el_panel_para_anotar_trae_cuotas_y_cartola(self):
         cuerpo = self.client.get(reverse('metas')).content.decode('utf-8')
