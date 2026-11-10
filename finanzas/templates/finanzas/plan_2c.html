@@ -6,7 +6,7 @@
 
 {% block pestanas %}{% endblock %}
 {% block content %}{% load menu %}
-<div class="f2c-pagina pl2c">
+<div class="f2c-pagina pl2c" data-herr="sim">
   <div class="p2c-top"><h1 class="f2c-titulo-tel">Plan</h1></div>
   {% menu 'pestanas' %}
 
@@ -38,7 +38,16 @@
         <span class="f2c-etq">Este mes puedes apartar</span>
         <span class="f2c-monto">{{ plan.sobra|money }}</span>
         <span class="f2c-sub">En un mes normal entran {{ plan.ingreso|money }}, gastas {{ plan.gasto|money }} y pagas {{ plan.compromisos|money }} en cuotas y préstamos. Abajo decides cómo repartirlo.</span>
+        <div class="pl2c-cuenta pl2c-pc" aria-label="Cómo sale lo que puedes apartar">
+          <span class="pl2c-termino"><small><i class="fas fa-arrow-down"></i>Entran</small><b>{{ plan.ingreso|money }}</b></span>
+          <span class="pl2c-op" aria-hidden="true">−</span>
+          <span class="pl2c-termino"><small><i class="fas fa-bag-shopping"></i>Gastas</small><b>{{ plan.gasto|money }}</b></span>
+          <span class="pl2c-op" aria-hidden="true">−</span>
+          <span class="pl2c-termino"><small><i class="fas fa-credit-card"></i>Cuotas y préstamos</small><b>{{ plan.compromisos|money }}</b></span>
+        </div>
+        <span class="pl2c-cuenta-nota pl2c-pc">Promedio de un mes normal{% if plan.meses_base %}, con tus últimos {{ plan.meses_base }} mes{{ plan.meses_base|pluralize:"es" }} cerrado{{ plan.meses_base|pluralize }}{% endif %}.</span>
         <div class="pl-reparto" aria-label="Así queda lo que te sobra">
+          <span class="pl2c-reparto-cab pl2c-pc"><b>Así lo repartes</b><span>Se mueve con las herramientas de abajo</span></span>
           <div class="pl-reparto-barra"><span id="planBarAhorro"></span><span id="planBarExtra"></span></div>
           <div class="pl-reparto-leyenda">
             <span><i class="verde"></i>Ahorro <b data-plan="ahorro"></b></span>
@@ -53,9 +62,11 @@
       </section>
 
       <div class="f2c-lista pl2c-pasos">
+        <div class="pl2c-ruta-cab pl2c-pc"><b>Tu ruta</b><span>Tres pasos, en este orden</span></div>
         <div class="f2c-fila">
           {% if plan.tiene_fondo and plan.llevas >= plan.meta %}<span class="f2c-ficha hecho"><i class="fas fa-check"></i></span>{% else %}<span class="pl2c-paso">1</span>{% endif %}
           <span class="f2c-txt"><b>Junta {{ plan.meta|money }} para imprevistos</b><span>3 meses de tus gastos y cuotas</span></span>
+          {% if plan.tiene_fondo %}<span class="pl2c-paso-avance pl2c-pc"><span class="f2c-barra fina"><i data-ancho-pct="{% widthratio plan.llevas plan.meta 100 %}"></i></span><small>Llevas {{ plan.llevas|money }}</small></span>{% endif %}
         </div>
         <div class="f2c-fila">
           {% if not plan.deudas %}<span class="f2c-ficha hecho"><i class="fas fa-check"></i></span>{% else %}<span class="pl2c-paso">2</span>{% endif %}
@@ -75,7 +86,17 @@
       {% endif %}
       {% if plan.pocos_datos %}<p class="sec-mas-nota">Calculado con {% if plan.meses_base %}{{ plan.meses_base }} mes{{ plan.meses_base|pluralize:"es" }} cerrado{{ plan.meses_base|pluralize }}{% else %}lo que llevas de este mes{% endif %}. Se ajusta solo a medida que anotes.</p>{% endif %}
 
-      <section class="f2c-tarjeta pl-bloque pl2c-bloque" data-simulador>
+      <div class="pl2c-herr-caja pl2c-pc">
+        <div class="pl2c-sec-cab"><b>Prueba tu plan</b><span>Elige una herramienta. Mueve los números y mira el resultado al lado.</span></div>
+        <div class="pl2c-herr" role="group" aria-label="Herramientas del plan">
+          <button type="button" aria-pressed="true" data-herr-ir="sim"><span class="f2c-ficha"><i class="fas fa-cart-shopping"></i></span><span class="f2c-txt"><b>¿Me alcanza?</b><span>Prueba una compra en cuotas</span></span></button>
+          <button type="button" aria-pressed="false" data-herr-ir="fondo"><span class="f2c-ficha verde"><i class="fas fa-piggy-bank"></i></span><span class="f2c-txt"><b>Fondo para imprevistos</b><span>Apartas <b data-plan="ahorro"></b> al mes</span></span></button>
+          {% if plan.deudas %}<button type="button" aria-pressed="false" data-herr-ir="deudas"><span class="f2c-ficha ambar"><i class="fas fa-credit-card"></i></span><span class="f2c-txt"><b>Salir de tus cuotas</b><span>Extra de <b data-plan="extra"></b> al mes</span></span></button>{% endif %}
+          <button type="button" aria-pressed="false" data-herr-ir="dap"><span class="f2c-ficha azul"><i class="fas fa-chart-line"></i></span><span class="f2c-txt"><b>Depósito a plazo</b><span>Cuánto crece tu fondo</span></span></button>
+        </div>
+      </div>
+
+      <section class="f2c-tarjeta pl-bloque pl2c-bloque" data-simulador data-herr-panel="sim">
         <div class="pl2c-cab"><span class="f2c-ficha tinta"><i class="fas fa-cart-shopping"></i></span><span class="f2c-txt"><b>¿Me alcanza algo en cuotas?</b><span>Mira cómo quedarían tus próximos 12 meses antes de comprar</span></span></div>
         <div class="pl2c-dos">
           <div class="pl2c-ctrl">
@@ -107,7 +128,7 @@
       <details class="pl2c-mas" data-abrir-escritorio>
         <summary class="f2c-tarjeta pl2c-mas-cab"><span class="f2c-ficha verde"><i class="fas fa-toolbox"></i></span><span class="f2c-txt"><b>Más para tu plan</b><span>Fondo para imprevistos, salir de tus cuotas, depósito a plazo y suscripciones</span></span><i class="fas fa-chevron-down f2c-flecha"></i></summary>
         <div class="pl2c-mas-cuerpo">
-          <section class="f2c-tarjeta pl-bloque pl2c-bloque">
+          <section class="f2c-tarjeta pl-bloque pl2c-bloque" data-herr-panel="fondo">
             <div class="pl2c-cab"><span class="f2c-ficha verde"><i class="fas fa-piggy-bank"></i></span><span class="f2c-txt"><b>Ahorro para imprevistos</b><span>La meta son 3 meses de tus gastos y cuotas: {{ plan.meta|money }}</span></span></div>
             <div class="pl2c-dos">
               <div class="pl2c-ctrl">
@@ -149,7 +170,7 @@
           </section>
 
           {% if plan.deudas %}
-          <section class="f2c-tarjeta pl-bloque pl2c-bloque">
+          <section class="f2c-tarjeta pl-bloque pl2c-bloque" data-herr-panel="deudas">
             <div class="pl2c-cab"><span class="f2c-ficha ambar"><i class="fas fa-credit-card"></i></span><span class="f2c-txt"><b>Salir antes de tus cuotas</b><span>Un extra al mes adelanta el fin de tus compras a plazo</span></span></div>
             <div class="pl2c-dos">
               <div class="pl2c-ctrl">
@@ -175,7 +196,7 @@
           </section>
           {% endif %}
 
-          <section class="f2c-tarjeta pl-bloque pl-dap pl2c-bloque">
+          <section class="f2c-tarjeta pl-bloque pl-dap pl2c-bloque" data-herr-panel="dap">
             <div class="pl2c-cab"><span class="f2c-ficha azul"><i class="fas fa-chart-line"></i></span><span class="f2c-txt"><b>Depósito a plazo</b><span>Cuando completes el fondo, en <span data-dap="inicio"></span>, puedes dejarlo en un depósito y seguir sumando</span></span></div>
             <div class="pl2c-dos">
               <div class="pl2c-ctrl">
@@ -224,7 +245,7 @@
           </section>
 
           {% if plan.suscripciones %}
-          <section class="f2c-tarjeta pl-bloque pl2c-bloque">
+          <section class="f2c-tarjeta pl-bloque pl2c-bloque pl2c-subs-bloque">
             <div class="pl2c-cab"><span class="f2c-ficha naranja"><i class="fas fa-rotate"></i></span><span class="f2c-txt"><b>Suscripciones para revisar</b><span>Servicios que se parecen entre sí</span></span><a href="{% url 'suscripciones' %}" class="f2c-btn borde chico pl2c-cab-btn">Ver suscripciones</a></div>
             <div class="pl2c-subs-lista">
               {% for g in plan.suscripciones %}

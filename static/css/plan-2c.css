@@ -107,6 +107,7 @@ html.f2c .pl2c-subs-lista { display: flex; flex-direction: column; gap: 16px; }
 html.f2c .pl2c-subs { padding: 14px 16px; border-radius: 16px; background: rgba(30, 26, 21, .04); }
 html.f2c .pl2c-ia .pl-ia-btn { min-height: 52px; }
 html.f2c .pl2c-aprender > summary { list-style: none; }
+html.f2c .pl2c-pc { display: none; }
 
 @media (max-width: 720px) {
   html.f2c .pl-sim-grafico { gap: 3px; padding: 12px 10px 8px; }
@@ -121,31 +122,106 @@ html.f2c .pl2c-aprender > summary { list-style: none; }
 @media (min-width: 721px) {
   html.f2c .pl2c-mas-cab { display: none; }
   html.f2c .pl2c-mas-cuerpo { padding-top: 0; gap: 24px; }
-  html.f2c .pl2c-grid { gap: 24px; }
-  html.f2c .pl2c-grid > .f2c-col { gap: 24px; }
+  html.f2c .pl2c-grid, html.f2c .pl2c-grid > .f2c-col { gap: 24px; }
 
-  html.f2c .pl2c-hero { display: grid; grid-template-columns: minmax(0, 1fr) minmax(300px, .9fr); grid-template-areas: "etq reparto" "monto reparto" "sub reparto"; column-gap: 48px; row-gap: 8px; align-items: start; padding: 30px 32px; border-radius: 28px; }
-  html.f2c .pl2c-hero > .f2c-etq { grid-area: etq; }
-  html.f2c .pl2c-hero > .f2c-monto { grid-area: monto; font-size: 60px; }
-  html.f2c .pl2c-hero > .f2c-sub { grid-area: sub; max-width: 520px; }
-  html.f2c .pl2c-hero > .pl-reparto { grid-area: reparto; align-self: center; margin-top: 0; padding: 20px; border-radius: 20px; background: rgba(243, 239, 231, .06); }
-  html.f2c .pl2c-hero .pl-reparto-barra { height: 12px; }
+  html.f2c .pl2c-hero { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-areas: "etq" "monto" "cuenta" "nota" "reparto"; gap: 0; padding: 32px 36px; border-radius: 30px; }
+  html.f2c .pl2c-hero > .f2c-etq { grid-area: etq; font-size: 15px; color: rgba(243, 239, 231, .72); }
+  html.f2c .pl2c-hero > .f2c-monto { grid-area: monto; margin-top: 10px; font-size: 68px; letter-spacing: -.05em; }
+  html.f2c .pl2c-hero > .f2c-sub { display: none; }
+  html.f2c .pl2c-cuenta { grid-area: cuenta; display: flex; flex-wrap: wrap; align-items: stretch; gap: 8px; margin-top: 24px; }
+  html.f2c .pl2c-termino { display: flex; flex-direction: column; gap: 4px; min-width: 0; padding: 12px 16px; border-radius: 16px; background: rgba(243, 239, 231, .07); border: 1px solid rgba(243, 239, 231, .08); }
+  html.f2c .pl2c-termino small { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 500; color: rgba(243, 239, 231, .68); white-space: nowrap; }
+  html.f2c .pl2c-termino small i { font-size: 10px; color: rgba(243, 239, 231, .5); }
+  html.f2c .pl2c-termino b { font-size: 18px; font-weight: 700; letter-spacing: -.01em; color: #F3EFE7; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  html.f2c .pl2c-op { display: grid; place-items: center; width: 14px; font-size: 18px; font-weight: 500; color: rgba(243, 239, 231, .45); }
+  html.f2c .pl2c-cuenta-nota { grid-area: nota; display: block; margin-top: 10px; font-size: 12px; font-weight: 500; color: rgba(243, 239, 231, .6); }
+  html.f2c .pl2c-hero > .pl-reparto { grid-area: reparto; margin-top: 26px; padding: 22px 24px; gap: 14px; border-radius: 22px; background: rgba(243, 239, 231, .06); border: 1px solid rgba(243, 239, 231, .08); }
+  html.f2c .pl2c-reparto-cab { display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: 4px 12px; }
+  html.f2c .pl2c-reparto-cab b { font-size: 15px; color: #F3EFE7; }
+  html.f2c .pl2c-reparto-cab span { font-size: 12px; font-weight: 500; color: rgba(243, 239, 231, .6); }
+  html.f2c .pl2c-hero .pl-reparto-barra { height: 14px; background: rgba(243, 239, 231, .14); }
+  html.f2c .pl2c-hero .pl-reparto-leyenda { display: flex; flex-direction: column; gap: 0; font-size: 14px; color: rgba(243, 239, 231, .8); }
+  html.f2c .pl2c-hero .pl-reparto-leyenda > span { display: flex; align-items: center; gap: 10px; min-height: 44px; border-top: 1px solid rgba(243, 239, 231, .08); }
+  html.f2c .pl2c-hero .pl-reparto-leyenda > span:first-child { border-top: none; }
+  html.f2c .pl2c-hero .pl-reparto-leyenda i { width: 10px; height: 10px; }
+  html.f2c .pl2c-hero .pl-reparto-leyenda b { margin-left: auto; font-size: 17px; font-variant-numeric: tabular-nums; }
 
-  html.f2c .pl2c-pasos { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; padding: 0; border: none; background: none; }
-  html.f2c .pl2c-pasos > .f2c-fila { flex-direction: column; align-items: flex-start; gap: 14px; padding: 18px; border: 1px solid rgba(30, 26, 21, .06); border-radius: 20px; background: #FBF8F2; }
-  html.f2c .pl2c-pasos .f2c-txt > b { font-weight: 700; }
+  html.f2c .pl2c-pasos { position: relative; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); column-gap: 24px; row-gap: 20px; padding: 24px 28px 26px; border-radius: 26px; }
+  html.f2c .pl2c-ruta-cab { grid-column: 1 / -1; display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+  html.f2c .pl2c-ruta-cab b { font-size: 17px; }
+  html.f2c .pl2c-ruta-cab span { font-size: 13px; font-weight: 500; color: rgba(30, 26, 21, .62); }
+  html.f2c .pl2c-pasos > .f2c-fila { position: relative; flex-direction: column; align-items: flex-start; gap: 14px; padding: 0; border-top: 0; }
+  html.f2c .pl2c-pasos > .f2c-fila:not(:last-child)::after { content: ''; position: absolute; top: 15px; left: 44px; right: -12px; height: 2px; border-radius: 2px; background: rgba(30, 26, 21, .12); }
+  html.f2c .pl2c-pasos > .f2c-fila:has(> .hecho)::after { background: #0D6E55; }
+  html.f2c .pl2c-pasos .pl2c-paso { background: #FBF8F2; }
+  html.f2c .pl2c-pasos > .f2c-fila:has(> .pl2c-paso):not(.f2c-fila:has(> .pl2c-paso) ~ .f2c-fila) > .pl2c-paso { border-color: #1E1A15; background: #1E1A15; color: #F3EFE7; box-shadow: 0 0 0 5px rgba(30, 26, 21, .08); }
+  html.f2c .pl2c-pasos .f2c-txt { gap: 4px; }
+  html.f2c .pl2c-pasos .f2c-txt > b { font-size: 15px; font-weight: 700; line-height: 1.35; text-wrap: pretty; }
+  html.f2c .pl2c-pasos .f2c-txt > span { font-size: 13px; line-height: 1.4; }
+  html.f2c .pl2c-paso-avance { display: flex; flex-direction: column; gap: 6px; width: 100%; }
+  html.f2c .pl2c-paso-avance small { font-size: 12px; font-weight: 500; color: rgba(30, 26, 21, .62); }
 
-  html.f2c .pl2c-bloque { padding: 24px 28px; border-radius: 26px; gap: 22px; }
-  html.f2c .pl2c-dos { grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); gap: 32px; align-items: start; }
-  html.f2c .pl2c-vista { position: sticky; top: 24px; }
-  html.f2c .pl2c-subs-lista { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
-  html.f2c .pl2c-ia .pl-ia { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "cab btn" "estado estado" "parrafos parrafos"; column-gap: 24px; align-items: center; }
-  html.f2c .pl2c-ia .pl-ia-cab { grid-area: cab; }
-  html.f2c .pl2c-ia #planIAEstado { grid-area: estado; }
-  html.f2c .pl2c-ia #planIAParrafos { grid-area: parrafos; }
+  html.f2c .pl2c-herr-caja { display: flex; flex-direction: column; gap: 14px; margin-top: 12px; }
+  html.f2c .pl2c-sec-cab { display: flex; flex-direction: column; gap: 4px; }
+  html.f2c .pl2c-sec-cab b { font-size: 22px; letter-spacing: -.02em; }
+  html.f2c .pl2c-sec-cab span { font-size: 14px; font-weight: 500; color: rgba(30, 26, 21, .66); }
+  html.f2c .pl2c-herr { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 10px; }
+  html.f2c .pl2c-herr > button { display: flex; align-items: center; gap: 12px; min-height: 76px; padding: 14px 16px; border: 1px solid rgba(30, 26, 21, .08); border-radius: 20px; background: #FBF8F2; color: #1E1A15; text-align: left; cursor: pointer; transition: background .2s ease, border-color .2s ease, box-shadow .2s ease, transform .2s ease; }
+  html.f2c .pl2c-herr > button:hover { border-color: rgba(30, 26, 21, .2); transform: translateY(-1px); }
+  html.f2c .pl2c-herr > button:focus-visible { outline: 2px solid #0D6E55; outline-offset: 2px; }
+  html.f2c .pl2c-herr > button[aria-pressed="true"] { background: #1E1A15; border-color: #1E1A15; color: #F3EFE7; box-shadow: 0 18px 34px -22px rgba(30, 26, 21, .8); transform: none; }
+  html.f2c .pl2c-herr .f2c-ficha { width: 42px; height: 42px; border-radius: 13px; font-size: 15px; }
+  html.f2c .pl2c-herr > button[aria-pressed="true"] .f2c-ficha { background: rgba(243, 239, 231, .12); color: #F3EFE7; }
+  html.f2c .pl2c-herr .f2c-txt > b { font-size: 15px; }
+  html.f2c .pl2c-herr .f2c-txt > span { font-size: 12px; line-height: 1.35; }
+  html.f2c .pl2c-herr .f2c-txt > span b { color: #1E1A15; font-weight: 700; font-variant-numeric: tabular-nums; }
+  html.f2c .pl2c-herr > button[aria-pressed="true"] .f2c-txt > span { color: rgba(243, 239, 231, .72); }
+  html.f2c .pl2c-herr > button[aria-pressed="true"] .f2c-txt > span b { color: #F3EFE7; }
+
+  html.f2c .pl2c[data-herr="sim"] [data-herr-panel]:not([data-herr-panel="sim"]),
+  html.f2c .pl2c[data-herr="fondo"] [data-herr-panel]:not([data-herr-panel="fondo"]),
+  html.f2c .pl2c[data-herr="deudas"] [data-herr-panel]:not([data-herr-panel="deudas"]),
+  html.f2c .pl2c[data-herr="dap"] [data-herr-panel]:not([data-herr-panel="dap"]) { display: none; }
+  html.f2c .pl2c [data-herr-panel] { margin-top: -10px; animation: pl2c-entra .25s cubic-bezier(.3, .7, .2, 1); }
+  html.f2c [data-herr-panel] > .pl2c-cab .f2c-ficha { display: none; }
+  html.f2c [data-herr-panel] > .pl2c-cab .f2c-txt > b { font-size: 20px; letter-spacing: -.01em; }
+  html.f2c [data-herr-panel] > .pl2c-cab .f2c-txt > span { font-size: 14px; }
+
+  html.f2c .pl2c-bloque { padding: 28px; border-radius: 28px; gap: 22px; }
+  html.f2c .pl2c-dos { gap: 24px; }
+  html.f2c .pl2c-ctrl { gap: 20px; }
+  html.f2c .pl2c-vista { gap: 14px; padding: 20px; border-radius: 22px; background: #F3EFE7; }
+  html.f2c .pl2c-vista .pl-cifra.total, html.f2c .pl2c-vista .pl-resultado:not(.rojo, .ambar, .verde) { background: #fff; }
+  html.f2c .pl2c-vista :is(.pl-graf, .pl-sim-grafico, .pl-deudas) { border-color: rgba(30, 26, 21, .06); }
+  html.f2c .pl2c-vista .sec-mas-nota { font-size: 12px; }
+  html.f2c .pl2c-vista:has(> .pl-sim-grafico:empty) { justify-content: center; min-height: 220px; border: 1.5px dashed rgba(30, 26, 21, .16); background: transparent; }
+  html.f2c .pl2c-vista:has(> .pl-sim-grafico:empty) > .pl-resultado { background: transparent; color: rgba(30, 26, 21, .62); text-align: center; }
+
+  html.f2c .pl2c-subs-lista { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px; }
+  html.f2c .pl2c-subs { padding: 16px 18px; border-radius: 18px; background: #F3EFE7; }
+  html.f2c .pl2c-ia { padding: 24px 28px; border-radius: 26px; }
+  html.f2c .pl2c-ia .pl-ia { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "cab btn" "estado estado" "parrafos parrafos"; column-gap: 24px; row-gap: 12px; align-items: center; }
+  html.f2c .pl2c-ia .pl-ia-cab { grid-area: cab; gap: 14px; }
+  html.f2c .pl2c-ia .pl-ia-icono { width: 52px; height: 52px; }
+  html.f2c .pl2c-ia #planIAEstado { grid-area: estado; font-size: 14px; }
+  html.f2c .pl2c-ia #planIAParrafos { grid-area: parrafos; padding: 18px 20px; border-radius: 18px; background: #F3EFE7; }
   html.f2c .pl2c-ia .pl-ia-btn { grid-area: btn; width: auto; padding: 0 24px; }
-  html.f2c .pl2c-aprender { padding: 20px 28px; border-radius: 26px; }
-  html.f2c .pl2c-aprender-cuerpo { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
+  html.f2c .pl2c-aprender { padding: 22px 28px; border-radius: 26px; }
+  html.f2c .pl2c-aprender-cuerpo { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; padding-top: 18px; }
+  html.f2c .pl2c-aprender-cuerpo > div { gap: 6px; padding: 16px 18px; border-radius: 18px; background: #F3EFE7; }
   html.f2c .pl2c-aprender-cuerpo > a { grid-column: 1 / -1; }
+  html.f2c .pl2c-legal { max-width: 760px; }
 }
+
+@media (min-width: 1100px) {
+  html.f2c .pl2c-dos { grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr); gap: 32px; align-items: start; }
+  html.f2c .pl2c-vista { position: sticky; top: 24px; }
+}
+
+@media (min-width: 1280px) {
+  html.f2c .pl2c-hero { grid-template-columns: minmax(0, 1fr) minmax(300px, 380px); grid-template-areas: "etq reparto" "monto reparto" "cuenta reparto" "nota reparto"; grid-template-rows: auto auto auto 1fr; column-gap: 40px; }
+  html.f2c .pl2c-hero > .pl-reparto { margin-top: 0; justify-content: center; }
+}
+
+@keyframes pl2c-entra { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
 }

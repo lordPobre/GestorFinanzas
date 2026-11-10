@@ -622,4 +622,12 @@ html.f2c .ca-clave.mal .ca-banco-caja { border-color: rgba(194, 65, 45, .6); }
 html.f2c .ca-clave.mal .ca-clave-nota { color: #A8361F; }
 html.f2c .ca-pasos-como { background: #FBF8F2; border: 1px solid rgba(30, 26, 21, .06); }
 html.f2c .ca-fila-leer .sec-btn:disabled { opacity: 1; background: rgba(30, 26, 21, .1); color: rgba(30, 26, 21, .45); cursor: default; }
+html.f2c .es2c-barra small { display: flex; flex-direction: column; align-items: center; min-height: 30px; line-height: 1.25; white-space: nowrap; }
+html.f2c .es2c-barra small em { font-style: normal; font-size: 11px; font-weight: 500; color: rgba(30, 26, 21, .55); }
+html.f2c .es2c-barra i { max-height: calc(100% - 62px); }
+@media (max-width: 720px) {
+  html.f2c .p2c-top:not(.ca2c-top) { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 44px; }
+  html.f2c .p2c-top:not(.ca2c-top) > :is(h1, h2) { min-width: 0; }
+  html.f2c .es2c-barras { gap: 8px; }
+}
 }

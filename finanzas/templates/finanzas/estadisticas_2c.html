@@ -27,7 +27,7 @@
       </section>
     </aside>
     <div class="f2c-col">
-      {% barras meses_json gastos_json 6 as barras_gasto %}
+      {% barras meses_json gastos_json 6 mes_sel.nombre as barras_gasto %}
       <section class="f2c-tarjeta">
         <div class="es2c-cab">
           <span class="f2c-grupo-titulo">Gastos por mes</span>
@@ -39,7 +39,7 @@
           <span class="es2c-barra{% if b.actual %} actual{% endif %}">
             <b>{% if b.valor %}{{ b.valor|corto:simbolo_moneda }}{% else %}—{% endif %}</b>
             <i data-alto-pct="{{ b.alto }}"></i>
-            <small>{{ b.etiqueta }}</small>
+            <small title="{{ b.etiqueta|capfirst }}">{{ b.corta }}{% if b.anio %}<em>{{ b.anio }}</em>{% endif %}</small>
           </span>
           {% endfor %}
         </div>

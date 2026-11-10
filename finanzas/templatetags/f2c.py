@@ -6,6 +6,7 @@ from django import template
 
 from .. import fechas
 from ..categorias_base import BASE
+from ..servicios.mes import MESES_LARGOS
 from ..servicios.mes_elegido import mes_pedido, selector_mes
 
 register = template.Library()
@@ -174,13 +175,38 @@ def tope_pct(valor, tope):
     return max(0, min(100, round(_numero(valor) / t * 100)))
 
 
+def _mes_y_anio(etiqueta):
+    trozos = str(etiqueta or '').strip().lower().split()
+    if len(trozos) == 2 and trozos[0] in MESES_LARGOS and trozos[1].isdigit():
+        return MESES_LARGOS.index(trozos[0]), trozos[1]
+    return None, ''
+
+
 @register.simple_tag
-def barras(etiquetas, valores, cuantos=6):
-    pares = list(zip(etiquetas or [], valores or [], strict=False))[-int(cuantos):]
+def barras(etiquetas, valores, cuantos=6, elegido=None):
+    pares = list(zip(etiquetas or [], valores or [], strict=False))
+    clave = str(elegido or '').strip().lower()
+    fin = len(pares)
+    for i, (e, _) in enumerate(pares):
+        if clave and str(e).strip().lower() == clave:
+            fin = i + 1
+            break
+    pares = pares[max(0, fin - int(cuantos)):fin]
     tope = max([_numero(v) for _, v in pares] + [Decimal('1')])
     ultimo = len(pares) - 1
-    return [{'etiqueta': str(e), 'valor': _numero(v), 'alto': max(4, round(_numero(v) / tope * 100)) if _numero(v) else 4,
-             'actual': i == ultimo} for i, (e, v) in enumerate(pares)]
+    salida, anio_previo = [], None
+    for i, (e, v) in enumerate(pares):
+        mes, anio = _mes_y_anio(e)
+        salida.append({
+            'etiqueta': str(e),
+            'corta': MESES_LARGOS[mes][:3].capitalize() if mes is not None else str(e),
+            'anio': anio if anio and anio != anio_previo else '',
+            'valor': _numero(v),
+            'alto': max(4, round(_numero(v) / tope * 100)) if _numero(v) else 4,
+            'actual': i == ultimo,
+        })
+        anio_previo = anio
+    return salida
 
 
 @register.simple_tag(takes_context=True)
