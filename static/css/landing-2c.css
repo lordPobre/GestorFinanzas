@@ -196,8 +196,8 @@ html.f2c .lp-chat-panel { position: fixed; right: 20px; bottom: calc(84px + env(
 html.f2c .lp-chat-asa { display: none; }
 html.f2c .lp-chat-cabeza { display: flex; align-items: center; gap: 12px; padding: 16px 18px; border-bottom: 1px solid rgba(30, 26, 21, .07); }
 html.f2c .lp-chat-cabeza > div { flex: 1; }
-html.f2c .lp-chat-logo { width: 36px; height: 36px; flex: none; overflow: hidden; border-radius: 50%; background: radial-gradient(circle at 32% 26%, rgba(255, 255, 255, .75), rgba(255, 255, 255, 0) 28%), radial-gradient(circle at 46% 56%, #3fae84 0%, #0D6E55 48%, #075241 90%); }
-html.f2c .lp-chat-logo > * { display: none; }
+html.f2c .lp-chat-logo { width: 36px; height: 36px; flex: none; overflow: hidden; display: grid; place-items: center; color: #fff; border-radius: 50%; box-shadow: 0 8px 16px -8px rgba(15, 123, 95, .6), inset 0 -3px 8px rgba(6, 70, 54, .3); background: radial-gradient(circle at 32% 26%, rgba(255, 255, 255, .75), rgba(255, 255, 255, 0) 28%), radial-gradient(circle at 46% 56%, #3fae84 0%, #0D6E55 48%, #075241 90%); }
+html.f2c .lp-chat-logo .marca-svg { display: block; width: 56%; height: 56%; }
 html.f2c .lp-chat-nombre { font-size: 15px; font-weight: 700; }
 html.f2c .lp-chat-sub { font-size: 12px; color: rgba(30, 26, 21, .68); }
 html.f2c .lp-chat-cerrar { width: 34px; height: 34px; border: none; border-radius: 50%; background: rgba(30, 26, 21, .06); color: #1E1A15; cursor: pointer; }
@@ -220,7 +220,14 @@ html.f2c .lp-chat-error { font-size: 13px; font-weight: 700; color: #A8361F; }
 html.f2c .lp-trampa { position: absolute !important; left: -9999px !important; width: 1px; height: 1px; opacity: 0; }
 
 @media (max-width: 720px) {
-  html.f2c .l2c-hero-tel { display: none; }
+  html.f2c .l2c-hero { gap: 44px; padding-bottom: 64px; }
+  html.f2c .l2c-hero-tel { flex: 1 1 100%; padding: 4px 0 8px; }
+  html.f2c .l2c-tel { width: min(300px, calc(100vw - 72px)); height: auto; aspect-ratio: 310 / 640; padding: 10px; border-radius: 46px; transform: rotate(-2deg); }
+  html.f2c .l2c-tel-pantalla { gap: 16px; padding: 40px 16px 0; border-radius: 37px; }
+  html.f2c .l2c-tel-esfera { top: -64px; right: -76px; width: 220px; height: 220px; }
+  html.f2c .l2c-tel-cifra { padding-top: 22px; }
+  html.f2c .l2c-tel-cifra > b { font-size: 40px; }
+  html.f2c .l2c-tel-tiles > div { padding: 10px; }
   html.f2c .l2c-meses { grid-template-columns: repeat(4, minmax(0, 1fr)); }
   html.f2c .l2c-nav-entrar { padding: 0 10px; }
   html.f2c .lp-chat-boton span { display: none; }

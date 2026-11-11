@@ -25,68 +25,79 @@
 <body>
 {% if es_staging %}<div role="status" class="aviso-staging">ENTORNO DE PRUEBAS · no se envían correos</div>{% endif %}
 
-<div class="ac2c">
-  <span class="ac2c-esfera" aria-hidden="true"></span>
-
+<div class="ac2c" data-modo="{% if form.errors or bloqueado %}clave{% else %}rapido{% endif %}">
   <section class="ac2c-portada">
     <a href="{% url 'dashboard' %}" class="ac2c-marca"><span class="f2c-logo grande">{% include "finanzas/marca_color.html" %}</span><span>Fintora</span></a>
-    <div class="ac2c-cifra" aria-hidden="true">
-      <span class="ac2c-etq">Puedes gastar</span>
-      <span class="ac2c-monto">$•••.•••</span>
-      <span class="ac2c-linea">Sigue donde lo dejaste.</span>
+    <div class="ac2c-centro">
+      <div class="ac2c-cifra" aria-hidden="true">
+        <span class="ac2c-etq">Puedes gastar</span>
+        <span class="ac2c-monto">$•••.•••</span>
+        <span class="ac2c-linea">Sigue donde lo dejaste.</span>
+      </div>
+      <span class="ac2c-esfera" aria-hidden="true"></span>
     </div>
     <p class="ac2c-pie"><i class="fas fa-lock"></i><span>Tus datos quedan en tu cuenta. Nada se comparte.</span></p>
   </section>
 
   <section class="ac2c-panel">
-    <div class="ac2c-tarjeta">
-      <h1 class="ac2c-titulo">Entra a tu cuenta</h1>
-
-      {% if form.errors and not bloqueado %}
-      <div class="ac2c-error" role="alert"><i class="fas fa-circle-exclamation"></i><span>Usuario o contraseña incorrectos. Revisa las mayúsculas.</span></div>
-      {% endif %}
-      {% if bloqueado %}
-      <div class="ac2c-error" role="alert"><i class="fas fa-clock"></i><span>Demasiados intentos fallidos. Espera unos minutos antes de volver a probar.</span></div>
-      {% endif %}
-
-      <div id="bloquePasskey" class="ac2c-passkey" data-solo-movil hidden>
+    <div class="ac2c-caja">
+      <div id="bloquePasskey" class="ac2c-rapido" hidden>
         <button type="button" id="btnPasskey" class="ac2c-btn"{% if bloqueado %} disabled{% endif %}><i class="fas fa-fingerprint"></i>Entrar con Face ID o huella</button>
         <div id="avisoPasskey" role="status" hidden class="ac2c-error"><i class="fas fa-circle-exclamation"></i><span id="avisoPasskeyTexto"></span></div>
-        <div class="ac2c-separador"><span></span>o con tu contraseña<span></span></div>
+        <button type="button" class="ac2c-btn linea" data-modo-ir="clave">Usar mi contraseña</button>
       </div>
 
-      <form method="post" class="ac2c-form">
-        {% csrf_token %}
-        <label class="ac2c-campo" for="{{ form.username.id_for_label }}">
-          <span>Usuario</span>
-          <input type="text" name="username" id="{{ form.username.id_for_label }}" autocomplete="username" required data-enfoque{% if bloqueado %} disabled{% endif %}>
-        </label>
-        <div class="ac2c-campo">
-          <span class="ac2c-fila-etq"><label for="{{ form.password.id_for_label }}">Contraseña</label><a href="{% url 'recuperar' %}">¿La olvidaste?</a></span>
-          <span class="ac2c-clave">
-            <input type="password" name="password" id="{{ form.password.id_for_label }}" placeholder="••••••••" autocomplete="current-password" required{% if bloqueado %} disabled{% endif %}>
-            <button type="button" id="btnVerPass" class="ac2c-ojo" data-ver-pass="{{ form.password.id_for_label }}" aria-label="Ver contraseña"><i class="fas fa-eye"></i></button>
-          </span>
+      <div class="ac2c-tarjeta">
+        <div class="ac2c-tarjeta-cab">
+          <h1 class="ac2c-titulo">Entra a tu cuenta</h1>
+          <button type="button" class="ac2c-cerrar ac2c-con-passkey" data-modo-ir="rapido" aria-label="Volver"><i class="fas fa-xmark"></i></button>
         </div>
-        {% if next %}<input type="hidden" name="next" value="{{ next }}">{% endif %}
-        <button type="submit" id="btnEntrar" class="ac2c-btn"{% if bloqueado %} disabled{% endif %}>Entrar</button>
-      </form>
+
+        {% if form.errors and not bloqueado %}
+        <div class="ac2c-error" role="alert"><i class="fas fa-circle-exclamation"></i><span>Usuario o contraseña incorrectos. Revisa las mayúsculas.</span></div>
+        {% endif %}
+        {% if bloqueado %}
+        <div class="ac2c-error" role="alert"><i class="fas fa-clock"></i><span>Demasiados intentos fallidos. Espera unos minutos antes de volver a probar.</span></div>
+        {% endif %}
+
+        <form method="post" class="ac2c-form">
+          {% csrf_token %}
+          <label class="ac2c-campo" for="{{ form.username.id_for_label }}">
+            <span>Usuario</span>
+            <input type="text" name="username" id="{{ form.username.id_for_label }}" autocomplete="username" required data-enfoque{% if bloqueado %} disabled{% endif %}>
+          </label>
+          <div class="ac2c-campo">
+            <span class="ac2c-fila-etq"><label for="{{ form.password.id_for_label }}">Contraseña</label><a href="{% url 'recuperar' %}">¿La olvidaste?</a></span>
+            <span class="ac2c-clave">
+              <input type="password" name="password" id="{{ form.password.id_for_label }}" placeholder="••••••••" autocomplete="current-password" required{% if bloqueado %} disabled{% endif %}>
+              <button type="button" id="btnVerPass" class="ac2c-ojo" data-ver-pass="{{ form.password.id_for_label }}" aria-label="Ver contraseña"><i class="fas fa-eye"></i></button>
+            </span>
+          </div>
+          {% if next %}<input type="hidden" name="next" value="{{ next }}">{% endif %}
+          <button type="submit" id="btnEntrar" class="ac2c-btn"{% if bloqueado %} disabled{% endif %}>Entrar</button>
+        </form>
+
+        <button type="button" class="ac2c-texto-btn ac2c-con-passkey" data-modo-ir="rapido"><i class="fas fa-fingerprint"></i>Entrar con Face ID o huella</button>
+      </div>
 
       {% if google_activo %}
-      <div class="ac2c-separador"><span></span>o<span></span></div>
-      <a href="{% url 'google_entrar' %}{% if next %}?next={{ next|urlencode }}{% endif %}" id="btnGoogle" class="ac2c-btn borde" aria-disabled="true">
-        <svg width="17" height="17" viewBox="0 0 48 48" aria-hidden="true" focusable="false"><path fill="#4285F4" d="M45.12 24.5c0-1.56-.14-3.06-.4-4.5H24v8.51h11.84c-.51 2.75-2.06 5.08-4.39 6.640v5.52h7.11c4.16-3.83 6.56-9.47 6.56-16.17z"/><path fill="#34A853" d="M24 46c5.94 0 10.92-1.97 14.56-5.33l-7.11-5.52c-1.97 1.32-4.49 2.1-7.45 2.1-5.73 0-10.58-3.87-12.31-9.07H4.34v5.7C7.96 41.07 15.4 46 24 46z"/><path fill="#FBBC05" d="M11.69 28.18C11.25 26.86 11 25.45 11 24s.25-2.86.69-4.18v-5.7H4.34C2.85 17.09 2 20.45 2 24s.85 6.91 2.34 9.88l7.35-5.7z"/><path fill="#EA4335" d="M24 10.75c3.23 0 6.13 1.11 8.41 3.29l6.31-6.31C34.91 4.18 29.930 2 24 2 15.4 2 7.96 6.93 4.34 14.12l7.35 5.7c1.73-5.2 6.58-9.07 12.31-9.07z"/></svg>
-        Continuar con Google
-      </a>
-      <label for="aceptaGoogle" class="ac2c-check">
-        <input type="checkbox" id="aceptaGoogle" data-acepta-google>
-        <span>He leído y acepto la <a href="{% url 'privacidad' %}" target="_blank" rel="noopener">política de privacidad</a> y los <a href="{% url 'terminos' %}" target="_blank" rel="noopener">términos de uso</a>.</span>
-      </label>
-      <div id="avisoGoogle" role="status" hidden class="ac2c-aviso-google">Marca la casilla para continuar con Google.</div>
+      <div class="ac2c-google">
+        <div class="ac2c-separador"><span></span>o<span></span></div>
+        <a href="{% url 'google_entrar' %}{% if next %}?next={{ next|urlencode }}{% endif %}" id="btnGoogle" class="ac2c-btn borde" aria-disabled="true">
+          <svg width="17" height="17" viewBox="0 0 48 48" aria-hidden="true" focusable="false"><path fill="#4285F4" d="M45.12 24.5c0-1.56-.14-3.06-.4-4.5H24v8.51h11.84c-.51 2.75-2.06 5.08-4.39 6.640v5.52h7.11c4.16-3.83 6.56-9.47 6.56-16.17z"/><path fill="#34A853" d="M24 46c5.94 0 10.92-1.97 14.56-5.33l-7.11-5.52c-1.970 1.32-4.49 2.1-7.45 2.1-5.73 0-10.58-3.87-12.31-9.07H4.34v5.7C7.96 41.07 15.4 46 24 46z"/><path fill="#FBBC05" d="M11.69 28.18C11.25 26.86 11 25.45 11 24s.25-2.86.69-4.18v-5.7H4.34C2.85 17.09 2 20.45 2 24s.85 6.91 2.34 9.88l7.35-5.7z"/><path fill="#EA4335" d="M24 10.75c3.23 0 6.13 1.11 8.41 3.29l6.31-6.31C34.91 4.18 29.930 2 24 2 15.4 2 7.96 6.93 4.34 14.12l7.35 5.7c1.73-5.2 6.58-9.07 12.31-9.07z"/></svg>Continuar con Google
+        </a>
+        <label for="aceptaGoogle" class="ac2c-check">
+          <input type="checkbox" id="aceptaGoogle" data-acepta-google>
+          <span>He leído y acepto la <a href="{% url 'privacidad' %}" target="_blank" rel="noopener">política de privacidad</a> y los <a href="{% url 'terminos' %}" target="_blank" rel="noopener">términos de uso</a>.</span>
+        </label>
+        <div id="avisoGoogle" role="status" hidden class="ac2c-aviso-google">Marca la casilla para continuar con Google.</div>
+      </div>
       {% endif %}
 
-      <p class="ac2c-cambio">¿No tienes cuenta? <a href="{% url 'registro' %}">Crear una</a></p>
-      <p class="ac2c-legal"><a href="{% url 'privacidad' %}">Privacidad</a><span>·</span><a href="{% url 'terminos' %}">Términos de uso</a></p>
+      <div class="ac2c-final">
+        <p class="ac2c-cambio">¿No tienes cuenta? <a href="{% url 'registro' %}">Crear una</a></p>
+        <p class="ac2c-nota"><i class="fas fa-lock"></i><span>Tus datos quedan en tu cuenta. Nada se comparte.</span></p>
+      </div>
     </div>
   </section>
 </div>
@@ -102,5 +113,6 @@
 <script src="{% static 'js/passkeys.js' %}" nonce="{{ csp_nonce }}"></script>
 <script src="{% static 'js/pantallas/login.js' %}" nonce="{{ csp_nonce }}" data-url-opciones="{% url 'passkey_entrar_opciones' %}" data-url-verificar="{% url 'passkey_entrar_verificar' %}"></script>
 <script src="{% static 'js/pantallas/login-2.js' %}" nonce="{{ csp_nonce }}"></script>
+<script src="{% static 'js/pantallas/login-2c.js' %}" nonce="{{ csp_nonce }}"></script>
 </body>
 </html>

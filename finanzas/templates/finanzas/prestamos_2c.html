@@ -4,7 +4,8 @@
 {% block topbar_mes %}{% mes_de_pagina as mes_sel %}{% include 'finanzas/_mes_topbar.html' %}{% endblock %}
 {% block extra_head %}<link rel="stylesheet" href="{% static 'css/pagos-2c.css' %}">
 <link rel="stylesheet" href="{% static 'css/secciones-2c.css' %}">
-<link rel="stylesheet" href="{% static 'css/mes-elegir.css' %}">{% endblock %}
+<link rel="stylesheet" href="{% static 'css/mes-elegir.css' %}">
+<link rel="stylesheet" href="{% static 'css/prestamos-2c.css' %}">{% endblock %}
 
 {% block content %}
 <div class="p2c pr2c{% if request.resolver_match.url_name == 'detalle_persona' %} en-persona{% endif %}">
@@ -14,87 +15,128 @@
   </div>
   <div class="pr2c-top-lista">{% include 'finanzas/_pagos_pestanas.html' with activa='prestamos' %}</div>
 
-  <div class="f2c-grid dos">
-    <div class="f2c-col pr2c-lista-col">
+  {% prestamos_mes personas as pm %}
+  <section class="pr2c-hero pr2c-top-lista">
+    <div class="pr2c-hero-cifra">
       <nav class="f2c-seg" aria-label="Lo que te deben y lo que debes">
         <a href="{% url 'prestamos' %}" class="{% if not debo %}on{% endif %}"{% if not debo %} aria-current="page"{% endif %}>Me deben</a>
         <a href="{% url 'prestamos' %}?lado=debo" class="{% if debo %}on{% endif %}"{% if debo %} aria-current="page"{% endif %}>Debo</a>
       </nav>
-
-      <div class="f2c-cifra">
-        <span class="f2c-etq">{% if debo %}Debes{% else %}Te deben{% endif %}</span>
-        <span class="f2c-monto">{{ total_lado|money }}</span>
-        <span class="f2c-sub">{% if total_prestado %}{% if debo %}Has pagado{% else %}Te han devuelto{% endif %} {{ total_recuperado|default:0|money }} de {{ total_prestado|money }}{% elif debo %}No le debes a nadie{% else %}Nadie te debe{% endif %}</span>
-      </div>
-
-      {% for p in personas %}
-      <a href="{% url 'detalle_persona' p.pk %}" class="pr2c-persona-card{% if persona and p.pk == persona.pk %} on{% endif %}" data-searchable{% if persona and p.pk == persona.pk %} aria-current="true"{% endif %}>
-        <span class="pr2c-persona-cab">
-          <span class="pr2c-avatar t-{{ p.nombre|tono_nombre }}">{{ p.nombre|inicial }}</span>
-          <span class="f2c-txt"><b class="pr2c-nombre">{{ p.nombre }}</b><span>{{ p.resumen_meta }}</span></span>
-          <span class="pr2c-pendiente{% if not p.total_pendiente %} tenue{% endif %}">{{ p.total_pendiente|default:0|money }}</span>
-          <i class="fas fa-chevron-right f2c-flecha" aria-hidden="true"></i>
-        </span>
-        <span class="f2c-barra"><i data-ancho-pct="{{ p.total_abonado|tope_pct:p.total_prestado }}"></i></span>
-        <span class="pr2c-detalle">{% if not p.total_pendiente %}{% if debo %}Le pagaste todo{% else %}Te devolvió todo{% endif %}{% else %}{% if debo %}Le has pagado{% else %}Te ha devuelto{% endif %} {{ p.total_abonado|default:0|money }} de {{ p.total_prestado|default:0|money }}{% endif %}</span>
-      </a>
-      {% empty %}
-      <div class="f2c-vacio">
-        <i class="fas fa-users"></i>
-        <b>{% if debo %}No le debes a nadie{% else %}Nadie te debe{% endif %}</b>
-        <span>{% if debo %}Anota a quién le debes plata y cómo se la vas a devolver.{% else %}Agrega a una persona para empezar a anotar lo que le prestas.{% endif %}</span>
-      </div>
-      {% endfor %}
-
-      <button type="button" class="f2c-btn borde ancho" data-open="#modalPersona" data-tour="prestamos"><i class="fas fa-plus"></i>Nuevo préstamo</button>
-
+      <span class="pr2c-hero-etq">{% if debo %}Debes{% else %}Te deben{% endif %}</span>
+      <span class="pr2c-hero-monto">{{ total_lado|money }}</span>
+      <span class="pr2c-hero-sub">{% if total_prestado %}{% if debo %}Has pagado{% else %}Te han devuelto{% endif %} {{ total_recuperado|default:0|money }} de {{ total_prestado|money }}{% elif debo %}No le debes a nadie{% else %}Nadie te debe{% endif %}</span>
     </div>
 
-    {% if persona %}
-    <div class="f2c-col pr2c-persona" data-searchable>
+    {% if total_lado %}
+    <div class="pr2c-hero-quien">
+      <div class="pr2c-hero-quien-cab"><b>{% if debo %}A quién le debes{% else %}Quién te debe{% endif %}</b><span>{{ total_recuperado|tope_pct:total_prestado }}% {% if debo %}pagado{% else %}devuelto{% endif %}</span></div>
+      <div class="pr2c-reparto" aria-hidden="true">{% for p in personas %}{% if p.total_pendiente > 0 %}<i class="t-{{ p.nombre|tono_nombre }}" data-ancho-pct="{{ p.total_pendiente|tope_pct:total_lado }}"></i>{% endif %}{% endfor %}</div>
+      <div class="pr2c-leyenda">
+        {% for p in personas %}{% if p.total_pendiente > 0 %}
+        <a href="{% url 'detalle_persona' p.pk %}"><i class="t-{{ p.nombre|tono_nombre }}"></i><span>{{ p.nombre }}</span><b>{{ p.total_pendiente|money }}</b><small>{{ p.total_pendiente|tope_pct:total_lado }}%</small></a>
+        {% endif %}{% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    <div class="pr2c-hero-mes">
+      <div class="pr2c-mes-tile">
+        <span class="pr2c-mes-etq"><i class="fas fa-calendar-day"></i>{% if debo %}Este mes pagas{% else %}Este mes te toca cobrar{% endif %}</span>
+        <b class="pr2c-mes-monto">{{ pm.total|money }}</b>
+        <span class="pr2c-mes-sub">{% for q in pm.quienes %}{{ q.nombre }} {{ q.monto|money }}{% if not forloop.last %} · {% endif %}{% empty %}Nada pendiente este mes{% endfor %}</span>
+      </div>
+      <button type="button" class="f2c-btn ancho pr2c-hero-nuevo" data-open="#modalPersona"><i class="fas fa-plus"></i>Nuevo préstamo</button>
+    </div>
+  </section>
+
+  <div class="f2c-grid dos pr2c-grid">
+    <div class="f2c-col pr2c-lista-col">
+      {% if personas %}<div class="pr2c-lista-cab"><b>Personas</b><span>{{ personas|length }} persona{{ personas|length|pluralize }}</span></div>{% endif %}
+      <div class="pr2c-gente">
+        {% for p in personas %}{% with mp=p|pr_mes %}
+        <a href="{% url 'detalle_persona' p.pk %}" class="pr2c-fila{% if persona and p.pk == persona.pk %} on{% endif %}" data-searchable{% if persona and p.pk == persona.pk %} aria-current="true"{% endif %}>
+          <span class="pr2c-fila-cab">
+            <span class="pr2c-avatar t-{{ p.nombre|tono_nombre }}">{{ p.nombre|inicial }}</span>
+            <span class="pr2c-fila-txt"><b>{{ p.nombre }}</b><span>{% if not p.total_pendiente %}{% if debo %}Le pagaste todo{% else %}Te devolvió todo{% endif %}{% elif mp %}{% if debo %}Le pagas{% else %}Te toca{% endif %} {{ mp|money }} este mes{% else %}{{ p.resumen_meta }}{% endif %}</span></span>
+            <b class="pr2c-fila-monto{% if not p.total_pendiente %} tenue{% endif %}">{{ p.total_pendiente|default:0|money }}</b>
+            <i class="fas fa-chevron-right pr2c-fila-flecha" aria-hidden="true"></i>
+          </span>
+          <span class="pr2c-fila-avance"><span class="pr2c-barra"><i data-ancho-pct="{{ p.total_abonado|tope_pct:p.total_prestado }}"></i></span><small>{{ p.total_abonado|tope_pct:p.total_prestado }}%</small></span>
+        </a>
+        {% endwith %}{% empty %}
+        <div class="f2c-vacio">
+          <i class="fas fa-users"></i>
+          <b>{% if debo %}No le debes a nadie{% else %}Nadie te debe{% endif %}</b>
+          <span>{% if debo %}Anota a quién le debes plata y cómo se la vas a devolver.{% else %}Agrega a una persona para empezar a anotar lo que le prestas.{% endif %}</span>
+        </div>
+        {% endfor %}
+      </div>
+      <button type="button" class="pr2c-agregar" data-open="#modalPersona" data-tour="prestamos"><i class="fas fa-user-plus"></i>Agregar una persona</button>
+    </div>
+
+    {% if persona %}{% with mes_p=persona|pr_mes primero=persona.prestamos_activos.0 pct=persona.total_abonado|tope_pct:persona.total_prestado %}
+    <article class="f2c-col pr2c-persona" data-searchable>
       <div class="pr2c-volver">
         <a href="{% url 'prestamos' %}{% if debo %}?lado=debo{% endif %}" class="sec-volver" aria-label="Volver a Préstamos"><i class="fas fa-chevron-left"></i></a>
         <span class="f2c-titulo-tel">Préstamos</span>
       </div>
-      <div class="pr2c-quien">
+
+      <header class="pr2c-quien">
         <span class="pr2c-avatar grande t-{{ persona.nombre|tono_nombre }}">{{ persona.nombre|inicial }}</span>
-        <span class="f2c-txt"><b class="pr2c-nombre">{{ persona.nombre }}</b><span>{{ persona.resumen_meta }}</span></span>
-        <button type="button" class="f2c-btn borde chico" data-open="#modalContacto" aria-label="Editar contacto de {{ persona.nombre }}"><i class="fas fa-pen"></i>Contacto</button>
+        <span class="pr2c-quien-txt"><b>{{ persona.nombre }}</b><span>{{ persona.resumen_meta }} · desde el {{ persona.creada|date:"j b" }}</span></span>
+        {% if not debo %}<span class="pr2c-wsp-chip{% if persona.telefono_whatsapp %} listo{% endif %}"><i class="fab fa-whatsapp"></i>{% if persona.telefono_whatsapp %}WhatsApp listo{% else %}Sin WhatsApp{% endif %}</span>{% endif %}
+        <button type="button" class="pr2c-contacto" data-open="#modalContacto" aria-label="Editar contacto de {{ persona.nombre }}"><i class="fas fa-pen"></i><span>Contacto</span></button>
+      </header>
+
+      <div class="pr2c-stats">
+        <div class="pr2c-stat debe">
+          <span class="pr2c-stat-etq">{% if debo %}Le debes{% else %}Te debe{% endif %}</span>
+          <b class="pr2c-stat-grande">{{ persona.total_pendiente|default:0|money }}</b>
+          <span class="pr2c-barra gruesa"><i data-ancho-pct="{{ pct }}"></i></span>
+          <span class="pr2c-stat-sub">{% if debo %}Le has pagado{% else %}Te ha devuelto{% endif %} {{ persona.total_abonado|default:0|money }} de {{ persona.total_prestado|default:0|money }}</span>
+        </div>
+        <div class="pr2c-stat mes">
+          <span class="pr2c-stat-etq">Este mes</span>
+          <b class="pr2c-stat-monto">{{ mes_p|money }}</b>
+          <span class="pr2c-stat-sub">{% if mes_p %}{% if debo %}Lo que le pagas este mes{% else %}Lo que te toca cobrarle este mes{% endif %}{% else %}Nada pendiente este mes{% endif %}</span>
+        </div>
+        <div class="pr2c-stat devuelto">
+          <span class="pr2c-stat-etq">{% if debo %}Le pagaste{% else %}Te devolvió{% endif %}</span>
+          <b class="pr2c-stat-monto">{{ persona.total_abonado|default:0|money }}</b>
+          <span class="pr2c-stat-sub">{{ pct }}% de lo que {% if debo %}te prestó{% else %}le prestaste{% endif %}</span>
+        </div>
       </div>
 
-      <div class="f2c-cifra">
-        <span class="f2c-etq">{% if debo %}Le debes{% else %}Te debe{% endif %}</span>
-        <span class="f2c-monto">{{ persona.total_pendiente|default:0|money }}</span>
-        <span class="f2c-barra"><i data-ancho-pct="{{ persona.total_abonado|tope_pct:persona.total_prestado }}"></i></span>
-        <span class="pr2c-detalle">{% if debo %}Le has pagado{% else %}Te ha devuelto{% endif %} {{ persona.total_abonado|default:0|money }} de {{ persona.total_prestado|default:0|money }}</span>
+      <div class="pr2c-acciones">
+        {% if primero %}<button type="button" class="f2c-btn verde pr2c-accion" data-open="#abono{{ primero.pk }}"><i class="fas fa-hand-holding-dollar"></i>{% if debo %}Registrar un pago{% else %}Registrar abono{% endif %}</button>{% endif %}
+        {% if persona.tiene_deuda and not debo %}
+        {% if persona.enlace_whatsapp %}<a class="f2c-btn borde pr2c-accion" href="{{ persona.enlace_whatsapp }}" target="_blank" rel="noopener"><i class="fab fa-whatsapp pr2c-wsp-ico"></i>Cobrar por WhatsApp</a>
+        {% else %}<button type="button" class="f2c-btn borde pr2c-accion" data-open="#modalContacto"><i class="fab fa-whatsapp pr2c-wsp-ico"></i>Agregar WhatsApp para cobrarle</button>{% endif %}
+        {% endif %}
+        <button type="button" class="f2c-btn borde pr2c-accion pr2c-otro" data-open="#modalPrestamo"><i class="fas fa-plus"></i>Otro préstamo</button>
       </div>
-
-      {% if persona.cobro_del_mes and persona.cobro_del_mes != persona.total_pendiente %}
-      <div class="pr2c-mes-caja">
-        <span class="f2c-txt"><b>Para este mes</b><span>Cuotas del mes y lo que es de una vez</span></span>
-        <b class="f2c-valor">{{ persona.cobro_del_mes|money }}</b>
-      </div>
-      {% endif %}
 
       {% if prestamos %}
-      <div class="f2c-grupo">
-        <span class="f2c-grupo-titulo">Cada préstamo</span>
-        <div class="f2c-lista">
-          {% for x in prestamos %}
-          <div class="pr2c-prestamo" data-searchable>
-            <div class="pr2c-prestamo-cab">
-              <span class="f2c-txt"><b>{{ x.descripcion }}</b><span>{% if x.tipo == 'CUOTAS' %}{% if x.esta_pagado %}{{ x.cuotas_totales }} de {{ x.cuotas_totales }} cuotas pagadas{% else %}Cuota {{ x.cuotas_abonadas|add:1 }} de {{ x.cuotas_totales }} · {{ x.monto_cuota|money }}{% endif %}{% else %}Pago único{% endif %}</span></span>
-              <b class="f2c-valor">{% if x.esta_pagado %}Saldado{% else %}{{ x.monto_pendiente|money }}{% endif %}</b>
-              {% if x.esta_pagado %}<span class="f2c-ficha hecho" aria-label="Pagado"><i class="fas fa-check"></i></span>{% else %}<button type="button" class="f2c-btn borde chico" data-open="#abono{{ x.pk }}">{% if debo %}Pagar{% else %}Abonar{% endif %}</button>{% endif %}
-              <form method="post" action="{% url 'eliminar_prestamo' x.pk %}" data-confirm="¿Eliminar «{{ x.descripcion }}»?{% if x.abonos.all %} Se borran también sus abonos.{% endif %} {{ persona.nombre }} sigue en la lista.">
-                {% csrf_token %}
-                <button type="submit" class="pr2c-borrar" aria-label="Eliminar el préstamo {{ x.descripcion }}"><i class="fas fa-trash-can"></i></button>
-              </form>
-            </div>
-            <span class="f2c-barra fina"><i data-ancho-pct="{{ x.porcentaje }}"></i></span>
+      <div class="pr2c-bloque">
+        <div class="pr2c-bloque-cab"><b>Cada préstamo</b><button type="button" class="pr2c-link" data-open="#modalPrestamo">Agregar otro</button></div>
+        {% for x in prestamos %}{% pr_pasos x debo as pp %}
+        <div class="pr2c-item" data-searchable>
+          <span class="pr2c-item-txt"><b>{{ x.descripcion }}</b><span>{% if x.tipo == 'CUOTAS' %}{% if x.esta_pagado %}{{ x.cuotas_totales }} de {{ x.cuotas_totales }} cuotas pagadas{% else %}{{ x.cuotas_totales }} cuotas de {{ x.monto_cuota|money }} · van {{ x.cuotas_abonadas }} de {{ x.cuotas_totales }}{% endif %}{% else %}Pago único{% if x.total_abonado and not x.esta_pagado %} · {% if debo %}le pagaste{% else %}te devolvió{% endif %} una parte{% endif %}{% endif %}</span></span>
+          <span class="pr2c-item-monto"><b>{% if x.esta_pagado %}{{ 0|money }}{% else %}{{ x.monto_pendiente|money }}{% endif %}</b><small>de {{ x.monto|money }}</small></span>
+          <div class="pr2c-item-acc">
+            {% if x.esta_pagado %}<span class="pr2c-saldado"><i class="fas fa-check"></i>Saldado</span>{% else %}<button type="button" class="pr2c-abonar" data-open="#abono{{ x.pk }}">{% if debo %}Pagar{% else %}Abonar{% endif %}</button>{% endif %}
+            <form method="post" action="{% url 'eliminar_prestamo' x.pk %}" data-confirm="¿Eliminar «{{ x.descripcion }}»?{% if x.abonos.all %} Se borran también sus abonos.{% endif %} {{ persona.nombre }} sigue en la lista.">
+              {% csrf_token %}
+              <button type="submit" class="pr2c-borrar" aria-label="Eliminar el préstamo {{ x.descripcion }}"><i class="fas fa-trash-can"></i></button>
+            </form>
           </div>
-          {% endfor %}
+          <div class="pr2c-pasos">
+            {% if pp.antes %}<span class="pr2c-paso pagada resumen"><i class="fas fa-check pr2c-paso-ico"></i><b class="pr2c-paso-corto">{{ pp.antes }}</b><span class="pr2c-paso-etq">{{ pp.antes }} pagada{{ pp.antes|pluralize }}</span></span>{% endif %}
+            {% for c in pp.pasos %}<span class="pr2c-paso {{ c.estado }}"><span class="pr2c-paso-etq">{{ c.etq }}</span><i class="fas {{ c.icono }} pr2c-paso-ico"></i><b class="pr2c-paso-monto">{{ c.monto|money }}</b><span class="pr2c-paso-nota">{{ c.nota }}</span><b class="pr2c-paso-corto">{{ c.corto }}</b></span>{% endfor %}
+            {% if pp.mas %}<span class="pr2c-paso viene resumen"><b class="pr2c-paso-corto">+{{ pp.mas }}</b><span class="pr2c-paso-etq">{{ pp.mas }} más</span></span>{% endif %}
+          </div>
         </div>
+        {% endfor %}
       </div>
       {% else %}
       <div class="f2c-vacio">
@@ -104,26 +146,27 @@
       </div>
       {% endif %}
 
-      <button type="button" class="f2c-btn ancho" data-open="#modalPrestamo"><i class="fas fa-plus"></i>Agregar otro préstamo</button>
-
-      {% if persona.tiene_deuda and not debo %}
-      {% if persona.enlace_whatsapp %}
-      <div class="pr2c-wsp">
-        <span class="f2c-grupo-titulo verde">Mensaje para cobrar</span>
-        <span class="pr2c-wsp-burbuja">Se abre WhatsApp con el detalle de lo que te debe {{ persona.nombre }}{% if persona.cobro_del_mes and persona.cobro_del_mes != persona.total_pendiente %}: {{ persona.cobro_del_mes|money }} este mes y {{ persona.total_pendiente|money }} en total{% else %}: {{ persona.total_pendiente|money }}{% endif %}. Lo revisas antes de enviarlo.</span>
-        <a class="f2c-btn verde ancho" href="{{ persona.enlace_whatsapp }}" target="_blank" rel="noopener"><i class="fab fa-whatsapp"></i>Enviar por WhatsApp</a>
+      {% if prestamos %}{% pr_abonos persona as abonos %}
+      <div class="pr2c-bloque pr2c-hist">
+        <b class="pr2c-hist-titulo">{% if debo %}Lo que le has pagado{% else %}Lo que te ha devuelto{% endif %}</b>
+        {% for a in abonos %}
+        <div class="pr2c-hist-fila">
+          <span class="pr2c-hist-ico"><i class="fas fa-arrow-down"></i></span>
+          <span class="pr2c-hist-txt"><b>{{ a.nota|default:"Abono" }}</b><span>{{ a.fecha|date:"j b" }} · {{ a.prestamo }}</span></span>
+          <b class="pr2c-hist-monto">+{{ a.monto|money }}</b>
+        </div>
+        {% empty %}
+        <span class="pr2c-hist-vacio">{% if debo %}Todavía no le pagas nada.{% else %}Todavía no te devuelve nada.{% endif %}</span>
+        {% endfor %}
       </div>
-      {% else %}
-      <button type="button" class="f2c-btn borde ancho" data-open="#modalContacto"><i class="fab fa-whatsapp"></i>Agregar WhatsApp para cobrarle</button>
-      {% endif %}
       {% endif %}
 
-      <form method="post" action="{% url 'eliminar_persona' persona.pk %}" data-confirm="¿Eliminar a {{ persona.nombre }}? Se borran sus {{ persona.cantidad_prestamos }} préstamo{{ persona.cantidad_prestamos|pluralize:'s' }} y el historial de abonos.">
+      <form method="post" action="{% url 'eliminar_persona' persona.pk %}" class="pr2c-eliminar" data-confirm="¿Eliminar a {{ persona.nombre }}? Se borran sus {{ persona.cantidad_prestamos }} préstamo{{ persona.cantidad_prestamos|pluralize:'s' }} y el historial de abonos.">
         {% csrf_token %}
-        <button type="submit" class="f2c-texto-btn rojo ancho">Eliminar a {{ persona.nombre }} y sus préstamos</button>
+        <button type="submit" class="f2c-texto-btn rojo"><i class="fas fa-trash-can"></i><span>Eliminar a {{ persona.nombre }} y sus préstamos</span></button>
       </form>
-    </div>
-    {% endif %}
+    </article>
+    {% endwith %}{% endif %}
   </div>
 </div>
 {% endblock %}

@@ -3,6 +3,7 @@ from datetime import date
 from decimal import Decimal, InvalidOperation
 
 from django import template
+from django.utils.formats import date_format
 
 from .. import fechas
 from ..categorias_base import BASE
@@ -40,6 +41,11 @@ TONO_BASE = {
 ICONOS_BASE = {fila[0]: fila[4] for fila in BASE}
 
 TONOS_PERSONA = ('coral', 'azul', 'lila', 'verde', 'ambar', 'rosa')
+
+MESES_ES = ('enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre',
+            'octubre', 'noviembre', 'diciembre')
+
+PASOS_VISIBLES = 6
 
 COLORES_TOPE = {'rojo': '#C2412D', 'amarillo': '#C98A1B', 'verde': '#0D6E55'}
 
@@ -234,3 +240,91 @@ def mas_cara(subs, total):
 @register.filter
 def tono_nombre(texto):
     return TONOS_PERSONA[sum(ord(c) for c in str(texto or '')) % len(TONOS_PERSONA)]
+
+
+def _mas_meses(year, month, cuantos):
+    total = year * 12 + (month - 1) + cuantos
+    return total // 12, total % 12 + 1
+
+
+@register.filter
+def pr_mes(persona):
+    hoy = fechas.hoy()
+    return sum((p.falta_este_mes(hoy.year, hoy.month) for p in persona.prestamos.all()), Decimal('0'))
+
+
+@register.simple_tag
+def prestamos_mes(personas):
+    quienes = []
+    for persona in personas or []:
+        monto = pr_mes(persona)
+        if monto > 0:
+            quienes.append({'nombre': persona.nombre, 'monto': monto})
+    return {'total': sum((q['monto'] for q in quienes), Decimal('0')), 'quienes': quienes}
+
+
+def _pasos_unico(prestamo, debo):
+    abonado = prestamo.total_abonado
+    pendiente = max(Decimal('0'), prestamo.monto_pendiente)
+    ultimo = next(iter(prestamo.abonos.all()), None)
+    devuelto = {
+        'estado': 'pagada' if abonado > 0 else 'viene',
+        'etq': 'Le pagaste' if debo else 'Te devolvió',
+        'monto': abonado,
+        'nota': date_format(ultimo.fecha, 'j b') if ultimo else 'Nada todavía',
+        'icono': 'fa-check' if abonado > 0 else 'fa-circle',
+        'corto': 'Pagado' if debo else 'Devuelto',
+    }
+    falta = {
+        'estado': 'mes' if pendiente > 0 else 'pagada',
+        'etq': 'Falta',
+        'monto': pendiente,
+        'nota': 'De una vez' if pendiente > 0 else 'Nada',
+        'icono': 'fa-clock' if pendiente > 0 else 'fa-check',
+        'corto': 'Falta' if pendiente > 0 else 'Listo',
+    }
+    return {'pasos': [devuelto, falta], 'antes': 0, 'mas': 0}
+
+
+@register.simple_tag
+def pr_pasos(prestamo, debo=False):
+    if prestamo.tipo != 'CUOTAS':
+        return _pasos_unico(prestamo, debo)
+    hoy = fechas.hoy()
+    total = max(1, int(prestamo.cuotas_totales or 1))
+    abonadas = prestamo.cuotas_abonadas
+    cuota = prestamo.monto_cuota
+    empieza = 0 if prestamo.falta_este_mes(hoy.year, hoy.month) > 0 else 1
+    inicio = 0
+    if total > PASOS_VISIBLES:
+        inicio = max(0, min(abonadas - 1, total - PASOS_VISIBLES))
+    pasos = []
+    for i in range(inicio, min(total, inicio + PASOS_VISIBLES)):
+        if i < abonadas:
+            pasos.append({'estado': 'pagada', 'etq': f'Cuota {i + 1}', 'monto': cuota,
+                          'nota': 'Pagada' if debo else 'Te la pagó', 'icono': 'fa-check', 'corto': str(i + 1)})
+            continue
+        desfase = i - abonadas + empieza
+        year, month = _mas_meses(hoy.year, hoy.month, desfase)
+        nombre = MESES_ES[month - 1]
+        if desfase == 0:
+            dia = prestamo.dia_de_pago(year, month).day
+            pasos.append({'estado': 'mes', 'etq': f'Cuota {i + 1}', 'monto': cuota,
+                          'nota': f'Vence el {dia} {nombre[:3]}', 'icono': 'fa-clock',
+                          'corto': nombre[:3].capitalize()})
+        else:
+            nota = nombre.capitalize() + (f' {year}' if year != hoy.year else '')
+            pasos.append({'estado': 'viene', 'etq': f'Cuota {i + 1}', 'monto': cuota, 'nota': nota,
+                          'icono': 'fa-circle', 'corto': nombre[:3].capitalize()})
+    return {'pasos': pasos, 'antes': inicio, 'mas': max(0, total - inicio - PASOS_VISIBLES)}
+
+
+@register.simple_tag
+def pr_abonos(persona, cuantos=8):
+    filas = []
+    for p in persona.prestamos.all():
+        for a in p.abonos.all():
+            filas.append({'monto': a.monto, 'fecha': a.fecha, 'nota': a.nota, 'prestamo': p.descripcion,
+                          'orden': (a.fecha, a.pk)})
+    filas.sort(key=lambda f: f['orden'], reverse=True)
+    return filas[:int(cuantos)]
