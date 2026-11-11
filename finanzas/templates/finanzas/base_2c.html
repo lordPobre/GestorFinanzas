@@ -20,6 +20,7 @@
 
   <link rel="stylesheet" href="{% static 'css/capas.css' %}">
   <link rel="stylesheet" href="{% static 'css/fintora-2c.css' %}">
+  <link rel="stylesheet" href="{% static 'css/heredadas-2c.css' %}">
   <link rel="stylesheet" href="{% static 'css/franja-2c.css' %}">
   {% block extra_head %}{% endblock %}
   {% if esfera and profile.analisis_ia %}<link rel="stylesheet" href="{% static 'css/esfera-preguntas.css' %}">{% endif %}
@@ -190,7 +191,7 @@
           <div class="row-title">{{ i.nombre }}</div>
           <div class="row-meta">{{ i.detalle }}</div>
         </div>
-        <div class="mono txt-13 tinta-coral">${{ i.monto|floatformat:0 }}</div>
+        <div class="mono txt-13 tinta-coral">{{ i.monto|money }}</div>
       </div>
       {% endfor %}
     </div>
@@ -206,7 +207,7 @@
           <div class="row-title">{{ i.nombre }}</div>
           <div class="row-meta">{{ i.detalle }}</div>
         </div>
-        <div class="mono txt-13">${{ i.monto|floatformat:0 }}</div>
+        <div class="mono txt-13">{{ i.monto|money }}</div>
       </div>
       {% endfor %}
     </div>
