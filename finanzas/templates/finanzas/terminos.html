@@ -1,4 +1,4 @@
-{% extends 'finanzas/legal_base.html' %}
+{% extends legal_base|default:'finanzas/legal_base.html' %}
 {% block title %}Términos de uso · Fintora{% endblock %}
 {% block descripcion %}Las condiciones de uso de Fintora en castellano corriente: qué es, qué no es, tu cuenta y el uso aceptable.{% endblock %}
 {% block og_titulo %}Términos de uso de Fintora{% endblock %}

@@ -1,4 +1,4 @@
-{% extends 'finanzas/legal_base.html' %}
+{% extends legal_base|default:'finanzas/legal_base.html' %}
 {% block title %}Política de privacidad · Fintora{% endblock %}
 {% block descripcion %}Qué datos guarda Fintora, para qué se usan, con quién se comparten y cómo ejercer tus derechos según la Ley 21.719.{% endblock %}
 {% block og_titulo %}Política de privacidad de Fintora{% endblock %}

@@ -1,7 +1,7 @@
 @layer app {
 html.f2c body.l2c { background: #F3EFE7; overflow-x: hidden; }
 html.f2c .l2c-ancho, html.f2c .l2c-cab { max-width: 1200px; margin: 0 auto; box-sizing: border-box; padding-left: clamp(20px, 4vw, 40px); padding-right: clamp(20px, 4vw, 40px); }
-html.f2c .l2c-cab { padding-top: 24px; }
+html.f2c .l2c-cab { padding-top: calc(24px + env(safe-area-inset-top)); }
 html.f2c .l2c-nav { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
 html.f2c .l2c-marca { font-size: 24px; font-weight: 700; letter-spacing: -.03em; }
 html.f2c .l2c-nav-acciones { display: flex; align-items: center; gap: 8px; }

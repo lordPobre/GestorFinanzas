@@ -19,6 +19,7 @@ PLANTILLAS = {
     'finanzas/clave_api.html': 'finanzas/clave_api_2c.html',
     'finanzas/landing.html': 'finanzas/landing_2c.html',
     'registration/login.html': 'registration/login_2c.html',
+    'registration/auth_base.html': 'registration/auth_base_2c.html',
 }
 
 

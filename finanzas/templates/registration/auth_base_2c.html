@@ -1,0 +1,63 @@
+{% load static %}<!DOCTYPE html>
+<html lang="es" class="t2c f2c">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#F3EFE7">
+  <title>{% block title %}Entrar · Fintora{% endblock %}</title>
+  <link rel="manifest" href="{% static 'site.webmanifest' %}">
+  <meta name="application-name" content="Fintora">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Fintora">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="format-detection" content="telephone=no">
+  <link rel="icon" type="image/svg+xml" href="{% static 'img/favicon.svg' %}">
+  <link rel="alternate icon" href="{% static 'img/favicon.png' %}">
+  <link rel="apple-touch-icon" href="{% static 'img/favicon-180.png' %}">
+  <link rel="stylesheet" href="{% static 'css/capas.css' %}">
+  <link rel="stylesheet" href="{% static 'css/fintora-2c.css' %}">
+  <link rel="stylesheet" href="{% static 'css/acceso-2c.css' %}">
+  {% block extra_css %}{% endblock %}
+  <script src="{% static 'js/pantallas/android-app.js' %}" nonce="{{ csp_nonce }}"></script>
+  <script src="{% static 'js/pantallas/auth-base.js' %}" nonce="{{ csp_nonce }}"></script>
+  <script src="{% static 'js/pantallas/auth-base-2.js' %}" nonce="{{ csp_nonce }}"></script>
+  <script src="{% static 'js/pantallas/barra-estado.js' %}" nonce="{{ csp_nonce }}"></script>
+</head>
+<body>
+{% if es_staging %}<div role="status" class="aviso-staging">ENTORNO DE PRUEBAS · no se envían correos</div>{% endif %}
+
+<div class="ac2c ac2c-pag">
+  <section class="ac2c-portada">
+    <a href="{% url 'dashboard' %}" class="ac2c-marca"><span class="f2c-logo grande">{% include "finanzas/marca_color.html" %}</span><span>Fintora</span></a>
+    <div class="ac2c-centro">
+      {% block pitch %}
+      <div class="ac2c-cifra" aria-hidden="true">
+        <span class="ac2c-etq">Puedes gastar</span>
+        <span class="ac2c-monto">$•••.•••</span>
+        <span class="ac2c-linea">Sigue donde lo dejaste.</span>
+      </div>
+      {% endblock %}
+    </div>
+    <p class="ac2c-pie"><i class="fas fa-lock"></i><span>Tus datos quedan en tu cuenta. Nada se comparte.</span></p>
+    <span class="ac2c-esfera" aria-hidden="true"></span>
+  </section>
+
+  <section class="ac2c-panel">
+    <div class="ac2c-caja">
+      {% block card %}{% endblock %}
+      <nav class="ac2c-docs" aria-label="Documentos"><a href="{% url 'privacidad' %}">Privacidad</a><span aria-hidden="true">·</span><a href="{% url 'terminos' %}">Términos de uso</a></nav>
+    </div>
+  </section>
+</div>
+
+{% if messages %}
+<div class="toast-container">
+  {% for m in messages %}<div class="toast {{ m.tags|default:'success' }}"><i class="fas fa-circle-check"></i>{{ m }}</div>{% endfor %}
+</div>
+{% endif %}
+
+<script src="{% static 'js/finapp.js' %}"></script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

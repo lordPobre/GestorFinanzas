@@ -1,0 +1,89 @@
+{% load static marketing %}<!DOCTYPE html>
+<html lang="es" class="t2c f2c">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#F3EFE7">
+  <title>{% block title %}Fintora{% endblock %}</title>
+  <meta name="description" content="{% block descripcion %}{% endblock %}">
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="{% block og_titulo %}Fintora{% endblock %}">
+  <meta property="og:description" content="{% block og_descripcion %}{% endblock %}">
+  {% marketing_head %}
+
+  <link rel="manifest" href="{% static 'site.webmanifest' %}">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Fintora">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+  <link rel="icon" type="image/svg+xml" href="{% static 'img/favicon.svg' %}">
+  <link rel="alternate icon" href="{% static 'img/favicon.png' %}">
+
+  <link rel="stylesheet" href="{% static 'css/capas.css' %}">
+  <link rel="stylesheet" href="{% static 'css/fintora-2c.css' %}">
+  <link rel="stylesheet" href="{% static 'css/legal-2c.css' %}">
+  <script src="{% static 'js/pantallas/legal.js' %}" nonce="{{ csp_nonce }}"></script>
+  <script src="{% static 'js/pantallas/barra-estado.js' %}" nonce="{{ csp_nonce }}"></script>
+</head>
+<body class="lg2c">
+
+<header class="lg2c-cab">
+  <nav class="lg2c-nav" aria-label="Documentos">
+    <a href="{% url 'dashboard' %}" class="lg2c-marca"><span class="f2c-logo">{% include 'finanzas/marca_color.html' %}</span><span>Fintora</span></a>
+    <div class="lg2c-tabs">
+      <a href="{% url 'privacidad' %}"{% block actual_privacidad %}{% endblock %}>Privacidad</a>
+      <a href="{% url 'terminos' %}"{% block actual_terminos %}{% endblock %}>Términos</a>
+      <a href="{% url 'seguridad' %}"{% block actual_seguridad %}{% endblock %}>Seguridad</a>
+    </div>
+    <a href="{% url 'dashboard' %}" class="lg2c-volver" aria-label="Volver a Fintora"><span>Volver a Fintora</span><i class="fas fa-arrow-right" aria-hidden="true"></i></a>
+  </nav>
+  <div class="lg2c-hero">
+    <div class="lg2c-hero-txt">
+      <span class="lg2c-eyebrow">{% block eyebrow %}Documento legal{% endblock %}</span>
+      <h1>{% block encabezado %}{% endblock %}</h1>
+      <div class="lg2c-intro">{% block intro %}{% endblock %}</div>
+    </div>
+    {% block ficha %}<dl class="legal-version">
+      <div><dt>Versión</dt><dd class="legal-mono">{{ version }}</dd></div>
+      <div><dt>Vigente desde</dt><dd>{{ vigente_desde }}</dd></div>
+      {% block normativa %}<div><dt>Normativa</dt><dd>Ley 21.719, Chile</dd></div>{% endblock %}
+    </dl>{% endblock %}
+  </div>
+</header>
+
+<main class="lg2c-grid">
+  <aside class="lg2c-lado">
+    <nav class="lg2c-indice" data-legal-indice aria-label="En esta página">
+      <div class="lg2c-indice-titulo">En esta página</div>
+    </nav>
+  </aside>
+
+  <div class="lg2c-contenido">
+    <div class="lg2c-indice-movil" data-legal-indice-movil>
+      <details>
+        <summary><span><i class="fas fa-list"></i>Contenido</span><span><span data-legal-cuenta></span><i class="fas fa-chevron-down"></i></span></summary>
+        <nav class="lg2c-indice-lista" data-legal-lista aria-label="Contenido"></nav>
+      </details>
+    </div>
+
+    <div class="legal-cuerpo">
+      {% block cuerpo %}{% endblock %}
+    </div>
+
+    <div class="lg2c-contacto">
+      <div>
+        <div class="lg2c-contacto-titulo">¿Algo no quedó claro?</div>
+        <div class="lg2c-contacto-sub">{{ responsable }}</div>
+      </div>
+      <a href="mailto:{{ correo_contacto }}"><span>{{ correo_contacto }}</span><i class="fas fa-arrow-right"></i></a>
+    </div>
+    <div class="lg2c-pie">
+      <span>{% block pie_version %}Versión {{ version }}, vigente desde {{ vigente_desde }}.{% endblock %}</span>
+      <span>{% block ver_tambien %}{% endblock %}{% marketing_pixeles as hay_pixeles %}{% if hay_pixeles %} <a href="#cookies" data-cookies-abrir>Cookies</a>{% endif %}</span>
+    </div>
+  </div>
+</main>
+
+{% marketing_consentimiento %}
+</body>
+</html>

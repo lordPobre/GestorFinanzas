@@ -1,4 +1,4 @@
-{% extends 'finanzas/legal_base.html' %}
+{% extends legal_base|default:'finanzas/legal_base.html' %}
 {% block title %}Seguridad · Fintora{% endblock %}
 {% block descripcion %}Cómo protege Fintora tu cuenta: HTTPS con nota A+ en SSL Labs, verificación en dos pasos, límites de intentos y registro de actividad.{% endblock %}
 {% block og_titulo %}Seguridad de Fintora{% endblock %}

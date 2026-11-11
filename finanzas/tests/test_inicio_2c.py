@@ -33,7 +33,7 @@ class Inicio2cTests(TestCase):
         self.assertContains(respuesta, 'js/pantallas/inicio-2c.js')
         self.assertContains(respuesta, 'Cómo sale la cifra')
         self.assertContains(respuesta, 'Cuotas del mes')
-        self.assertContains(respuesta, 'name="apple-mobile-web-app-status-bar-style" content="default"')
+        self.assertContains(respuesta, 'name="apple-mobile-web-app-status-bar-style" content="black-translucent"')
 
     def test_las_cuotas_de_meses_anteriores_van_aparte(self):
         hoy = fechas.hoy()
