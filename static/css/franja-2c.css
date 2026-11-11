@@ -1,0 +1,6 @@
+@layer app {
+@media (max-width: 900px) {
+  html.f2c body::after { content: ''; position: fixed; top: 0; left: 0; right: 0; z-index: 85; height: env(safe-area-inset-top); background: rgba(30, 26, 21, .72); -webkit-backdrop-filter: blur(20px) saturate(160%); backdrop-filter: blur(20px) saturate(160%); opacity: 0; transition: opacity .2s ease; pointer-events: none; }
+  html.f2c.con-scroll body::after { opacity: 1; }
+}
+}

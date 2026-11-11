@@ -87,10 +87,12 @@ html.f2c .ac2c-nota { display: none; }
   html.f2c .ac2c-nota i { font-size: 10px; }
 }
 
-html.f2c .ac2c-pag .ac2c-portada { overflow: hidden; }
 html.f2c .ac2c-pag .ac2c-marca, html.f2c .ac2c-pag .ac2c-centro, html.f2c .ac2c-pag .ac2c-pie { position: relative; z-index: 1; }
 html.f2c .ac2c-pag .ac2c-centro { display: block; }
-html.f2c .ac2c-pag .ac2c-esfera { position: absolute; z-index: 0; top: -110px; right: -110px; width: 340px; height: 340px; }
+html.f2c .ac2c-pag .ac2c-esfera { position: absolute; z-index: 0; top: -90px; right: 32px; width: 300px; height: 300px; }
+@media (min-width: 901px) and (max-width: 1100px) {
+  html.f2c .ac2c-pag .ac2c-esfera { top: -70px; right: 24px; width: 220px; height: 220px; }
+}
 html.f2c .ac2c-pag .ac2c-caja { max-width: 440px; }
 
 html.f2c .ac2c .auth-pitch { display: flex; flex-direction: column; gap: 22px; max-width: 580px; animation: ac2c-sube .45s ease; }
@@ -176,7 +178,6 @@ html.f2c .ac2c-docs a { color: rgba(30, 26, 21, .72); font-weight: 700; }
 html.f2c .ac2c-docs a:hover { color: #1E1A15; }
 
 @media (max-width: 900px) {
-  html.f2c .ac2c-pag .ac2c-portada { overflow: visible; }
   html.f2c .ac2c-pag .ac2c-esfera { top: -110px; right: -130px; width: 320px; height: 320px; }
   html.f2c .ac2c-pag .ac2c-centro { padding-top: 76px; }
   html.f2c .ac2c-pag .ac2c-cifra { padding-top: 0; }

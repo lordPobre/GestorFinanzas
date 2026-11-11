@@ -29,6 +29,7 @@ class Acceso2cTests(TestCase):
                 self.assertIn('<html lang="es" class="t2c f2c">', cuerpo)
                 self.assertIn('class="ac2c ac2c-pag"', cuerpo)
                 self.assertIn('css/acceso-2c.css', cuerpo)
+                self.assertIn('css/franja-2c.css', cuerpo)
                 self.assertNotIn('css/finapp.css', cuerpo)
                 self.assertIn('name="apple-mobile-web-app-status-bar-style" content="black-translucent"', cuerpo)
                 self.assertIsNone(ATRIBUTO_STYLE.search(cuerpo))

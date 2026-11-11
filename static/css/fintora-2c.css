@@ -202,8 +202,6 @@ html.f2c .toast.success i { color: #6fd3a6; }
   html.f2c .modal-box, html.f2c .registro-box { max-width: none !important; max-height: 92vh; padding: 10px 20px calc(28px + env(safe-area-inset-bottom)); border-radius: 28px 28px 0 0; }
   html.f2c .modal-box::before, html.f2c .registro-box::before { content: ''; display: block; width: 40px; height: 5px; margin: 0 auto 14px; border-radius: 999px; background: rgba(30, 26, 21, .18); }
   html.f2c .toast-container { top: calc(16px + env(safe-area-inset-top)); bottom: auto; }
-  html.f2c body::after { content: ''; position: fixed; top: 0; left: 0; right: 0; z-index: 85; height: env(safe-area-inset-top); background: rgba(30, 26, 21, .72); -webkit-backdrop-filter: blur(20px) saturate(160%); backdrop-filter: blur(20px) saturate(160%); opacity: 0; transition: opacity .2s ease; pointer-events: none; }
-  html.f2c.con-scroll body::after { opacity: 1; }
 }
 @media (prefers-reduced-motion: reduce) {
   html.f2c *, html.f2c *::before, html.f2c *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
