@@ -12,6 +12,7 @@ from django.utils import timezone
 
 from .. import cola, ia_cliente
 from .base import BANCOS, Cartola, ErrorCartola, MovimientoLeido, paginas_de_pdf
+from .ciclo import ajustar_al_ciclo
 from .tabla import _cabecera, _de_csv, _de_excel, es_tabla
 from .universal import CUENTA, MESES
 
@@ -509,6 +510,9 @@ def _comprobar(respuestas, fuente, banco, contenido_original):
         descuadre=descuadre,
         nota_cuadre=nota,
     )
+    if es_tarjeta:
+        ajustar_al_ciclo(cartola, contenido_original or fuente['texto'], facturacion)
+        cartola.movimientos.sort(key=lambda m: m.fecha, reverse=True)
     rango = {'verificada': 2, 'sin_ancla': 1, 'falla': 0}[nivel]
     return {'cartola': cartola, 'nivel': nivel, 'puntaje': (rango, -inventadas, razon, n)}
 

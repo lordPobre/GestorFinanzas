@@ -6,7 +6,7 @@ from django.test import SimpleTestCase, TestCase
 from django.urls import reverse
 
 from ..cartolas import BANCOS, enriquecer
-from ..cartolas.ciclo import inicio_estimado, reubicar_anteriores
+from ..cartolas.ciclo import cierre_por_dia, inicio_estimado, reubicar_anteriores
 from ..models import Transaccion
 from ..views.cartola import SESION
 
@@ -66,11 +66,32 @@ class CicloTests(SimpleTestCase):
         self.assertEqual(inicio_estimado(date(2026, 9, 19)), date(2026, 8, 20))
         self.assertEqual(inicio_estimado(date(2026, 3, 31)), date(2026, 3, 1))
 
-    def test_la_fecha_de_vencimiento_no_se_toma_como_cierre(self):
+    def test_sin_cierre_las_compras_desde_el_20_van_al_mes_siguiente(self):
         cartola = BANCOS['la_polar']().parsear(POLAR)
         compra = _buscar(cartola, 'FARMACIA')
-        self.assertEqual(compra.fecha, date(2026, 8, 28))
-        self.assertIsNone(compra.fecha_compra)
+        self.assertEqual(compra.fecha, date(2026, 9, 19))
+        self.assertEqual(compra.fecha_compra, date(2026, 8, 28))
+        self.assertIn('desde el día 20', compra.aviso)
+        self.assertIn('septiembre', compra.aviso)
+        antes_del_20 = _buscar(cartola, 'SUPERMERCADO')
+        self.assertEqual(antes_del_20.fecha, date(2026, 9, 10))
+        self.assertIsNone(antes_del_20.fecha_compra)
+
+    def test_la_fecha_de_vencimiento_no_se_toma_como_cierre(self):
+        cartola = BANCOS['la_polar']().parsear(POLAR)
+        self.assertNotEqual(_buscar(cartola, 'FARMACIA').fecha.month, 10)
+        self.assertNotEqual(_buscar(cartola, 'SUPERMERCADO').fecha.month, 10)
+
+    def test_la_fecha_de_cierre_escrita_en_el_estado_tambien_vale(self):
+        texto = POLAR.replace('Fecha de vencimiento: 05/10/2026', 'Fecha de cierre: 19/09/2026')
+        cartola = BANCOS['la_polar']().parsear(texto)
+        self.assertEqual(_buscar(cartola, 'FARMACIA').fecha, date(2026, 9, 19))
+        self.assertTrue(cartola.periodo.startswith('Septiembre 2026 · ciclo del 20/08 al 19/09'))
+
+    def test_el_cierre_por_dia_pasa_de_mes_y_de_año(self):
+        self.assertEqual(cierre_por_dia(date(2026, 9, 5)), date(2026, 9, 19))
+        self.assertEqual(cierre_por_dia(date(2026, 9, 20)), date(2026, 10, 19))
+        self.assertEqual(cierre_por_dia(date(2026, 12, 22)), date(2027, 1, 19))
 
     def test_una_casa_comercial_con_fecha_de_facturacion_tambien_usa_el_ciclo(self):
         texto = POLAR.replace('Fecha de vencimiento: 05/10/2026', 'Fecha de facturación: 19/09/2026')

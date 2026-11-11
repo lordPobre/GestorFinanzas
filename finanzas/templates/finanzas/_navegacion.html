@@ -8,7 +8,7 @@
 {% endfor %}      </div>
 {% endfor %}    </nav>{% if dos_c %}
     <button type="button" class="sidebar-anotar" data-open="#modalGasto" data-preset-tipo="EGRESO" data-tour="registrar"><i class="fas fa-plus"></i>Anotar</button>{% endif %}{% elif modo == 'barra2c' %}<nav class="bottomnav barra-2c">
-{% for i in barra %}{% if forloop.counter == 3 %}  <button type="button" class="nav-item nav-anotar" data-open="#modalGasto" data-preset-tipo="EGRESO" data-label="Anotar" aria-label="Anotar"><span class="nav-anotar-boton"><i class="fas fa-plus"></i></span><span>Anotar</span></button>
+{% for i in barra %}{% if forloop.counter == 3 %}  <button type="button" class="nav-item nav-anotar" data-open="#modalGasto" data-preset-tipo="EGRESO" data-label="Anotar" aria-label="Anotar" data-tour="registrar"><span class="nav-anotar-boton"><i class="fas fa-plus"></i></span><span>Anotar</span></button>
 {% endif %}  <a href="{{ i.url }}" data-label="{{ i.etiqueta }}" class="nav-item {% if i.activa %}active{% endif %}"{% if i.activa %} aria-current="page"{% endif %}>
     <i class="fas {{ i.icono }}"></i><span>{{ i.etiqueta }}</span>
   </a>

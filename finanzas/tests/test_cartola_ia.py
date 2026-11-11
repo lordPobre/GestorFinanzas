@@ -147,6 +147,24 @@ class LecturaConIA(TestCase):
         pago = next(m for m in cartola.movimientos if 'PAGO' in m.descripcion)
         self.assertTrue(pago.aviso.startswith('No es un gasto'))
 
+    def test_en_la_tarjeta_una_compra_del_mes_anterior_se_anota_en_el_mes_del_cierre(self):
+        texto = ('Fecha;Descripcion;Cuotas;Valor cuota\n'
+                 '28/09/2026;FARMACIA AHUMADA;;14.990\n'
+                 '10/10/2026;SUPERMERCADO LIDER;;45.900\n'
+                 'Monto total facturado;;;60.890\n')
+        respuesta = _respuesta([
+            _fila('2026-09-28', 'FARMACIA AHUMADA', '14.990'),
+            _fila('2026-10-10', 'SUPERMERCADO LIDER', '45.900'),
+        ], tipo_documento='tarjeta', institucion='Tarjeta Prueba', fecha_facturacion='2026-10-25',
+            total_facturado='60.890')
+        cartola, _ = self._leer(texto, 't.csv', respuesta)
+        farmacia = next(m for m in cartola.movimientos if 'FARMACIA' in m.descripcion)
+        self.assertEqual((farmacia.fecha, farmacia.fecha_compra), (date(2026, 10, 25), date(2026, 9, 28)))
+        self.assertIn('octubre', farmacia.aviso)
+        lider = next(m for m in cartola.movimientos if 'LIDER' in m.descripcion)
+        self.assertEqual(lider.fecha, date(2026, 10, 10))
+        self.assertTrue(cartola.periodo.startswith('Octubre 2026 · ciclo del'))
+
     def test_una_foto_va_como_imagen(self):
         respuesta = _respuesta([_fila('2026-10-03', 'SUPERMERCADO', '45.900'),
                                 _fila('2026-10-05', 'SUELDO', '1.200.000', 'abono')])

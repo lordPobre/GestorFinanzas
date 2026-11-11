@@ -146,6 +146,80 @@
     }
   ];
 
+  var DOS_C = !!(document.documentElement && document.documentElement.classList.contains('f2c'));
+
+  function abrirTu(vista) {
+    return function () {
+      var sub = document.querySelector('#mas');
+      if (!sub) return;
+      if (!sub.classList.contains('abierta')) {
+        var abrir = document.querySelector('[data-tu2c-abrir]');
+        if (abrir) abrir.click();
+      }
+      var boton = document.querySelector('#mas [data-tu2c-ver="' + vista + '"]');
+      if (boton) boton.click();
+    };
+  }
+
+  function cerrarTu() {
+    var sub = document.querySelector('#mas');
+    if (!sub || !sub.classList.contains('abierta')) return;
+    var volver = document.querySelector('#mas [data-tu2c-volver]');
+    if (volver) volver.click();
+  }
+
+  var CAMBIOS_2C = {
+    saldo: {
+      texto: 'Es lo que te queda para el resto del mes: lo que entró, menos tus gastos, las cuotas y lo que todavía tienes por pagar. Debajo ves cuánto te toca por día.'
+    },
+    esfera: {
+      soloTelefono: false, esfera: false, sel: '.i2c-esfera',
+      texto: 'Se pone verde si vas bien, amarilla si te acercas al límite y roja si te pasaste. Tócala y te cuenta en voz alta cómo va tu mes.'
+    },
+    gesto: null,
+    suscripciones: { sel: '[data-tour="suscripciones"], .s2c-nueva' },
+    graficos: { sel: '.es2c-barras, [data-tour="graficos"]' },
+    ia: {
+      sel: '[data-tour="ia"]',
+      texto: 'Análisis ya te muestra en qué se te fue la plata. Desde esta tarjeta pides que te lo expliquen en palabras: qué cambió respecto al mes pasado y qué conviene mirar. Corre solo cuando lo pides.'
+    },
+    seguridad: {
+      pestana: '', antes: abrirTu('seguridad'),
+      texto: 'En Tú, dentro de Privacidad y seguridad, la parte Seguridad reúne lo que protege tu cuenta: la verificación en dos pasos, los aparatos donde está abierta, la contraseña y la opción de borrar la cuenta.'
+    },
+    'face-id': { pestana: '', soloTelefono: true, antes: cerrarTu },
+    'dos-pasos': { pestana: '', antes: abrirTu('seguridad') },
+    sesiones: { pestana: '', antes: abrirTu('seguridad') },
+    contrasena: { pestana: '', antes: abrirTu('seguridad') },
+    'eliminar-cuenta': {
+      pestana: '', antes: abrirTu('seguridad'),
+      texto: 'Borra la cuenta y todo tu historial. No se puede deshacer, así que antes conviene descargar tus datos desde Tus datos.'
+    },
+    aviso: { pestana: '', antes: abrirTu('avisos') },
+    exportar: {
+      pestana: '', antes: abrirTu('datos'),
+      texto: 'Descargas todo en Excel o CSV, con una hoja por mes. Este recorrido se repite cuando quieras desde Privacidad, en «Cómo funciona la app».'
+    }
+  };
+
+  function claveDe(p) {
+    var m = /data-tour="([\w-]+)"/.exec(p.sel);
+    return m ? m[1] : '';
+  }
+
+  if (DOS_C) {
+    PASOS = PASOS.reduce(function (lista, p) {
+      var k = claveDe(p);
+      if (!Object.prototype.hasOwnProperty.call(CAMBIOS_2C, k)) { lista.push(p); return lista; }
+      if (CAMBIOS_2C[k] === null) return lista;
+      var copia = {};
+      Object.keys(p).forEach(function (c) { copia[c] = p[c]; });
+      Object.keys(CAMBIOS_2C[k]).forEach(function (c) { copia[c] = CAMBIOS_2C[k][c]; });
+      lista.push(copia);
+      return lista;
+    }, []);
+  }
+
   var TELEFONO = !!(window.matchMedia && window.matchMedia('(max-width: 720px)').matches);
   PASOS = PASOS.filter(function (p) { return TELEFONO ? !p.soloEscritorio : !p.soloTelefono; });
 
@@ -343,6 +417,8 @@
 
     var paso = secuencia[n];
     if (!aqui(paso)) { guardar(n); indice = n; ocultarCapa(); verPildora(n); return; }
+
+    if (paso.antes) paso.antes();
 
     if (paso.pestana) {
       var pestana = document.querySelector(paso.pestana);
