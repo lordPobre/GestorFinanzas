@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#151412">
+  <meta name="theme-color" content="#F3EFE7">
   <meta name="robots" content="noindex">
   <title>{% block title %}{% endblock %} · Fintora</title>
   <link rel="icon" type="image/svg+xml" href="{% static 'img/favicon.svg' %}">
@@ -12,12 +12,15 @@
   <link rel="stylesheet" href="{% static 'css/errores.css' %}">
 </head>
 <body>
-  <main class="er">
+  <main class="er {% block tono %}ambar{% endblock %}">
     <a class="er-marca" href="/"><img src="{% static 'img/favicon.svg' %}" alt="">Fintora</a>
-    <div class="er-estado {% block tono %}ambar{% endblock %}"><b></b>{% block etiqueta %}{% endblock %}<span class="er-codigo">{% block codigo %}{% endblock %}</span></div>
-    <h1>{% block titulo %}{% endblock %}</h1>
-    <p>{% block texto %}{% endblock %}</p>
-    <div class="er-acciones">{% block acciones %}<a class="er-btn principal" href="/">Ir al inicio</a>{% endblock %}</div>
+    <span class="er-esfera" aria-hidden="true"></span>
+    <div class="er-txt">
+      <span class="er-estado"><span class="er-codigo">{% block codigo %}{% endblock %}</span><span aria-hidden="true">·</span><span>{% block etiqueta %}{% endblock %}</span></span>
+      <h1>{% block titulo %}{% endblock %}</h1>
+      <p>{% block texto %}{% endblock %}</p>
+      <div class="er-acciones">{% block acciones %}<a class="er-btn principal" href="/">Ir al inicio</a>{% endblock %}</div>
+    </div>
   </main>
 </body>
 </html>

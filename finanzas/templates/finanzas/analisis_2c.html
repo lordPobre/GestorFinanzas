@@ -1,5 +1,5 @@
 {% extends 'finanzas/base_2c.html' %}
-{% load static moneda %}
+{% load static moneda f2c %}
 {% block title %}Análisis IA · Fintora{% endblock %}
 {% block extra_head %}<link rel="stylesheet" href="{% static 'css/secciones-2c.css' %}">{% endblock %}
 
@@ -47,7 +47,7 @@
 
       <section class="f2c-tarjeta">
         <b class="an2c-titulo">Por qué ese número</b>
-        {% if analisis.ingreso_mensual > 0 %}<div class="an2c-flujo v2c-esc" aria-hidden="true"><span class="gasto" data-ancho-pct="{% widthratio analisis.gasto_mensual analisis.ingreso_mensual 100 %}">{% widthratio analisis.gasto_mensual analisis.ingreso_mensual 100 %}%</span>{% if analisis.compromisos_mes > 0 %}<span class="cuotas" data-ancho-pct="{% widthratio analisis.compromisos_mes analisis.ingreso_mensual 100 %}">{% widthratio analisis.compromisos_mes analisis.ingreso_mensual 100 %}%</span>{% endif %}{% if analisis.flujo_libre > 0 %}<span class="sobra" data-ancho-pct="{% widthratio analisis.flujo_libre analisis.ingreso_mensual 100 %}">{% widthratio analisis.flujo_libre analisis.ingreso_mensual 100 %}%</span>{% endif %}</div>{% endif %}
+        {% flujo_2c analisis as fl %}{% if fl %}<div class="an2c-flujo-caja v2c-esc"><span class="an2c-flujo-titulo">Cómo se reparte lo que entra</span><div class="an2c-flujo{% if fl.pasa %} pasa{% endif %}" aria-hidden="true"><span class="gasto" data-ancho-pct="{{ fl.gasto }}"></span>{% if fl.cuotas %}<span class="cuotas" data-ancho-pct="{{ fl.cuotas }}"></span>{% endif %}{% if fl.sobra %}<span class="sobra" data-ancho-pct="{{ fl.sobra }}"></span>{% endif %}{% if fl.marca %}<i class="an2c-flujo-marca" data-izq-pct="{{ fl.marca }}"><b>Lo que entra</b></i>{% endif %}</div><div class="an2c-flujo-leyenda"><span><i class="gasto"></i>Gastos <b>{{ fl.pct_gasto }}%</b></span>{% if fl.cuotas %}<span><i class="cuotas"></i>Cuotas <b>{{ fl.pct_cuotas }}%</b></span>{% endif %}{% if fl.sobra %}<span><i class="sobra"></i>Te sobra <b>{{ fl.pct_sobra }}%</b></span>{% endif %}{% if fl.pasa %}<span class="rojo">Sale el {{ fl.pct_sale }}% de lo que entra</span>{% endif %}</div></div>{% endif %}
         <div class="an2c-tabla">
           <div><span>Entra en un mes normal</span><b class="verde">+{{ analisis.ingreso_mensual|money }}</b></div>
           <div><span>Gastas en un mes normal</span><b>−{{ analisis.gasto_mensual|money }}</b></div>

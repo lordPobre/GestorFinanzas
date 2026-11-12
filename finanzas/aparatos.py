@@ -60,7 +60,8 @@ def al_entrar(request, usuario):
             'enlace': correo.url_absoluta(request, reverse('sesiones_activas')),
         }
         if not correo.encolar(destino, 'Nuevo acceso a tu cuenta de Fintora',
-                              render_to_string('registration/correo_aparato.txt', contexto)):
+                              render_to_string('registration/correo_aparato.txt', contexto),
+                              render_to_string('registration/correo_aparato.html', contexto)):
             log.warning('No salió el aviso de aparato nuevo del usuario %s', usuario.pk)
     return True
 

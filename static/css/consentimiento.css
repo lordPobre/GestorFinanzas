@@ -14,4 +14,16 @@
   .cookies { flex-direction: column; align-items: stretch; gap: 12px; }
   .cookies-botones > * { flex: 1; }
 }
+html.f2c .cookies { left: 24px; right: auto; transform: none; width: min(440px, calc(100% - 28px)); flex-direction: column; align-items: stretch; gap: 14px; padding: 20px; border-radius: 24px; background: #FBF8F2; -webkit-backdrop-filter: none; backdrop-filter: none; border: 1px solid #E8E2D7; box-shadow: 0 24px 50px -24px rgba(30, 26, 21, .45); color: #1E1A15; font-family: 'Familjen Grotesk', system-ui, sans-serif; }
+html.f2c .cookies-txt { font-size: 14px; color: #4F4840; }
+html.f2c .cookies-txt b { font-size: 16px; font-weight: 700; color: #1E1A15; }
+html.f2c .cookies-txt a { color: #0D6E55; }
+html.f2c .cookies-botones { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+html.f2c .cookies-btn { border-color: #D9D2C6; background: transparent; color: #1E1A15; font: 700 15px 'Familjen Grotesk', system-ui, sans-serif; }
+html.f2c .cookies-btn:hover { background: rgba(30, 26, 21, .05); }
+html.f2c .cookies-btn.principal { border-color: #1E1A15; background: #1E1A15; color: #F3EFE7; }
+html.f2c .cookies-btn.principal:hover { background: #3A332A; }
+@media (max-width: 640px) {
+  html.f2c .cookies { left: 14px; right: 14px; width: auto; }
+}
 }

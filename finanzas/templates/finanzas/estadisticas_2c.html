@@ -37,14 +37,20 @@
           </div>
           <div class="es2c-leyenda" aria-hidden="true"><span><i></i>Entró</span><span><i class="sal"></i>Salió</span><span><i class="rojo"></i>Salió más de lo que entró</span></div>
         </div>
-        <div class="es2c-dobles" role="img" aria-label="Lo que entró y lo que salió en los últimos meses">
-          {% for b in dobles.meses %}
-          <div class="es2c-doble{% if b.actual %} actual{% endif %}{% if b.en_curso %} en-curso{% endif %}">
-            <span class="es2c-doble-barras"><i class="ent" data-alto-pct="{{ b.ent }}"></i><i class="sal{% if b.rojo %} rojo{% endif %}" data-alto-pct="{{ b.sal }}"></i></span>
-            <span class="es2c-doble-mes">{{ b.corta }}{% if b.en_curso %} · en curso{% endif %}</span>
-            <span class="es2c-neto{% if b.rojo %} rojo{% endif %}">{% if not b.rojo %}+{% endif %}{{ b.neto|corto:simbolo_moneda }}</span>
+        <div class="es2c-graf" role="img" aria-label="Lo que entró y lo que salió en los últimos meses">
+          <div class="es2c-lineas" aria-hidden="true">{% for g in dobles.escala %}<span data-arriba-pct="{{ g.arriba }}"><b>{{ g.valor|corto:simbolo_moneda }}</b></span>{% endfor %}<span class="base" data-arriba-pct="100"><b>{{ 0|corto:simbolo_moneda }}</b></span></div>
+          <div class="es2c-dobles">
+            {% for b in dobles.meses %}
+            <div class="es2c-doble{% if b.actual %} actual{% endif %}{% if b.en_curso %} en-curso{% endif %}">
+              <span class="es2c-doble-barras">
+                <span class="es2c-col">{% if b.ent_valor > 0 %}<b data-aparece>{{ b.ent_valor|corto:simbolo_moneda }}</b><i class="ent" data-alto-pct="{{ b.ent }}"></i>{% else %}<i class="ent cero"></i>{% endif %}</span>
+                <span class="es2c-col">{% if b.sal_valor > 0 %}<b data-aparece>{{ b.sal_valor|corto:simbolo_moneda }}</b><i class="sal{% if b.rojo %} rojo{% endif %}" data-alto-pct="{{ b.sal }}"></i>{% else %}<i class="sal cero"></i>{% endif %}</span>
+              </span>
+              <span class="es2c-doble-mes">{{ b.corta }}{% if b.en_curso %}<small>en curso</small>{% endif %}</span>
+              <span class="es2c-neto{% if b.rojo %} rojo{% endif %}">{% if not b.rojo %}+{% endif %}{{ b.neto|corto:simbolo_moneda }}</span>
+            </div>
+            {% endfor %}
           </div>
-          {% endfor %}
         </div>
       </section>
       {% barras meses_json gastos_json 6 mes_sel.nombre as barras_gasto %}
@@ -72,8 +78,8 @@
           <span class="es2c-ficha v2c-esc" data-fondo="{{ r.color|fondo_suave }}" data-tinta="{{ r.color|tinta_suave }}" aria-hidden="true"><i class="fas {{ r.nombre|icono_cat }}"></i></span>
           <div class="es2c-cat-cab"><span>{{ r.label }}</span><b>{{ r.total|money }}</b></div>
           <span class="f2c-barra"><i data-ancho-pct="{{ r.ancho }}" data-fondo="{{ r.color|tinta_suave }}"></i></span>
-          {% if r.spark %}<span class="es2c-spark v2c-esc" aria-hidden="true">{% for s in r.spark %}<i data-alto-pct="{{ s.alto }}" data-fondo="{{ r.color|tinta_suave }}"{% if s.actual %} class="actual"{% endif %}></i>{% endfor %}</span>{% endif %}
-          {% if r.delta != None %}<small class="es2c-delta{% if r.subio %} sube{% else %} baja{% endif %}">{% if r.subio %}{{ r.delta }}% más{% else %}{{ r.delta|cut:"-" }}% menos{% endif %} que {{ mes_sel.ref_anterior }}</small>{% else %}<small class="es2c-delta">Nueva {{ mes_sel.en_mes }}</small>{% endif %}
+          {% if r.spark %}<span class="es2c-spark v2c-esc" aria-hidden="true">{% for s in r.spark %}{% if s.cero %}<i class="cero" title="{{ s.mes }}: sin gastos"></i>{% else %}<i data-alto-pct="{{ s.alto }}" data-fondo="{{ r.color|tinta_suave }}"{% if s.actual %} class="actual"{% endif %} title="{{ s.mes }}: {{ s.valor|money }}"></i>{% endif %}{% endfor %}</span>{% endif %}
+          {% if r.delta != None %}{% if r.igual %}<small class="es2c-delta">Igual que {{ mes_sel.ref_anterior }}</small>{% else %}<small class="es2c-delta{% if r.subio %} sube{% else %} baja{% endif %}">{% if r.subio %}{{ r.delta }}% más{% else %}{{ r.delta|cut:"-" }}% menos{% endif %} que {{ mes_sel.ref_anterior }}</small>{% endif %}{% else %}<small class="es2c-delta">Nueva {{ mes_sel.en_mes }}</small>{% endif %}
         </div>
         {% empty %}
         <div class="f2c-vacio"><i class="fas fa-chart-pie"></i><b>Sin gastos {{ mes_sel.en_mes }}</b><span>Anota un gasto y aquí verás en qué se te va.</span></div>

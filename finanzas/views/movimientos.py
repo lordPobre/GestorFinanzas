@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import date, datetime
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -10,6 +10,8 @@ from django.utils import timezone
 from .. import fechas
 from ..forms import TransaccionForm
 from ..models import Categoria, GastoPendiente, PagoCuota, Transaccion
+from ..servicios import borrar_mes
+from ..servicios.mes import MESES_LARGOS
 from .comun import contadores, monto_post, redirigir, texto_post
 
 
@@ -231,4 +233,34 @@ def eliminar_gasto_pendiente(request, gasto_id):
             gasto.transaccion.delete()
         gasto.delete()
         messages.success(request, 'Gasto pendiente eliminado.')
+    return redirigir(request)
+
+
+@login_required(login_url='/login/')
+def borrar_gastos_mes(request):
+    if request.method != 'POST':
+        return redirigir(request)
+    try:
+        year, month = (int(x) for x in request.POST.get('mes', '').split('-'))
+        date(year, month, 1)
+    except (TypeError, ValueError):
+        messages.warning(request, 'No pudimos saber de qué mes son los gastos.')
+        return redirigir(request)
+    hecho = borrar_mes.borrar(request.user, year, month)
+    if not hecho:
+        messages.info(request, 'Ese mes no tiene gastos para eliminar.')
+        return redirigir(request)
+    request.session['borrado_mes'] = {'token': hecho['token'], 'n': hecho['n'],
+                                      'mes': MESES_LARGOS[month - 1]}
+    return redirigir(request)
+
+
+@login_required(login_url='/login/')
+def deshacer_borrar_mes(request):
+    if request.method == 'POST':
+        n = borrar_mes.deshacer(request.user, request.POST.get('token', ''))
+        if n:
+            messages.success(request, f'Volvieron {n} gasto{"s" if n != 1 else ""}.')
+        else:
+            messages.warning(request, 'Ya no se puede deshacer.')
     return redirigir(request)

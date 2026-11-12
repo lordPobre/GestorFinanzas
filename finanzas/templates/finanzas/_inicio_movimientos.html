@@ -1,13 +1,19 @@
-{% load humanize moneda marcas %}
+{% load humanize moneda marcas diseno f2c %}{% diseno_2c as t2c %}{% gastos_borrables movimientos_mes as gb %}
 <div class="modal-box mv-box caja-560" data-movimientos-caja>
   <div class="modal-head">
     <div>
       <div class="modal-title">{{ nombre_mes }}</div>
       <div class="modal-sub">Toca uno para editarlo. Deslízalo para borrarlo.</div>
-      <a href="{% url 'movimientos_repetidos' %}" class="ini-link">Buscar repetidos<i class="fas fa-chevron-right"></i></a>
+      {% if not t2c or not gb.borrar.n %}<a href="{% url 'movimientos_repetidos' %}" class="ini-link">Buscar repetidos<i class="fas fa-chevron-right"></i></a>{% endif %}
     </div>
     <button class="modal-close" data-close aria-label="Cerrar"><i class="fas fa-xmark"></i></button>
   </div>
+  {% if t2c and gb.borrar.n %}
+  <div class="bm2c-acciones">
+    <a href="{% url 'movimientos_repetidos' %}" class="bm2c-chip"><i class="fas fa-clone"></i>Buscar repetidos</a>
+    <button type="button" class="bm2c-chip rojo" data-borrar-mes-abrir aria-haspopup="dialog"><i class="fas fa-trash-can"></i>Eliminar gastos</button>
+  </div>
+  {% endif %}
   {% if movimientos_mes %}
   <div class="mv-resumen">
     <div class="mv-cifra"><span>Entró</span><b class="verde" data-mov-entro>{{ mov_entro|money }}</b></div>
@@ -75,4 +81,33 @@
       <div class="empty-title">No hay movimientos de este tipo</div>
     </div>
   </div>
+  {% if t2c and gb.borrar.n %}
+  <div class="bm2c-panel" data-borrar-mes hidden>
+    <div class="bm2c-velo" data-borrar-mes-cerrar></div>
+    <div class="bm2c-hoja" role="alertdialog" aria-modal="true" aria-labelledby="bm2cTitulo" aria-describedby="bm2cNota">
+      <span class="bm2c-icono" aria-hidden="true"><i class="fas fa-trash-can"></i></span>
+      <div class="bm2c-txt">
+        <b id="bm2cTitulo">¿Eliminar los gastos de {{ nombre_mes|lower }}?</b>
+        <span id="bm2cNota">Se borran de una vez y dejan de contar en lo que puedes gastar.</span>
+      </div>
+      <div class="bm2c-cifra"><span>{{ gb.borrar.n }} gasto{{ gb.borrar.n|pluralize }}</span><b>−{{ gb.borrar.total|money }}</b></div>
+      {% if gb.quedan %}
+      <div class="bm2c-quedan">
+        <span class="bm2c-etq">Se quedan</span>
+        {% if gb.ingresos.n %}<div><span>{{ gb.ingresos.n }} ingreso{{ gb.ingresos.n|pluralize }}</span><b class="verde">+{{ gb.ingresos.total|money }}</b></div>{% endif %}
+        {% if gb.cuotas.n %}<div><span>{{ gb.cuotas.n }} pago{{ gb.cuotas.n|pluralize }} de cuotas</span><b>−{{ gb.cuotas.total|money }}</b></div>{% endif %}
+        {% if gb.suscripciones.n %}<div><span>{{ gb.suscripciones.n }} cobro{{ gb.suscripciones.n|pluralize }} de suscripciones</span><b>−{{ gb.suscripciones.total|money }}</b></div>{% endif %}
+        {% if gb.cuentas.n %}<div><span>{{ gb.cuentas.n }} cuenta{{ gb.cuentas.n|pluralize }} por pagar</span><b>−{{ gb.cuentas.total|money }}</b></div>{% endif %}
+      </div>
+      {% endif %}
+      <form method="post" action="{% url 'borrar_gastos_mes' %}">
+        {% csrf_token %}
+        <input type="hidden" name="next" value="{{ volver }}">
+        <input type="hidden" name="mes" value="{{ movimientos_mes.0.fecha|date:'Y-m' }}">
+        <button type="submit" class="bm2c-borrar"><i class="fas fa-trash-can"></i>Eliminar {{ gb.borrar.n }} gasto{{ gb.borrar.n|pluralize }}</button>
+      </form>
+      <button type="button" class="bm2c-cancelar" data-borrar-mes-cerrar>Cancelar</button>
+    </div>
+  </div>
+  {% endif %}
 </div>

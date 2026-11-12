@@ -1,0 +1,70 @@
+{% load correo_marca %}<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<meta name="supported-color-schemes" content="light">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;600;700&amp;display=swap">
+<title>Ya tienes una cuenta en Fintora</title>
+</head>
+<body style="margin:0;padding:0;background-color:#F3EFE7;">
+
+<div style="display:none;font-size:1px;color:#F3EFE7;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;">
+  Alguien intentó crear una cuenta con este correo.
+</div>
+
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" bgcolor="#F3EFE7" style="background-color:#F3EFE7;">
+<tr>
+<td align="center" style="padding:28px 14px 0;">
+
+  <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="560" style="width:100%;max-width:560px;">
+
+    <tr>
+      <td style="padding:0 4px 20px;">
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td width="36" style="vertical-align:middle;"><img src="cid:fintora-cabecera" width="36" height="36" alt="" style="display:block;width:36px;height:36px;border:0;outline:none;"></td>
+          <td style="vertical-align:middle;padding-left:10px;font-family:'Familjen Grotesk',-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:19px;font-weight:700;letter-spacing:-.02em;color:#1E1A15;">Fintora</td>
+        </tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr>
+      <td bgcolor="#FBF8F2" style="background-color:#FBF8F2;border:1px solid #E8E2D7;border-radius:24px;padding:32px 28px;">
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+        <tr><td bgcolor="#DFE6F1" style="background-color:#DFE6F1;border-radius:999px;padding:5px 12px;font-family:'Familjen Grotesk',-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:13px;font-weight:700;color:#2F4F86;">Ya tienes cuenta</td></tr>
+        </table>
+        <h1 style="margin:16px 0 12px;font-family:'Familjen Grotesk',-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:26px;font-weight:700;line-height:1.2;letter-spacing:-.02em;color:#1E1A15;">Ya tienes una cuenta con este correo</h1>
+        <p style="margin:0 0 14px;font-family:'Familjen Grotesk',-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:16px;line-height:1.6;color:#4F4840;">Alguien intentó crear una cuenta nueva en Fintora con este correo, pero ya tienes una.</p>
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin-top:10px;">
+        <tr><td align="center" bgcolor="#1E1A15" style="background-color:#1E1A15;border-radius:999px;"><a href="{{ entrar }}" style="display:block;padding:16px 24px;font-family:'Familjen Grotesk',-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:16px;font-weight:700;color:#F3EFE7;text-decoration:none;">Entrar a mi cuenta</a></td></tr>
+        </table>
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin-top:10px;">
+        <tr><td align="center" style="border:1px solid #D9D2C6;border-radius:999px;"><a href="{{ recuperar }}" style="display:block;padding:15px 24px;font-family:'Familjen Grotesk',-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:16px;font-weight:700;color:#1E1A15;text-decoration:none;">Recuperar mi contraseña</a></td></tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr>
+      <td style="padding:22px 8px 40px;font-family:'Familjen Grotesk',-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:13px;line-height:1.6;color:#6E665C;">
+        <p style="margin:0 0 8px;">Si no fuiste tú, ignora este mensaje. Tu cuenta sigue igual.</p>
+        <p style="margin:0;">
+          <a href="{% url_sitio 'privacidad' %}" style="color:#6E665C;text-decoration:underline;">Privacidad</a>
+          &nbsp;·&nbsp;
+          <a href="{% url_sitio 'terminos' %}" style="color:#6E665C;text-decoration:underline;">Términos de uso</a>
+          &nbsp;·&nbsp;
+          © {% now "Y" %} Fintora
+        </p>
+      </td>
+    </tr>
+
+  </table>
+
+</td>
+</tr>
+</table>
+
+</body>
+</html>

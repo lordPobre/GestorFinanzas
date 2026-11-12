@@ -230,7 +230,7 @@ def barras_dobles(meses, ingresos, gastos, cuantos=6, elegido=None, hoy=None):
             fin = i + 1
             break
     filas = filas[max(0, fin - int(cuantos)):fin]
-    tope = max([float(a_decimal(v or 0)) for _, e, g in filas for v in (e, g)] + [1.0])
+    tope = _techo(max([float(a_decimal(v or 0)) for _, e, g in filas for v in (e, g)] + [1.0]))
     curso = f'{MESES_LARGOS[hoy.month - 1]} {hoy.year}' if hoy else ''
     salida = []
     for i, (mes, e, g) in enumerate(filas):
@@ -239,8 +239,10 @@ def barras_dobles(meses, ingresos, gastos, cuantos=6, elegido=None, hoy=None):
         salida.append({
             'corta': partes[0][:3].capitalize() if partes else str(mes),
             'larga': partes[0].capitalize() if partes else str(mes),
-            'ent': _pct(max(2.0, float(e) / tope * 100)) if e > 0 else '0',
-            'sal': _pct(max(2.0, float(g) / tope * 100)) if g > 0 else '0',
+            'ent': _pct(max(1.5, float(e) / tope * 100)) if e > 0 else '0',
+            'sal': _pct(max(1.5, float(g) / tope * 100)) if g > 0 else '0',
+            'ent_valor': e,
+            'sal_valor': g,
             'neto': e - g,
             'rojo': g > e,
             'actual': i == len(filas) - 1,
@@ -256,7 +258,15 @@ def barras_dobles(meses, ingresos, gastos, cuantos=6, elegido=None, hoy=None):
         titulo = f'{rojos[0]["larga"]} fue el único mes en que salió más de lo que entró'
     else:
         titulo = f'En {len(rojos)} de los últimos {len(cerrados)} meses salió más de lo que entró'
-    return {'meses': salida, 'titulo': titulo}
+    escala = [{'valor': Decimal(round(tope * k / 2)), 'arriba': _pct(100 - k * 50)} for k in (2, 1)]
+    return {'meses': salida, 'titulo': titulo, 'escala': escala}
+
+
+def _casi_igual(delta):
+    try:
+        return delta is not None and abs(float(delta)) < 3
+    except (TypeError, ValueError):
+        return False
 
 
 def series_categorias(usuario, ranking, year, month):
@@ -273,9 +283,10 @@ def series_categorias(usuario, ranking, year, month):
     for fila in ranking:
         serie = [totales[fila['nombre']].get((m.year, m.month), CERO) for m in meses]
         tope = float(max(serie + [Decimal('1')]))
-        salida.append({**fila, 'spark': [
-            {'alto': max(6, round(float(v) / tope * 100)) if v else 3, 'actual': i == len(serie) - 1}
-            for i, v in enumerate(serie)
+        salida.append({**fila, 'igual': _casi_igual(fila.get('delta')), 'spark': [
+            {'alto': max(8, round(float(v) / tope * 100)) if v else 0, 'cero': not v, 'valor': v,
+             'mes': MESES_LARGOS[m.month - 1].capitalize(), 'actual': i == len(serie) - 1}
+            for i, (m, v) in enumerate(zip(meses, serie, strict=True))
         ]})
     return salida
 
@@ -293,3 +304,30 @@ def anotado_por_mes(usuario, hoy):
     return [{'corto': MESES_LARGOS[m.month - 1][:3].capitalize(), 'n': n,
              'alto': max(4, round(n / tope * 100)) if n else 3, 'actual': i == len(meses) - 1}
             for i, (m, n) in enumerate(zip(meses, valores, strict=True))]
+
+
+def flujo(ingreso, gasto, cuotas):
+    ingreso, gasto, cuotas = (max(CERO, a_decimal(v or 0)) for v in (ingreso, gasto, cuotas))
+    sale = gasto + cuotas
+    escala = max(ingreso, sale)
+    if ingreso <= 0 or escala <= 0:
+        return None
+    sobra = max(CERO, ingreso - sale)
+
+    def ancho(valor):
+        return _pct(float(valor / escala * 100))
+
+    def de_ingreso(valor):
+        return redondear(valor / ingreso * 100)
+
+    return {
+        'gasto': ancho(gasto),
+        'cuotas': ancho(cuotas) if cuotas > 0 else None,
+        'sobra': ancho(sobra) if sobra > 0 else None,
+        'marca': ancho(ingreso) if sale > ingreso else None,
+        'pct_gasto': de_ingreso(gasto),
+        'pct_cuotas': de_ingreso(cuotas),
+        'pct_sobra': de_ingreso(sobra),
+        'pct_sale': de_ingreso(sale),
+        'pasa': sale > ingreso,
+    }

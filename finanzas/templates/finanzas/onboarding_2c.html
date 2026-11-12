@@ -1,0 +1,108 @@
+{% load static marketing %}<!DOCTYPE html>
+<html lang="es" class="t2c f2c">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#F3EFE7">
+<title>Bienvenido · Fintora</title>
+<link rel="icon" type="image/svg+xml" href="{% static 'img/favicon.svg' %}">
+<link rel="alternate icon" href="{% static 'img/favicon.png' %}">
+<link rel="apple-touch-icon" href="{% static 'img/favicon-180.png' %}">
+<link rel="stylesheet" href="{% static 'css/capas.css' %}">
+<link rel="stylesheet" href="{% static 'css/bienvenida-2c.css' %}">
+</head>
+<body class="ob2c">
+
+<div class="ob2c-caja">
+  <div class="ob2c-cab">
+    <span class="ob2c-marca"><img src="{% static 'img/favicon.svg' %}" alt="">Fintora</span>
+  </div>
+
+  <div class="ob2c-pasos" id="pasos" aria-hidden="true"><span class="on"></span><span></span><span></span></div>
+
+  <form method="post" action="{% url 'completar_onboarding' %}" id="formOb">
+    {% csrf_token %}
+
+    <div class="paso activo" data-paso="1">
+      <div class="ob2c-tarjeta">
+        <div class="ob2c-cabeza">
+          <h1 class="ob2c-titulo">Hola{% if profile.nombre_display %}, {{ profile.nombre_display }}{% endif %}</h1>
+          <p class="ob2c-sub">Empecemos por lo que entra. Sin esto la app no puede decirte cuánto te queda, que es para lo que sirve.</p>
+        </div>
+        <div class="ob2c-campo">
+          <label for="ingreso_monto">¿Cuánto entra al mes?</label>
+          <input type="number" name="ingreso_monto" id="ingreso_monto" class="grande verde" placeholder="0" min="0" inputmode="numeric" autofocus>
+          <div class="ob2c-atajos" data-atajos="#ingreso_monto">
+            <button type="button" data-monto="500000">$500.000</button>
+            <button type="button" data-monto="800000">$800.000</button>
+            <button type="button" data-monto="1200000">$1.200.000</button>
+          </div>
+        </div>
+        <div class="ob2c-campo">
+          <label for="ingreso_desc">¿De dónde viene?</label>
+          <input type="text" name="ingreso_desc" id="ingreso_desc" placeholder="Ej: Sueldo, mi negocio">
+        </div>
+        <button type="button" class="ob2c-btn principal ancho" data-siguiente>Continuar</button>
+        <button type="button" class="ob2c-saltar" data-siguiente>Prefiero hacerlo después</button>
+      </div>
+    </div>
+
+    <div class="paso" data-paso="2">
+      <div class="ob2c-tarjeta">
+        <div class="ob2c-cabeza">
+          <h2 class="ob2c-titulo">¿Estás pagando algo en cuotas?</h2>
+          <p class="ob2c-sub">Una compra a plazo, una tarjeta. Es lo que más descuadra un mes cuando no está anotado.</p>
+        </div>
+        <div class="ob2c-campo">
+          <label for="deuda_acreedor">¿A quién le pagas?</label>
+          <input type="text" name="deuda_acreedor" id="deuda_acreedor" placeholder="Ej: Tarjeta Visa, Falabella">
+        </div>
+        <div class="ob2c-fila">
+          <div class="ob2c-campo">
+            <label for="deuda_cuota">Valor de la cuota</label>
+            <input type="number" name="deuda_cuota" id="deuda_cuota" placeholder="49000" min="0" inputmode="numeric">
+          </div>
+          <div class="ob2c-campo">
+            <label for="deuda_cuotas">En cuántas</label>
+            <input type="number" name="deuda_cuotas" id="deuda_cuotas" min="1" value="12" inputmode="numeric">
+          </div>
+        </div>
+        <div class="ob2c-previo" id="cajaCuotaOb">
+          <span class="ob2c-etq">Serían</span>
+          <div class="ob2c-previo-fila"><span>Total de la compra</span><b id="cuotaObMonto">$0</b></div>
+        </div>
+        <div class="ob2c-botones">
+          <button type="button" class="ob2c-btn" data-atras>Atrás</button>
+          <button type="button" class="ob2c-btn principal" data-siguiente>Continuar</button>
+        </div>
+        <button type="button" class="ob2c-saltar" data-siguiente>No tengo cuotas</button>
+      </div>
+    </div>
+
+    <div class="paso" data-paso="3">
+      <div class="ob2c-tarjeta">
+        <div class="ob2c-cabeza">
+          <h2 class="ob2c-titulo">¿Cuánto quieres gastar al mes?</h2>
+          <p class="ob2c-sub">Un techo para tus gastos del día a día, sin contar cuotas. Te avisamos cuando te acerques.</p>
+        </div>
+        <div class="ob2c-campo">
+          <label for="presupuesto">Tu límite mensual</label>
+          <input type="number" name="presupuesto" id="presupuesto" class="grande ambar" placeholder="0" min="0" inputmode="numeric">
+          <span class="ob2c-nota" id="notaPresupuesto">Puedes cambiarlo cuando quieras desde tu perfil.</span>
+        </div>
+        <div class="ob2c-botones">
+          <button type="button" class="ob2c-btn" data-atras>Atrás</button>
+          <button type="submit" class="ob2c-btn principal"><i class="fas fa-check"></i>Entrar a Fintora</button>
+        </div>
+        <button type="submit" class="ob2c-saltar">Saltar y entrar</button>
+      </div>
+    </div>
+  </form>
+
+  <p class="ob2c-pie">Todo lo que pongas acá se puede cambiar después.</p>
+</div>
+
+<script src="{% static 'js/pantallas/onboarding.js' %}" nonce="{{ csp_nonce }}"></script>
+{% marketing_evento %}
+</body>
+</html>

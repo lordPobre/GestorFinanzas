@@ -66,6 +66,8 @@ urlpatterns = [
     path('movimientos/<int:transaccion_id>/eliminar/', movimientos.eliminar_transaccion, name='eliminar_transaccion'),
     path('movimientos/<int:transaccion_id>/pagar/', movimientos.pagar_gasto, name='pagar_gasto'),
     path('movimientos/<int:transaccion_id>/anular-pago/', movimientos.anular_pago_gasto, name='anular_pago_gasto'),
+    path('movimientos/borrar-mes/', movimientos.borrar_gastos_mes, name='borrar_gastos_mes'),
+    path('movimientos/borrar-mes/deshacer/', movimientos.deshacer_borrar_mes, name='deshacer_borrar_mes'),
 
     path('metas/', metas.metas, name='metas'),
     path('metas/nueva/', metas.crear_meta, name='crear_meta'),

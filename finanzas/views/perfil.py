@@ -94,18 +94,20 @@ def _pedir_cambio_correo(request, profile, nuevo):
                           salt=SAL_CAMBIO_CORREO)
     enlace = servicio_correo.url_absoluta(
         request, reverse('confirmar_cambio_correo', kwargs={'token': token}))
+    datos_cambio = {'usuario': usuario, 'enlace': enlace, 'horas': HORAS_CAMBIO_CORREO}
     servicio_correo.encolar(
         nuevo, 'Confirma tu nuevo correo en Fintora',
-        render_to_string('registration/correo_cambio.txt', {
-            'usuario': usuario, 'enlace': enlace, 'horas': HORAS_CAMBIO_CORREO}))
+        render_to_string('registration/correo_cambio.txt', datos_cambio),
+        render_to_string('registration/correo_cambio.html', datos_cambio))
 
     anterior = (usuario.email or '').strip()
     if anterior:
+        datos_aviso = {'usuario': usuario, 'nuevo': nuevo,
+                       'enlace': servicio_correo.url_absoluta(request, reverse('sesiones_activas'))}
         servicio_correo.encolar(
             anterior, 'Pidieron cambiar el correo de tu cuenta de Fintora',
-            render_to_string('registration/correo_cambio_aviso.txt', {
-                'usuario': usuario, 'nuevo': nuevo,
-                'enlace': servicio_correo.url_absoluta(request, reverse('sesiones_activas'))}))
+            render_to_string('registration/correo_cambio_aviso.txt', datos_aviso),
+            render_to_string('registration/correo_cambio_aviso.html', datos_aviso))
     auditoria.registrar('correo_cambio_pedido', request, detalle=nuevo)
 
 @limitar(20, 3600, 'Demasiados intentos con enlaces de confirmación. Prueba más tarde.', destino='login')

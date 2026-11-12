@@ -1,0 +1,49 @@
+@layer app {
+:root { --coral: #A8361F; --green: #1F6B3F; }
+html.f2c body.ob2c { margin: 0; min-height: 100vh; min-height: 100dvh; background: #F3EFE7; color: #1E1A15; font-family: 'Familjen Grotesk', system-ui, -apple-system, 'Segoe UI', sans-serif; font-size: 15px; -webkit-font-smoothing: antialiased; }
+.ob2c-caja { box-sizing: border-box; width: 100%; max-width: 460px; margin: 0 auto; padding: calc(40px + env(safe-area-inset-top)) 20px calc(28px + env(safe-area-inset-bottom)); display: flex; flex-direction: column; gap: 18px; }
+.ob2c-cab { display: flex; align-items: center; justify-content: space-between; }
+.ob2c-marca { display: inline-flex; align-items: center; gap: 10px; font-size: 17px; font-weight: 700; letter-spacing: -.01em; }
+.ob2c-marca img { width: 30px; height: 30px; display: block; }
+.ob2c-pasos { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+.ob2c-pasos span { height: 6px; border-radius: 999px; background: #DDD6CA; transition: background .25s ease; }
+.ob2c-pasos span.on { background: #1E1A15; }
+#formOb { margin: 0; }
+.paso { display: none; }
+.paso.activo { display: block; }
+.ob2c-tarjeta { display: flex; flex-direction: column; gap: 18px; padding: 24px 20px; border-radius: 28px; background: #FBF8F2; border: 1px solid #E8E2D7; }
+.ob2c-cabeza { display: flex; flex-direction: column; gap: 8px; }
+.ob2c-titulo { margin: 0; font-size: 27px; line-height: 1.15; font-weight: 700; letter-spacing: -.02em; text-wrap: balance; }
+.ob2c-sub { margin: 0; font-size: 16px; line-height: 1.5; color: #4F4840; text-wrap: pretty; }
+.ob2c-campo { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.ob2c-campo > label, .ob2c-etq { font-size: 13px; font-weight: 700; color: #5A5248; }
+.ob2c-campo input { width: 100%; box-sizing: border-box; height: 52px; padding: 0 16px; border-radius: 16px; border: 1px solid #DDD6CA; background: #FFFFFF; color: #1E1A15; font: 500 17px 'Familjen Grotesk', system-ui, sans-serif; }
+.ob2c-campo input::placeholder { color: #8A8278; }
+.ob2c-campo input:focus-visible { outline: 2px solid #0D6E55; outline-offset: 1px; }
+.ob2c-campo input.grande { height: 64px; font-size: 30px; font-weight: 700; letter-spacing: -.02em; }
+.ob2c-campo input.verde { color: #1F6B3F; }
+.ob2c-campo input.ambar { color: #7A5A12; }
+.ob2c-fila { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 12px; }
+.ob2c-atajos { display: flex; flex-wrap: wrap; gap: 8px; }
+.ob2c-atajos button { height: 40px; padding: 0 14px; border-radius: 999px; border: 1px solid #D9D2C6; background: transparent; color: #1E1A15; font: 600 15px 'Familjen Grotesk', system-ui, sans-serif; cursor: pointer; }
+.ob2c-atajos button:hover { background: rgba(30, 26, 21, .05); }
+.ob2c-atajos button.on { border-color: #1E1A15; background: #1E1A15; color: #F3EFE7; }
+.ob2c-previo { display: none; padding: 14px 16px; border-radius: 16px; background: #EFEAE1; }
+.ob2c-previo-fila { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-top: 4px; font-size: 15px; }
+.ob2c-previo-fila b { font-size: 24px; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+.ob2c-nota { font-size: 13px; line-height: 1.45; color: #5A5248; }
+.ob2c-botones { display: flex; gap: 8px; }
+.ob2c-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 52px; box-sizing: border-box; padding: 0 20px; border-radius: 999px; border: 1px solid #D9D2C6; background: transparent; color: #1E1A15; font: 700 16px 'Familjen Grotesk', system-ui, sans-serif; cursor: pointer; }
+.ob2c-btn:hover { background: rgba(30, 26, 21, .05); }
+.ob2c-btn.principal { flex: 1; border-color: #1E1A15; background: #1E1A15; color: #F3EFE7; }
+.ob2c-btn.principal:hover { background: #3A332A; }
+.ob2c-btn.ancho { width: 100%; }
+.ob2c-btn i { font-size: 13px; }
+.ob2c-saltar { height: 44px; border: none; background: none; color: #4F4840; font: 700 15px 'Familjen Grotesk', system-ui, sans-serif; cursor: pointer; }
+.ob2c-saltar:hover { color: #1E1A15; }
+.ob2c-btn:focus-visible, .ob2c-saltar:focus-visible, .ob2c-atajos button:focus-visible { outline: 2px solid #0D6E55; outline-offset: 2px; }
+.ob2c-pie { margin: 0; text-align: center; font-size: 13px; color: #5A5248; }
+@media (min-width: 721px) {
+  .ob2c-caja { padding-top: 72px; }
+}
+}

@@ -3,80 +3,62 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="color-scheme" content="dark">
-<meta name="supported-color-schemes" content="dark">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&display=swap">
+<meta name="color-scheme" content="light">
+<meta name="supported-color-schemes" content="light">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;600;700&amp;display=swap">
 <title>Confirma tu correo en Fintora</title>
 </head>
-<body style="margin:0;padding:0;background-color:#0f0e0c;">
+<body style="margin:0;padding:0;background-color:#F3EFE7;">
 
-<div style="display:none;font-size:1px;color:#0f0e0c;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;">
-  Un paso para terminar tu cuenta. El enlace vale {{ horas }} horas.
+<div style="display:none;font-size:1px;color:#F3EFE7;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;">
+  Falta un paso para terminar tu cuenta.
 </div>
 
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#0f0e0c" style="background-color:#0f0e0c;">
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" bgcolor="#F3EFE7" style="background-color:#F3EFE7;">
 <tr>
-<td align="center" style="padding:0 16px;">
+<td align="center" style="padding:28px 14px 0;">
 
-  <table role="presentation" width="480" cellpadding="0" cellspacing="0" border="0" bgcolor="#0f0e0c" style="width:100%;max-width:480px;background-color:#0f0e0c;">
+  <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="560" style="width:100%;max-width:560px;">
 
     <tr>
-      <td align="center" style="padding:0 0 18px;">
-        <img src="cid:fintora-cabecera" width="480" alt="Fintora" style="display:block;width:100%;max-width:480px;height:auto;border:0;outline:none;color:#ffffff;font-family:'Manrope',-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:22px;font-weight:800;">
+      <td style="padding:0 4px 20px;">
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td width="36" style="vertical-align:middle;"><img src="cid:fintora-cabecera" width="36" height="36" alt="" style="display:block;width:36px;height:36px;border:0;outline:none;"></td>
+          <td style="vertical-align:middle;padding-left:10px;font-family:'Familjen Grotesk',-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:19px;font-weight:700;letter-spacing:-.02em;color:#1E1A15;">Fintora</td>
+        </tr>
+        </table>
       </td>
     </tr>
 
     <tr>
-      <td bgcolor="#1c1a17" style="background-color:#1c1a17;border:1px solid #2c2a26;border-radius:22px;padding:32px 26px 28px;">
-        <p style="margin:0 0 10px;font-family:'Manrope',-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#ffaa2c;">
-          Confirmar correo
-        </p>
-        <h1 style="margin:0 0 12px;font-family:'Manrope',-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:24px;font-weight:800;line-height:1.25;letter-spacing:-.02em;color:#ffffff;">
-          Hola {{ usuario.username }}, confirma que este correo es tuyo
-        </h1>
-        <p style="margin:0 0 28px;font-family:'Manrope',-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:15px;line-height:1.65;color:#c4bfb6;">
-          Es el último paso de tu cuenta. Este correo es el único camino para
-          recuperar el acceso si algún día olvidas tu contraseña, así que vale
-          la pena comprobar ahora que llega bien.
-        </p>
-        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+      <td bgcolor="#FBF8F2" style="background-color:#FBF8F2;border:1px solid #E8E2D7;border-radius:24px;padding:32px 28px;">
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+        <tr><td bgcolor="#E1EDE3" style="background-color:#E1EDE3;border-radius:999px;padding:5px 12px;font-family:'Familjen Grotesk',-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:13px;font-weight:700;color:#1F6B3F;">Confirmar correo</td></tr>
+        </table>
+        <h1 style="margin:16px 0 12px;font-family:'Familjen Grotesk',-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:26px;font-weight:700;line-height:1.2;letter-spacing:-.02em;color:#1E1A15;">Falta un paso para terminar tu cuenta</h1>
+        <p style="margin:0 0 14px;font-family:'Familjen Grotesk',-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:16px;line-height:1.6;color:#4F4840;">Hola {{ usuario.username }}. Falta un paso para terminar tu cuenta en Fintora: confirmar que este correo es tuyo.</p>
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin-top:10px;">
+        <tr><td align="center" bgcolor="#1E1A15" style="background-color:#1E1A15;border-radius:999px;"><a href="{{ enlace }}" style="display:block;padding:16px 24px;font-family:'Familjen Grotesk',-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:16px;font-weight:700;color:#F3EFE7;text-decoration:none;">Confirmar mi correo</a></td></tr>
+        </table>
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" bgcolor="#E1EDE3" style="margin-top:20px;background-color:#E1EDE3;border-radius:16px;">
         <tr>
-          <td align="center" bgcolor="#ffaa2c" style="background-color:#ffaa2c;border-radius:100px;">
-            <a href="{{ enlace }}" style="display:block;padding:16px 24px;font-family:'Manrope',-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:15.5px;font-weight:800;color:#1a1200;text-decoration:none;">
-              Confirmar mi correo
-            </a>
-          </td>
+          <td width="8" style="padding:21px 0 0 16px;vertical-align:top;"><div style="width:8px;height:8px;border-radius:50%;background-color:#1F6B3F;font-size:0;line-height:0;">&nbsp;</div></td>
+          <td style="padding:14px 16px 14px 12px;font-family:'Familjen Grotesk',-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:15px;line-height:1.55;color:#3A342D;">El enlace vale <strong style="color:#1E1A15;">{{ horas }} horas</strong>. Mientras no lo abras puedes usar la app igual, pero si alguna vez olvidas tu contraseña, el enlace para recuperarla llega justamente acá, y si la dirección tiene un error de tipeo, no llegaría a ninguna parte.</td>
         </tr>
         </table>
-
-        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:22px;background-color:#25231f;border-radius:14px;">
-        <tr>
-          <td width="8" style="padding:20px 0 0 16px;vertical-align:top;"><div style="width:8px;height:8px;border-radius:50%;background-color:#ffaa2c;font-size:0;line-height:0;">&nbsp;</div></td>
-          <td style="padding:14px 16px 14px 12px;font-family:'Manrope',-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:13px;line-height:1.6;color:#c4bfb6;">
-            El enlace vale <strong style="color:#ffffff;">{{ horas }} horas</strong>.
-            Mientras no lo abras puedes usar la app igual; solo queda pendiente
-            el aviso en tu perfil.
-          </td>
-        </tr>
-        </table>
-
-        <p style="margin:24px 0 6px;font-family:'Manrope',-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:12px;color:#9a958c;">
-          Si el botón no funciona, copia esta dirección en tu navegador:
-        </p>
-        <p style="margin:0;font-family:Consolas,Menlo,monospace;font-size:11.5px;line-height:1.5;color:#ffbb56;word-break:break-all;">
-          <a href="{{ enlace }}" style="color:#ffbb56;text-decoration:underline;">{{ enlace }}</a>
-        </p>
+        <p style="margin:22px 0 4px;font-family:'Familjen Grotesk',-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:13px;color:#6E665C;">Si el botón no funciona, copia esta dirección en tu navegador:</p>
+        <p style="margin:0;font-family:'Familjen Grotesk',-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:13px;line-height:1.5;word-break:break-all;"><a href="{{ enlace }}" style="color:#0D6E55;text-decoration:underline;">{{ enlace }}</a></p>
       </td>
     </tr>
 
     <tr>
-      <td style="padding:24px 20px 40px;font-family:'Manrope',-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:12px;line-height:1.6;color:#9a958c;">
-        <p style="margin:0 0 10px;">Si no te registraste en Fintora, ignora este correo: sin abrir el
-          enlace, esta dirección no queda asociada a ninguna cuenta.</p>
+      <td style="padding:22px 8px 40px;font-family:'Familjen Grotesk',-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:13px;line-height:1.6;color:#6E665C;">
+        <p style="margin:0 0 8px;">Si no te registraste en Fintora, ignora este correo y no pasa nada: sin abrir el enlace, esta dirección no queda asociada a ninguna cuenta.</p>
         <p style="margin:0;">
-          <a href="{% url_sitio 'privacidad' %}" style="color:#9a958c;text-decoration:underline;">Privacidad</a>
+          <a href="{% url_sitio 'privacidad' %}" style="color:#6E665C;text-decoration:underline;">Privacidad</a>
           &nbsp;·&nbsp;
-          <a href="{% url_sitio 'terminos' %}" style="color:#9a958c;text-decoration:underline;">Términos de uso</a>
+          <a href="{% url_sitio 'terminos' %}" style="color:#6E665C;text-decoration:underline;">Términos de uso</a>
           &nbsp;·&nbsp;
           © {% now "Y" %} Fintora
         </p>

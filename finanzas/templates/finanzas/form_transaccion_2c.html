@@ -1,0 +1,62 @@
+{% extends 'finanzas/base_2c.html' %}
+{% load static %}
+{% block title %}{% if editar %}Editar movimiento{% else %}Registrar movimiento{% endif %} · Fintora{% endblock %}
+{% block pestanas %}{% endblock %}
+
+{% block content %}
+<div class="fo2c">
+  <section class="fo2c-hoja">
+    <div class="modal-head">
+      <div class="modal-titulo">
+        <span class="modal-icon"><i class="fas {% if editar %}fa-pen{% else %}fa-plus{% endif %}"></i></span>
+        <div>
+          <h1 class="modal-title">{% if editar %}Editar movimiento{% else %}Registrar movimiento{% endif %}</h1>
+          <div class="modal-sub">{% if editar %}Corregir un movimiento{% else %}Anotar un ingreso o un gasto{% endif %}</div>
+        </div>
+      </div>
+      <a href="{% url 'dashboard' %}" class="modal-close" aria-label="Volver"><i class="fas fa-xmark"></i></a>
+    </div>
+
+    <form method="post" class="c2c-form">
+      {% csrf_token %}
+      <input type="hidden" name="next" value="{% url 'dashboard' %}">
+      {{ form.tipo.as_hidden }}
+      <div class="fo2c-seg" id="segTipoMov">
+        <button type="button" data-value="EGRESO" class="{% if form.tipo.value != 'INGRESO' %}on-coral{% endif %}">Gasto</button>
+        <button type="button" data-value="INGRESO" class="{% if form.tipo.value == 'INGRESO' %}on-green{% endif %}">Ingreso</button>
+      </div>
+
+      <label class="c2c-campo" for="{{ form.monto.id_for_label }}"><span>{{ form.monto.label }}</span>{{ form.monto }}{% for e in form.monto.errors %}<small class="fo2c-error">{{ e }}</small>{% endfor %}</label>
+      <label class="c2c-campo" for="{{ form.categoria.id_for_label }}"><span>{{ form.categoria.label }}</span>{{ form.categoria }}{% for e in form.categoria.errors %}<small class="fo2c-error">{{ e }}</small>{% endfor %}</label>
+      <label class="c2c-campo" for="{{ form.descripcion.id_for_label }}"><span>{{ form.descripcion.label }}</span>{{ form.descripcion }}</label>
+      <label class="c2c-campo" for="{{ form.fecha.id_for_label }}"><span>{{ form.fecha.label }}</span>{{ form.fecha }}{% if form.fecha.help_text %}<small>{{ form.fecha.help_text }}</small>{% endif %}{% for e in form.fecha.errors %}<small class="fo2c-error">{{ e }}</small>{% endfor %}</label>
+
+      <div id="bloquePagoForm">
+        <div class="c2c-campo">
+          <span>¿Ya la pagaste?</span>
+          <input type="hidden" name="es_pendiente" id="id_es_pendiente" value="{% if pendiente_inicial %}1{% endif %}">
+          <div class="fo2c-seg" id="segPagoForm">
+            <button type="button" class="{% if not pendiente_inicial %}on-green{% endif %}" data-pendiente="0">Sí, ya salió</button>
+            <button type="button" class="{% if pendiente_inicial %}on-coral{% endif %}" data-pendiente="1">Aún la debo</button>
+          </div>
+          <small id="notaPagoForm">{% if pendiente_inicial %}Cuenta en el mes de la fecha. Si lo pagas más adelante, pon el día en que lo pagarás.{% else %}Cuenta como gasto del mes en los dos casos. La diferencia es si la plata ya se fue.{% endif %}</small>
+        </div>
+      </div>
+
+      <button type="submit" class="c2c-guardar">{% if editar %}Guardar cambios{% else %}Registrar{% endif %}</button>
+    </form>
+
+    {% if editar and transaccion %}
+    <form method="post" action="{% url 'eliminar_transaccion' transaccion.pk %}" class="fo2c-borrar" data-confirm="¿Eliminar {{ transaccion.descripcion|default:transaccion.nombre_categoria }}? No se puede deshacer.">
+      {% csrf_token %}
+      <input type="hidden" name="next" value="{% url 'dashboard' %}">
+      <button type="submit" class="c2c-eliminar"><i class="fas fa-trash-can"></i>Eliminar {% if transaccion.es_ingreso %}ingreso{% else %}gasto{% endif %}</button>
+    </form>
+    {% endif %}
+  </section>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script type="module" src="{% static 'js/pantallas/form-transaccion.js' %}" nonce="{{ csp_nonce }}" data-js="form-transaccion" data-tipo="{{ form.tipo.id_for_label }}" data-monto="{{ form.monto.id_for_label }}"></script>
+{% endblock %}

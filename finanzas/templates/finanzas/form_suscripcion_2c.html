@@ -1,0 +1,48 @@
+{% extends 'finanzas/base_2c.html' %}
+{% load static %}
+{% block title %}Nueva suscripción · Fintora{% endblock %}
+{% block pestanas %}{% endblock %}
+
+{% block content %}
+<div class="fo2c">
+  <section class="fo2c-hoja">
+    <div class="modal-head">
+      <div class="modal-titulo">
+        <span class="modal-icon"><i class="fas fa-rotate"></i></span>
+        <div>
+          <h1 class="modal-title">Nueva suscripción</h1>
+          <div class="modal-sub">Un servicio recurrente. Cada mes se registra el cobro como gasto, sin que tengas que anotarlo.</div>
+        </div>
+      </div>
+      <a href="{% url 'suscripciones' %}" class="modal-close" aria-label="Volver"><i class="fas fa-xmark"></i></a>
+    </div>
+
+    <form method="post" action="{% url 'crear_suscripcion' %}" class="c2c-form">
+      {% csrf_token %}
+      <label class="c2c-campo" for="id_sub_nombre"><span>Servicio</span><input type="text" name="nombre" id="id_sub_nombre" placeholder="Ej: Netflix, Spotify, Gimnasio" required autofocus></label>
+      <div class="c2c-fila-campos">
+        <label class="c2c-campo" for="id_sub_monto"><span>Monto mensual</span><input type="number" name="monto" id="id_sub_monto" placeholder="9900" min="1" required></label>
+        <label class="c2c-campo" for="id_sub_dia"><span>Día de cobro</span><input type="number" name="dia_cobro" id="id_sub_dia" min="1" max="28" value="1"><small>Del 1 al 28, para que exista en todos los meses.</small></label>
+      </div>
+      <div class="c2c-campo"><span>Categoría</span>
+        <input type="hidden" name="categoria" id="id_sub_categoria" value="Suscripciones">
+        <div class="chips c2c-chips-cat" data-field="#id_sub_categoria">
+          <button type="button" class="chip on" data-value="Suscripciones">Suscripciones</button>
+          <button type="button" class="chip" data-value="Ocio">Entretenimiento</button>
+          <button type="button" class="chip" data-value="Servicios">Servicios</button>
+          <button type="button" class="chip" data-value="Salud">Salud</button>
+        </div>
+      </div>
+      <div class="c2c-previo">
+        <span class="c2c-previo-etq">Lo que te costaría</span>
+        <div><span>Al año</span><b id="subAnual">$0</b></div>
+      </div>
+      <button type="submit" class="c2c-guardar">Agregar suscripción</button>
+    </form>
+  </section>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script type="module" src="{% static 'js/pantallas/form-suscripcion.js' %}" nonce="{{ csp_nonce }}"></script>
+{% endblock %}

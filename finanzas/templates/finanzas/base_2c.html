@@ -1,4 +1,4 @@
-{% load static l10n moneda marketing esfera_salud menu diseno %}{% diseno_2c as t2c %}<!DOCTYPE html>
+{% load static l10n moneda marketing esfera_salud menu diseno f2c %}{% diseno_2c as t2c %}<!DOCTYPE html>
 <html lang="es" class="t2c f2c">
 <head>
   <meta charset="UTF-8">
@@ -25,6 +25,8 @@
   <link rel="stylesheet" href="{% static 'css/anotar-2c.css' %}">
   <link rel="stylesheet" href="{% static 'css/revisar-2c.css' %}">
   <link rel="stylesheet" href="{% static 'css/dialogos-2c.css' %}">
+  <link rel="stylesheet" href="{% static 'css/formularios-2c.css' %}">
+  <link rel="stylesheet" href="{% static 'css/borrar-mes-2c.css' %}">
   <link rel="stylesheet" href="{% static 'css/franja-2c.css' %}">
   {% block extra_head %}{% endblock %}
   <link rel="stylesheet" href="{% static 'css/vida-2c.css' %}">
@@ -321,6 +323,22 @@
   </div>
 </div>
 
+{% borrado_pendiente as bp %}{% if bp %}
+<div class="bm2c-aviso" data-borrado-aviso role="status">
+  <div class="bm2c-aviso-fila">
+    <i class="fas fa-circle-check" aria-hidden="true"></i>
+    <span>Eliminaste {{ bp.n }} gasto{{ bp.n|pluralize }} de {{ bp.mes }}</span>
+    <form method="post" action="{% url 'deshacer_borrar_mes' %}">
+      {% csrf_token %}
+      <input type="hidden" name="token" value="{{ bp.token }}">
+      <input type="hidden" name="next" value="{{ request.get_full_path }}">
+      <button type="submit">Deshacer</button>
+    </form>
+  </div>
+  <span class="bm2c-aviso-barra" aria-hidden="true"><i data-borrado-barra></i></span>
+</div>
+{% endif %}
+
 {% block modals %}{% endblock %}
 {% if esfera %}{% include 'finanzas/_esfera_preguntas.html' %}{% endif %}
 
@@ -337,6 +355,8 @@
 {% if esfera and profile.analisis_ia %}<script type="module" src="{% static 'js/pantallas/esfera-preguntas.js' %}" nonce="{{ csp_nonce }}"></script>{% endif %}
 <script type="module" src="{% static 'js/pantallas/esfera-escritorio.js' %}" nonce="{{ csp_nonce }}"></script>
 <script type="module" src="{% static 'js/mantener-lugar.js' %}" nonce="{{ csp_nonce }}"></script>
+<script type="module" src="{% static 'js/pantallas/borrar-mes.js' %}" nonce="{{ csp_nonce }}"></script>
+<script type="module" data-js="editar-flotante" src="{% static 'js/pantallas/editar-flotante.js' %}" nonce="{{ csp_nonce }}" data-mov="{% url 'editar_transaccion' 0 %}" data-sub="{% url 'editar_suscripcion' 0 %}" data-sub-nueva="{% url 'crear_suscripcion' %}" data-js-mov="{% static 'js/pantallas/form-transaccion.js' %}" data-js-sub="{% static 'js/pantallas/form-suscripcion.js' %}"></script>
 {% marketing_evento %}
 </body>
 </html>

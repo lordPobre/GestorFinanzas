@@ -9,7 +9,7 @@ from django.utils.formats import date_format
 from .. import fechas
 from ..categorias_base import BASE
 from ..servicios.mes import MESES_LARGOS
-from ..servicios import vida_2c
+from ..servicios import borrar_mes, vida_2c
 from ..servicios.mes_elegido import mes_pedido, selector_mes
 
 register = template.Library()
@@ -416,3 +416,22 @@ def anotado_6m(context):
     if usuario is None:
         return []
     return vida_2c.anotado_por_mes(usuario, fechas.hoy())
+
+
+@register.simple_tag
+def flujo_2c(analisis):
+    return vida_2c.flujo(_campo(analisis, 'ingreso_mensual'), _campo(analisis, 'gasto_mensual'),
+                         _campo(analisis, 'compromisos_mes'))
+
+
+@register.simple_tag
+def gastos_borrables(movimientos):
+    return borrar_mes.resumen(movimientos)
+
+
+@register.simple_tag(takes_context=True)
+def borrado_pendiente(context):
+    sesion = getattr(context.get('request'), 'session', None)
+    if sesion is None:
+        return None
+    return sesion.pop('borrado_mes', None)

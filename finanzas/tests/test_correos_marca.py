@@ -12,8 +12,14 @@ from .. import correo
 PLANTILLAS = [
     'registration/correo_recuperar.html',
     'registration/correo_verificar.html',
+    'registration/correo_alta.html',
+    'registration/correo_aparato.html',
+    'registration/correo_cambio.html',
+    'registration/correo_cambio_aviso.html',
+    'registration/correo_registro_repetido.html',
     'finanzas/correo_inactividad.html',
     'finanzas/correo_pagos.html',
+    'finanzas/correo_politica.html',
 ]
 
 CONTEXTO = {
@@ -29,6 +35,10 @@ CONTEXTO = {
         ]},
     ],
     'por_cobrar': [{'nombre': 'Javiera', 'detalle': 'Préstamo', 'monto': '$45.000'}],
+    'username': 'ana', 'aparato': 'Chrome en macOS', 'nuevo': 'nuevo@ejemplo.cl',
+    'entrar': 'http://127.0.0.1:8000/login/', 'recuperar': 'http://127.0.0.1:8000/recuperar/',
+    'version': '1.10', 'vigente_desde': '1 de diciembre de 2026', 'cambios': [('Telegram', 'Pasa por sus servidores.')],
+    'enlace_perfil': 'http://127.0.0.1:8000/perfil/', 'correo_contacto': 'contacto@fintora.cl',
 }
 
 
@@ -55,6 +65,24 @@ class PlantillasDeCorreoTests(SimpleTestCase):
         self.assertIn('1 de ellos ya venció', html)
         self.assertIn('· sin pagar', html)
         self.assertIn('Y a ti te deben', html)
+
+
+class CorreosClarosTests(SimpleTestCase):
+
+    def test_todos_van_en_papel_crema_y_con_un_boton_en_tinta(self):
+        for nombre in PLANTILLAS:
+            with self.subTest(nombre=nombre):
+                html = render_to_string(nombre, CONTEXTO)
+                self.assertIn('background-color:#F3EFE7', html)
+                self.assertIn('bgcolor="#1E1A15"', html)
+                self.assertNotIn('#0f0e0c', html)
+                self.assertNotIn('Manrope', html)
+
+    def test_los_que_eran_solo_texto_ya_tienen_html(self):
+        for nombre in ('aparato', 'cambio', 'cambio_aviso', 'registro_repetido'):
+            with self.subTest(nombre=nombre):
+                html = render_to_string(f'registration/correo_{nombre}.html', CONTEXTO)
+                self.assertIn('<!DOCTYPE html>', html)
 
 
 class EnvioDeCorreoTests(SimpleTestCase):

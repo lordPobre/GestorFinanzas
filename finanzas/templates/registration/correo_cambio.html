@@ -1,0 +1,75 @@
+{% load correo_marca %}<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<meta name="supported-color-schemes" content="light">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;600;700&amp;display=swap">
+<title>Confirma tu nuevo correo en Fintora</title>
+</head>
+<body style="margin:0;padding:0;background-color:#F3EFE7;">
+
+<div style="display:none;font-size:1px;color:#F3EFE7;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;">
+  Confirma el correo nuevo de tu cuenta.
+</div>
+
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" bgcolor="#F3EFE7" style="background-color:#F3EFE7;">
+<tr>
+<td align="center" style="padding:28px 14px 0;">
+
+  <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="560" style="width:100%;max-width:560px;">
+
+    <tr>
+      <td style="padding:0 4px 20px;">
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td width="36" style="vertical-align:middle;"><img src="cid:fintora-cabecera" width="36" height="36" alt="" style="display:block;width:36px;height:36px;border:0;outline:none;"></td>
+          <td style="vertical-align:middle;padding-left:10px;font-family:'Familjen Grotesk',-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:19px;font-weight:700;letter-spacing:-.02em;color:#1E1A15;">Fintora</td>
+        </tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr>
+      <td bgcolor="#FBF8F2" style="background-color:#FBF8F2;border:1px solid #E8E2D7;border-radius:24px;padding:32px 28px;">
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+        <tr><td bgcolor="#DFE6F1" style="background-color:#DFE6F1;border-radius:999px;padding:5px 12px;font-family:'Familjen Grotesk',-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:13px;font-weight:700;color:#2F4F86;">Cambio de correo</td></tr>
+        </table>
+        <h1 style="margin:16px 0 12px;font-family:'Familjen Grotesk',-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:26px;font-weight:700;line-height:1.2;letter-spacing:-.02em;color:#1E1A15;">Confirma tu correo nuevo</h1>
+        <p style="margin:0 0 14px;font-family:'Familjen Grotesk',-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:16px;line-height:1.6;color:#4F4840;">Hola {{ usuario.username }}. Pediste que tu cuenta de Fintora use este correo. Para confirmarlo, abre este enlace.</p>
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin-top:10px;">
+        <tr><td align="center" bgcolor="#1E1A15" style="background-color:#1E1A15;border-radius:999px;"><a href="{{ enlace }}" style="display:block;padding:16px 24px;font-family:'Familjen Grotesk',-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:16px;font-weight:700;color:#F3EFE7;text-decoration:none;">Confirmar este correo</a></td></tr>
+        </table>
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" bgcolor="#DFE6F1" style="margin-top:20px;background-color:#DFE6F1;border-radius:16px;">
+        <tr>
+          <td width="8" style="padding:21px 0 0 16px;vertical-align:top;"><div style="width:8px;height:8px;border-radius:50%;background-color:#2F4F86;font-size:0;line-height:0;">&nbsp;</div></td>
+          <td style="padding:14px 16px 14px 12px;font-family:'Familjen Grotesk',-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:15px;line-height:1.55;color:#3A342D;">El enlace vale <strong style="color:#1E1A15;">{{ horas }} horas</strong>. Hasta que lo abras, la cuenta sigue con el correo anterior. Al confirmarlo cerraremos las demás sesiones abiertas.</td>
+        </tr>
+        </table>
+        <p style="margin:22px 0 4px;font-family:'Familjen Grotesk',-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:13px;color:#6E665C;">Si el botón no funciona, copia esta dirección en tu navegador:</p>
+        <p style="margin:0;font-family:'Familjen Grotesk',-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:13px;line-height:1.5;word-break:break-all;"><a href="{{ enlace }}" style="color:#0D6E55;text-decoration:underline;">{{ enlace }}</a></p>
+      </td>
+    </tr>
+
+    <tr>
+      <td style="padding:22px 8px 40px;font-family:'Familjen Grotesk',-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;font-size:13px;line-height:1.6;color:#6E665C;">
+        <p style="margin:0 0 8px;">Si no lo pediste tú, ignora este mensaje.</p>
+        <p style="margin:0;">
+          <a href="{% url_sitio 'privacidad' %}" style="color:#6E665C;text-decoration:underline;">Privacidad</a>
+          &nbsp;·&nbsp;
+          <a href="{% url_sitio 'terminos' %}" style="color:#6E665C;text-decoration:underline;">Términos de uso</a>
+          &nbsp;·&nbsp;
+          © {% now "Y" %} Fintora
+        </p>
+      </td>
+    </tr>
+
+  </table>
+
+</td>
+</tr>
+</table>
+
+</body>
+</html>

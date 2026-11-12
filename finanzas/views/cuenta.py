@@ -153,7 +153,8 @@ def _avisar_registro_repetido(request, correo):
         'recuperar': servicio_correo.url_absoluta(request, reverse('recuperar')),
     }
     servicio_correo.encolar(correo, 'Ya tienes una cuenta en Fintora',
-                            render_to_string('registration/correo_registro_repetido.txt', contexto))
+                            render_to_string('registration/correo_registro_repetido.txt', contexto),
+                            render_to_string('registration/correo_registro_repetido.html', contexto))
     logger.info('Registro con un correo que ya tiene cuenta: aviso enviado')
 
 @limitar(5, 3600, 'Demasiados registros desde esta conexión. Prueba más tarde.')
