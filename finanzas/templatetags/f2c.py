@@ -3,11 +3,13 @@ from datetime import date
 from decimal import Decimal, InvalidOperation
 
 from django import template
+from django.utils import timezone
 from django.utils.formats import date_format
 
 from .. import fechas
 from ..categorias_base import BASE
 from ..servicios.mes import MESES_LARGOS
+from ..servicios import vida_2c
 from ..servicios.mes_elegido import mes_pedido, selector_mes
 
 register = template.Library()
@@ -48,6 +50,9 @@ MESES_ES = ('enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'ago
 PASOS_VISIBLES = 6
 
 COLORES_TOPE = {'rojo': '#C2412D', 'amarillo': '#C98A1B', 'verde': '#0D6E55'}
+
+SALUDOS = ((6, 12, 'Buenos días', 'fa-sun', 'dia'), (12, 20, 'Buenas tardes', 'fa-cloud-sun', 'tarde'))
+NOCHE = {'texto': 'Buenas noches', 'icono': 'fa-moon', 'tono': 'noche'}
 
 
 def _campo(obj, nombre):
@@ -328,3 +333,86 @@ def pr_abonos(persona, cuantos=8):
                           'orden': (a.fecha, a.pk)})
     filas.sort(key=lambda f: f['orden'], reverse=True)
     return filas[:int(cuantos)]
+
+
+def saludo_de(hora):
+    for desde, hasta, texto, icono, tono in SALUDOS:
+        if desde <= hora < hasta:
+            return {'texto': texto, 'icono': icono, 'tono': tono}
+    return dict(NOCHE)
+
+
+@register.simple_tag
+def saludo_hora():
+    return saludo_de(timezone.localtime().hour)
+
+
+@register.filter
+def nombre_corto(texto):
+    partes = str(texto or '').split()
+    return partes[0] if partes else ''
+
+
+def _dias_hasta(fecha):
+    if not isinstance(fecha, date):
+        return None
+    return (fecha - fechas.hoy()).days
+
+
+@register.filter
+def en_dias(fecha):
+    dias = _dias_hasta(fecha)
+    if dias is None or dias < 0:
+        return ''
+    if dias == 0:
+        return 'Hoy'
+    if dias == 1:
+        return 'Mañana'
+    return f'En {dias} días'
+
+
+@register.filter
+def pronto(fecha):
+    dias = _dias_hasta(fecha)
+    return dias is not None and 0 <= dias <= 3
+
+
+@register.filter
+def suma_gastos(movimientos):
+    return sum((_numero(_campo(t, 'monto')) for t in movimientos or [] if not _campo(t, 'es_ingreso')),
+               Decimal('0'))
+
+
+@register.simple_tag
+def metas_2c(datos):
+    return vida_2c.metas_2c(list(datos or []), fechas.hoy())
+
+
+@register.simple_tag
+def barras_dobles(meses, ingresos, gastos, cuantos=6, elegido=None):
+    return vida_2c.barras_dobles(meses, ingresos, gastos, cuantos, elegido, fechas.hoy())
+
+
+def _usuario_de(context):
+    request = context.get('request')
+    usuario = getattr(request, 'user', None)
+    if request is None or not getattr(usuario, 'is_authenticated', False):
+        return request, None
+    return request, usuario
+
+
+@register.simple_tag(takes_context=True)
+def ranking_2c(context, ranking):
+    request, usuario = _usuario_de(context)
+    if usuario is None:
+        return list(ranking or [])
+    year, month = mes_pedido(request, fechas.hoy())[:2]
+    return vida_2c.series_categorias(usuario, list(ranking or []), year, month)
+
+
+@register.simple_tag(takes_context=True)
+def anotado_6m(context):
+    _, usuario = _usuario_de(context)
+    if usuario is None:
+        return []
+    return vida_2c.anotado_por_mes(usuario, fechas.hoy())

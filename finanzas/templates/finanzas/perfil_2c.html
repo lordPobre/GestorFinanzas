@@ -1,5 +1,5 @@
 {% extends 'finanzas/base_2c.html' %}
-{% load static %}
+{% load static f2c %}
 {% block title %}Tú · Fintora{% endblock %}
 {% block extra_head %}<link rel="stylesheet" href="{% static 'css/secciones-2c.css' %}">{% endblock %}
 
@@ -19,6 +19,7 @@
       <small>{{ total_trans }} movimiento{{ total_trans|pluralize:"s" }} · desde {{ miembro_desde|lower }}</small>
     </span>
     <span class="tu2c-quien-datos"><span>Moneda {{ profile.moneda }}</span><span>Usuario {{ request.user.username }}</span></span>
+    {% anotado_6m as anotado %}{% if anotado %}<div class="tu2c-anotado v2c-esc"><span class="tu2c-anotado-cab"><span>Lo que anotaste</span><span>6 meses</span></span><span class="tu2c-anotado-barras">{% for b in anotado %}<span{% if b.actual %} class="actual"{% endif %} title="{{ b.n }} movimiento{{ b.n|pluralize }}"><span class="tu2c-anotado-zona"><i data-alto-pct="{{ b.alto }}"></i></span><small>{{ b.corto }}</small></span>{% endfor %}</span></div>{% endif %}
     <div class="tu2c-nota-foto" id="notaFoto" hidden><span>La foto se sube cuando guardas</span><button type="submit" form="formPerfil" class="f2c-btn chico">Guardar foto</button></div>
   </div>
 
@@ -34,6 +35,16 @@
 
   <div class="f2c-grid tu2c-grid">
     <div class="f2c-col tu2c-main">
+      {% with n_pk=user.passkeys.count dos=user.segundo_factor.activo correo=profile.correo_verificado %}{% with a=n_pk|yesno:"1,0" b=dos|yesno:"1,0" c=correo|yesno:"1,0" %}
+      <section class="tu2c-proteccion v2c-esc{% if n_pk and dos and correo %} completa{% endif %}">
+        <div class="tu2c-proteccion-cab">
+          <span class="tu2c-proteccion-icono" aria-hidden="true"><i class="fas fa-shield-halved"></i></span>
+          <span class="f2c-txt"><b>Tu cuenta tiene {{ 1|add:a|add:b|add:c }} de 4 protecciones</b><span>{% if not dos %}Con la verificación en dos pasos nadie entra solo con tu contraseña.{% elif not n_pk %}Con Face ID o huella entras sin escribir la contraseña.{% elif not correo %}Confirma tu correo para recuperar la cuenta si olvidas la contraseña.{% else %}Tienes todo activo: contraseña, Face ID o huella, dos pasos y correo confirmado.{% endif %}</span></span>
+          {% if not dos %}<a href="{% url 'configurar_2fa' %}" class="f2c-btn chico">Activar dos pasos</a>{% elif not n_pk %}<a href="{% url 'passkeys' %}" class="f2c-btn chico">Activar Face ID o huella</a>{% endif %}
+        </div>
+        <div class="tu2c-proteccion-pasos"><span class="on"><i class="fas fa-check"></i>Contraseña</span><span{% if n_pk %} class="on"{% endif %}><i class="fas fa-check"></i>Face ID o huella</span><span{% if dos %} class="on"{% endif %}><i class="fas fa-check"></i>Dos pasos</span><span{% if correo %} class="on"{% endif %}><i class="fas fa-check"></i>Correo confirmado</span></div>
+      </section>
+      {% endwith %}{% endwith %}
       <div class="f2c-lista tu2c-herramientas">
         <a href="{% url 'categorias' %}" class="f2c-fila"><span class="f2c-ficha verde"><i class="fas fa-tags"></i></span><span class="f2c-txt"><b>Categorías y topes</b><small class="tu2c-desc">Ordena en qué se va y ponle un límite a cada una</small></span><i class="fas fa-chevron-right f2c-flecha"></i></a>
         <a href="{% url 'importar_cartola' %}" class="f2c-fila"><span class="f2c-ficha azul"><i class="fas fa-file-import"></i></span><span class="f2c-txt"><b>Importar cartola</b><small class="tu2c-desc">Sube el PDF del banco y saca los movimientos solos</small></span><i class="fas fa-chevron-right f2c-flecha"></i></a>

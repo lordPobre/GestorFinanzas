@@ -1,5 +1,5 @@
 {% extends 'finanzas/base_2c.html' %}
-{% load static moneda f2c %}
+{% load static moneda f2c l10n %}
 {% block title %}Estadísticas · Fintora{% endblock %}
 {% block topbar_mes %}{% include 'finanzas/_mes_topbar.html' %}{% endblock %}
 {% block extra_head %}<link rel="stylesheet" href="{% static 'css/mes-elegir.css' %}">
@@ -16,7 +16,7 @@
       <section class="f2c-tarjeta">
         <div class="f2c-cifra">
           <span class="f2c-etq">Ahorro del último año</span>
-          <span class="f2c-monto{% if ahorro_anual < 0 %} rojo{% endif %}">{{ ahorro_anual|money }}</span>
+          <span class="f2c-monto{% if ahorro_anual < 0 %} rojo{% endif %}" data-cuenta="{{ ahorro_anual|unlocalize }}">{{ ahorro_anual|money }}</span>
         </div>
         <div class="es2c-metricas">
           <div><span>Gasto promedio</span><b>{{ promedio_gasto|money }}</b><small>al mes</small></div>
@@ -27,8 +27,28 @@
       </section>
     </aside>
     <div class="f2c-col">
+      {% barras_dobles meses_json ingresos_json gastos_json 6 mes_sel.nombre as dobles %}
+      <section class="f2c-tarjeta v2c-esc">
+        <div class="es2c-dobles-cab">
+          <div class="es2c-cab">
+            <span class="f2c-grupo-titulo">Entró y salió, mes a mes</span>
+            <b class="es2c-titulo">{{ dobles.titulo }}</b>
+            <span class="f2c-sub">Gastas {{ promedio_gasto|money }} en un mes promedio.</span>
+          </div>
+          <div class="es2c-leyenda" aria-hidden="true"><span><i></i>Entró</span><span><i class="sal"></i>Salió</span><span><i class="rojo"></i>Salió más de lo que entró</span></div>
+        </div>
+        <div class="es2c-dobles" role="img" aria-label="Lo que entró y lo que salió en los últimos meses">
+          {% for b in dobles.meses %}
+          <div class="es2c-doble{% if b.actual %} actual{% endif %}{% if b.en_curso %} en-curso{% endif %}">
+            <span class="es2c-doble-barras"><i class="ent" data-alto-pct="{{ b.ent }}"></i><i class="sal{% if b.rojo %} rojo{% endif %}" data-alto-pct="{{ b.sal }}"></i></span>
+            <span class="es2c-doble-mes">{{ b.corta }}{% if b.en_curso %} · en curso{% endif %}</span>
+            <span class="es2c-neto{% if b.rojo %} rojo{% endif %}">{% if not b.rojo %}+{% endif %}{{ b.neto|corto:simbolo_moneda }}</span>
+          </div>
+          {% endfor %}
+        </div>
+      </section>
       {% barras meses_json gastos_json 6 mes_sel.nombre as barras_gasto %}
-      <section class="f2c-tarjeta">
+      <section class="f2c-tarjeta v2c-tel">
         <div class="es2c-cab">
           <span class="f2c-grupo-titulo">Gastos por mes</span>
           <b class="es2c-titulo">{% if ranking %}{{ ranking.0.label }} es tu mayor gasto {{ mes_sel.en_mes }}{% else %}Sin gastos {{ mes_sel.en_mes }}{% endif %}</b>
@@ -47,10 +67,12 @@
 
       <section class="f2c-tarjeta es2c-cats">
         <b class="es2c-titulo">Por categoría, {{ mes_sel.en_mes|cut:"en " }}</b>
-        {% for r in ranking %}
+        {% ranking_2c ranking as filas %}{% for r in filas %}
         <div class="es2c-cat" data-searchable>
+          <span class="es2c-ficha v2c-esc" data-fondo="{{ r.color|fondo_suave }}" data-tinta="{{ r.color|tinta_suave }}" aria-hidden="true"><i class="fas {{ r.nombre|icono_cat }}"></i></span>
           <div class="es2c-cat-cab"><span>{{ r.label }}</span><b>{{ r.total|money }}</b></div>
           <span class="f2c-barra"><i data-ancho-pct="{{ r.ancho }}" data-fondo="{{ r.color|tinta_suave }}"></i></span>
+          {% if r.spark %}<span class="es2c-spark v2c-esc" aria-hidden="true">{% for s in r.spark %}<i data-alto-pct="{{ s.alto }}" data-fondo="{{ r.color|tinta_suave }}"{% if s.actual %} class="actual"{% endif %}></i>{% endfor %}</span>{% endif %}
           {% if r.delta != None %}<small class="es2c-delta{% if r.subio %} sube{% else %} baja{% endif %}">{% if r.subio %}{{ r.delta }}% más{% else %}{{ r.delta|cut:"-" }}% menos{% endif %} que {{ mes_sel.ref_anterior }}</small>{% else %}<small class="es2c-delta">Nueva {{ mes_sel.en_mes }}</small>{% endif %}
         </div>
         {% empty %}

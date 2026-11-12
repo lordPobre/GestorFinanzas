@@ -47,6 +47,7 @@
 
       <section class="f2c-tarjeta">
         <b class="an2c-titulo">Por qué ese número</b>
+        {% if analisis.ingreso_mensual > 0 %}<div class="an2c-flujo v2c-esc" aria-hidden="true"><span class="gasto" data-ancho-pct="{% widthratio analisis.gasto_mensual analisis.ingreso_mensual 100 %}">{% widthratio analisis.gasto_mensual analisis.ingreso_mensual 100 %}%</span>{% if analisis.compromisos_mes > 0 %}<span class="cuotas" data-ancho-pct="{% widthratio analisis.compromisos_mes analisis.ingreso_mensual 100 %}">{% widthratio analisis.compromisos_mes analisis.ingreso_mensual 100 %}%</span>{% endif %}{% if analisis.flujo_libre > 0 %}<span class="sobra" data-ancho-pct="{% widthratio analisis.flujo_libre analisis.ingreso_mensual 100 %}">{% widthratio analisis.flujo_libre analisis.ingreso_mensual 100 %}%</span>{% endif %}</div>{% endif %}
         <div class="an2c-tabla">
           <div><span>Entra en un mes normal</span><b class="verde">+{{ analisis.ingreso_mensual|money }}</b></div>
           <div><span>Gastas en un mes normal</span><b>−{{ analisis.gasto_mensual|money }}</b></div>
@@ -56,8 +57,9 @@
         <p class="sec-mas-nota">{% if analisis.pocos_datos %}Calculado con {% if analisis.meses_base %}{{ analisis.meses_base }} mes{{ analisis.meses_base|pluralize:"es" }} cerrado{{ analisis.meses_base|pluralize }}{% else %}lo que llevas de este mes{% endif %}. Se ajusta solo a medida que anotes.{% else %}Promedio de tus últimos {{ analisis.meses_base }} meses cerrados con movimientos. Las cuotas son las reales de este mes.{% endif %}</p>
       </section>
 
-      <section class="f2c-tarjeta">
+      <section class="f2c-tarjeta an2c-riesgo-tarjeta">
         <b class="an2c-titulo">Tu riesgo con las deudas</b>
+        <div class="an2c-medidor v2c-esc nivel-{{ analisis.riesgo_nivel }}"><svg viewBox="0 0 220 124" aria-hidden="true"><path class="fondo" d="M20 112 A90 90 0 0 1 200 112"></path><path class="valor" d="M20 112 A90 90 0 0 1 200 112" stroke-dasharray="{% widthratio analisis.riesgo_score 100 283 %} 283"></path></svg><span class="an2c-medidor-num"><b>{{ analisis.riesgo_score }}</b><small>de 100</small></span><span class="an2c-medidor-nivel">Riesgo {{ analisis.riesgo_nivel }}</span></div>
         <div class="an2c-riesgo nivel-{{ analisis.riesgo_nivel }}">
           <span class="an2c-riesgo-num">{{ analisis.riesgo_score }}</span>
           <span class="f2c-txt"><b>Riesgo {{ analisis.riesgo_nivel }}</b><span>{{ analisis.dti }}% de lo que entra va a cuotas{% if analisis.fecha_libre_deudas %} · sales de deuda en {{ analisis.fecha_libre_deudas|date:"F Y" }}{% endif %}</span></span>

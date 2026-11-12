@@ -27,6 +27,7 @@
   <link rel="stylesheet" href="{% static 'css/dialogos-2c.css' %}">
   <link rel="stylesheet" href="{% static 'css/franja-2c.css' %}">
   {% block extra_head %}{% endblock %}
+  <link rel="stylesheet" href="{% static 'css/vida-2c.css' %}">
   {% if esfera and profile.analisis_ia %}<link rel="stylesheet" href="{% static 'css/esfera-preguntas.css' %}">{% endif %}
   <script src="{% static 'js/pantallas/modales-temprano.js' %}" nonce="{{ csp_nonce }}"></script>
 
@@ -324,6 +325,7 @@
 {% if esfera %}{% include 'finanzas/_esfera_preguntas.html' %}{% endif %}
 
 <script type="module" src="{% static 'js/pantallas/estilos.js' %}" nonce="{{ csp_nonce }}"></script>
+<script type="module" src="{% static 'js/pantallas/vida-2c.js' %}" nonce="{{ csp_nonce }}"></script>
 <script type="module" src="{% static 'js/finapp.js' %}" nonce="{{ request.csp_nonce }}"></script>
 <script type="module" data-js="panel-carga" src="{% static 'js/pantallas/panel-carga.js' %}" nonce="{{ csp_nonce }}" data-anotar="{% static 'js/pantallas/anotar.js' %}" data-tope="{% static 'js/pantallas/anotar-tope.js' %}" data-panel="{% static 'js/pantallas/panel-anotar.js' %}" data-marcas="{% static 'data/marcas.json' %}" {% if abrir_panel or request.GET.registrar %}data-abrir-panel="1"{% endif %}></script>
 <script type="module" src="{% static 'js/pantallas/anotar-2c.js' %}" nonce="{{ csp_nonce }}"></script>

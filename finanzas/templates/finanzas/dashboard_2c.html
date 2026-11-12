@@ -1,5 +1,5 @@
 {% extends 'finanzas/base_2c.html' %}
-{% load static humanize moneda voz f2c %}
+{% load static humanize moneda voz f2c l10n %}
 {% block title %}Inicio · Fintora{% endblock %}
 {% block search_placeholder %}Buscar movimientos{% endblock %}
 
@@ -88,8 +88,9 @@
   <div class="i2c-col">
     <section class="i2c-hero" data-tour="saldo" data-estado="{% if disponible < 0 %}rojo{% else %}{{ esfera.estado }}{% endif %}">
       <div class="i2c-cifra">
+        {% saludo_hora as sal %}<div class="i2c-saludo" data-saludo-caja data-tono="{{ sal.tono }}"><span class="i2c-saludo-icono" aria-hidden="true"><i class="fas {{ sal.icono }}" data-saludo-icono></i></span><b><span data-saludo>{{ sal.texto }}</span>{% with n=profile.nombre_display|default:user.username|nombre_corto %}{% if n %}, {{ n }}{% endif %}{% endwith %}</b>{% now "l j \d\e F" as hoy_txt %}<span class="i2c-saludo-fecha">{{ hoy_txt|capfirst }}</span></div>
         <span class="i2c-etq">{% if disponible >= 0 %}Puedes gastar{% else %}Te pasaste por{% endif %}</span>
-        <span class="i2c-monto{% if disponible < 0 %} negativo{% endif %}">{{ disponible_abs|money }}</span>
+        <span class="i2c-monto{% if disponible < 0 %} negativo{% endif %}" data-cuenta="{{ disponible_abs|unlocalize }}">{{ disponible_abs|money }}</span>
         {% if disponible < 0 %}<p class="i2c-frase">Gastaste más de lo que entró.</p>{% elif es_mes_actual %}<p class="i2c-frase">Te tocan <b>{{ por_dia|money }} por día</b> hasta el {{ ultimo_dia }}.</p>{% endif %}
         {% if not total_ingresos %}<div class="i2c-sin-ingreso" role="note"><i class="fas fa-circle-info"></i><span><b>Falta tu ingreso de {{ nombre_mes|lower }}</b>Sin el sueldo, la cifra solo resta lo que gastas y pagas.</span><button type="button" class="i2c-btn borde" data-open="#modalGasto" data-preset-tipo="INGRESO">Anotar ingreso</button></div>{% endif %}
         <div class="i2c-acciones">
@@ -99,6 +100,50 @@
       </div>
       <button type="button" class="i2c-esfera" data-estado="{% if disponible < 0 %}rojo{% else %}{{ esfera.estado }}{% endif %}"{% if esfera.frase %} data-escuchar{% endif %} aria-label="{{ esfera.etiqueta }}. Escuchar el resumen" title="{{ esfera.etiqueta }}"><b class="i2c-onda" aria-hidden="true"></b><b class="i2c-onda" aria-hidden="true"></b><span class="i2c-orbe" aria-hidden="true"><span class="i2c-orbe-giro"><i></i><i></i><i></i></span><span class="i2c-orbe-brillo"></span></span></button>
     </section>
+
+    {% if dia_a_dia %}{% with m=dia_a_dia %}
+    <section class="i2c-tarjeta i2c-solo-esc i2c-dia{% if m.sobre %} sobre{% endif %}">
+      <div class="i2c-dia-cab">
+        <div>
+          <h2>Tu mes día a día</h2>
+          {% if m.toca_dia %}<span class="i2c-dia-sub{% if m.sobre %} rojo{% endif %}">Vas {{ m.diferencia|money }} {% if m.sobre %}sobre{% else %}bajo{% endif %} lo que te toca a esta altura del mes</span>{% else %}<span class="i2c-dia-sub tenue">Anota tu ingreso del mes para ver lo que te toca cada día.</span>{% endif %}
+        </div>
+        <div class="i2c-dia-leyenda" aria-hidden="true">
+          <span><i class="l-gasto"></i>Lo que llevas gastado</span>
+          {% if m.toca_dia %}<span><i class="l-toca"></i>Lo que te toca</span>{% endif %}
+          <span><i class="l-sigue"></i>Si sigues así</span>
+          {% if m.pagos %}<span><i class="l-pago"></i>Vence un pago</span><span><i class="l-pagado"></i>Pagado</span>{% endif %}
+        </div>
+      </div>
+      <div class="i2c-dia-grafico">
+        <svg viewBox="0 0 1000 210" role="img" aria-label="Llevas {{ m.llevas|money }} gastado en {{ m.dia }} día{{ m.dia|pluralize }}{% if m.toca_dia %}; te tocaba {{ m.tocaba|money }}{% endif %}">
+          {% for g in m.grid %}<line class="i2c-dia-grid" x1="40" x2="980" y1="{{ g.y }}" y2="{{ g.y }}" vector-effect="non-scaling-stroke"></line>{% endfor %}
+          <line class="i2c-dia-eje" x1="40" x2="980" y1="200" y2="200" vector-effect="non-scaling-stroke"></line>
+          <path class="i2c-dia-area" d="{{ m.area }}"></path>
+          {% if m.toca_dia %}<line class="i2c-dia-toca" x1="40" y1="200" x2="980" y2="{{ m.ritmo_y }}" vector-effect="non-scaling-stroke"></line>{% endif %}
+          <line class="i2c-dia-sigue" x1="{{ m.hoy_x }}" y1="{{ m.hoy_y }}" x2="980" y2="{{ m.fin_y }}" vector-effect="non-scaling-stroke"></line>
+          <line class="i2c-dia-hoy" x1="{{ m.hoy_x }}" x2="{{ m.hoy_x }}" y1="20" y2="200" vector-effect="non-scaling-stroke"></line>
+          <polyline class="i2c-dia-linea" data-traza points="{{ m.linea }}"></polyline>
+        </svg>
+        {% for g in m.grid %}<span class="i2c-dia-valor" data-arriba-pct="{{ g.arriba }}">{{ g.valor|corto:simbolo_moneda }}</span>{% endfor %}
+        {% if m.toca_dia %}<span class="i2c-dia-etq toca" data-arriba-pct="{{ m.ritmo_arriba }}">Te toca {{ m.base|money }}</span>{% endif %}
+        <span class="i2c-dia-etq sigue" data-arriba-pct="{{ m.fin_arriba }}">Si sigues así</span>
+        {% for p in m.pagos %}<i class="i2c-dia-pago{% if p.pagado %} pagado{% endif %}" data-izq-pct="{{ p.izq }}" title="{{ p.nombre }} · {{ p.monto|money }}"></i>{% endfor %}
+        <span class="i2c-dia-punto" data-aparece data-izq-pct="{{ m.hoy_izq }}" data-arriba-pct="{{ m.hoy_arriba }}"></span>
+        <span class="i2c-dia-globo" data-aparece data-izq-pct="{{ m.hoy_izq }}" data-arriba-pct="{{ m.hoy_arriba }}">Hoy · {{ m.llevas|money }}</span>
+      </div>
+      <div class="i2c-dia-dias" aria-hidden="true">{% for e in m.ejes %}<span{% if e.hoy %} class="hoy"{% endif %} data-izq-pct="{{ e.izq }}">{{ e.texto }}</span>{% endfor %}</div>
+      <div class="i2c-dia-cifras">
+        <div><span>Llevas gastado</span><b>{{ m.llevas|money }}</b><small>En {{ m.dia }} día{{ m.dia|pluralize }}, sin contar las cuotas</small></div>
+        {% if m.toca_dia %}
+        <div class="azul"><span>Te tocaba a hoy</span><b>{{ m.tocaba|money }}</b><small>{{ m.toca_dia|money }} por día</small></div>
+        <div class="{% if m.sobre %}coral{% else %}verde{% endif %}"><span>{% if m.sobre %}Vas sobre por{% else %}Vas bajo por{% endif %}</span><b>{{ m.diferencia|money }}</b><small>{{ m.dias_bajo }} de {{ m.dia }} día{{ m.dia|pluralize }} gastaste menos de lo que te toca</small></div>
+        {% else %}
+        <div class="azul"><span>Promedio por día</span><b>{{ m.promedio|money }}</b><small>Del 1 al {{ m.dia }}</small></div>
+        {% endif %}
+      </div>
+    </section>
+    {% endwith %}{% endif %}
 
     <section class="i2c-bloque i2c-solo-esc">
       <div class="i2c-cab"><h2>Cómo sale la cifra</h2><span>{{ nombre_mes }}</span></div>
@@ -113,7 +158,7 @@
       <div class="i2c-cab"><h2>En qué se va</h2><span>{{ total_gastos|money }} gastado</span></div>
       <div class="i2c-reparto i2c-solo-esc" aria-hidden="true">{% for c in categorias_2c %}<i data-ancho-pct="{{ c.porcentaje }}" data-fondo="{{ c.color|tinta_suave }}"></i>{% endfor %}</div>
       <div class="i2c-tiles">
-        {% for c in categorias_2c %}{% tope_de topes_json c.nombre c.total as t %}<a href="{% url 'categorias' %}" class="i2c-tile" data-fondo="{{ c.color|fondo_suave }}"><span class="i2c-tile-icono" data-color="{{ c.color|tinta_suave }}"><i class="fas {{ c.nombre|icono_cat }}"></i></span><span class="i2c-tile-nombre">{{ c.label }}</span><span class="i2c-tile-monto">{{ c.total|money }}</span>{% if t %}<span class="i2c-tile-barra"><i data-ancho-pct="{{ t.ancho }}" data-fondo="{{ t.color }}"></i></span><span class="i2c-tile-nota{% if t.tono == 'rojo' %} rojo{% endif %}">{% if t.tono == 'rojo' %}Pasaste el tope por {{ t.exceso|money }}{% else %}{{ t.pct }}% del tope{% endif %}</span>{% else %}<span class="i2c-tile-barra"><i data-ancho-pct="{{ c.porcentaje }}" data-fondo="{{ c.color|tinta_suave }}"></i></span><span class="i2c-tile-nota">{{ c.porcentaje }}% de lo gastado</span>{% endif %}</a>
+        {% for c in categorias_2c %}{% tope_de topes_json c.nombre c.total as t %}<a href="{% url 'categorias' %}" class="i2c-tile" data-fondo="{{ c.color|fondo_suave }}"><span class="i2c-tile-icono" data-color="{{ c.color|tinta_suave }}"><i class="fas {{ c.nombre|icono_cat }}"></i></span><span class="i2c-tile-nombre">{{ c.label }}</span><span class="i2c-tile-monto">{{ c.total|money }}</span>{% if t %}<span class="i2c-tile-barra"><i data-ancho-pct="{{ t.ancho }}" data-fondo="{{ t.color }}"></i></span><span class="i2c-tile-nota{% if t.tono == 'rojo' %} rojo{% endif %}">{% if t.tono == 'rojo' %}Pasaste el tope por {{ t.exceso|money }}{% else %}{{ t.pct }}% del tope{% endif %}</span>{% else %}<span class="i2c-tile-barra"><i data-ancho-pct="{{ c.porcentaje }}" data-fondo="{{ c.color|tinta_suave }}"></i></span><span class="i2c-tile-nota">{{ c.porcentaje }}% de lo gastado</span>{% endif %}{% if c.delta_txt %}<span class="i2c-tile-delta i2c-solo-esc{% if c.delta_tono %} {{ c.delta_tono }}{% endif %}">{{ c.delta_txt }}</span>{% endif %}</a>
         {% endfor %}
       </div>
     </section>
@@ -122,7 +167,7 @@
     <section class="i2c-tarjeta i2c-solo-esc i2c-porpagar">
       <div class="i2c-cab"><h2>Por pagar</h2><span>{{ pendientes_sin_pagar|length }} de {{ pendientes|length }} sin pagar</span></div>
       <div class="i2c-porpagar-cifra">
-        <span class="i2c-grande">{{ monto_sin_pagar|money }}</span>
+        <span class="i2c-grande" data-cuenta="{{ monto_sin_pagar|unlocalize }}">{{ monto_sin_pagar|money }}</span>
         {% if pendientes %}<div class="i2c-pips" aria-hidden="true">{% for i in pendientes %}<span class="{% if i.pagado %}pagado{% elif i.atrasado %}atrasado{% endif %}"></span>{% endfor %}</div>{% endif %}
       </div>
       {% if atrasado_arrastrado %}
@@ -132,7 +177,7 @@
         {% for i in pendientes_sin_pagar|slice:":6" %}
         <div class="i2c-fila{% if i.atrasado %} atrasado{% endif %}">
           <span class="i2c-ficha t-{{ i.tipo }}"><i class="fas {{ i.icono }}"></i></span>
-          <span class="i2c-fila-txt"><b>{{ i.nombre }}</b><span>{% if i.tipo == 'cuota' or i.tipo == 'debo' %}{{ i.detalle }} · {% endif %}{% if i.atrasado %}venció el {{ i.fecha|date:"j b" }}{% else %}vence el {{ i.fecha|date:"j b" }}{% endif %}</span></span>
+          <span class="i2c-fila-txt"><b>{{ i.nombre }}</b><span>{% if i.tipo == 'cuota' or i.tipo == 'debo' %}{{ i.detalle }} · {% endif %}{% if i.atrasado %}venció el {{ i.fecha|date:"j b" }}{% else %}vence el {{ i.fecha|date:"j b" }}{% endif %}{% if not i.atrasado %}{% with u=i.fecha|en_dias %}{% if u %}<em class="i2c-urg{% if i.fecha|pronto %} pronto{% endif %}">{{ u }}</em>{% endif %}{% endwith %}{% endif %}</span></span>
           <span class="i2c-fila-monto">{{ i.monto|money }}</span>
           <form method="post" action="{{ i.url_pagar }}">
             {% csrf_token %}
@@ -179,7 +224,7 @@
 
     <a href="{% url 'deudas' %}" class="i2c-tarjeta oscura i2c-solo-esc i2c-cuotas">
       <span class="i2c-oscura-etq">En cuotas este mes</span>
-      <span class="i2c-grande">{{ total_cuotas_mes|money }}</span>
+      <span class="i2c-grande" data-cuenta="{{ total_cuotas_mes|unlocalize }}">{{ total_cuotas_mes|money }}</span>
       <span class="i2c-chispa">{% for f in cuotas_6_meses %}<span title="{{ f.mes|capfirst }}: {{ f.total|money }}"><b{% if f.es_mes_actual %} class="actual"{% endif %}>{% if f.total %}{{ f.total|corto:simbolo_moneda }}{% else %}—{% endif %}</b><i data-alto-pct="{{ f.alto_pct }}"{% if f.es_mes_actual %} class="actual"{% endif %}></i><small>{{ f.corto }}</small></span>{% endfor %}</span>
       <span class="i2c-oscura-nota">{% if termina_todo %}Terminas todo en {{ termina_todo }}{% else %}No te quedan cuotas{% endif %}</span>
     </a>
@@ -202,12 +247,13 @@
     <section class="i2c-bloque i2c-movs">
       <div class="i2c-cab"><h2>Movimientos</h2><button type="button" class="i2c-link" data-open="#modalMovimientos" data-mov-abrir="todo">Ver todo</button></div>
       <div class="i2c-lista i2c-caja">
-        {% for t in ultimas|pasados:5 %}
+        {% regroup ultimas|pasados:5 by fecha as movs_por_dia %}{% for dia in movs_por_dia %}<div class="i2c-movs-dia i2c-solo-esc"><span>{{ dia.grouper|naturalday:"l j b"|capfirst }}</span>{% with g=dia.list|suma_gastos %}{% if g %}<b>{{ g|money }}</b>{% endif %}{% endwith %}</div>{% for t in dia.list %}
         <a href="{% if t.es_cuota %}{% url 'deudas' %}{% else %}{% url 'editar_transaccion' t.pk %}{% endif %}" class="i2c-fila" data-searchable>
           <span class="i2c-ficha{% if t.es_ingreso %} ingreso{% endif %}"><i class="fas {{ t.icono }}"></i></span>
           <span class="i2c-fila-txt"><b>{{ t.descripcion|default:t.nombre_categoria }}</b><span>{{ t.fecha|naturalday:"j b"|capfirst }} · {{ t.nombre_categoria }}</span></span>
           <span class="i2c-fila-monto{% if t.es_ingreso %} ingreso{% endif %}">{% if t.es_ingreso %}+{% endif %}{{ t.monto|money }}</span>
         </a>
+        {% endfor %}
         {% empty %}
         <p class="i2c-vacio">Todavía no hay movimientos {% if es_mes_actual %}este mes{% else %}en {{ nombre_mes|lower }}{% endif %}.</p>
         {% endfor %}

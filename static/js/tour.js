@@ -180,7 +180,7 @@
     gesto: null,
     cuotas: { sel: ['[data-tour="cuotas"]', '.c2c-nueva-tel', '.c2c-cab'] },
     suscripciones: { sel: ['[data-tour="suscripciones"]', '.s2c-nueva-tel', '.s2c-nueva'] },
-    graficos: { sel: ['.es2c-barras', '[data-tour="graficos"]'] },
+    graficos: { sel: ['.es2c-barras', '.es2c-dobles', '[data-tour="graficos"]'] },
     ia: {
       sel: '[data-tour="ia"]',
       texto: 'Análisis ya te muestra en qué se te fue la plata. Desde esta tarjeta pides que te lo expliquen en palabras: qué cambió respecto al mes pasado y qué conviene mirar. Corre solo cuando lo pides.'

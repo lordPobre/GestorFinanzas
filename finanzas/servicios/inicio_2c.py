@@ -1,8 +1,9 @@
+from .. import fechas
 from .cuotas import serie_cuotas
-from .panel import desglose_categorias
+from .vida_2c import categorias_y_dias
 
 
-def datos_inicio_2c(usuario, r, plata, proyecciones_deuda):
+def datos_inicio_2c(usuario, r, plata, proyecciones_deuda, pagos=None):
     cifra = [
         {'etiqueta': 'Entró', 'signo': '+', 'monto': plata(r['ingresos']), 'tono': 'verde'},
         {'etiqueta': 'Gastos', 'signo': '−', 'monto': plata(r['gastos']), 'tono': ''},
@@ -21,10 +22,13 @@ def datos_inicio_2c(usuario, r, plata, proyecciones_deuda):
         f['alto_pct'] = max(8, round(f['total'] / tope * 100))
         f['corto'] = f['mes_corto'][:3]
 
+    categorias, dia_a_dia = categorias_y_dias(usuario, r, plata, pagos or [], fechas.hoy())
+
     return {
         'cifra_2c': cifra,
         'disponible_abs': plata(abs(r['disponible'])),
-        'categorias_2c': desglose_categorias(usuario, r)[:4],
+        'categorias_2c': categorias[:4],
+        'dia_a_dia': dia_a_dia,
         'cuotas_6_meses': serie,
         'termina_todo': proyecciones_deuda[-1]['mes_fin'] if proyecciones_deuda else None,
         'ultimo_dia': r['ultimo_dia'],

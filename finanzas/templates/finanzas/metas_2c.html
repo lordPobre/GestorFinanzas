@@ -1,20 +1,38 @@
 {% extends 'finanzas/base_2c.html' %}
-{% load static moneda %}
+{% load static moneda f2c l10n %}
 {% block title %}Metas · Fintora{% endblock %}
 {% block extra_head %}<link rel="stylesheet" href="{% static 'css/secciones-2c.css' %}">{% endblock %}
 
 {% block pestanas %}{% endblock %}
-{% block content %}{% load menu %}
+{% block content %}{% load menu %}{% metas_2c metas_datos as m2c %}
 <div class="f2c-pagina">
   <div class="p2c-top"><h1 class="f2c-titulo-tel">Plan</h1></div>
   {% menu 'pestanas' %}
+
+  {% if metas_datos %}
+  <section class="me2c-hero v2c-esc">
+    <div class="me2c-hero-txt">
+      <span class="f2c-etq">Llevas ahorrado</span>
+      <span class="me2c-hero-monto" data-cuenta="{{ total_ahorrado|default:0|unlocalize }}">{{ total_ahorrado|default:0|money }}</span>
+      <span class="me2c-hero-sub">de <b>{{ total_meta|money }}</b> en {{ metas_datos|length }} meta{{ metas_datos|length|pluralize }}{% if total_faltante %} · te faltan {{ total_faltante|money }}{% endif %}</span>
+      <span class="me2c-tramos" aria-hidden="true">{% for x in m2c.metas %}<i class="t-{{ x.tono }}" data-ancho-pct="{{ x.ancho_total }}"></i>{% endfor %}</span>
+      <span class="me2c-leyenda">{% for x in m2c.metas %}<span class="t-{{ x.tono }}"><i></i>{{ x.d.meta.nombre }} · <b>{{ x.d.meta.monto_actual|default:0|money }}</b></span>{% endfor %}</span>
+    </div>
+    <span class="me2c-esfera" data-estado="{% if esfera.estado %}{{ esfera.estado }}{% else %}verde{% endif %}" aria-hidden="true"></span>
+    <div class="me2c-hero-pie">
+      <span><small>Este mes aportaste</small><b>{{ m2c.este_mes|money }}</b></span>
+      <span><small>Aportas en promedio</small><b>{{ m2c.promedio|money }} al mes</b></span>
+      {% if m2c.proxima %}<span><small>La próxima en cumplirse</small><b>{{ m2c.proxima.nombre }} · {{ m2c.proxima.llega }}</b></span>{% endif %}
+    </div>
+  </section>
+  {% endif %}
 
   <div class="f2c-grid">
     <div class="f2c-col">
       {% if metas_datos %}
       <div class="me2c-lista">
-        {% for d in metas_datos %}
-        <article class="me2c-meta{% if d.meta.esta_completa %} completa{% endif %}" id="meta{{ d.meta.pk }}" data-searchable>
+        {% for x in m2c.metas %}{% with d=x.d %}
+        <article class="me2c-meta t-{{ x.tono }}{% if d.meta.esta_completa %} completa{% endif %}" id="meta{{ d.meta.pk }}" data-searchable>
           <div class="me2c-cab">
             <span class="f2c-ficha redonda verde"><i class="fas {% if d.meta.esta_completa %}fa-trophy{% else %}fa-bullseye{% endif %}"></i></span>
             <span class="f2c-txt"><b class="me2c-nombre">{{ d.meta.nombre }}</b><span>{{ d.meta.monto_actual|money }} de {{ d.meta.monto_meta|money }}</span></span>
@@ -22,6 +40,24 @@
           </div>
           <span class="f2c-barra gruesa"><i data-ancho-pct="{{ d.meta.porcentaje|floatformat:'0u' }}"></i></span>
           <span class="me2c-nota">{% if d.meta.esta_completa %}Llegaste a la meta.{% elif d.meta.ahorro_mensual_sugerido %}{{ d.meta.ahorro_mensual_sugerido|money }} al mes para llegar{% if d.meta.fecha_limite %} en {{ d.meta.fecha_limite|date:"F Y"|lower }}{% endif %}.{% else %}Faltan {{ d.meta.monto_faltante|money }}.{% endif %}{% if d.aportado_6m %} Aportaste {{ d.aportado_6m|money }} en 6 meses.{% endif %}</span>
+          {% if not d.meta.esta_completa %}
+          <div class="me2c-detalle v2c-esc">
+            <div class="me2c-aportes">
+              <span class="me2c-aportes-cab"><span>Aportes de los últimos 6 meses</span><b>{{ d.aportado_6m|money }}</b></span>
+              <div class="me2c-barras">{% for s in d.serie %}<span{% if forloop.last %} class="actual"{% endif %}><b>{% if s.monto %}{{ s.monto|corto:simbolo_moneda }}{% else %}—{% endif %}</b><span class="me2c-barra-zona"><i{% if not s.monto %} class="cero"{% endif %} data-alto-pct="{% if s.monto %}{{ s.alto }}{% else %}6{% endif %}"></i></span><small>{{ s.label|slice:":3"|capfirst }}</small></span>{% endfor %}</div>
+            </div>
+            {% with eta=x.eta %}{% if eta %}
+            <div class="me2c-eta {{ eta.tono }}">
+              <span class="me2c-eta-icono" aria-hidden="true"><i class="fas {% if eta.tono == 'ambar' %}fa-calendar-xmark{% elif eta.tono == 'gris' %}fa-hourglass-half{% else %}fa-flag-checkered{% endif %}"></i></span>
+              <span class="me2c-eta-txt">
+                <small>{{ eta.etiqueta }}</small>
+                <b>{% if eta.llega %}Al ritmo de hoy llegas en {{ eta.llega }}{% else %}Aporta para ver cuándo llegas{% endif %}</b>
+                <span>{% if eta.necesita %}Para llegar en {{ eta.limite }}: {{ eta.necesita|money }} al mes{% if eta.extra and eta.ritmo %}, {{ eta.extra|money }} más que hoy{% endif %}.{% elif eta.ritmo %}Aportas {{ eta.ritmo|money }} al mes en promedio. Te faltan {{ d.meta.monto_faltante|money }}.{% else %}Te faltan {{ d.meta.monto_faltante|money }}.{% endif %}</span>
+              </span>
+            </div>
+            {% endif %}{% endwith %}
+          </div>
+          {% endif %}
           <div class="me2c-acciones">
             {% if d.meta.esta_completa %}
             <span class="f2c-estado verde"><i class="fas fa-trophy"></i>Cumplida</span>
@@ -39,7 +75,7 @@
             </span>
           </div>
         </article>
-        {% endfor %}
+        {% endwith %}{% endfor %}
       </div>
       {% else %}
       <div class="f2c-vacio">
@@ -51,7 +87,7 @@
       <button type="button" class="f2c-btn borde ancho" data-open="#modalMeta" data-tour="metas"><i class="fas fa-plus"></i>Nueva meta</button>
     </div>
 
-    <aside class="f2c-col me2c-lado">
+    <aside class="f2c-col me2c-lado v2c-tel">
       <div class="f2c-tarjeta">
         <div class="f2c-cifra">
           <span class="f2c-etq">Llevas ahorrado</span>

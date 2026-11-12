@@ -246,6 +246,6 @@ def dashboard(request):
     context['politica_cambios'] = legal.CAMBIOS
     context['mostrar_encuesta'] = encuesta_mod.debe_mostrar(request)
     if diseno.activo(request):
-        context.update(datos_inicio_2c(request.user, r, plata, proyecciones_deuda))
+        context.update(datos_inicio_2c(request.user, r, plata, proyecciones_deuda, pagos_mes))
         return render(request, 'finanzas/dashboard_2c.html', context)
     return render(request, 'finanzas/dashboard.html', context)
