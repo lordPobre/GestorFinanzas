@@ -8,6 +8,7 @@
   var LS_VERSION = 'finapp.tour.version';
   var LS_MODO = 'finapp.tour.modo';
   var LS_PASOS_OCULTO = 'finapp.pasos.oculto';
+  var LS_SIGUE = 'finapp.tour.sigue';
 
   var PASOS = [
     {
@@ -177,8 +178,9 @@
       texto: 'Se pone verde si vas bien, amarilla si te acercas al límite y roja si te pasaste. Tócala y te cuenta en voz alta cómo va tu mes.'
     },
     gesto: null,
-    suscripciones: { sel: '[data-tour="suscripciones"], .s2c-nueva' },
-    graficos: { sel: '.es2c-barras, [data-tour="graficos"]' },
+    cuotas: { sel: ['[data-tour="cuotas"]', '.c2c-nueva-tel', '.c2c-cab'] },
+    suscripciones: { sel: ['[data-tour="suscripciones"]', '.s2c-nueva-tel', '.s2c-nueva'] },
+    graficos: { sel: ['.es2c-barras', '[data-tour="graficos"]'] },
     ia: {
       sel: '[data-tour="ia"]',
       texto: 'Análisis ya te muestra en qué se te fue la plata. Desde esta tarjeta pides que te lo expliquen en palabras: qué cambió respecto al mes pasado y qué conviene mirar. Corre solo cuando lo pides.'
@@ -203,7 +205,7 @@
   };
 
   function claveDe(p) {
-    var m = /data-tour="([\w-]+)"/.exec(p.sel);
+    var m = /data-tour="([\w-]+)"/.exec([].concat(p.sel)[0]);
     return m ? m[1] : '';
   }
 
@@ -254,6 +256,11 @@
     } catch (e) {}
   }
 
+  function marcarSigue(si) {
+    try { if (si) localStorage.setItem(LS_SIGUE, '1'); else localStorage.removeItem(LS_SIGUE); } catch (e) {}
+  }
+  function leerSigue() { try { return localStorage.getItem(LS_SIGUE) === '1'; } catch (e) { return false; } }
+
   function guardar(n) { try { localStorage.setItem(LS_PASO, String(n)); } catch (e) {} }
   function leerPaso() {
     try {
@@ -272,6 +279,7 @@
       localStorage.setItem(LS_VERSION, String(VERSION));
       localStorage.removeItem(LS_PASO);
       localStorage.removeItem(LS_MODO);
+      localStorage.removeItem(LS_SIGUE);
       if (modo !== 'novedades') localStorage.setItem(LS_LISTO, '1');
     } catch (e) {}
     modo = '';
@@ -293,11 +301,14 @@
   function aqui(paso) { return normalizar(rutaDe(paso)) === normalizar(location.pathname); }
 
   function elementoDe(paso) {
-    var lista = document.querySelectorAll(paso.sel);
-    for (var k = 0; k < lista.length; k++) {
-      var el = lista[k];
-      var r = el.getBoundingClientRect();
-      if (el.offsetParent !== null && r.width > 4 && r.height > 4) return el;
+    var grupos = [].concat(paso.sel);
+    for (var g = 0; g < grupos.length; g++) {
+      var lista = document.querySelectorAll(grupos[g]);
+      for (var k = 0; k < lista.length; k++) {
+        var el = lista[k];
+        var r = el.getBoundingClientRect();
+        if (el.offsetParent !== null && r.width > 4 && r.height > 4) return el;
+      }
     }
     return null;
   }
@@ -410,13 +421,20 @@
     setTimeout(luego, 340);
   }
 
-  function mostrar(n, saltos) {
+  function mostrar(n, saltos, seguir) {
     saltos = saltos || 0;
     if (n < 0) n = 0;
     if (n >= secuencia.length) { cerrar(true); return; }
 
     var paso = secuencia[n];
-    if (!aqui(paso)) { guardar(n); indice = n; ocultarCapa(); verPildora(n); return; }
+    if (!aqui(paso)) {
+      guardar(n);
+      indice = n;
+      ocultarCapa();
+      if (seguir) { marcarSigue(true); location.href = rutaDe(paso); return; }
+      verPildora(n);
+      return;
+    }
 
     if (paso.antes) paso.antes();
 
@@ -428,13 +446,13 @@
     if (paso.esfera) {
       if (!window.finappEsfera && document.querySelector('[data-esfera]') && esperasEsfera < 20) {
         esperasEsfera++;
-        setTimeout(function () { mostrar(n, saltos); }, 100);
+        setTimeout(function () { mostrar(n, saltos, seguir); }, 100);
         return;
       }
-      if (!esferaLista()) { mostrar(n + 1, saltos + 1); return; }
+      if (!esferaLista()) { mostrar(n + 1, saltos + 1, seguir); return; }
       if (!window.finappEsfera.abierta()) {
         window.finappEsfera.abrir();
-        setTimeout(function () { mostrar(n, saltos); }, 600);
+        setTimeout(function () { mostrar(n, saltos, seguir); }, 600);
         return;
       }
     } else {
@@ -444,12 +462,13 @@
     var el = elementoDe(paso);
     if (!el) {
       if (saltos > secuencia.length) { cerrar(true); return; }
-      mostrar(n + 1, saltos + 1);
+      mostrar(n + 1, saltos + 1, seguir);
       return;
     }
 
     indice = n;
     guardar(n);
+    marcarSigue(false);
     ocultarPildora();
     armarCapa();
     contenido(n);
@@ -467,8 +486,8 @@
     if (n < 0) n = 0;
     limpiarGesto();
     var paso = secuencia[n];
-    if (!aqui(paso)) { guardar(n); location.href = rutaDe(paso); return; }
-    mostrar(n);
+    if (!aqui(paso)) { guardar(n); marcarSigue(true); location.href = rutaDe(paso); return; }
+    mostrar(n, 0, true);
   }
 
   function ocultarCapa() { if (capa) capa.classList.remove('on'); }
@@ -478,6 +497,7 @@
     ocultarCapa();
     limpiarGesto();
     objetivo = null;
+    marcarSigue(false);
     if (definitivo) {
       var eraNovedades = modo === 'novedades';
       marcarTerminado();
@@ -514,7 +534,7 @@
           guardar(0);
         }
         var paso = secuencia[indice];
-        if (aqui(paso)) mostrar(indice); else location.href = rutaDe(paso);
+        if (aqui(paso)) mostrar(indice, 0, true); else { marcarSigue(true); location.href = rutaDe(paso); }
       });
     }
     var txt = invitacion
@@ -549,7 +569,7 @@
         invitacion = false;
         reiniciar();
         indice = 0;
-        if (aqui(secuencia[0])) mostrar(0); else location.href = rutaDe(secuencia[0]);
+        if (aqui(secuencia[0])) mostrar(0, 0, true); else { marcarSigue(true); location.href = rutaDe(secuencia[0]); }
       });
     });
     if (terminado()) marcarPasoTourHecho();
@@ -567,7 +587,7 @@
         var limpia = location.pathname + location.search.replace(/([?&])tour=1(&|$)/, '$1').replace(/[?&]$/, '');
         window.history.replaceState({}, '', limpia + location.hash);
       }
-      mostrar(0);
+      mostrar(0, 0, true);
       return;
     }
 
@@ -580,7 +600,7 @@
         var k = leerPaso();
         if (k < 0) k = 0;
         indice = k;
-        if (aqui(secuencia[k])) mostrar(k); else verPildora(k);
+        if (aqui(secuencia[k])) mostrar(k, 0, leerSigue()); else verPildora(k);
         return;
       }
       if (versionVista() >= VERSION || !NUEVOS.length) return;
@@ -593,7 +613,7 @@
     var n = leerPaso();
     if (n < 0) return;
     indice = n;
-    if (aqui(secuencia[n])) mostrar(n); else verPildora(n);
+    if (aqui(secuencia[n])) mostrar(n, 0, leerSigue()); else verPildora(n);
   }
 
   window.finappTour = { iniciar: iniciar, mostrar: mostrar, reiniciar: reiniciar };

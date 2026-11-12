@@ -13,9 +13,10 @@ const TU = '<a href="#mas" data-tu2c-abrir></a><section id="mas" data-ver="aviso
   + '<button type="button" data-tu2c-ver="seguridad"></button><button type="button" data-tu2c-ver="datos"></button>'
   + '<a href="#" data-tu2c-volver></a><div data-tour="seguridad"></div><a href="#" data-tour="dos-pasos"></a></section>';
 
-function montar({ telefono = false, ruta = '/', busqueda = '', guardado = {}, html = INICIO } = {}) {
+function montar({ telefono = false, ruta = '/', busqueda = '', guardado = {}, html = INICIO, oculto = '' } = {}) {
   const documento = crearDocumento(html);
   documento.documentElement.classList.add('f2c');
+  if (oculto) documento.querySelector(oculto).offsetParent = null;
   const mas = documento.querySelector('#mas');
   if (mas) {
     documento.querySelector('[data-tu2c-abrir]').addEventListener('click', () => mas.classList.add('abierta'));
@@ -73,6 +74,19 @@ test('en el teléfono con el 2c Anotar se muestra en la barra de abajo', () => {
   assert.equal(t.titulo(), 'Anotar un gasto o un ingreso');
   t.siguiente();
   assert.equal(t.titulo(), 'La esfera de tu mes');
+});
+
+test('en Cuotas del teléfono apunta al botón que se ve y no corta el tour', () => {
+  const html = '<div class="c2c-cab"><button type="button" class="c2c-nueva" data-tour="cuotas"></button></div>'
+    + '<button type="button" class="c2c-nueva-tel"></button>';
+  const t = montar({ telefono: true, ruta: '/cuotas/', guardado: { [PASO]: '5', 'finapp.tour.sigue': '1' }, html, oculto: '[data-tour="cuotas"]' });
+  assert.equal(t.paso(), 'Paso 6 de 19');
+  assert.equal(t.titulo(), 'Tus compras en cuotas');
+});
+
+test('si después de Siguiente el paso no tiene qué mostrar, el tour sigue en la pantalla que viene', () => {
+  const t = montar({ telefono: true, ruta: '/cuotas/', guardado: { [PASO]: '5', 'finapp.tour.sigue': '1' }, html: '<p></p>' });
+  assert.equal(t.location.href, '/suscripciones/');
 });
 
 test('los pasos de Tú abren Privacidad y seguridad en la parte que toca', () => {

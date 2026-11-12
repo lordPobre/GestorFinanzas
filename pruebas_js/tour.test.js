@@ -217,7 +217,8 @@ test('en el teléfono abre la esfera para su paso, la cierra al seguir y se la s
   sinEsfera.boton('siguiente').click();
   sinEsfera.boton('siguiente').click();
   assert.equal(sinEsfera.abierto(), false);
-  assert.equal(sinEsfera.pildora(), 'Seguir el tour · 4/20');
+  assert.equal(sinEsfera.location.href, '/importar/');
+  assert.equal(sinEsfera.datos[PASO], '3');
 });
 
 test('desde la lista de pasos se repite el tour o se oculta la lista', () => {
