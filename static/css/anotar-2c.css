@@ -1,0 +1,31 @@
+@layer app {
+html.f2c .registro-box .anotar-cab { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
+html.f2c .registro-box .anotar-tipo { flex: none; gap: 0; padding: 3px; border-radius: 999px; background: rgba(30, 26, 21, .06); }
+html.f2c .registro-box .anotar-tipo button { flex: none; min-height: 38px; height: 38px; padding: 0 18px; border-radius: 999px; background: transparent; box-shadow: none; color: rgba(30, 26, 21, .68); font-size: 15px; font-weight: 500; }
+html.f2c .registro-box .anotar-tipo button:is(.on, .on-coral, .on-green) { background: #FBF8F2; box-shadow: 0 2px 8px rgba(30, 26, 21, .1); color: #1E1A15; font-weight: 700; }
+html.f2c .registro-box .anotar-cab .modal-close { width: 44px; height: 44px; }
+html.f2c .registro-box .anotar-cifra { flex-direction: column; gap: 6px; padding: 4px 0; }
+html.f2c .registro-box .anotar-impacto { margin-top: -10px; }
+html.f2c .registro-box .anotar-opciones { display: flex; flex-wrap: nowrap; align-items: center; gap: 8px; }
+html.f2c .registro-box :is(.anotar-dia, .anotar-pago) { flex: none; display: flex; align-items: center; gap: 8px; height: 40px; padding: 0 14px; box-sizing: border-box; border: 1px solid rgba(30, 26, 21, .12); border-radius: 999px; background: transparent; color: #1E1A15; cursor: pointer; }
+html.f2c .registro-box .anotar-pago[hidden] { display: none; }
+html.f2c .registro-box .anotar-dia > i { margin: 0; font-size: 12px; color: rgba(30, 26, 21, .68); }
+html.f2c .registro-box .anotar-opciones .seg { flex: none; padding: 0; border-radius: 0; background: none; }
+html.f2c .registro-box .anotar-opciones .seg button { flex: none; display: none; align-items: center; gap: 8px; min-height: 0; height: 38px; padding: 0; border-radius: 0; background: none; box-shadow: none; color: #1E1A15; font-size: 15px; font-weight: 500; white-space: nowrap; }
+html.f2c .registro-box .anotar-opciones .seg button:is(.on, .on-coral, .on-green) { display: inline-flex; background: none; box-shadow: none; }
+html.f2c .registro-box .anotar-pago .seg button i { font-size: 12px; }
+html.f2c .registro-box .anotar-pago .seg button.on-green i { color: #0D6E55; }
+html.f2c .registro-box .anotar-pago .seg button.on-coral i { color: #C98A1B; }
+html.f2c .registro-box .anotar-dia:has(.anotar-fecha:not([hidden])) .seg { display: none; }
+html.f2c .registro-box .anotar-dia .anotar-fecha:not([hidden]) { width: 132px; height: 38px; padding: 0; border: none; border-radius: 0; background: transparent; font-size: 15px; }
+html.f2c .registro-box .anotar-nota { flex: 1; min-width: 0; display: block; margin: 0; }
+html.f2c .registro-box .anotar-nota input { width: 100%; height: 40px; box-sizing: border-box; margin: 0; padding: 0 14px; border-radius: 999px; border: 1px solid rgba(30, 26, 21, .12); background: #fff; color: #1E1A15; font-size: 15px; font-weight: 500; }
+html.f2c .registro-box .anotar-nota input:focus-visible { outline: 2px solid #0D6E55; outline-offset: 1px; }
+html.f2c .registro-box #btnGuardar { margin-top: 16px; }
+html.f2c .registro-box #btnGuardar.sin-monto { background: rgba(30, 26, 21, .08); color: rgba(30, 26, 21, .5); }
+html.f2c .registro-box .anotar-atajos { margin-top: 12px; }
+@media (max-width: 720px) {
+  html.f2c .registro-box { padding: 10px 20px calc(34px + env(safe-area-inset-bottom)); }
+  html.f2c .registro-box .anotar-cats .chips { margin: 0 -20px; padding: 0 20px; }
+}
+}

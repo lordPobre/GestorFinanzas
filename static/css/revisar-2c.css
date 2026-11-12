@@ -1,0 +1,37 @@
+@layer app {
+html.f2c .sec-top:has(+ .ca-hero) { flex-wrap: nowrap; }
+html.f2c .sec-top:has(+ .ca-hero) .sec-titulo { flex: 1; min-width: 0; }
+html.f2c .sec-top:has(+ .ca-hero) .sec-accion { flex: none; display: inline-flex; align-items: center; gap: 8px; min-height: 40px; margin-left: auto; padding: 0 16px; border: 1px solid rgba(194, 65, 45, .3); border-radius: 999px; background: transparent; color: #A8361F; font-size: 14px; font-weight: 700; text-decoration: none; }
+html.f2c .sec-top:has(+ .ca-hero) .sec-accion:hover { background: rgba(194, 65, 45, .08); color: #A8361F; }
+html.f2c .sec-top:has(+ .ca-hero) .sec-accion i { font-size: 12px; }
+html.f2c .ca-hero .sec-chips { justify-content: center; }
+html.f2c .chip-vidrio { gap: 5px; }
+html.f2c .chip-vidrio b { font-weight: 700; font-variant-numeric: tabular-nums; }
+html.f2c .ca-hero .ca-banco { display: flex; flex-direction: row; flex-wrap: nowrap; align-items: center; justify-content: center; gap: 12px; width: auto; max-width: 100%; text-align: left; }
+html.f2c .ca-hero .ca-banco > span:last-child { min-width: 0; text-wrap: pretty; }
+html.f2c :is(.ca-banco-logo, .rv-marca) { flex: none; display: grid; place-items: center; overflow: hidden; border-radius: 50%; font-weight: 700; line-height: 1; }
+html.f2c .ca-banco-logo { width: 40px; height: 40px; }
+html.f2c .rv-marca { width: 36px; height: 36px; }
+html.f2c :is(.ca-banco-logo, .rv-marca) b { font-size: 16px; font-weight: 700; letter-spacing: 0; line-height: 1; }
+html.f2c :is(.ca-banco-logo, .rv-marca) .marca-glifo { width: 55%; height: 55%; }
+html.f2c .rv-lista .cartola-check { width: 20px; height: 20px; margin: 0; accent-color: #0F7B5F; }
+html.f2c .rv-lista .cartola-detalle { display: flex; flex-direction: column; gap: 8px; }
+html.f2c .rv-lista .cartola-marcas { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; }
+html.f2c .rv-lista .cartola-nota-fila { font-size: 13px; line-height: 1.45; color: #7A5A12; }
+html.f2c .rv-lista .cartola-nota-fila.suave { color: rgba(30, 26, 21, .68); }
+html.f2c .rv-lista .cartola-extra { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 10px; min-height: 44px; box-sizing: border-box; padding: 8px 12px; border-radius: 14px; background: #F3EFE7; color: #1E1A15; font-size: 14px; font-weight: 500; cursor: pointer; }
+html.f2c .rv-lista .cartola-extra input[type="checkbox"] { width: 20px; height: 20px; flex: none; margin: 0; accent-color: #1E1A15; }
+html.f2c .rv-lista .cartola-extra-txt { flex: 1 1 140px; min-width: 0; white-space: normal; overflow: visible; text-overflow: clip; }
+html.f2c .rv-lista .cartola-deben-cuanto { flex: none; padding: 3px 9px; font-size: 12px; }
+@media (max-width: 720px) {
+  html.f2c .rv-lista .cartola-extra { display: grid; grid-template-columns: 20px minmax(0, 1fr); align-items: center; column-gap: 10px; row-gap: 6px; }
+  html.f2c .rv-lista .cartola-extra-txt { grid-column: 2; }
+  html.f2c .rv-lista .cartola-deben-cuanto { grid-column: 2; justify-self: start; }
+  html.f2c .rv-barra { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
+  html.f2c .rv-barra::-webkit-scrollbar { display: none; }
+  html.f2c .rv-barra .sec-chico { flex: none; min-height: 40px; }
+  html.f2c .rv-pie { flex-direction: row; align-items: center; gap: 12px; padding: 10px 10px 10px 18px; border-radius: 999px; text-align: left; }
+  html.f2c .rv-pie .sec-btn { flex: none; width: auto; min-height: 44px; padding: 0 18px; font-size: 15px; }
+  html.f2c .rv-cuenta { flex: 1; min-width: 0; font-size: 13px; line-height: 1.3; }
+}
+}

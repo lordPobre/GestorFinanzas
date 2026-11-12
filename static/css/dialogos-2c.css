@@ -1,0 +1,18 @@
+@layer app {
+html.f2c .confirm-overlay { z-index: 95; }
+html.f2c .confirm-box { width: 100%; max-width: 400px; box-sizing: border-box; display: flex; flex-direction: column; align-items: center; gap: 14px; padding: 26px 24px 24px; border-radius: 28px; background: #FBF8F2; color: #1E1A15; text-align: center; box-shadow: 0 24px 60px rgba(30, 26, 21, .22); animation: dlg2c-entra .22s ease; }
+html.f2c .confirm-icono { width: 52px; height: 52px; flex: none; border-radius: 50%; display: grid; place-items: center; background: #F2EAD3; color: #7A5A12; font-size: 20px; }
+html.f2c .confirm-overlay.destructivo .confirm-icono { background: #F5E1D6; color: #A8361F; }
+html.f2c .confirm-texto { max-width: 32ch; font-size: 17px; font-weight: 700; line-height: 1.35; text-wrap: pretty; }
+html.f2c .confirm-acciones { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; width: 100%; margin-top: 6px; }
+html.f2c .confirm-acciones .btn { width: 100%; min-height: 52px; margin: 0; padding: 0 12px; font-size: 16px; white-space: nowrap; }
+html.f2c .confirm-acciones .btn-glass:hover { background: rgba(30, 26, 21, .04); color: #1E1A15; }
+html.f2c a.sec-btn.vidrio:hover, html.f2c a.f2c-btn.borde:hover, html.f2c a.btn.btn-glass:hover { background: rgba(30, 26, 21, .04); color: #1E1A15; }
+html.f2c a.sec-btn:is(.rojo, .rojo-suave):hover { color: #A8361F; }
+html.f2c .anotar-impacto [data-preview]:not([style*="coral"]) { color: #1E1A15 !important; }
+html.f2c .anotar-impacto [data-preview][style*="coral"] { color: #A8361F !important; }
+@keyframes dlg2c-entra { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+@media (max-width: 720px) {
+  html.f2c .confirm-box { max-width: none; padding: 24px 20px calc(28px + env(safe-area-inset-bottom)); border-radius: 28px 28px 0 0; }
+}
+}
