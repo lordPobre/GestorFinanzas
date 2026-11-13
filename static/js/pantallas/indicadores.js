@@ -145,6 +145,7 @@
 
   function vista() {
     var m = meta();
+    if (estado.rango > 30 && series[m.id].length <= 31) estado.rango = 30;
     var s = series[m.id].slice(-estado.rango);
     estado.vals = s.map(function (x) { return x[1]; });
     estado.dias = s.map(function (x) { return x[0]; });
@@ -165,7 +166,9 @@
       t.el.setAttribute('aria-selected', on ? 'true' : 'false');
     });
     raiz.querySelectorAll('[data-ind-rango]').forEach(function (b) {
-      var on = +b.getAttribute('data-ind-rango') === estado.rango;
+      var dias = +b.getAttribute('data-ind-rango');
+      b.hidden = dias > 30 && series[m.id].length <= 31;
+      var on = dias === estado.rango;
       b.classList.toggle('on', on);
       b.setAttribute('aria-pressed', on ? 'true' : 'false');
     });

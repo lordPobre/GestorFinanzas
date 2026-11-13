@@ -1,43 +1,55 @@
 import json
+import logging
 import urllib.request
 from concurrent.futures import ThreadPoolExecutor
-from datetime import datetime, timedelta
+from datetime import date, timedelta
 
 from django.core.cache import cache
 from django.utils import timezone
 
 from .. import fechas
 
-FUENTE = 'https://mindicador.cl/api/{codigo}/{anio}'
+registro = logging.getLogger(__name__)
+
+RECIENTE = 'https://indicadores.cl/api/v1/{codigo}.json'
+HISTORICO = 'https://indicadores.cl/api/v1/historico/{codigo}/{anio}.json'
 CODIGOS = ('dolar', 'euro', 'uf', 'utm')
+CON_HISTORICO = ('dolar', 'uf')
 CLAVE = 'indicadores:hoy'
 CLAVE_RESPALDO = 'indicadores:ultimo'
 FRESCO = 60 * 60
-SIN_RED = 5 * 60
+SIN_RED = 60
 GUARDADO = 14 * 24 * 60 * 60
-ESPERA = 6
+ESPERA = 8
 DIAS = 365
+CABECERAS = {'User-Agent': 'Fintora/1.0 (+https://indicadores.cl/api/)', 'Accept': 'application/json'}
 
 
-def _pedir(codigo, anio):
-    pedido = urllib.request.Request(FUENTE.format(codigo=codigo, anio=anio),
-                                    headers={'User-Agent': 'Fintora/1.0', 'Accept': 'application/json'})
+def _dia(fila):
+    if fila.get('fecha'):
+        return date.fromisoformat(str(fila['fecha'])[:10])
+    anio, mes = str(fila['mes'])[:7].split('-')
+    return date(int(anio), int(mes), 1)
+
+
+def _pedir(url):
+    pedido = urllib.request.Request(url, headers=CABECERAS)
     with urllib.request.urlopen(pedido, timeout=ESPERA) as respuesta:
         datos = json.loads(respuesta.read().decode('utf-8'))
     salida = []
     for fila in datos.get('serie') or []:
         try:
-            dia = datetime.fromisoformat(str(fila['fecha']).replace('Z', '+00:00')).date()
-            salida.append((dia, float(fila['valor'])))
-        except (KeyError, TypeError, ValueError):
+            salida.append((_dia(fila), float(fila['valor'])))
+        except (AttributeError, KeyError, TypeError, ValueError):
             continue
     return salida
 
 
-def _seguro(par):
+def _seguro(url):
     try:
-        return _pedir(*par)
-    except (OSError, ValueError):
+        return _pedir(url)
+    except (OSError, ValueError) as error:
+        registro.warning('Indicadores: %s no respondió: %r', url, error)
         return None
 
 
@@ -55,25 +67,31 @@ def _diaria(puntos, hoy):
     return salida
 
 
+def _serie(codigo, hoy):
+    actual = _seguro(RECIENTE.format(codigo=codigo))
+    if not actual:
+        return []
+    anterior = []
+    if codigo in CON_HISTORICO:
+        anterior = _seguro(HISTORICO.format(codigo=codigo, anio=hoy.year - 1)) or []
+    return _diaria(anterior + actual, hoy)
+
+
 def datos():
     listo = cache.get(CLAVE)
     if listo is not None:
         return listo
     hoy = fechas.hoy()
-    pares = [(codigo, anio) for codigo in CODIGOS for anio in (hoy.year - 1, hoy.year)]
-    with ThreadPoolExecutor(max_workers=len(pares)) as hilos:
-        respuestas = dict(zip(pares, hilos.map(_seguro, pares), strict=True))
+    with ThreadPoolExecutor(max_workers=len(CODIGOS)) as hilos:
+        nuevas = dict(zip(CODIGOS, hilos.map(lambda c: _serie(c, hoy), CODIGOS), strict=True))
     viejo = (cache.get(CLAVE_RESPALDO) or {}).get('series') or {}
-    series = {}
-    for codigo in CODIGOS:
-        partes = [respuestas[(codigo, anio)] for anio in (hoy.year - 1, hoy.year)]
-        serie = _diaria([p for parte in partes if parte for p in parte], hoy) if partes[1] else []
-        series[codigo] = serie or viejo.get(codigo) or []
+    series = {c: nuevas[c] or viejo.get(c) or [] for c in CODIGOS}
     hay = any(series.values())
     nuevo = {'series': series, 'hay': hay, 'hora': timezone.localtime().strftime('%H:%M') if hay else ''}
     if hay:
         cache.set(CLAVE, nuevo, FRESCO)
         cache.set(CLAVE_RESPALDO, nuevo, GUARDADO)
     else:
+        registro.error('Indicadores: ninguna serie llegó desde indicadores.cl')
         cache.set(CLAVE, nuevo, SIN_RED)
     return nuevo

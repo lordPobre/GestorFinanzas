@@ -43,7 +43,7 @@
       </section>
     </div>
   </div>
-  <p class="ind2c-fuente">Datos del Banco Central y el SII, a través de mindicador.cl.</p>
+  <p class="ind2c-fuente">Valores oficiales del Banco Central y el SII. Datos: <a href="https://indicadores.cl/api/" target="_blank" rel="noopener">indicadores.cl</a></p>
   {{ indicadores.series|json_script:"datosIndicadores" }}
   <script type="module" src="{% static 'js/pantallas/indicadores.js' %}" nonce="{{ csp_nonce }}"></script>
   {% else %}
