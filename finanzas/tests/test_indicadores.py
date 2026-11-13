@@ -67,7 +67,7 @@ class IndicadoresTests(TestCase):
             d = indicadores.datos()
         self.assertFalse(d['hay'])
 
-     test_lee_dias_y_meses_de_la_fuente(self, _hoy):
+    def test_lee_dias_y_meses_de_la_fuente(self, _hoy):
         dias = _respuesta({'serie': [{'fecha': '2026-11-12', 'valor': 41316.06}]})
         meses = _respuesta({'serie': [{'mes': '2026-11', 'valor': 72440}]})
         with mock.patch.object(indicadores.urllib.request, 'urlopen', side_effect=[dias, meses]):
