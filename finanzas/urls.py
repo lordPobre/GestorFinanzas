@@ -14,7 +14,7 @@ from .views import telegram as vistas_telegram
 from .views import clave_api as vistas_clave
 from .views import diseno as vistas_diseno
 from .views import (actividad, analisis, cartola, categorias, cuenta, cuotas, descargas, encuesta,
-                    estadisticas, landing, metas, movimientos, passkeys, plan, por_pagar,
+                    estadisticas, indicadores, landing, metas, movimientos, passkeys, plan, por_pagar,
                     prestamos, repetidos, sistema, suscripciones)
 
 
@@ -69,6 +69,7 @@ urlpatterns = [
     path('movimientos/borrar-mes/', movimientos.borrar_gastos_mes, name='borrar_gastos_mes'),
     path('movimientos/borrar-mes/deshacer/', movimientos.deshacer_borrar_mes, name='deshacer_borrar_mes'),
 
+    path('indicadores/', indicadores.indicadores, name='indicadores'),
     path('metas/', metas.metas, name='metas'),
     path('metas/nueva/', metas.crear_meta, name='crear_meta'),
     path('metas/<int:meta_id>/aportar/', metas.aportar_meta, name='aportar_meta'),

@@ -1,0 +1,57 @@
+{% extends 'finanzas/base_2c.html' %}
+{% load static %}
+{% block title %}Indicadores · Fintora{% endblock %}
+{% block extra_head %}<link rel="stylesheet" href="{% static 'css/indicadores-2c.css' %}">{% endblock %}
+
+{% block content %}
+<div class="ind2c" data-indicadores>
+  <div class="ind2c-top">
+    <a href="{% url 'perfil' %}" class="ind2c-volver" aria-label="Volver"><i class="fas fa-chevron-left"></i></a>
+    <div class="ind2c-cab">
+      <h1 class="ind2c-titulo">Indicadores</h1>
+      {% if indicadores.hay %}<span class="ind2c-hora"><span class="ind2c-punto" aria-hidden="true"></span>Actualizado hoy a las {{ indicadores.hora }} · se revisa cada hora</span>{% endif %}
+    </div>
+  </div>
+  {% if indicadores.hay %}
+  <div class="ind2c-grid">
+    <div class="ind2c-lista" role="tablist" aria-label="Indicador" data-ind-lista></div>
+    <div class="ind2c-col">
+      <section class="ind2c-hoja" data-ind-hoja>
+        <div class="ind2c-hoja-top">
+          <div class="ind2c-cifra" aria-live="polite">
+            <span class="ind2c-largo" data-ind-largo></span>
+            <b class="ind2c-valor" data-ind-valor></b>
+            <span class="ind2c-sub"><b data-ind-cambio></b> · <span data-ind-fecha>Hoy</span></span>
+          </div>
+          <div class="ind2c-rangos" role="group" aria-label="Rango">
+            <button type="button" data-ind-rango="7" aria-pressed="false">7 días</button>
+            <button type="button" data-ind-rango="30" aria-pressed="true" class="on">30 días</button>
+            <button type="button" data-ind-rango="365" aria-pressed="false">1 año</button>
+          </div>
+        </div>
+        <div class="ind2c-grafico" tabindex="0" role="group" aria-label="Gráfico. Usa las flechas para recorrer los días." data-ind-grafico></div>
+        <div class="ind2c-eje"><span data-ind-desde></span><span>Hoy</span></div>
+        <p class="ind2c-uso" data-ind-uso></p>
+      </section>
+      <section class="ind2c-hoja">
+        <b class="ind2c-conv-titulo">Convertir</b>
+        <div class="ind2c-conv-fila">
+          <label class="ind2c-caja"><span data-ind-de></span><input type="text" inputmode="decimal" autocomplete="off" value="1" data-ind-monto></label>
+          <button type="button" class="ind2c-girar" data-ind-girar aria-label="Convertir al revés"><i class="fas fa-arrow-right-arrow-left"></i></button>
+          <div class="ind2c-caja verde" aria-live="polite"><span data-ind-a></span><b data-ind-resultado></b></div>
+        </div>
+      </section>
+    </div>
+  </div>
+  <p class="ind2c-fuente">Datos del Banco Central y el SII, a través de mindicador.cl.</p>
+  {{ indicadores.series|json_script:"datosIndicadores" }}
+  <script type="module" src="{% static 'js/pantallas/indicadores.js' %}" nonce="{{ csp_nonce }}"></script>
+  {% else %}
+  <div class="ind2c-vacio">
+    <span class="ind2c-vacio-icono" aria-hidden="true"><i class="fas fa-chart-line"></i></span>
+    <b>No pudimos traer los indicadores</b>
+    <span>La fuente no respondió. Prueba de nuevo en unos minutos.</span>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

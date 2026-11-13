@@ -47,6 +47,7 @@
       {% endwith %}{% endwith %}
       <div class="f2c-lista tu2c-herramientas">
         <a href="{% url 'categorias' %}" class="f2c-fila"><span class="f2c-ficha verde"><i class="fas fa-tags"></i></span><span class="f2c-txt"><b>Categorías y topes</b><small class="tu2c-desc">Ordena en qué se va y ponle un límite a cada una</small></span><i class="fas fa-chevron-right f2c-flecha"></i></a>
+        <a href="{% url 'indicadores' %}" class="f2c-fila"><span class="f2c-ficha"><i class="fas fa-chart-line"></i></span><span class="f2c-txt"><b>Indicadores</b><small class="tu2c-desc">Dólar, euro, UF y UTM de hoy, con su historia y un conversor</small></span><i class="fas fa-chevron-right f2c-flecha"></i></a>
         <a href="{% url 'importar_cartola' %}" class="f2c-fila"><span class="f2c-ficha azul"><i class="fas fa-file-import"></i></span><span class="f2c-txt"><b>Importar cartola</b><small class="tu2c-desc">Sube el PDF del banco y saca los movimientos solos</small></span><i class="fas fa-chevron-right f2c-flecha"></i></a>
         {% with clave=user.clave_api %}
         <a href="{% url 'clave_api' %}" class="f2c-fila"><span class="f2c-ficha ambar"><i class="fab fa-telegram"></i></span><span class="f2c-txt"><b>Anotar desde Telegram</b><small class="tu2c-desc">Escribe o graba un audio y queda anotado</small></span>{% if clave %}<span class="tu2c-estado">Clave activa</span>{% endif %}<i class="fas fa-chevron-right f2c-flecha"></i></a>
