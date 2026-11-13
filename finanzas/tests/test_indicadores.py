@@ -67,12 +67,14 @@ class IndicadoresTests(TestCase):
             d = indicadores.datos()
         self.assertFalse(d['hay'])
 
-    def test_lee_dias_y_meses_de_la_fuente(self, _hoy):
+     test_lee_dias_y_meses_de_la_fuente(self, _hoy):
         dias = _respuesta({'serie': [{'fecha': '2026-11-12', 'valor': 41316.06}]})
         meses = _respuesta({'serie': [{'mes': '2026-11', 'valor': 72440}]})
         with mock.patch.object(indicadores.urllib.request, 'urlopen', side_effect=[dias, meses]):
-            self.assertEqual(indicadores._pedir('uf'), [(date(2026, 11, 12), 41316.06)])
-            self.assertEqual(indicadores._pedir('utm'), [(date(2026, 11, 1), 72440.0)])
+            uf = indicadores._pedir(indicadores.RECIENTE.format(codigo='uf'))
+            utm = indicadores._pedir(indicadores.RECIENTE.format(codigo='utm'))
+        self.assertEqual(uf, [(date(2026, 11, 12), 41316.06)])
+        self.assertEqual(utm, [(date(2026, 11, 1), 72440.0)])
 
 
 class VistaIndicadoresTests(TestCase):
