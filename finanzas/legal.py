@@ -1,7 +1,7 @@
 from django.shortcuts import render
 
-VERSION = '1.9'
-VIGENTE_DESDE = '9 de noviembre de 2026'
+VERSION = '1.10'
+VIGENTE_DESDE = '14 de noviembre de 2026'
 
 RESPONSABLE = 'Carlos López Figueroa, Valparaíso, Chile'
 CORREO_CONTACTO = 'soporte@perseustechnology.dev'
@@ -13,20 +13,15 @@ INFORME_OBSERVATORY = f'https://developer.mozilla.org/es/observatory/analyze?hos
 INFORME_INTERNET_NL = f'https://internet.nl/site/{DOMINIO}/'
 
 CAMBIOS = (
-    ('Preguntas a la esfera',
-     'Si tienes el análisis con IA activado, puedes preguntarle a la esfera cosas como si te alcanza '
-     'para una compra. Tu pregunta y los totales que hacen falta para responderla se envían a '
-     'Anthropic. Los nombres de tus deudas, metas y de las personas salen como alias y se agregan '
-     'a la respuesta en el servidor. La respuesta se lee con la voz de la esfera.'),
-    ('Movimientos repetidos con IA',
-     'Si tienes el análisis con IA activado, cuando dos movimientos tienen el mismo monto y '
-     'fechas cercanas pero no está claro si son el mismo, se envían a Anthropic las fechas, el '
-     'monto, la categoría y las descripciones de ese par para que lo revise. No se envía nada '
-     'más de tu cuenta, y nada se borra sin que lo confirmes.'),
-    ('Lectura de cartolas con IA',
-     'Al importar una cartola, su contenido se envía a Anthropic para leer los movimientos, con tu '
-     'RUT, nombre, correo, teléfono, dirección y números de cuenta y tarjeta tapados. En las fotos '
-     'y los PDF escaneados se envía la imagen completa. El archivo no se guarda.'),
+    ('Anotar desde Telegram',
+     'Si conectas el bot de Telegram, lo que le escribes o le grabas pasa por los servidores de '
+     'Telegram, igual que sus respuestas. Fintora guarda el número del chat, tu nombre en Telegram, '
+     'cuándo lo conectaste y la última vez que lo usaste. Los audios se pasan a texto con ElevenLabs '
+     'y no se guardan.'),
+    ('Frases que no se entienden solas',
+     'Si tienes el análisis con IA activado y lo que anotas desde Telegram o con tu clave personal no '
+     'se entiende en el servidor, esa frase se envía a Anthropic para leer el monto, la categoría y la '
+     'fecha. No se envía nada más de tu cuenta.'),
 )
 
 MESES_INACTIVIDAD = 12

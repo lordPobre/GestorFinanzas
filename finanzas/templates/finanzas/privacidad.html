@@ -51,6 +51,8 @@
     escribas, con los montos y abonos.</li>
   <li>Los movimientos que confirmes al importar una cartola bancaria.</li>
   <li>Tus respuestas a la encuesta de satisfacción, si decides responderla.</li>
+  <li>Si conectas Telegram: el número del chat, tu nombre en Telegram, la fecha
+    en que lo conectaste y la última vez que lo usaste.</li>
 </ul>
 
 <h3>Los que escribes en el chat de ayuda</h3>
@@ -289,6 +291,21 @@
   muestran montos. En lo que debes, el aviso puede decir el nombre de la
   persona.
 </p>
+<h3>Anotar desde Telegram</h3>
+<p>
+  Si conectas el bot en <em>Perfil → Anotar desde Telegram</em>, lo que le
+  escribes o le grabas pasa por los servidores de Telegram antes de llegar a
+  Fintora, y sus respuestas también. Telegram trata esos mensajes según su
+  propia política. Para cortarlo, toca <em>Desconectar</em> en Perfil o escribe
+  /desconectar en el bot.
+</p>
+<p>
+  El servidor intenta entender la frase solo. Si no puede y tienes el análisis
+  con IA activado, envía a la API de Anthropic únicamente esa frase para leer el
+  monto, la categoría y la fecha. Lo mismo pasa con lo que anotas usando tu
+  clave personal. Los audios se pasan a texto con ElevenLabs, solo con el
+  análisis con IA activado; el servidor los lee en memoria y no los guarda.
+</p>
 </section>
 
 <section id="chat">
@@ -366,11 +383,15 @@
   </div>
   <div class="legal-proveedor">
     <div class="legal-proveedor-cabeza"><b>Anthropic</b><span class="legal-pais"><i class="fas fa-location-dot"></i>Estados Unidos</span></div>
-    <p>Los agregados numéricos del análisis, los montos del plan para tu plata y las fechas, montos, categorías y descripciones de los pares de movimientos que parecen repetidos, si tienes el análisis con IA activado, el texto de lo que escribas en el chat de ayuda y las preguntas que le hagas a la esfera, con los totales que hacen falta para responderlas, y el contenido de las cartolas que importas, con tus datos personales tapados salvo en fotos y escaneos</p>
+    <p>Los agregados numéricos del análisis, los montos del plan para tu plata y las fechas, montos, categorías y descripciones de los pares de movimientos que parecen repetidos, si tienes el análisis con IA activado, el texto de lo que escribas en el chat de ayuda y las preguntas que le hagas a la esfera, con los totales que hacen falta para responderlas, el contenido de las cartolas que importas, con tus datos personales tapados salvo en fotos y escaneos, y la frase que anotas desde Telegram o con tu clave personal cuando el servidor no la entiende sola</p>
   </div>
   <div class="legal-proveedor">
     <div class="legal-proveedor-cabeza"><b>ElevenLabs</b><span class="legal-pais"><i class="fas fa-location-dot"></i>Estados Unidos</span></div>
-    <p>El texto que la esfera lee en voz alta, con montos, los nombres de quienes te deben, el nombre del saludo y las respuestas a tus preguntas, y la grabación de las preguntas que hagas con la voz, si tienes el análisis con IA activado</p>
+    <p>El texto que la esfera lee en voz alta, con montos, los nombres de quienes te deben, el nombre del saludo y las respuestas a tus preguntas, y la grabación de las preguntas que hagas con la voz y de los audios que le mandes al bot de Telegram, si tienes el análisis con IA activado</p>
+  </div>
+  <div class="legal-proveedor">
+    <div class="legal-proveedor-cabeza"><b>Telegram</b><span class="legal-pais"><i class="fas fa-location-dot"></i>Internacional</span></div>
+    <p>Lo que le escribes o le grabas al bot y lo que te responde, solo si conectas Telegram</p>
   </div>
   <div class="legal-proveedor">
     <div class="legal-proveedor-cabeza"><b>Google</b><span class="legal-pais"><i class="fas fa-location-dot"></i>Estados Unidos</span></div>
@@ -415,6 +436,8 @@
   <tr><td>Conversación del chat de ayuda</td><td>No se guarda en el servidor</td></tr>
   <tr><td>Contador de preguntas del chat por dirección IP</td><td>Hasta 1 día</td></tr>
   <tr><td>Audio de la voz de la esfera</td><td>6 horas</td></tr>
+  <tr><td>Conexión con Telegram (número del chat y nombre)</td><td>Hasta que la desconectas o eliminas la cuenta</td></tr>
+  <tr><td>Audio que le mandas al bot de Telegram</td><td>No se guarda</td></tr>
   <tr><td>Aparatos desde los que entraste</td><td>Mientras la cuenta exista</td></tr>
   <tr><td>Dirección para los recordatorios en el teléfono</td><td>Hasta que los apagas o el navegador la da de baja</td></tr>
   <tr><td>Correo y pregunta del formulario del chat</td><td>En el buzón de {{ correo_contacto }} hasta que se responda y se cierre la consulta</td></tr>
@@ -425,7 +448,8 @@
 <p>
   Cuando eliminas tu cuenta, el borrado es inmediato: movimientos, cuotas,
   personas, préstamos, metas, suscripciones, categorías propias, presupuesto,
-  foto, verificación en dos pasos, Face ID o huella y respuestas a la encuesta.
+  foto, verificación en dos pasos, Face ID o huella, conexión con Telegram y
+  respuestas a la encuesta.
   No hay período de gracia ni forma de recuperarla desde la app.
 </p>
 <p>Quedan dos cosas, por un tiempo limitado y por seguridad:</p>
