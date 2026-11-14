@@ -106,7 +106,7 @@ class VistasTests(TestCase):
     def test_la_pantalla_carga_sin_datos(self):
         r = self.client.get(reverse('plan_plata'))
         self.assertEqual(r.status_code, 200)
-        self.assertContains(r, 'Plan para tu plata')
+        self.assertContains(r, 'Tu plan')
 
     def test_sin_sesion_manda_al_acceso(self):
         self.client.logout()

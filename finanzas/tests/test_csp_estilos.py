@@ -129,8 +129,7 @@ class CuotasPrestamosSuscripcionesYMetasTests(BaseDosUsuarios):
         persona = self.client.get(reverse('detalle_persona', args=[self.de_ana['persona'].pk]))
         self.assertContains(persona, 'data-ancho-pct="')
         metas = self.client.get(reverse('metas'))
-        self.assertContains(metas, 'data-pct-var="0"')
-        self.assertContains(metas, 'data-color-var="#')
+        self.assertContains(metas, 'data-ancho-pct="0"')
 
 
 @mock.patch.dict(os.environ, SIN_MEDICION)

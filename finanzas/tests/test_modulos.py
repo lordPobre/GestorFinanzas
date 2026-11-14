@@ -10,12 +10,13 @@ JS = RAIZ / 'static' / 'js'
 ETIQUETA = re.compile(r"<script([^>]*?)\ssrc=\"\{% static 'js/([\w/-]+)\.js' %\}\"([^>]*)>")
 CLASICOS = {'pantallas/modales-temprano', 'pantallas/registro-sw', 'pantallas/barra-estado', 'pantallas/saludo-hora', 'pantallas/android-app'}
 AL_USAR = ('pantallas/anotar', 'pantallas/anotar-tope', 'pantallas/panel-anotar', 'tour')
+BASES = ('base.html', 'base_2c.html')
 
 
 def etiquetas():
     for plantilla in sorted(PLANTILLAS.glob('*.html')):
         texto = plantilla.read_text(encoding='utf-8')
-        if plantilla.name != 'base.html' and "{% extends 'finanzas/base.html' %}" not in texto:
+        if plantilla.name not in BASES and not any(f"{{% extends 'finanzas/{b}' %}}" in texto for b in BASES):
             continue
         for m in ETIQUETA.finditer(texto):
             yield plantilla.name, m.group(2), m.group(1) + m.group(3)

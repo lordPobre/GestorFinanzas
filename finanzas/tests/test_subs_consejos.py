@@ -24,4 +24,6 @@ class ConsejosSuscripcionesTests(TestCase):
         self.assertIn('data-consejos', cuerpo)
         self.assertIn('No son lo mismo', cuerpo)
         self.assertNotIn('su-consejo-fila', cuerpo)
-        self.assertLess(cuerpo.index('data-consejos'), cuerpo.index('data-esfera-hoja'))
+        lista = cuerpo[cuerpo.index('class="p2c-grupo"'):]
+        self.assertNotIn('data-consejos', lista[:lista.index('</section>')])
+        self.assertLess(cuerpo.index('class="p2c-col s2c-lado"'), cuerpo.index('data-consejos'))

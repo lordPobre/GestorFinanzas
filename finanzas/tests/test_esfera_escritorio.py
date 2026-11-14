@@ -27,7 +27,7 @@ class EsferaEnEscritorioTests(TestCase):
                                    categoria='Comida', fecha=fecha)
 
     def _estado_del_menu(self, html):
-        inicio = html.index('class="sidebar-foot health"')
+        inicio = html.index('class="f2c-salud"')
         trozo = html[inicio:html.index('>', inicio)]
         return trozo.split('data-estado="')[1].split('"')[0]
 
@@ -39,9 +39,9 @@ class EsferaEnEscritorioTests(TestCase):
         self.assertEqual(self._estado_del_menu(actual), 'verde')
         self.assertEqual(self._estado_del_menu(pasado), 'rojo')
 
-    def test_las_otras_pantallas_muestran_el_mes_actual(self):
+    def test_las_pantallas_sin_esfera_muestran_el_mes_actual(self):
         self._mes(self.hoy.replace(day=1), '1000000', '900000')
-        html = self.client.get(reverse('metas')).content.decode()
+        html = self.client.get(reverse('estadisticas')).content.decode()
         self.assertEqual(self._estado_del_menu(html), 'amarillo')
 
     def test_la_base_carga_la_voz_de_escritorio(self):

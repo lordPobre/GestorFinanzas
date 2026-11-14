@@ -121,6 +121,6 @@ class TelegramTests(TestCase):
         self.assertContains(self.client.get(reverse('clave_api')), 'https://t.me/FintoraBot?start=')
         self._conectar()
         r = self.client.get(reverse('clave_api'))
-        self.assertContains(r, 'Telegram conectado')
+        self.assertContains(r, 'Conectado como Ana')
         self.client.post(reverse('clave_api'), {'accion': 'telegram_quitar'})
         self.assertFalse(ChatTelegram.objects.exists())

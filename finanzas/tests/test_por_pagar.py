@@ -63,19 +63,15 @@ class PorPagarTests(TestCase):
 
     def test_la_barra_inferior_lleva_a_por_pagar(self):
         html = self.client.get(reverse('metas')).content.decode()
-        barra = html[html.index('class="bottomnav"'):]
+        barra = html[html.index('class="bottomnav barra-2c"'):]
         barra = barra[:barra.index('</nav>')]
-        orden = [barra.index(f'href="{reverse(n)}"') for n in ('dashboard', 'por_pagar', 'deudas')]
+        orden = [barra.index(f'href="{reverse(n)}"') for n in ('dashboard', 'por_pagar')]
+        orden.append(barra.index('data-label="Anotar"'))
+        orden += [barra.index(f'href="{reverse(n)}"') for n in ('metas', 'perfil')]
         self.assertEqual(orden, sorted(orden))
-        self.assertLess(orden[-1], barra.index('data-open="#modalMas"'))
-        self.assertNotIn(f'href="{reverse("prestamos")}"', barra)
-
-    def test_prestamos_queda_dentro_de_mas(self):
-        html = self.client.get(reverse('metas')).content.decode()
-        hoja = html[html.index('id="modalMas"'):]
-        hoja = hoja[:hoja.index('class="modal-overlay', 1)] if 'class="modal-overlay' in hoja[1:] else hoja
-        self.assertIn(f'href="{reverse("prestamos")}"', hoja)
-        self.assertIn('<span>Préstamos</span>', hoja)
+        for nombre in ('deudas', 'prestamos'):
+            self.assertNotIn(f'href="{reverse(nombre)}"', barra)
+        self.assertNotIn('data-open="#modalMas"', barra)
 
     def test_no_muestra_lo_de_otra_persona(self):
         bruno = User.objects.create_user('bruno', 'bruno@ejemplo.cl', 'clave-larga-2')

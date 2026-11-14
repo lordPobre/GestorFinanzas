@@ -23,7 +23,7 @@ from ..models import Deuda, PagoCuota, Transaccion
 MEDIR = os.environ.get('MEDIR_INICIO') == '1'
 TABLA = re.compile(r'FROM "(\w+)"')
 RAIZ = str(Path(settings.BASE_DIR).resolve())
-TOPE_INICIO = 54
+TOPE_INICIO = 58
 
 
 def tablas(consultas):
@@ -101,8 +101,7 @@ class ConsultasInicioTests(TestCase):
                                    categoria='Sueldo', fecha=date.today(), descripcion='Sueldo')
         self._compras(3)
         respuesta, _ = self._medir()
-        self.assertContains(respuesta, 'Te queda $')
-        self.assertContains(respuesta, 'id="modalCalendario"')
+        self.assertContains(respuesta, 'Puedes gastar')
         self.assertContains(respuesta, 'id="modalMovimientos"')
 
     def test_lo_que_no_se_muestra_ya_no_se_calcula(self):

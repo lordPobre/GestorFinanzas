@@ -36,7 +36,6 @@ class AlEntrarTests(TestCase):
     def test_solo_la_primera_visita_trae_el_saludo(self):
         self._entrar()
         primera = self.client.get(reverse('dashboard'))
-        self.assertContains(primera, 'data-bienvenida=')
-        self.assertContains(primera, 'data-esfera-hola')
+        self.assertIn('bienvenida', primera.context)
         segunda = self.client.get(reverse('dashboard'))
-        self.assertNotContains(segunda, 'data-bienvenida=')
+        self.assertNotIn('bienvenida', segunda.context)

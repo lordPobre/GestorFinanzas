@@ -33,9 +33,9 @@ class PantallaPreguntasTests(TestCase):
         self.assertNotContains(r, 'data-charla-abrir')
         self.assertNotContains(r, 'data-charla ')
 
-    def test_la_esfera_del_panel_no_repite_el_nombre_de_transicion(self):
+    def test_inicio_trae_una_sola_esfera(self):
         r = self.client.get(reverse('dashboard'))
-        self.assertEqual(r.content.decode().count('ini-esfera-bola'), 1)
+        self.assertEqual(r.content.decode().count('class="i2c-esfera"'), 1)
 
     def test_las_otras_pantallas_con_esfera_traen_el_panel(self):
         for nombre in ('deudas', 'metas', 'prestamos', 'suscripciones'):

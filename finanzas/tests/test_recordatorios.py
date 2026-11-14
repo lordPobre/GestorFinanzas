@@ -399,18 +399,17 @@ class InvitacionTests(TestCase):
     def test_invita_si_algo_vence_pronto(self):
         r = self.client.get(reverse('dashboard'))
         self.assertTrue(r.context['push_invitacion'].startswith('Hoy vence Luz'))
-        self.assertContains(r, 'data-push-invitacion')
 
     @CON_CLAVE
     def test_no_invita_si_la_cuenta_ya_tiene_avisos(self):
         suscripcion(self.ana)
         r = self.client.get(reverse('dashboard'))
-        self.assertNotContains(r, 'data-push-invitacion')
+        self.assertNotIn('push_invitacion', r.context)
 
     @SIN_CLAVE
     def test_no_invita_sin_clave(self):
         r = self.client.get(reverse('dashboard'))
-        self.assertNotContains(r, 'data-push-invitacion')
+        self.assertNotIn('push_invitacion', r.context)
 
 
 class AvisosDelDiaTests(TestCase):

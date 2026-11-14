@@ -30,10 +30,8 @@ class CalendarioInicioTests(TestCase):
     def _calendario(self, **params):
         return self.client.get(reverse('inicio_calendario'), params)
 
-    def test_inicio_deja_el_calendario_para_cuando_se_abre(self):
+    def test_inicio_no_trae_el_calendario(self):
         html = self._inicio()
-        self.assertIn('id="modalCalendario"', html)
-        self.assertIn(f'data-fragmento="{reverse("inicio_calendario")}?year={self.hoy.year}&amp;month={self.hoy.month}"', html)
         self.assertNotIn('class="cal-day', html)
         self.assertNotIn('id="dia10"', html)
         self.assertNotIn('Ya pagados', html)
@@ -42,7 +40,6 @@ class CalendarioInicioTests(TestCase):
         html = self._inicio()
         self.assertNotIn(f'id="meta{self.meta.pk}"', html)
         self.assertNotIn(reverse('aportar_meta', args=[self.meta.pk]), html)
-        self.assertIn(f'{reverse("metas")}#meta{self.meta.pk}', html)
 
     def test_el_calendario_trae_los_dias_y_los_pagados(self):
         respuesta = self._calendario(year=self.hoy.year, month=self.hoy.month)

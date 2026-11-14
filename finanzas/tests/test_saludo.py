@@ -16,8 +16,8 @@ class SaludoTests(TestCase):
     def test_inicio_no_lleva_la_tarjeta_del_saludo(self):
         html = self._html('dashboard')
         self.assertNotIn('class="saludo-card"', html)
-        self.assertIn('class="topbar-campana"', html)
-        self.assertIn('class="ini-top-campana"', html)
+        self.assertIn('class="f2c-campana"', html)
+        self.assertIn('class="i2c-campana"', html)
 
     def test_las_pantallas_con_titulo_no_la_llevan(self):
         for nombre in ('metas', 'perfil', 'deudas', 'por_pagar'):

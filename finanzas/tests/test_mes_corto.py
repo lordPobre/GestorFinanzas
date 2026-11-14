@@ -20,5 +20,7 @@ class MesEnElTituloTests(TestCase):
         self.client.force_login(self.ana)
         for nombre in ('categorias', 'estadisticas'):
             html = self.client.get(reverse(nombre)).content.decode()
-            cabeza = html[html.index('class="sec-top"'):html.index('</div>', html.index('class="mes-tel"'))]
-            self.assertIn('class="mes-tel"', cabeza, nombre)
+            inicio = html.index('class="p2c-top')
+            cabeza = html[inicio:html.index('class="mes-tel"', inicio)]
+            self.assertIn('class="f2c-titulo-tel"', cabeza, nombre)
+            self.assertNotIn('</div>', cabeza, nombre)
