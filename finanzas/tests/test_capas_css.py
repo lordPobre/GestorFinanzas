@@ -12,11 +12,12 @@ FUERA_DE_APP = ('capas.css', 'errores.css')
 ANTES_QUE_CAPAS = ('consentimiento.css',)
 HOJA = re.compile(r'<link rel="stylesheet" href="\{% static \'([^\']+)\' %\}">')
 CON_CAPAS = (
-    'finanzas/base.html',
-    'registration/auth_base.html',
-    'finanzas/landing.html',
-    'finanzas/legal_base.html',
-    'finanzas/onboarding.html',
+    'finanzas/base_2c.html',
+    'registration/auth_base_2c.html',
+    'registration/login_2c.html',
+    'finanzas/landing_2c.html',
+    'finanzas/legal_base_2c.html',
+    'finanzas/onboarding_2c.html',
 )
 DE_TERCEROS = ('vendor/fonts/fuentes.css', 'vendor/fontawesome/css/all.min.css')
 

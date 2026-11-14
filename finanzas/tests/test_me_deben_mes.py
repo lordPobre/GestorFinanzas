@@ -114,12 +114,6 @@ class PantallaTests(Base):
         self.prestamo('Claude', 'Notebook', '300000', date.today(), cuotas=3)
         self.client.force_login(self.ana)
 
-    def test_me_deben_trae_la_seccion_mes_a_mes(self):
-        respuesta = self.client.get(reverse('prestamos'))
-        self.assertContains(respuesta, 'id="datosPorMes"')
-        self.assertContains(respuesta, 'js/pantallas/me-deben-mes.js')
-        self.assertContains(respuesta, 'css/me-deben-mes.css')
-
     def test_debo_no_la_trae(self):
         self.prestamo('Banco', 'Préstamo', '100000', date.today(), lado='LE_DEBO')
         respuesta = self.client.get(reverse('prestamos') + '?lado=debo')

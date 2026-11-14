@@ -2,7 +2,6 @@ from django.contrib.auth.models import User
 from django.test import TestCase
 from django.urls import reverse
 
-from finanzas import diseno
 
 PLANTILLAS = {
     'prestamos': 'finanzas/prestamos_2c.html',
@@ -23,21 +22,13 @@ class Secciones2cTests(TestCase):
         self.client.force_login(self.ana)
 
     def test_prestamos_va_dentro_de_las_pestanas_de_pagos(self):
-        self.client.cookies[diseno.COOKIE] = diseno.VALOR
         respuesta = self.client.get(reverse('prestamos'))
         self.assertContains(respuesta, 'aria-current="page">Préstamos</a>')
         self.assertContains(respuesta, 'css/pagos-2c.css')
         self.assertContains(respuesta, 'id="modalPersona"')
         self.assertContains(respuesta, 'id="segTipoPersona"')
 
-    def test_prestamos_sin_la_cookie_no_cambia(self):
-        respuesta = self.client.get(reverse('prestamos'))
-        self.assertNotContains(respuesta, 'p2c-pestanas')
-        self.assertNotContains(respuesta, 'css/pagos-2c.css')
-        self.assertTemplateUsed(respuesta, 'finanzas/prestamos.html')
-
     def test_plan_y_tu_tienen_su_plantilla_2c(self):
-        self.client.cookies[diseno.COOKIE] = diseno.VALOR
         for nombre, plantilla in PLANTILLAS.items():
             with self.subTest(pantalla=nombre):
                 respuesta = self.client.get(reverse(nombre), follow=True)
@@ -47,10 +38,3 @@ class Secciones2cTests(TestCase):
                 self.assertContains(respuesta, '<html lang="es" class="t2c f2c">')
                 self.assertContains(respuesta, 'css/secciones-2c.css')
                 self.assertNotContains(respuesta, 'css/finapp.css')
-
-    def test_sin_la_cookie_siguen_las_plantillas_de_siempre(self):
-        for nombre, plantilla in PLANTILLAS.items():
-            with self.subTest(pantalla=nombre):
-                respuesta = self.client.get(reverse(nombre), follow=True)
-                self.assertTemplateUsed(respuesta, plantilla.replace('_2c', ''))
-                self.assertTemplateNotUsed(respuesta, 'finanzas/base_2c.html')

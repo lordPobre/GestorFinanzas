@@ -6,7 +6,6 @@ from django.conf import settings
 from django.test import SimpleTestCase
 from django.urls import reverse
 
-from finanzas import diseno
 from finanzas.models import Transaccion
 from finanzas.servicios import vida_2c
 from finanzas.tests.test_vistas import BaseDosUsuarios
@@ -56,7 +55,6 @@ class Formularios2cTests(BaseDosUsuarios):
     def setUp(self):
         super().setUp()
         self.client.force_login(self.ana)
-        self.client.cookies[diseno.COOKIE] = diseno.VALOR
 
     def test_editar_movimiento_usa_la_hoja_de_editar_compra(self):
         gasto = Transaccion.objects.create(usuario=self.ana, tipo='EGRESO', monto=Decimal('1000'),
@@ -78,8 +76,3 @@ class Formularios2cTests(BaseDosUsuarios):
         self.assertIn('js/pantallas/editar-flotante.js', cuerpo)
         self.assertIn('data-js="editar-flotante"', cuerpo)
         self.assertIn('css/formularios-2c.css', cuerpo)
-
-    def test_sin_la_cookie_sigue_el_formulario_de_siempre(self):
-        del self.client.cookies[diseno.COOKIE]
-        respuesta = self.client.get(reverse('editar_suscripcion', args=[self.de_ana['sub'].pk]))
-        self.assertNotContains(respuesta, 'class="fo2c-hoja"')

@@ -8,7 +8,7 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
 from django.urls import reverse
 
-from .. import diseno, fechas
+from .. import fechas
 from ..dinero import redondear, suma
 from .. import encuesta as encuesta_mod
 from .. import legal, push
@@ -245,7 +245,5 @@ def dashboard(request):
     context['politica_vigente'] = legal.VIGENTE_DESDE
     context['politica_cambios'] = legal.CAMBIOS
     context['mostrar_encuesta'] = encuesta_mod.debe_mostrar(request)
-    if diseno.activo(request):
-        context.update(datos_inicio_2c(request.user, r, plata, proyecciones_deuda, pagos_mes))
-        return render(request, 'finanzas/dashboard_2c.html', context)
-    return render(request, 'finanzas/dashboard.html', context)
+    context.update(datos_inicio_2c(request.user, r, plata, proyecciones_deuda, pagos_mes))
+    return render(request, 'finanzas/dashboard_2c.html', context)

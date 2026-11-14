@@ -60,7 +60,7 @@ class EstilosEnLaPoliticaTests(TestCase):
     def test_la_portada_sin_sesion_tampoco_aplica_atributos_style(self):
         respuesta = self.client.get(reverse('dashboard'))
         self.assertEqual(_directivas(respuesta)['style-src-attr'], "style-src-attr 'none'")
-        self.assertContains(respuesta, 'css/portada.css')
+        self.assertContains(respuesta, 'css/landing-2c.css')
         self.assertIsNone(ATRIBUTO_STYLE.search(respuesta.content.decode('utf-8')))
 
     def test_la_bienvenida_y_la_encuesta_no_aplican_atributos_style(self):

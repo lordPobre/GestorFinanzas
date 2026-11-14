@@ -5,7 +5,6 @@ from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, render
 from django.utils import timezone
 
-from .. import diseno
 from ..dinero import suma
 from ..forms import DeudaForm
 from ..models import Deuda, PagoCuota, Transaccion
@@ -44,11 +43,9 @@ def deudas(request):
     context['esfera'] = esfera_cuotas(request.user, activas, simbolo_de(request.user))
     context.update(contadores(request.user))
     context['form'] = DeudaForm(usuario=request.user, opciones=context['cats_egreso'])
-    if diseno.activo(request):
-        context['mes_a_mes'] = mes_a_mes(request.user)
-        context['mes_elegido'] = next((f for f in context['mes_a_mes'] if f['es_mes_actual']), None)
-        return render(request, 'finanzas/deudas_2c.html', context)
-    return render(request, 'finanzas/deudas.html', context)
+    context['mes_a_mes'] = mes_a_mes(request.user)
+    context['mes_elegido'] = next((f for f in context['mes_a_mes'] if f['es_mes_actual']), None)
+    return render(request, 'finanzas/deudas_2c.html', context)
 
 @login_required(login_url='/login/')
 def pagar_cuota(request, deuda_id):

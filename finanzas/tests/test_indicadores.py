@@ -7,7 +7,6 @@ from django.core.cache import cache
 from django.test import TestCase
 from django.urls import reverse
 
-from finanzas import diseno
 from finanzas.servicios import indicadores
 
 
@@ -83,8 +82,7 @@ class VistaIndicadoresTests(TestCase):
         self.ana = User.objects.create_user('ana', 'ana@ejemplo.cl', 'clave-larga-1')
         self.client.force_login(self.ana)
 
-    def test_con_el_2c_muestra_la_pantalla_y_la_fuente(self):
-        self.client.cookies[diseno.COOKIE] = diseno.VALOR
+    def test_muestra_la_pantalla_y_la_fuente(self):
         with mock.patch.object(indicadores, '_pedir', side_effect=_falso):
             r = self.client.get(reverse('indicadores'))
         self.assertEqual(r.status_code, 200)
@@ -92,16 +90,10 @@ class VistaIndicadoresTests(TestCase):
         self.assertContains(r, 'https://indicadores.cl/api/')
 
     def test_sin_red_muestra_el_aviso(self):
-        self.client.cookies[diseno.COOKIE] = diseno.VALOR
         with mock.patch.object(indicadores, '_pedir', side_effect=OSError('sin red')):
             r = self.client.get(reverse('indicadores'))
         self.assertContains(r, 'No pudimos traer los indicadores')
 
-    def test_sin_el_2c_vuelve_a_tu(self):
-        r = self.client.get(reverse('indicadores'))
-        self.assertRedirects(r, reverse('perfil'), fetch_redirect_response=False)
-
     def test_tu_tiene_el_enlace(self):
-        self.client.cookies[diseno.COOKIE] = diseno.VALOR
         with mock.patch.object(indicadores, '_pedir', side_effect=_falso):
             self.assertContains(self.client.get(reverse('perfil')), reverse('indicadores'))

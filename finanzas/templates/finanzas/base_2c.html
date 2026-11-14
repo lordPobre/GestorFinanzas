@@ -1,4 +1,4 @@
-{% load static l10n moneda marketing esfera_salud menu diseno f2c %}{% diseno_2c as t2c %}<!DOCTYPE html>
+{% load static l10n moneda marketing esfera_salud menu f2c %}<!DOCTYPE html>
 <html lang="es" class="t2c f2c">
 <head>
   <meta charset="UTF-8">
@@ -103,19 +103,6 @@
 </div>
 
 {% menu 'barra' %}
-
-{% if not t2c %}<div class="fab-group">
-  {% block fab %}
-  <button class="fab fab-mini" data-open="#modalGasto" data-preset-tipo="INGRESO"
-          aria-label="Registrar un ingreso" title="Registrar un ingreso">
-    <i class="fas fa-arrow-down ico-13"></i>
-  </button>
-  <button class="fab" data-open="#modalGasto" data-preset-tipo="EGRESO"
-          data-tour="registrar" aria-label="Anotar" title="Anotar">
-    <i class="fas fa-plus ico-18"></i>
-  </button>
-  {% endblock %}
-</div>{% endif %}
 
 <div class="modal-overlay hoja-overlay" id="modalMas">
   <div class="modal-box hoja-box">

@@ -8,7 +8,6 @@ from django.core.cache import cache
 from django.test import SimpleTestCase, TestCase
 from django.urls import reverse
 
-from finanzas import diseno
 from finanzas.models import Transaccion
 
 SW = Path(settings.BASE_DIR) / 'static' / 'js' / 'sw.js'
@@ -20,7 +19,6 @@ class Repetidos2cTests(TestCase):
         cache.clear()
         self.ana = User.objects.create_user('ana', 'ana@ejemplo.cl', 'clave-larga-1')
         self.client.force_login(self.ana)
-        self.client.cookies[diseno.COOKIE] = diseno.VALOR
 
     def gasto(self, fecha, desc, monto='23450'):
         return Transaccion.objects.create(usuario=self.ana, tipo='EGRESO', monto=Decimal(monto),
@@ -43,13 +41,6 @@ class Repetidos2cTests(TestCase):
         r = self.client.get(reverse('movimientos_repetidos'))
         self.assertContains(r, 'No hay movimientos repetidos')
         self.assertNotContains(r, 'rp2c-resumen')
-
-    def test_sin_la_cookie_sigue_la_pantalla_de_siempre(self):
-        del self.client.cookies[diseno.COOKIE]
-        r = self.client.get(reverse('movimientos_repetidos'))
-        self.assertTemplateUsed(r, 'finanzas/repetidos.html')
-        self.assertTemplateNotUsed(r, 'finanzas/repetidos_2c.html')
-
 
 class SinConexion2cTests(SimpleTestCase):
 

@@ -1,10 +1,4 @@
-from contextvars import ContextVar
-
 from django.template.loaders import cached
-
-from . import diseno
-
-_activo = ContextVar('diseno_2c', default=False)
 
 PLANTILLAS = {
     'finanzas/base.html': 'finanzas/base_2c.html',
@@ -28,26 +22,10 @@ PLANTILLAS = {
 }
 
 
-def activo():
-    return _activo.get()
-
-
 def plantilla(nombre):
-    return PLANTILLAS.get(nombre, nombre) if _activo.get() else nombre
+    return PLANTILLAS.get(nombre, nombre)
 
 
 class Cargador(cached.Loader):
     def get_template(self, template_name, skip=None):
         return super().get_template(plantilla(template_name), skip)
-
-
-class Diseno2cMiddleware:
-    def __init__(self, get_response):
-        self.get_response = get_response
-
-    def __call__(self, request):
-        marca = _activo.set(diseno.activo(request))
-        try:
-            return self.get_response(request)
-        finally:
-            _activo.reset(marca)

@@ -3,7 +3,7 @@ from datetime import timedelta
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
 
-from .. import diseno, fechas
+from .. import fechas
 from ..dinero import suma
 from ..servicios.mes import nombre_mes_es, resumen_mes
 from ..servicios.mes_elegido import mes_pedido, selector_mes
@@ -88,9 +88,6 @@ def por_pagar(request):
         'mes_sel': selector_mes(request.user, year, month, hoy),
     }
     contexto.update(contadores(request.user))
-
-    if not diseno.activo(request):
-        return render(request, 'finanzas/por_pagar.html', contexto)
 
     arrastradas, arrastrado = _arrastradas(request.user, hoy) if es_actual else ([], 0)
     for f in contexto['filtros']:

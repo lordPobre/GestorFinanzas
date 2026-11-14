@@ -11,7 +11,7 @@ from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
-from .. import diseno, fechas
+from .. import fechas
 from ..dinero import suma
 from ..models import PagoServicio, SugerenciaDescartada, Suscripcion, Transaccion
 from ..servicios.detectar_suscripciones import sugerencias
@@ -77,9 +77,7 @@ def suscripciones(request):
     }
     context['esfera'] = esfera_suscripciones(request.user, activas, simbolo_de(request.user))
     context.update(contadores(request.user))
-    if diseno.activo(request):
-        return render(request, 'finanzas/suscripciones_2c.html', context)
-    return render(request, 'finanzas/suscripciones.html', context)
+    return render(request, 'finanzas/suscripciones_2c.html', context)
 
 @login_required(login_url='/login/')
 def crear_suscripcion(request):

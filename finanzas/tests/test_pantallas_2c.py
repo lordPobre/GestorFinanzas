@@ -7,23 +7,16 @@ from django.contrib.auth.models import User
 from django.test import SimpleTestCase, TestCase
 from django.urls import reverse
 
-from finanzas import diseno, plantillas_2c
+from finanzas import plantillas_2c
 from finanzas.templatetags import f2c
 
 
 class Cargador2cTests(SimpleTestCase):
-    def test_sin_el_2c_no_cambia_el_nombre(self):
-        self.assertEqual(plantillas_2c.plantilla('finanzas/metas.html'), 'finanzas/metas.html')
-
-    def test_con_el_2c_cambia_solo_las_que_tienen_version(self):
-        marca = plantillas_2c._activo.set(True)
-        try:
-            self.assertEqual(plantillas_2c.plantilla('finanzas/metas.html'), 'finanzas/metas_2c.html')
-            self.assertEqual(plantillas_2c.plantilla('finanzas/base.html'), 'finanzas/base_2c.html')
-            self.assertEqual(plantillas_2c.plantilla('registration/login.html'), 'registration/login_2c.html')
-            self.assertEqual(plantillas_2c.plantilla('finanzas/correo_pagos.html'), 'finanzas/correo_pagos.html')
-        finally:
-            plantillas_2c._activo.reset(marca)
+    def test_cambia_solo_las_que_tienen_version(self):
+        self.assertEqual(plantillas_2c.plantilla('finanzas/metas.html'), 'finanzas/metas_2c.html')
+        self.assertEqual(plantillas_2c.plantilla('finanzas/base.html'), 'finanzas/base_2c.html')
+        self.assertEqual(plantillas_2c.plantilla('registration/login.html'), 'registration/login_2c.html')
+        self.assertEqual(plantillas_2c.plantilla('finanzas/correo_pagos.html'), 'finanzas/correo_pagos.html')
 
     def test_cada_version_2c_existe(self):
         from django.template.loader import get_template
@@ -67,7 +60,6 @@ class Pantallas2cTests(TestCase):
     def setUp(self):
         self.ana = User.objects.create_user('ana', 'ana@ejemplo.cl', 'clave-larga-1')
         self.client.force_login(self.ana)
-        self.client.cookies[diseno.COOKIE] = diseno.VALOR
 
     def test_inicio_avisa_que_falta_el_ingreso_y_explica_como_sigue_tu_plata(self):
         response = self.client.get(reverse('dashboard'))

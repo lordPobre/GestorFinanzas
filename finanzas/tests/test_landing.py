@@ -15,7 +15,7 @@ class LandingTests(TestCase):
     def test_sin_sesion_se_ve_la_landing(self):
         respuesta = self.client.get(reverse('dashboard'))
         self.assertEqual(respuesta.status_code, 200)
-        self.assertTemplateUsed(respuesta, 'finanzas/landing.html')
+        self.assertTemplateUsed(respuesta, 'finanzas/landing_2c.html')
         self.assertContains(respuesta, reverse('registro'))
         self.assertContains(respuesta, reverse('login'))
 
@@ -24,7 +24,7 @@ class LandingTests(TestCase):
         self.client.force_login(ana)
         respuesta = self.client.get(reverse('dashboard'))
         self.assertEqual(respuesta.status_code, 200)
-        self.assertTemplateUsed(respuesta, 'finanzas/dashboard.html')
+        self.assertTemplateUsed(respuesta, 'finanzas/dashboard_2c.html')
 
     def test_la_app_instalada_sin_sesion_va_al_acceso(self):
         respuesta = self.client.get(reverse('dashboard') + '?fuente=pwa')

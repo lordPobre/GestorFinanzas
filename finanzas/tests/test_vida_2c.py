@@ -6,7 +6,6 @@ from django.contrib.auth.models import User
 from django.test import SimpleTestCase, TestCase
 from django.urls import reverse
 
-from finanzas import diseno
 from finanzas.servicios import vida_2c
 from finanzas.templatetags import f2c
 
@@ -67,7 +66,6 @@ class InicioVidaTests(TestCase):
     def setUp(self):
         self.ana = User.objects.create_user('ana', 'ana@ejemplo.cl', 'clave-larga-1')
         self.client.force_login(self.ana)
-        self.client.cookies[diseno.COOKIE] = diseno.VALOR
 
     def test_inicio_trae_el_saludo_y_el_mes_dia_a_dia(self):
         cuerpo = self.client.get(reverse('dashboard')).content.decode('utf-8')

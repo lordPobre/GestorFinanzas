@@ -2,7 +2,7 @@ from django.contrib.auth.models import User
 from django.test import TestCase
 from django.urls import reverse
 
-from finanzas import diseno, navegacion
+from finanzas import navegacion
 
 
 def _trozo(html, desde, hasta):
@@ -15,9 +15,7 @@ class Navegacion2cTests(TestCase):
         self.ana = User.objects.create_user('ana', 'ana@ejemplo.cl', 'clave-larga-1')
         self.client.force_login(self.ana)
 
-    def _html(self, nombre, con_2c=True):
-        if con_2c:
-            self.client.cookies[diseno.COOKIE] = diseno.VALOR
+    def _html(self, nombre):
         return self.client.get(reverse(nombre), follow=True).content.decode('utf-8')
 
     def test_la_barra_lateral_tiene_las_cuatro_secciones(self):
@@ -43,20 +41,13 @@ class Navegacion2cTests(TestCase):
             self.assertIn(f'href="{reverse(nombre)}"', pestanas)
         self.assertIn('aria-current="page">Estadísticas</a>', pestanas)
 
-    def test_tu_trae_sus_pestanas_sin_la_vuelta_al_diseno_actual(self):
+    def test_tu_trae_sus_pestanas(self):
         pestanas = _trozo(self._html('categorias'), 'class="sec-2c-pestanas"', '</nav>')
         self.assertIn('aria-current="page">Categorías y topes</a>', pestanas)
-        self.assertNotIn(reverse('diseno_actual'), pestanas)
+        self.assertNotIn('Volver al diseño actual', pestanas)
 
     def test_las_pantallas_de_pagos_no_repiten_pestanas(self):
         self.assertNotIn('class="sec-2c-pestanas"', self._html('por_pagar'))
-
-    def test_sin_la_cookie_queda_la_navegacion_de_siempre(self):
-        html = self._html('metas', con_2c=False)
-        self.assertIn('class="fab-group"', html)
-        self.assertIn('data-label="Más"', html)
-        self.assertNotIn('barra-2c', html)
-        self.assertNotIn('sec-2c-pestanas', html)
 
     def test_cada_pantalla_de_una_seccion_cae_en_ella(self):
         self.assertEqual(navegacion.seccion_2c('revisar_cartola'), 'tu')

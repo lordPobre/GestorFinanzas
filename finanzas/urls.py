@@ -12,7 +12,6 @@ from .views import proyeccion as vistas_proyeccion
 from .views import api as vistas_api
 from .views import telegram as vistas_telegram
 from .views import clave_api as vistas_clave
-from .views import diseno as vistas_diseno
 from .views import (actividad, analisis, cartola, categorias, cuenta, cuotas, descargas, encuesta,
                     estadisticas, indicadores, landing, metas, movimientos, passkeys, plan, por_pagar,
                     prestamos, repetidos, sistema, suscripciones)
@@ -114,8 +113,6 @@ urlpatterns = [
     path('perfil/sesiones/', cuenta.sesiones_activas, name='sesiones_activas'),
     path('perfil/actividad/', actividad.actividad, name='actividad_cuenta'),
     path('perfil/clave/', vistas_clave.clave_api, name='clave_api'),
-    path('diseno/2c/', vistas_diseno.probar, name='diseno_2c'),
-    path('diseno/actual/', vistas_diseno.volver, name='diseno_actual'),
     path('api/v1/anotar/', vistas_api.anotar, name='api_anotar'),
     path('telegram/webhook/', vistas_telegram.webhook, name='telegram_webhook'),
     path('api/v1/movimientos/', vistas_api.movimientos, name='api_movimientos'),

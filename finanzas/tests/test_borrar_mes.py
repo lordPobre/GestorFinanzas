@@ -6,7 +6,6 @@ from django.core.cache import cache
 from django.test import TestCase
 from django.urls import reverse
 
-from finanzas import diseno
 from finanzas.models import Transaccion
 from finanzas.servicios import borrar_mes
 
@@ -66,7 +65,6 @@ class VistasBorrarMesTests(TestCase):
         Transaccion.objects.create(usuario=self.ana, tipo='EGRESO', monto=Decimal('1000'),
                                    fecha=date(2026, 11, 5), categoria='Comida')
         self.client.force_login(self.ana)
-        self.client.cookies[diseno.COOKIE] = diseno.VALOR
 
     def test_la_lista_del_mes_trae_el_boton_y_la_confirmacion(self):
         cuerpo = self.client.get(reverse('inicio_movimientos') + '?year=2026&month=11').content.decode('utf-8')

@@ -1,5 +1,0 @@
-@layer app {
-html body .brand-mark, html body .auth-logo, html body .legal-marca-icono, html body .lp-marca-icono, html body .lp-chat-logo { border: none !important; border-radius: 50% !important; background: radial-gradient(32% 32% at 32% 26%, rgba(255, 255, 255, .8), rgba(255, 255, 255, 0)), radial-gradient(60% 60% at 46% 56%, #3fae84 0%, #0F7B5F 50%, #064636 100%) !important; box-shadow: 0 8px 16px -8px rgba(15, 123, 95, .6), inset 0 -3px 8px rgba(6, 70, 54, .3) !important; color: #fff !important; }
-html body .brand-mark::before, html body .brand-mark::after, html body .auth-logo::before, html body .auth-logo::after { display: none !important; }
-html body .brand-mark .marca-svg, html body .auth-logo .marca-svg, html body .legal-marca-icono .marca-svg, html body .lp-marca-icono .marca-svg, html body .lp-chat-logo .marca-svg { width: 56% !important; height: 56% !important; color: #fff !important; filter: none !important; }
-}

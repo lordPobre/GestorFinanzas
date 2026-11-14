@@ -4,7 +4,6 @@ from django.contrib.auth.models import User
 from django.test import TestCase
 from django.urls import reverse
 
-from finanzas import diseno
 from finanzas.models import AbonoPrestamo, Persona, Prestamo
 from finanzas.templatetags.f2c import pr_abonos, pr_pasos, prestamos_mes
 from finanzas.tests.test_csp_estilos import ATRIBUTO_STYLE
@@ -14,7 +13,6 @@ class Prestamos2cTests(TestCase):
     def setUp(self):
         self.ana = User.objects.create_user('ana', 'ana@ejemplo.cl', 'clave-larga-1')
         self.client.force_login(self.ana)
-        self.client.cookies[diseno.COOKIE] = diseno.VALOR
         self.claude = Persona.objects.create(usuario=self.ana, nombre='Claude', contacto='+56 9 1234 5678')
         self.viaje = Prestamo.objects.create(persona=self.claude, descripcion='Pasajes', monto=Decimal('200000'),
                                              tipo='CUOTAS', cuotas_totales=3)

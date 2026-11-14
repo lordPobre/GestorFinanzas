@@ -2,8 +2,6 @@ from django.contrib.auth.models import User
 from django.test import TestCase
 from django.urls import reverse
 
-from finanzas import diseno
-
 
 class Marco2cTests(TestCase):
     def setUp(self):
@@ -11,7 +9,6 @@ class Marco2cTests(TestCase):
         self.client.force_login(self.ana)
 
     def _html(self, nombre):
-        self.client.cookies[diseno.COOKIE] = diseno.VALOR
         return self.client.get(reverse(nombre), follow=True).content.decode('utf-8')
 
     def test_el_encabezado_dice_la_seccion_y_no_trae_saludo_ni_botones(self):
@@ -26,8 +23,3 @@ class Marco2cTests(TestCase):
                 html = self._html(nombre)
                 self.assertNotIn('tema-2c', html)
                 self.assertIn('css/fintora-2c.css', html)
-
-    def test_sin_la_cookie_vuelve_el_saludo(self):
-        html = self.client.get(reverse('deudas')).content.decode('utf-8')
-        self.assertIn('topbar-saludo', html)
-        self.assertNotIn('fintora-2c.css', html)

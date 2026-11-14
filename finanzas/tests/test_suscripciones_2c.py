@@ -5,7 +5,6 @@ from django.contrib.auth.models import User
 from django.test import TestCase
 from django.urls import reverse
 
-from finanzas import diseno
 from finanzas.models import Suscripcion
 
 
@@ -14,17 +13,10 @@ class Suscripciones2cTests(TestCase):
         self.ana = User.objects.create_user('ana', 'ana@ejemplo.cl', 'clave-larga-1')
         self.client.force_login(self.ana)
 
-    def _subs(self, con_2c=True):
-        if con_2c:
-            self.client.cookies[diseno.COOKIE] = diseno.VALOR
+    def _subs(self):
         return self.client.get(reverse('suscripciones'))
 
-    def test_sin_la_cookie_sigue_la_pantalla_actual(self):
-        respuesta = self._subs(con_2c=False)
-        self.assertTemplateUsed(respuesta, 'finanzas/suscripciones.html')
-        self.assertTemplateNotUsed(respuesta, 'finanzas/suscripciones_2c.html')
-
-    def test_con_la_cookie_usa_suscripciones_2c(self):
+    def test_usa_suscripciones_2c(self):
         respuesta = self._subs()
         self.assertTemplateUsed(respuesta, 'finanzas/suscripciones_2c.html')
         self.assertContains(respuesta, 'aria-current="page">Suscripciones</a>')

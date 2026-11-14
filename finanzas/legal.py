@@ -1,7 +1,5 @@
 from django.shortcuts import render
 
-from . import diseno
-
 VERSION = '1.9'
 VIGENTE_DESDE = '9 de noviembre de 2026'
 
@@ -36,7 +34,7 @@ DIAS_GRACIA_INACTIVIDAD = 30
 
 def _contexto(request=None):
     return {
-        'legal_base': 'finanzas/legal_base_2c.html' if diseno.activo(request) else 'finanzas/legal_base.html',
+        'legal_base': 'finanzas/legal_base_2c.html',
         'version': VERSION,
         'vigente_desde': VIGENTE_DESDE,
         'responsable': RESPONSABLE,

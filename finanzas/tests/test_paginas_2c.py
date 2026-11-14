@@ -5,7 +5,7 @@ from django.contrib.auth.models import User
 from django.test import SimpleTestCase, TestCase
 from django.urls import reverse
 
-from finanzas import diseno, plantillas_2c
+from finanzas import plantillas_2c
 
 PLANTILLAS = Path(settings.BASE_DIR) / 'finanzas' / 'templates'
 ESTATICOS = Path(settings.BASE_DIR) / 'static'
@@ -36,15 +36,11 @@ class BienvenidaTests(TestCase):
         self.ana = User.objects.create_user('ana', 'ana@ejemplo.cl', 'clave-larga-1')
         self.client.force_login(self.ana)
 
-    def test_con_el_2c_la_bienvenida_va_en_papel(self):
-        self.client.cookies[diseno.COOKIE] = diseno.VALOR
+    def test_la_bienvenida_va_en_papel(self):
         respuesta = self.client.get(reverse('onboarding'))
         self.assertContains(respuesta, 'css/bienvenida-2c.css')
         self.assertContains(respuesta, 'id="cajaCuotaOb"')
         self.assertContains(respuesta, 'data-atajos="#ingreso_monto"')
-
-    def test_sin_el_2c_sigue_la_de_siempre(self):
-        self.assertNotContains(self.client.get(reverse('onboarding')), 'css/bienvenida-2c.css')
 
     def test_la_plantilla_2c_esta_en_el_mapa(self):
         self.assertEqual(plantillas_2c.PLANTILLAS['finanzas/onboarding.html'], 'finanzas/onboarding_2c.html')

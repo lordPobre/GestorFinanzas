@@ -6,7 +6,7 @@ from django.contrib.auth.models import User
 from django.test import TestCase
 from django.urls import reverse
 
-from finanzas import diseno, fechas
+from finanzas import fechas
 from finanzas.models import Deuda
 
 
@@ -15,18 +15,10 @@ class Inicio2cTests(TestCase):
         self.ana = User.objects.create_user('ana', 'ana@ejemplo.cl', 'clave-larga-1')
         self.client.force_login(self.ana)
 
-    def _inicio(self, con_2c=True):
-        if con_2c:
-            self.client.cookies[diseno.COOKIE] = diseno.VALOR
+    def _inicio(self):
         return self.client.get(reverse('dashboard'))
 
-    def test_sin_la_cookie_sigue_el_inicio_actual(self):
-        respuesta = self._inicio(con_2c=False)
-        self.assertTemplateUsed(respuesta, 'finanzas/dashboard.html')
-        self.assertTemplateNotUsed(respuesta, 'finanzas/dashboard_2c.html')
-        self.assertContains(respuesta, 'name="apple-mobile-web-app-status-bar-style" content="black-translucent"')
-
-    def test_con_la_cookie_usa_el_inicio_2c(self):
+    def test_usa_el_inicio_2c(self):
         respuesta = self._inicio()
         self.assertTemplateUsed(respuesta, 'finanzas/dashboard_2c.html')
         self.assertContains(respuesta, 'css/inicio-2c.css')

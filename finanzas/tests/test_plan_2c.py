@@ -5,7 +5,6 @@ from django.contrib.auth.models import User
 from django.test import SimpleTestCase, TestCase
 from django.urls import reverse
 
-from finanzas import diseno
 from finanzas.templatetags import f2c
 
 
@@ -46,7 +45,6 @@ class TuPlanEscritorioTests(TestCase):
     def setUp(self):
         self.ana = User.objects.create_user('ana', 'ana@ejemplo.cl', 'clave-larga-1')
         self.client.force_login(self.ana)
-        self.client.cookies[diseno.COOKIE] = diseno.VALOR
 
     def test_trae_la_cuenta_la_ruta_y_las_herramientas(self):
         with mock.patch('finanzas.views.plan.armar_plan', return_value=plan_de_prueba()):

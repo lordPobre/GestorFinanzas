@@ -2,12 +2,8 @@ from django.contrib.auth.models import User
 from django.test import TestCase
 from django.urls import reverse
 
-from finanzas import diseno
-
 
 class EntrarComoElPrototipoTests(TestCase):
-    def setUp(self):
-        self.client.cookies[diseno.COOKIE] = diseno.VALOR
 
     def test_abre_con_la_huella_y_la_contrasena_aparte(self):
         cuerpo = self.client.get(reverse('login')).content.decode('utf-8')
