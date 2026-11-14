@@ -1,0 +1,86 @@
+{% extends 'finanzas/base_2c.html' %}
+{% load static l10n moneda %}
+{% block title %}Repetidos · Fintora{% endblock %}
+{% block extra_head %}<link rel="stylesheet" href="{% static 'css/repetidos-2c.css' %}">{% endblock %}
+
+{% block content %}
+<div class="rp2c">
+  <div class="rp2c-top">
+    <a href="{% url 'perfil' %}" class="rp2c-volver" aria-label="Volver"><i class="fas fa-chevron-left"></i></a>
+    <div class="rp2c-cab">
+      <h1 class="rp2c-titulo">Repetidos</h1>
+      {% if pares %}<span class="rp2c-sub">{{ pares|length }} par{{ pares|length|pluralize:"es" }} con el mismo monto y a menos de tres días. Marca la copia que sobra.</span>{% endif %}
+    </div>
+  </div>
+
+  {% if pares %}
+  <form method="post" class="rp2c-grid" data-repetidos data-simbolo="{{ simbolo_moneda|default:'$' }}">
+    {% csrf_token %}
+    <div class="rp2c-lista">
+      {% for p in pares %}
+      <section class="rp2c-par" data-searchable>
+        <div class="rp2c-par-cab">
+          <div class="rp2c-par-monto">
+            <b{% if p.queda.es_ingreso %} class="entra"{% endif %}>{{ p.queda.monto|money }}</b>
+            <span class="largo">{{ p.queda.fecha|date:"d/m/Y" }} · {% if p.dias %}{{ p.dias }} día{{ p.dias|pluralize }} de diferencia{% else %}el mismo día{% endif %}</span>
+            <span class="corto">{{ p.queda.fecha|date:"d/m" }} · {% if p.dias %}{{ p.dias }} día{{ p.dias|pluralize }} después{% else %}el mismo día{% endif %}</span>
+          </div>
+          {% if p.por_ia %}<span class="rp2c-etq azul">La IA dice que es la misma</span>{% elif not p.marcado %}<span class="rp2c-etq gris">Revísala: no es seguro</span>{% endif %}
+        </div>
+        <div class="rp2c-fila">
+          <span class="rp2c-hueco"><span class="rp2c-queda" aria-hidden="true"><i class="fas fa-check"></i></span></span>
+          <span class="rp2c-txt">
+            <b>{{ p.queda.descripcion|default:p.queda.nombre_categoria }}</b>
+            <span>{% if p.queda.pago_cuota %}Unida a una cuota{% elif p.queda.gasto_pendiente %}Unida a una cuenta por pagar{% elif p.queda.suscripcion_id %}Unida a una suscripción{% else %}La anotaste primero{% endif %}</span>
+          </span>
+          <span class="rp2c-etq verde">Se queda</span>
+        </div>
+        <label class="rp2c-fila rp2c-borra">
+          <span class="rp2c-hueco">
+            <input type="checkbox" name="borrar" value="{{ p.borra.pk }}" class="rp2c-check" data-monto="{{ p.borra.monto|unlocalize }}"{% if p.marcado %} checked{% endif %} aria-label="Borrar esta copia">
+            <span class="rp2c-caja" aria-hidden="true"><i class="fas fa-check"></i></span>
+          </span>
+          <span class="rp2c-txt">
+            <b>{{ p.borra.descripcion|default:p.borra.nombre_categoria }}</b>
+            <span>{% if p.dias %}{{ p.borra.fecha|date:"d/m" }} · {% endif %}{% if p.borra.descripcion|lower == p.queda.descripcion|lower %}Misma descripción{% else %}Otra descripción{% endif %}</span>
+          </span>
+          <span class="rp2c-etq rp2c-estado"><span class="si">Se borra</span><span class="no">Se queda</span></span>
+        </label>
+      </section>
+      {% endfor %}
+      <p class="rp2c-nota">En cada par queda la primera que anotaste, o la que está unida a una cuota, una cuenta por pagar o una suscripción. {% if con_ia %}La IA revisa los dudosos con solo las fechas, el monto, la categoría y las dos descripciones.{% else %}Con el análisis con IA activado y la política de privacidad al día, la IA también revisa los pares dudosos.{% endif %}</p>
+    </div>
+
+    <aside class="rp2c-resumen">
+      <span class="rp2c-resumen-label">Para borrar</span>
+      <div class="rp2c-resumen-cifras">
+        <b class="rp2c-n" data-rp-n>{{ marcados }} de {{ pares|length }}</b>
+        <b class="rp2c-n-corto" data-rp-corto>{{ marcados }} marcada{{ marcados|pluralize }}</b>
+        <b class="rp2c-total" data-rp-total>{{ total_marcado|money }}</b>
+      </div>
+      <button type="submit" class="rp2c-btn" data-rp-btn{% if not marcados %} disabled{% endif %}>
+        <span class="largo" data-rp-largo>{% if marcados %}Borrar {{ marcados }} repetida{{ marcados|pluralize }}{% else %}Nada marcado{% endif %}</span>
+        <span class="corto" data-rp-btn-corto>{% if marcados %}Borrar {{ marcados }}{% else %}Nada marcado{% endif %}</span>
+      </button>
+      <span class="rp2c-raya" aria-hidden="true"></span>
+      <div class="rp2c-como">
+        <b>Cómo se elige</b>
+        <span>En cada par queda la primera que anotaste, o la que está unida a una cuota, una cuenta por pagar o una suscripción. Desmarca la que sea otra compra por el mismo monto.</span>
+      </div>
+      {% if con_ia %}
+      <div class="rp2c-ia"><i class="fas fa-wand-magic-sparkles" aria-hidden="true"></i><span><b>La IA revisa los dudosos.</b> Recibe solo las fechas, el monto, la categoría y las dos descripciones de ese par.</span></div>
+      {% else %}
+      <div class="rp2c-ia gris"><i class="fas fa-wand-magic-sparkles" aria-hidden="true"></i><span>Con el análisis con IA activado y la política de privacidad al día, la IA también revisa los pares dudosos.</span></div>
+      {% endif %}
+    </aside>
+  </form>
+  <script type="module" src="{% static 'js/pantallas/repetidos-2c.js' %}" nonce="{{ csp_nonce }}"></script>
+  {% else %}
+  <div class="rp2c-vacio">
+    <span class="rp2c-vacio-icono" aria-hidden="true"><i class="fas fa-circle-check"></i></span>
+    <b>No hay movimientos repetidos</b>
+    <span>Busco pares con el mismo monto, a menos de tres días y con descripciones parecidas.</span>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

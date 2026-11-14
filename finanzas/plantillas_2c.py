@@ -21,6 +21,7 @@ PLANTILLAS = {
     'finanzas/form_suscripcion.html': 'finanzas/form_suscripcion_2c.html',
     'finanzas/editar_suscripcion.html': 'finanzas/editar_suscripcion_2c.html',
     'finanzas/onboarding.html': 'finanzas/onboarding_2c.html',
+    'finanzas/repetidos.html': 'finanzas/repetidos_2c.html',
     'finanzas/landing.html': 'finanzas/landing_2c.html',
     'registration/login.html': 'registration/login_2c.html',
     'registration/auth_base.html': 'registration/auth_base_2c.html',

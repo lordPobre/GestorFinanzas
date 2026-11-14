@@ -1,6 +1,6 @@
 
 
-const VERSION = 'v137';
+const VERSION = 'v138';
 const CACHE_ESTATICOS = `finapp-estaticos-${VERSION}`;
 
 const ORIGENES_CACHEABLES = [];
@@ -9,23 +9,23 @@ const HTML_SIN_CONEXION = `<!DOCTYPE html>
 <html lang="es"><head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#191919">
+<meta name="theme-color" content="#F3EFE7">
 <title>Sin conexión · Fintora</title>
 </head>
-<body style="margin:0;min-height:100dvh;display:flex;align-items:center;justify-content:center;padding:32px;
-             background:#191919;color:#f5f5f5;font-family:Manrope,system-ui,-apple-system,sans-serif;
-             text-align:center;-webkit-font-smoothing:antialiased">
-  <div style="max-width:340px">
-    <div style="width:58px;height:58px;margin:0 auto 22px;border-radius:17px;display:flex;
-                align-items:center;justify-content:center;background:#ffaa2c;color:#1a1200;
-                font-size:26px;font-weight:800">!</div>
-    <h1 style="margin:0;font-size:22px;font-weight:800;letter-spacing:-.03em">Sin conexión</h1>
-    <p style="margin:12px 0 0;font-size:14.5px;line-height:1.55;color:#a3a3a3;text-wrap:pretty">
-      No pudimos alcanzar el servidor. Tus datos están a salvo: revisa la red y vuelve a intentar.
-    </p>
+<body style="margin:0;min-height:100dvh;display:flex;align-items:center;justify-content:center;box-sizing:border-box;
+             padding:calc(32px + env(safe-area-inset-top)) 24px calc(32px + env(safe-area-inset-bottom));
+             background:#F3EFE7;color:#1E1A15;font-family:'Familjen Grotesk',system-ui,-apple-system,'Segoe UI',sans-serif;
+             -webkit-font-smoothing:antialiased">
+  <div style="max-width:360px;display:flex;flex-direction:column;align-items:center;gap:14px;text-align:center">
+    <span aria-hidden="true" style="width:132px;height:132px;margin-bottom:14px;border-radius:50%;
+          background:radial-gradient(circle at 32% 26%,rgba(255,255,255,.85),rgba(255,255,255,0) 28%),radial-gradient(circle at 46% 56%,#E4DCCD 0%,#B9AE9C 50%,#7E7465 92%);
+          box-shadow:0 40px 70px -30px rgba(126,116,101,.7),inset 0 -10px 30px rgba(0,0,0,.15)"></span>
+    <span style="padding:5px 12px;border-radius:999px;background:#E7E3DC;color:#5A5248;font-size:13px;font-weight:700">Sin conexión</span>
+    <h1 style="margin:0;font-size:32px;line-height:1.1;font-weight:700;letter-spacing:-.03em;text-wrap:balance">No pudimos alcanzar el servidor</h1>
+    <p style="margin:0;font-size:16px;line-height:1.55;color:#4F4840;text-wrap:pretty">Tus datos están a salvo. Revisa la red y vuelve a intentar.</p>
     <button onclick="location.reload()"
-            style="margin-top:26px;padding:13px 26px;border:none;border-radius:13px;cursor:pointer;
-                   background:#ffaa2c;color:#1a1200;font:inherit;font-size:14.5px;font-weight:700">
+            style="margin-top:8px;height:52px;padding:0 28px;border:none;border-radius:999px;cursor:pointer;
+                   background:#1E1A15;color:#F3EFE7;font:inherit;font-size:16px;font-weight:700">
       Reintentar
     </button>
   </div>

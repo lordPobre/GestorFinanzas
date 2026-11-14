@@ -43,10 +43,10 @@ class Navegacion2cTests(TestCase):
             self.assertIn(f'href="{reverse(nombre)}"', pestanas)
         self.assertIn('aria-current="page">Estadísticas</a>', pestanas)
 
-    def test_tu_trae_sus_pestanas_y_la_vuelta_al_diseno_actual(self):
+    def test_tu_trae_sus_pestanas_sin_la_vuelta_al_diseno_actual(self):
         pestanas = _trozo(self._html('categorias'), 'class="sec-2c-pestanas"', '</nav>')
         self.assertIn('aria-current="page">Categorías y topes</a>', pestanas)
-        self.assertIn(reverse('diseno_actual'), pestanas)
+        self.assertNotIn(reverse('diseno_actual'), pestanas)
 
     def test_las_pantallas_de_pagos_no_repiten_pestanas(self):
         self.assertNotIn('class="sec-2c-pestanas"', self._html('por_pagar'))

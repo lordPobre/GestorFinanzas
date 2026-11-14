@@ -83,7 +83,6 @@
           <summary class="f2c-avatar" aria-label="Tu cuenta"><span>{{ profile.inicial|default:"?" }}</span>{% if profile.foto_url %}<img src="{{ profile.foto_url }}" alt="" data-quitar-si-falla>{% endif %}</summary>
           <div class="topbar-menu f2c-menu">
             {% menu 'cuenta' %}
-            <a href="{% url 'diseno_actual' %}"><i class="fas fa-rotate-left"></i>Volver al diseño actual</a>
             <form method="post" action="{% url 'logout' %}">
               {% csrf_token %}
               <button type="submit"><i class="fas fa-right-from-bracket"></i>Salir</button>
@@ -131,7 +130,6 @@
         <i class="fas fa-right-from-bracket ico-11"></i>Salir
       </button>
     </form>
-    {% if t2c %}<a href="{% url 'diseno_actual' %}" class="btn btn-glass btn-block diseno-volver">Volver al diseño actual</a>{% endif %}
   </div>
 </div>
 

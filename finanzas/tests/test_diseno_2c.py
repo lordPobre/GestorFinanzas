@@ -34,7 +34,8 @@ class Diseno2cTests(TestCase):
         self.assertIn('css/fintora-2c.css', cuerpo)
         self.assertNotIn('css/finapp.css', cuerpo)
         self.assertIn('content="#F3EFE7"', cuerpo)
-        self.assertEqual(cuerpo.count(f'href="{reverse("diseno_actual")}"'), 2)
+        self.assertNotIn(reverse('diseno_actual'), cuerpo)
+        self.assertNotIn('Volver al diseño actual', cuerpo)
 
     def test_otro_valor_de_la_cookie_no_cuenta(self):
         self.client.cookies[diseno.COOKIE] = 'otro'

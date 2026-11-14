@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db import transaction as db_transaction
@@ -30,6 +32,7 @@ def repetidos(request):
     contexto = {
         'pares': pares,
         'marcados': sum(1 for p in pares if p['marcado']),
+        'total_marcado': sum((Decimal(p['borra'].monto) for p in pares if p['marcado']), Decimal(0)),
         'con_ia': puede_usar_ia(request.user),
     }
     contexto.update(contadores(request.user))
