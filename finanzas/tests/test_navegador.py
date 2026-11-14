@@ -83,6 +83,12 @@ class NavegadorTests(StaticLiveServerTestCase):
     def _ruta(self, pagina):
         return urlparse(pagina.url).path
 
+    def _con_contrasena(self, pagina):
+        boton = pagina.locator('[data-modo-ir="clave"]:visible')
+        if boton.count():
+            boton.first.click()
+        pagina.wait_for_selector('input[name=password]', state='visible')
+
     def _esperar(self, pagina, condicion, segundos=10):
         for _ in range(segundos * 10):
             if condicion():
@@ -93,35 +99,22 @@ class NavegadorTests(StaticLiveServerTestCase):
     def test_entrar_en_el_computador(self):
         p = self._pagina(ESCRITORIO)
         p.goto(self.live_server_url + reverse('login'))
-        self.assertFalse(p.locator('.lm-hero').is_visible())
+        self._con_contrasena(p)
         p.fill('input[name=username]', 'ana')
         p.fill('input[name=password]', self.clave)
         p.click('#btnEntrar')
         p.wait_for_url(lambda url: urlparse(url).path == reverse('dashboard'))
         self.assertEqual(self._ruta(p), reverse('dashboard'))
 
-    def test_entrar_en_el_telefono_con_la_hoja(self):
+    def test_entrar_en_el_telefono(self):
         p = self._pagina(IPHONE)
         p.goto(self.live_server_url + reverse('login'))
-        self.assertTrue(p.locator('.lm-hero').is_visible())
-        self.assertEqual(p.locator('.auth.lm.abierto').count(), 0)
-        p.click('[data-lm-abrir]')
-        p.wait_for_selector('.auth.lm.abierto')
-        self.assertTrue(self._esperar(p, lambda: p.locator('.auth-panel').bounding_box()['y'] < 844 / 2))
+        self._con_contrasena(p)
         p.fill('input[name=username]', 'ana')
         p.fill('input[name=password]', self.clave)
         p.click('#btnEntrar')
         p.wait_for_url(lambda url: urlparse(url).path == reverse('dashboard'))
         self.assertEqual(self._ruta(p), reverse('dashboard'))
-
-    def test_la_hoja_se_cierra_y_vuelve_la_esfera(self):
-        p = self._pagina(IPHONE)
-        p.goto(self.live_server_url + reverse('login'))
-        p.click('[data-lm-abrir]')
-        p.wait_for_selector('.auth.lm.abierto')
-        p.click('.lm-cerrar')
-        p.wait_for_selector('.auth.lm:not(.abierto)')
-        self.assertTrue(p.locator('[data-lm-abrir]').is_visible())
 
     def test_anotar_un_gasto(self):
         p = self._pagina(ESCRITORIO, con_sesion=True)

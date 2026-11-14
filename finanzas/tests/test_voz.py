@@ -73,7 +73,7 @@ class VozTests(TestCase):
 
     @mock.patch.dict(os.environ, ELEVENLABS)
     def test_la_pantalla_trae_la_frase_firmada(self):
-        r = self.client.get(reverse('deudas'))
+        r = self.client.get(reverse('dashboard'))
         self.assertContains(r, 'data-voz="')
         self.assertIn("media-src 'self' blob:", r['Content-Security-Policy'])
 
@@ -121,7 +121,7 @@ class VozTests(TestCase):
     def test_sin_azure_no_hay_voz(self):
         with mock.patch.dict(os.environ, {'ELEVENLABS_API_KEY': '', 'ELEVENLABS_VOZ': ''}):
             self.assertIsNone(voz.sintetizar('Hola'))
-            r = self.client.get(reverse('deudas'))
+            r = self.client.get(reverse('dashboard'))
         self.assertContains(r, 'data-voz=""')
 
 
