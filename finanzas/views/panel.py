@@ -217,6 +217,7 @@ def dashboard(request):
     context['esfera'] = estado_esfera(
         request.user, r, presupuesto, month, (year, month) == (hoy.year, hoy.month),
         simbolo_de(request.user))
+    context['esfera_mes'] = context['esfera']
     if (year, month) != (hoy.year, hoy.month):
         context.update(salud_financiera(request.user, resumen_actual=r))
     context['salud_estado_mes'] = context.get('salud_estado') or 'neutro'

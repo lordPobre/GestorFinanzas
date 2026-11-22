@@ -44,5 +44,14 @@ class EsferaEnEscritorioTests(TestCase):
         html = self.client.get(reverse('estadisticas')).content.decode()
         self.assertEqual(self._estado_del_menu(html), 'amarillo')
 
+    def test_la_tarjeta_muestra_el_mes_en_las_pantallas_con_esfera_propia(self):
+        self._mes(self.hoy.replace(day=1), '1000000', '900000')
+        for nombre in ('metas', 'deudas', 'suscripciones'):
+            html = self.client.get(reverse(nombre)).content.decode()
+            inicio = html.index('class="f2c-salud"')
+            tarjeta = html[inicio:html.index('</button>', inicio)]
+            self.assertEqual(self._estado_del_menu(html), 'amarillo', nombre)
+            self.assertNotIn('Tu resumen del mes está listo', tarjeta, nombre)
+
     def test_la_base_carga_la_voz_de_escritorio(self):
         self.assertContains(self.client.get(reverse('dashboard')), 'js/pantallas/esfera-escritorio.js')

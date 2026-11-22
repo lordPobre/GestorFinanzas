@@ -72,15 +72,24 @@
     nota.textContent = texto || notaInicial;
   }
 
+  var INTENTOS = 150;
+
   function esperar(tarea, intentos) {
-    return new Promise(function (listo) { setTimeout(listo, 1000); })
+    return new Promise(function (listo) { setTimeout(listo, 2000); })
       .then(function () {
         return fetch(urlTarea + '?t=' + encodeURIComponent(tarea), {
           credentials: 'same-origin', headers: { 'X-Requested-With': 'XMLHttpRequest' },
         });
       })
       .then(function (r) { return r.json(); })
-      .then(function (d) { return d.listo || intentos <= 0 ? d : esperar(tarea, intentos - 1); });
+      .catch(function () { return { listo: false }; })
+      .then(function (d) {
+        if (d.listo || intentos <= 0) return d;
+        if (intentos === INTENTOS - 10) {
+          nota.textContent = 'Sigue leyendo. Una cartola larga puede tardar un par de minutos.';
+        }
+        return esperar(tarea, intentos - 1);
+      });
   }
 
   form.addEventListener('submit', function (e) {
@@ -104,7 +113,7 @@
       if (!d) return null;
       if (d.pide_clave && cajaClave) { pedirClave(d); return null; }
       if (!d.ok || !d.tarea) { volver(d.msg || 'No se pudo leer la cartola.'); return null; }
-      return esperar(d.tarea, 120).then(function (f) {
+      return esperar(d.tarea, INTENTOS).then(function (f) {
         if (f && f.url) { window.location.href = f.url; return; }
         volver('Está tardando más de lo normal. Intenta de nuevo en un momento.');
       });

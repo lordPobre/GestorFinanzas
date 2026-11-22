@@ -12,15 +12,14 @@ from django.utils import timezone
 
 from .. import cola, ia_cliente
 from .base import BANCOS, Cartola, ErrorCartola, MovimientoLeido, paginas_de_pdf
-from .ciclo import ajustar_al_ciclo
 from .tabla import _cabecera, _de_csv, _de_excel, es_tabla
 from .universal import CUENTA, MESES
 
 log = logging.getLogger('finanzas')
 
 TOPE_MES = 20
-CARACTERES_POR_PARTE = 16_000
-FILAS_POR_PARTE = 300
+CARACTERES_POR_PARTE = 5_000
+FILAS_POR_PARTE = 100
 MAX_TOKENS = 16_000
 MAX_PAGINAS_IMAGEN = 10
 MAX_BYTES_IMAGEN = 5 * 1024 * 1024
@@ -231,10 +230,11 @@ def _fuente(contenido, nombre, banco, usuario):
 
     trozos, actual = [], ''
     for pagina in (tapar(p, usuario) for p in paginas):
-        if actual and len(actual) + len(pagina) > CARACTERES_POR_PARTE:
-            trozos.append(actual)
-            actual = ''
-        actual = f'{actual}\n{pagina}' if actual else pagina
+        for linea in pagina.splitlines():
+            if actual and len(actual) + len(linea) + 1 > CARACTERES_POR_PARTE:
+                trozos.append(actual)
+                actual = ''
+            actual = f'{actual}\n{linea}' if actual else linea
     if actual:
         trozos.append(actual)
     n = len(trozos)
@@ -510,9 +510,6 @@ def _comprobar(respuestas, fuente, banco, contenido_original):
         descuadre=descuadre,
         nota_cuadre=nota,
     )
-    if es_tarjeta:
-        ajustar_al_ciclo(cartola, contenido_original or fuente['texto'], facturacion)
-        cartola.movimientos.sort(key=lambda m: m.fecha, reverse=True)
     rango = {'verificada': 2, 'sin_ancla': 1, 'falla': 0}[nivel]
     return {'cartola': cartola, 'nivel': nivel, 'puntaje': (rango, -inventadas, razon, n)}
 
