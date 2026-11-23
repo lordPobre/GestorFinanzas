@@ -42,6 +42,7 @@ Entrega el resultado con la herramienta entregar_cartola:
 - Copia el monto y el saldo tal como están impresos, con sus puntos y comas. No calcules, no redondees y no inventes cifras. Si la fila no trae saldo, deja saldo vacío.
 - sentido es «cargo» cuando la plata sale (compra, giro, pago, comisión, impuesto, cuota) y «abono» cuando entra (depósito, transferencia recibida, sueldo, devolución, reverso).
 - En un estado de cuenta de tarjeta el monto es lo que se cobra en este estado, el valor de la cuota, no el total de la compra. Si la fila trae cuotas (3/6, cuota 3 de 6) pon cuota_actual y cuota_total; si no, deja los dos en 0. La fecha es la de la compra.
+- Hay estados de cuenta que imprimen en la fila de una compra en cuotas varios montos sin nombre de columna: el de la operación, el total a pagar y al final el valor de la cuota. El monto es el valor de la cuota, el que multiplicado por cuota_total da el total a pagar.
 - Marca es_pago_tarjeta en los pagos que la persona hizo a la tarjeta. No incluyas las compras que el documento lista como no facturadas o del próximo período.
 - Las fechas van en formato AAAA-MM-DD. Si la fila no trae año, usa el del período del documento.
 - Los datos personales vienen tapados entre corchetes, como [RUT] o [CUENTA]. Ignóralos.
@@ -91,6 +92,8 @@ TARJETA = re.compile(r'\b\d{4}([ -]?)\d{4}\1\d{4}\1\d{2,7}\b')
 FECHA_SUELTA = re.compile(r'\d{1,2}-\d{1,2}-\d{2,4}')
 DIRECCION = re.compile(r'((?:direcci[oó]n|domicilio) *:?)[^\n]*', re.I)
 CUOTA_EN_TEXTO = re.compile(r'cuota\s+\d{1,2}\s+de\s+\d{1,2}', re.I)
+MONTO_IMPRESO = re.compile(r'(?<![\w.,])-?\d{1,3}(?:[.,]\d{3})+(?:,\d{1,2})?(?![\w.,])')
+FECHA_O_FRACCION = re.compile(r'\d{1,2}/\d{1,2}(?:/\d{2,4})?|[a-záéíóú]{3}-\d{2,4}', re.I)
 VOCALES = {'a': 'aáàä', 'e': 'eéèë', 'i': 'iíìï', 'o': 'oóòö', 'u': 'uúùü', 'n': 'nñ'}
 
 
@@ -337,6 +340,40 @@ def _filas(crudas, indice):
     return filas
 
 
+def _montos_de(linea):
+    return [abs(v) for v in (cifra(x) for x in MONTO_IMPRESO.findall(FECHA_O_FRACCION.sub(' ', linea))) if v]
+
+
+def _calza_cuota(valor, total, otros):
+    return any(abs(valor * total - x) <= max(Decimal(total), x / 100) for x in otros)
+
+
+def _valor_cuota(f, lineas):
+    a, t = f['cuota_actual'], f['cuota_total']
+    fraccion = re.compile(rf'(?<![\d/])0?{a}\s*/\s*0?{t}(?![\d/])')
+    dia = re.compile(rf'(?<!\d)0?{f["fecha"].day}[/.-]0?{f["fecha"].month}(?!\d)')
+    posibles = sorted((linea for linea in lineas if fraccion.search(linea)),
+                      key=lambda linea: not dia.search(linea))
+    for linea in posibles:
+        montos = _montos_de(linea)
+        if f['monto'] not in montos:
+            continue
+        for i in range(len(montos) - 1, -1, -1):
+            if montos[i] <= f['monto'] and _calza_cuota(montos[i], t, montos[:i] + montos[i + 1:]):
+                return montos[i]
+        return None
+    return None
+
+
+def _corregir_cuotas(filas, texto):
+    lineas = (texto or '').splitlines()
+    for f in filas:
+        if lineas and f['cuota_total'] > 1 and not f['abono'] and not f['pago']:
+            valor = _valor_cuota(f, lineas)
+            if valor is not None:
+                f['monto'] = valor
+
+
 def _firmado(f):
     return f['monto'] if f['abono'] else -f['monto']
 
@@ -456,6 +493,8 @@ def _comprobar(respuestas, fuente, banco, contenido_original):
         return None
 
     es_tarjeta = cabeza['tipo_documento'] == 'tarjeta'
+    if es_tarjeta:
+        _corregir_cuotas(filas, fuente['texto'])
     inicial, final = cifra(cabeza['saldo_inicial']), cifra(cabeza['saldo_final'])
     total = cifra(cabeza['total_facturado'])
     facturacion = _fecha(cabeza['fecha_facturacion'])
