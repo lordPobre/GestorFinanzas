@@ -10,12 +10,13 @@ from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.views.decorators.http import require_GET
 
+from .. import fechas
 from ..cartolas import BANCOS
 from ..cartolas.base import ClaveCartola, ErrorCartola, abrir_pdf
 from ..categorias_base import SLUGS_BASE
 from ..models import (Categoria, Deuda, GastoPendiente, PagoCuota, Persona, Prestamo, Suscripcion,
                       Transaccion)
-from ..servicios import lectura_cartola
+from ..servicios import ingreso_fijo, lectura_cartola
 from .comun import contadores
 from ..seguridad import limitar
 
@@ -168,6 +169,9 @@ def revisar_cartola(request):
         return redirect('importar_cartola')
 
     filas = _filas(datos)
+    sueldos = ingreso_fijo.en_cartola(request.user, datos['movimientos'], fechas.hoy())
+    for f in filas:
+        f['sueldo'] = sueldos.get(f['i'])
     nuevas = [f for f in filas if not f['ya_existe']]
     cats = Categoria.opciones_por_tipo(request.user)
 
@@ -201,7 +205,8 @@ def confirmar_cartola(request):
         return redirect('importar_cartola')
 
     movs = datos['movimientos']
-    creados = movidos = reemplazados = subs = deudas = prestamos = pagadas = ajenas = 0
+    creados = movidos = reemplazados = subs = deudas = prestamos = pagadas = ajenas = recibidos = 0
+    sueldos = ingreso_fijo.en_cartola(request.user, movs, fechas.hoy())
     cats = Categoria.opciones_por_tipo(request.user)
     validas = {tipo: {slug for slug, _ in cats[tipo]} | SLUGS_BASE
               for tipo in ('INGRESO', 'EGRESO')}
@@ -231,6 +236,14 @@ def confirmar_cartola(request):
                 movidos += 1
                 continue
 
+            sueldo = sueldos.get(i) if request.POST.get(f'sueldo_{i}') else None
+            con_extra = bool(request.POST.get(f'extra_{i}'))
+            if sueldo and sueldo['a_mano']:
+                ingreso_fijo.recibir_por_cartola(request.user, sueldo, monto, fecha, desc, cat, con_extra)
+                reemplazados += 1
+                recibidos += 1
+                continue
+
             previa = None
             if m.get('reemplaza_id') and request.POST.get(f'reemplazar_{i}'):
                 previa = Transaccion.objects.filter(
@@ -257,6 +270,10 @@ def confirmar_cartola(request):
                     pagado=True, fecha_pago=fecha)
                 previa.save()
                 reemplazados += 1
+                if sueldo:
+                    ingreso_fijo.recibir_por_cartola(request.user, sueldo, monto, fecha, desc, cat, con_extra,
+                                                     tx=previa)
+                    recibidos += 1
                 if deuda_previa is not None:
                     pagadas += _unir_a_la_cuota(deuda_previa, m['deuda_periodo'], monto, fecha, previa)
                 continue
@@ -274,6 +291,10 @@ def confirmar_cartola(request):
                 fecha_pago=fecha,
             )
             creados += 1
+
+            if sueldo:
+                ingreso_fijo.recibir_por_cartola(request.user, sueldo, monto, fecha, desc, cat, con_extra, tx=tx)
+                recibidos += 1
 
             if request.POST.get(f'sub_{i}'):
                 Suscripcion.objects.get_or_create(
@@ -357,6 +378,8 @@ def confirmar_cartola(request):
                       f'pagada{"s" if pagadas != 1 else ""} en Cuotas')
     if ajenas:
         partes.append(f'{ajenas} cuota{"s" if ajenas != 1 else ""} de compras que ya estaban en Préstamos')
+    if recibidos:
+        partes.append('tu sueldo recibido' if recibidos == 1 else f'{recibidos} sueldos recibidos')
     messages.success(request, 'Importado: ' + ', '.join(partes) + '.')
     return redirect('dashboard')
 

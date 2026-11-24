@@ -636,4 +636,13 @@ html.f2c .marca-app .marca-glifo { display: block; width: 56%; height: 56%; flex
 html.f2c .marca-app > i { font-size: 18px; line-height: 1; }
 html.f2c .marca-app > b { font-size: 15px; font-weight: 700; line-height: 1; }
 html.f2c .anotar-marca .marca-glifo { width: 56%; height: 56%; }
+
+@view-transition { navigation: auto; }
+html.f2c .f2c-lado { view-transition-name: barra-lateral; }
+html.f2c .f2c-cab { view-transition-name: cabecera; }
+html.f2c .bottomnav { view-transition-name: barra-inferior; }
+::view-transition-old(root), ::view-transition-new(root) { animation-duration: .18s; }
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) { animation: none !important; }
+}
 }

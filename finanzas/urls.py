@@ -13,8 +13,8 @@ from .views import api as vistas_api
 from .views import telegram as vistas_telegram
 from .views import clave_api as vistas_clave
 from .views import (actividad, analisis, cartola, categorias, cuenta, cuotas, descargas, encuesta,
-                    estadisticas, indicadores, landing, metas, movimientos, passkeys, plan, por_pagar,
-                    prestamos, repetidos, sistema, suscripciones)
+                    estadisticas, indicadores, ingresos, landing, metas, movimientos, passkeys, plan,
+                    por_pagar, prestamos, repetidos, sistema, suscripciones)
 
 
 class RedireccionPermanente(HttpResponseRedirect):
@@ -140,6 +140,13 @@ urlpatterns = [
     path('suscripciones/<int:sub_id>/editar/', suscripciones.editar_suscripcion, name='editar_suscripcion'),
     path('suscripciones/<int:sub_id>/cancelar/', suscripciones.cancelar_suscripcion, name='cancelar_suscripcion'),
     path('suscripciones/<int:sub_id>/eliminar/', suscripciones.eliminar_suscripcion, name='eliminar_suscripcion'),
+
+    path('ingresos/', ingresos.ingresos, name='ingresos'),
+    path('ingresos/guardar/', ingresos.guardar_ingreso, name='guardar_ingreso'),
+    path('ingresos/quitar/', ingresos.quitar_ingreso, name='quitar_ingreso'),
+    path('ingresos/<int:periodo>/ajustar/', ingresos.ajustar_ingreso, name='ajustar_ingreso'),
+    path('ingresos/<int:periodo>/llego/', ingresos.ingreso_llego, name='ingreso_llego'),
+    path('ingresos/<int:periodo>/deshacer/', ingresos.ingreso_deshacer, name='ingreso_deshacer'),
 
     path('login/', acceso.entrar, name='login'),
     path('logout/', Salir.as_view(next_page='/login/'), name='logout'),

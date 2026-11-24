@@ -1,0 +1,163 @@
+{% extends 'finanzas/base_2c.html' %}
+{% load static moneda f2c %}
+{% block topbar_mes %}{% mes_de_pagina as mes_sel %}{% include 'finanzas/_mes_topbar.html' %}{% endblock %}
+{% block title %}Ingresos · Fintora{% endblock %}
+{% block extra_head %}<link rel="stylesheet" href="{% static 'css/pagos-2c.css' %}">
+<link rel="stylesheet" href="{% static 'css/ingresos-2c.css' %}">
+<link rel="stylesheet" href="{% static 'css/mes-elegir.css' %}">{% endblock %}
+
+{% block content %}
+<div class="p2c">
+  <div class="p2c-top">
+    <h1 class="p2c-titulo">Pagos</h1>
+    {% mes_de_pagina as mes_sel %}{% include 'finanzas/_mes_elegir.html' %}
+  </div>
+  {% include 'finanzas/_pagos_pestanas.html' with activa='ingresos' %}
+
+  {% if not ingreso %}
+  <div class="p2c-vacio-grande ig2c-vacio">
+    <i class="fas fa-briefcase"></i>
+    <b>Todavía no tienes un ingreso fijo</b>
+    <span>Agrega tu sueldo y cada mes queda «por recibir» hasta que llegue. Si subes la cartola, se marca solo.</span>
+    <button type="button" class="ig2c-nuevo" data-open="#modalIngreso"><i class="fas fa-plus"></i>Agregar tu sueldo</button>
+  </div>
+  {% else %}
+  <div class="ig2c">
+    <section class="ig2c-tarjeta" aria-label="Tu sueldo">
+      <div class="ig2c-cab">
+        <span class="ig2c-quien"><span>{{ ingreso.titulo }}</span><b>{{ ingreso.monto|money }}</b></span>
+        <span class="ig2c-anillo{% if tarjeta.tarde %} tarde{% endif %}" data-pct="{{ tarjeta.pct }}" role="img" aria-label="{{ tarjeta.lectura }}"><span><b>{{ tarjeta.numero }}</b><small>{{ tarjeta.unidad }}</small></span></span>
+      </div>
+      <div class="ig2c-estado">
+        <span class="ig2c-estado-txt"><b>{{ tarjeta.mes.nombre|capfirst }} · {{ tarjeta.titulo }}</b><span>{{ tarjeta.detalle }}</span></span>
+        {% if tarjeta.mes.puede_llegar %}
+        <form method="post" action="{% url 'ingreso_llego' tarjeta.mes.periodo %}">{% csrf_token %}<button type="submit" class="ig2c-llego">Ya llegó</button></form>
+        {% elif tarjeta.mes.recibido %}
+        <form method="post" action="{% url 'ingreso_deshacer' tarjeta.mes.periodo %}" data-confirm="{% if tarjeta.mes.por_cartola %}¿Volver a dejar {{ tarjeta.mes.nombre }} por recibir? El depósito de la cartola sigue en tus movimientos.{% else %}¿Volver a dejar {{ tarjeta.mes.nombre }} por recibir? Se borra el ingreso que anotó «Ya llegó».{% endif %}">{% csrf_token %}<button type="submit" class="ig2c-deshacer">Deshacer</button></form>
+        {% endif %}
+      </div>
+    </section>
+
+    <section class="ig2c-anio" aria-label="Tu sueldo en {{ anio }}">
+      <div class="ig2c-anio-cab"><b>{{ anio }}</b>{% if llevas %}<span>Llevas {{ llevas|money }}{% if extras %} · {{ extras|money }} en horas extra{% endif %}</span>{% endif %}</div>
+      <div class="ig2c-meses">
+        {% for m in meses %}
+        {% if m.elegible %}
+        <a href="?mes={{ m.valor }}" class="ig2c-mes {{ m.estado }}{% if m.elegido %} elegido{% endif %}" aria-label="{{ m.nombre|capfirst }}: {{ m.texto }}"{% if m.elegido %} aria-current="date"{% endif %}><span class="ig2c-celda">{% if m.estado == 'extra' %}+{% endif %}</span><span class="ig2c-ini">{{ m.inicial }}</span></a>
+        {% else %}
+        <span class="ig2c-mes {{ m.estado }}" aria-hidden="true"><span class="ig2c-celda"></span><span class="ig2c-ini">{{ m.inicial }}</span></span>
+        {% endif %}
+        {% endfor %}
+      </div>
+      <div class="ig2c-leyenda">
+        <span><i class="recibido"></i>Recibido</span>
+        <span><i class="extra"></i>Con horas extra</span>
+        <span><i class="por_recibir"></i>Por recibir</span>
+        {% if hay_sin_confirmar %}<span><i class="sin_confirmar"></i>Sin confirmar</span>{% endif %}
+      </div>
+    </section>
+
+    <section class="ig2c-detalle" aria-label="{{ detalle.nombre|capfirst }}">
+      <div class="ig2c-fila ig2c-fila-cab"><b>{{ detalle.nombre|capfirst }}</b><span class="ig2c-chip {{ detalle.estado }}">{{ detalle.texto|capfirst }}</span></div>
+      {% if detalle.estado == 'antes' %}
+      <p class="ig2c-nota">Tu sueldo cuenta desde {{ inicio_nombre }}.</p>
+      {% else %}
+      <div class="ig2c-fila"><span>{% if detalle.cambiado %}Sueldo · solo este mes{% else %}Sueldo{% endif %}</span><span class="ig2c-num">{{ detalle.sueldo|money }}</span></div>
+      {% if detalle.extra %}<div class="ig2c-fila"><span>Horas extra{% if detalle.nota %} · {{ detalle.nota }}{% endif %}</span><span class="ig2c-num verde">+{{ detalle.extra|money }}</span></div>{% endif %}
+      {% if detalle.otro %}<div class="ig2c-fila"><span>{% if detalle.otro > 0 %}Llegó más de lo esperado{% else %}Llegó menos de lo esperado{% endif %}</span><span class="ig2c-num{% if detalle.otro > 0 %} verde{% endif %}">{% if detalle.otro > 0 %}+{% else %}−{% endif %}{{ detalle.otro_abs|money }}</span></div>{% endif %}
+      <div class="ig2c-fila ig2c-total"><span>Total</span><span class="ig2c-num">{{ detalle.total|money }}</span></div>
+      {% if detalle.recibido %}<p class="ig2c-nota">Llegó el {{ detalle.recibido|date:"j b" }}{% if detalle.por_cartola %} · por la cartola{% endif %}</p>{% elif detalle.estado == 'sin_confirmar' %}<p class="ig2c-nota">Debía llegar el {{ detalle.fecha_pago|date:"j b" }}. Si llegó, márcalo o sube la cartola de ese mes.</p>{% endif %}
+      <div class="ig2c-botones">
+        <button type="button" class="ig2c-boton" data-open="#modalAjustar" data-modo="extra">Horas extra</button>
+        <button type="button" class="ig2c-boton" data-open="#modalAjustar" data-modo="monto">Cambiar monto</button>
+      </div>
+      {% if not detalle.es_actual %}
+      {% if detalle.puede_llegar %}
+      <form method="post" action="{% url 'ingreso_llego' detalle.periodo %}" class="ig2c-form-llego">{% csrf_token %}<button type="submit" class="ig2c-boton oscuro"><i class="fas fa-check"></i>Ya llegó</button></form>
+      {% elif detalle.recibido %}
+      <form method="post" action="{% url 'ingreso_deshacer' detalle.periodo %}" class="ig2c-form-llego" data-confirm="¿Volver a dejar {{ detalle.nombre }} por recibir?">{% csrf_token %}<button type="submit" class="ig2c-deshacer oscuro">Deshacer «Ya llegó»</button></form>
+      {% endif %}
+      {% endif %}
+      {% endif %}
+    </section>
+
+    <div class="ig2c-pie">
+      <span>Llega {{ ingreso.texto_dia }} de cada mes. Cuando subas la cartola y aparezca el depósito, queda recibido solo.</span>
+      <button type="button" class="ig2c-boton chico" data-open="#modalIngreso"><i class="fas fa-pen"></i>Editar sueldo</button>
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block modals %}
+{% mes_de_pagina as mes_sel %}{% include 'finanzas/_mes_modal.html' %}
+<div class="modal-overlay c2c-modal" id="modalIngreso">
+  <div class="modal-box caja-420">
+    <div class="modal-head">
+      <div>
+        <div class="modal-title">{% if ingreso %}Editar tu sueldo{% else %}Agregar tu sueldo{% endif %}</div>
+      </div>
+      <button class="modal-close" data-close aria-label="Cerrar"><i class="fas fa-xmark"></i></button>
+    </div>
+    <form method="post" action="{% url 'guardar_ingreso' %}" class="ig2c-form" data-dia-pago>
+      {% csrf_token %}
+      <label class="ig2c-campo"><span>¿De dónde viene?</span><input type="text" name="nombre" maxlength="80" value="{{ ingreso.nombre|default:'' }}" placeholder="Ej: Constructora Valpo" autocomplete="organization"></label>
+      <label class="ig2c-campo"><span>Sueldo líquido</span><input type="number" name="monto" class="grande" min="1" inputmode="numeric" required value="{% if ingreso %}{{ ingreso.monto|floatformat:'0u' }}{% endif %}" placeholder="1250000" aria-describedby="ayudaIgMonto"><small id="ayudaIgMonto">Lo que te llega a la cuenta, no el bruto.</small></label>
+      <div class="ig2c-campo"><span>Día de pago</span>
+        <input type="hidden" name="dia_pago" id="id_ig_dia" value="{{ dia_elegido }}">
+        <div class="chips c2c-chips-cat" data-field="#id_ig_dia">
+          {% for valor, texto in dias %}<button type="button" class="chip{% if valor == dia_elegido %} on{% endif %}" data-value="{{ valor }}">{{ texto }}</button>{% endfor %}
+        </div>
+        <label class="ig2c-otro"><span>Otro día</span><input type="number" name="dia_otro" min="1" max="31" inputmode="numeric" value="{{ dia_otro }}" placeholder="1 a 31" data-dia-otro></label>
+      </div>
+      <div class="ig2c-verde">{% if ingreso %}Si cambias el monto, cuenta desde {{ mes_actual }} en adelante. Los meses anteriores quedan como estaban.{% else %}Desde {{ mes_actual }}, cada mes queda «por recibir» hasta que llegue. Si subes la cartola, se marca solo.{% endif %}</div>
+      <button type="submit" class="ig2c-guardar">{% if ingreso %}Guardar cambios{% else %}Guardar sueldo{% endif %}</button>
+    </form>
+    {% if ingreso %}
+    <form method="post" action="{% url 'quitar_ingreso' %}" class="ig2c-form-quitar" data-confirm="¿Quitar tu ingreso fijo? Lo que ya llegó sigue en tus movimientos.">{% csrf_token %}<button type="submit" class="ig2c-quitar">Quitar ingreso fijo</button></form>
+    {% endif %}
+  </div>
+</div>
+
+{% if ingreso and detalle.elegible %}
+<div class="modal-overlay c2c-modal" id="modalAjustar">
+  <div class="modal-box caja-420">
+    <div class="modal-head">
+      <div>
+        <div class="modal-title">Tu sueldo de {{ detalle.nombre }}</div>
+      </div>
+      <button class="modal-close" data-close aria-label="Cerrar"><i class="fas fa-xmark"></i></button>
+    </div>
+    <form method="post" action="{% url 'ajustar_ingreso' detalle.periodo %}" class="ig2c-form" data-ajustar data-mes="{{ detalle.nombre }}" data-sueldo="{{ detalle.sueldo|floatformat:'0u' }}" data-base="{{ ingreso.monto|floatformat:'0u' }}">
+      {% csrf_token %}
+      <div class="ig2c-seg" role="radiogroup" aria-label="Qué quieres hacer">
+        <label><input type="radio" name="modo" value="extra" checked><span>Sumar horas extra</span></label>
+        <label><input type="radio" name="modo" value="monto"><span>Cambiar el monto</span></label>
+      </div>
+      <div class="ig2c-panel" data-panel="extra">
+        <label class="ig2c-campo"><span>Monto de las horas extra</span><input type="number" name="extra" class="grande" min="0" inputmode="numeric" value="{% if detalle.extra %}{{ detalle.extra|floatformat:'0u' }}{% endif %}" placeholder="0" data-extra></label>
+        <label class="ig2c-campo"><span>Nota (opcional)</span><input type="text" name="nota" maxlength="80" value="{{ detalle.nota }}" placeholder="Ej: 12 horas"></label>
+        <div class="ig2c-verde"><b data-extra-total>Recibes {{ detalle.esperado|money }} en {{ detalle.nombre }}</b><span>Tu sueldo sigue en {{ ingreso.monto|money }} para los otros meses.</span></div>
+      </div>
+      <div class="ig2c-panel" data-panel="monto">
+        <label class="ig2c-campo ig2c-centro"><span>Lo que recibes en {{ detalle.nombre }}</span><input type="number" name="nuevo" class="grande" min="1" inputmode="numeric" value="{{ detalle.esperado|floatformat:'0u' }}" data-nuevo></label>
+        <span class="ig2c-dif" data-dif hidden></span>
+        <div class="ig2c-campo"><span>¿Para qué meses?</span>
+          <div class="ig2c-seg">
+            <label><input type="radio" name="alcance" value="mes" checked><span>Solo {{ detalle.nombre }}</span></label>
+            <label><input type="radio" name="alcance" value="adelante"><span>De aquí en adelante</span></label>
+          </div>
+          <small>Si te subieron el sueldo, elige «De aquí en adelante».</small>
+        </div>
+      </div>
+      <button type="submit" class="ig2c-guardar">Guardar</button>
+    </form>
+  </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script type="module" data-js="ingresos" src="{% static 'js/pantallas/ingresos.js' %}" nonce="{{ csp_nonce }}"></script>
+{% endblock %}

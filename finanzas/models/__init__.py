@@ -2,6 +2,7 @@ from .altas import AltaPendiente
 from .api import ClaveApi
 from .cuotas import Deuda, PagoCuota
 from .encuesta import RespuestaEncuesta
+from .ingresos import IngresoFijo, IngresoMes
 from .metas import MetaAhorro, AporteMeta
 from .movimientos import Transaccion, Categoria, Presupuesto, GastoPendiente, TopeCategoria
 from .perfil import _ruta_avatar, SEGUNDOS_URL_FOTO_EN_CACHE, UserProfile
@@ -23,6 +24,8 @@ __all__ = [
     'Presupuesto',
     'GastoPendiente',
     'TopeCategoria',
+    'IngresoFijo',
+    'IngresoMes',
     'SuscripcionPush',
     'Deuda',
     'PagoCuota',

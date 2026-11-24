@@ -99,7 +99,7 @@
           </span>
         </div>
 
-        {% if f.ya_existe or f.es_cuota or f.es_suscripcion or f.aviso or f.reemplaza_id or f.tipo == 'EGRESO' %}
+        {% if f.ya_existe or f.es_cuota or f.es_suscripcion or f.aviso or f.reemplaza_id or f.sueldo or f.tipo == 'EGRESO' %}
         <div class="cartola-detalle">
           {% if f.ya_existe or f.es_cuota or f.es_suscripcion or f.aviso or f.reemplaza_id %}
           <div class="cartola-marcas">
@@ -109,6 +109,20 @@
             {% if f.es_suscripcion %}<span class="sec-badge azul chico">Se repite cada mes</span>{% endif %}
             {% if f.aviso %}<span class="cartola-nota-fila{% if f.es_cuota %} suave{% endif %}">{{ f.aviso }}</span>{% endif %}
           </div>
+          {% endif %}
+
+          {% if f.sueldo %}
+          {% if f.sueldo.mas %}<span class="cartola-nota-fila">Llegaron {{ f.sueldo.mas|money }} más que tu sueldo.</span>{% elif f.sueldo.menos %}<span class="cartola-nota-fila">Llegaron {{ f.sueldo.menos|money }} menos que tu sueldo.</span>{% endif %}
+          <label class="cartola-extra">
+            <input type="checkbox" name="sueldo_{{ f.i }}" data-vinculo checked>
+            <span class="cartola-extra-txt">{% if f.sueldo.a_mano %}Es tu sueldo de {{ f.sueldo.mes }}, que marcaste a mano · usar este{% else %}Es tu sueldo de {{ f.sueldo.mes }} · queda recibido{% endif %}</span>
+          </label>
+          {% if f.sueldo.mas %}
+          <label class="cartola-extra">
+            <input type="checkbox" name="extra_{{ f.i }}">
+            <span class="cartola-extra-txt">Sumar {{ f.sueldo.mas|money }} como horas extra</span>
+          </label>
+          {% endif %}
           {% endif %}
 
           {% if f.reemplaza_id %}
