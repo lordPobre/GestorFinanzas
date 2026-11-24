@@ -12,7 +12,7 @@ FILA = re.compile(
     r'(-?[\d.]+)\s+'
     r'(-?[\d.]+)\s+'
     r'(\d{1,2})/(\d{1,2})'
-    r'(?:\s+([a-zA-Z]{3}-\d{4})\s+(-?[\d.]+))?'
+    r'(?:\s+(?:([a-zA-Z]{3}-\d{4})\s+)?(-?[\d.]+))?'
     r'\s*$'
 )
 
@@ -23,6 +23,8 @@ FECHA_FACT = re.compile(r'Fecha\s+Facturaci[oó]n[^:]*:\s*(\d{2}/\d{2}/\d{4})', 
 CONTRATO = re.compile(r'N[°º]\s*de\s*Contrato:\s*([\d*]+)', re.I)
 
 NO_ES_GASTO = ('pago tarjeta', 'pago recibido', 'abono pago')
+
+DEVOLUCION = 'Es una devolución de la tienda: se descuenta del total facturado.'
 
 MESES = ('Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio',
          'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre')
@@ -49,7 +51,9 @@ class CMR:
             if not m:
                 continue
             movimientos.append(m)
-            if m.tipo == 'EGRESO' and 'no es un gasto' not in m.aviso.lower():
+            if m.tipo == 'INGRESO':
+                suma -= m.monto
+            elif 'no es un gasto' not in m.aviso.lower():
                 suma += m.monto
 
         if not movimientos:
@@ -99,7 +103,7 @@ class CMR:
         return None
 
     def _compra(self, m, fecha_fact):
-        lugar, fecha_txt, desc, _tj, monto_op, _total, ca, ct, _mes, valor = m.groups()
+        lugar, fecha_txt, desc, _tj, monto_op, total, ca, ct, _mes, valor = m.groups()
         fecha_op = self._fecha(fecha_txt)
         if not fecha_op:
             return None
@@ -135,12 +139,19 @@ class CMR:
                 descripcion=f'{desc} · cuota {ca} de {ct}'[:200],
                 monto=monto, tipo='EGRESO', saldo=0,
                 cuota_actual=ca, cuota_total=ct,
+                montos_compra=tuple(dict.fromkeys(abs(plata(x)) for x in (monto_op, total))),
                 aviso=f'Compra del {fecha_op.strftime("%d/%m/%Y")} en {ct} cuotas. '
                       f'Se anota en este mes porque es la cuota que pagas ahora.',
             )
 
         if lugar and lugar.strip() not in ('S/I', ''):
             desc = f'{desc} ({lugar.strip()})'[:200]
+
+        if plata(valor) < 0:
+            return MovimientoLeido(
+                fecha=fecha_op, descripcion=desc, monto=monto, tipo='INGRESO', saldo=0,
+                aviso=DEVOLUCION,
+            )
 
         return MovimientoLeido(
             fecha=fecha_op, descripcion=desc, monto=monto, tipo='EGRESO', saldo=0,

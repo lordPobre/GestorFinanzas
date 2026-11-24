@@ -27,6 +27,7 @@ MAX_BYTES_IMAGEN = 5 * 1024 * 1024
 MIN_TEXTO = 100
 PARTES_A_LA_VEZ = 4
 APROBADA = Decimal('0.9')
+DESCUADRE_PROPIO = Decimal(50)
 
 PAGO = 'No es un gasto: es un pago a la tarjeta. Ya lo tienes en la cartola de tu cuenta corriente.'
 INVENTADO = 'Este monto no aparece en el archivo. Revísalo antes de guardar.'
@@ -43,6 +44,7 @@ Entrega el resultado con la herramienta entregar_cartola:
 - sentido es «cargo» cuando la plata sale (compra, giro, pago, comisión, impuesto, cuota) y «abono» cuando entra (depósito, transferencia recibida, sueldo, devolución, reverso).
 - En un estado de cuenta de tarjeta el monto es lo que se cobra en este estado, el valor de la cuota, no el total de la compra. Si la fila trae cuotas (3/6, cuota 3 de 6) pon cuota_actual y cuota_total; si no, deja los dos en 0. La fecha es la de la compra.
 - Hay estados de cuenta que imprimen en la fila de una compra en cuotas varios montos sin nombre de columna: el de la operación, el total a pagar y al final el valor de la cuota. El monto es el valor de la cuota, el que multiplicado por cuota_total da el total a pagar.
+- En un estado de cuenta de tarjeta, un monto con signo menos que no es un pago a la tarjeta es una devolución o un reverso de la tienda: su sentido es «abono».
 - Marca es_pago_tarjeta en los pagos que la persona hizo a la tarjeta. No incluyas las compras que el documento lista como no facturadas o del próximo período.
 - Las fechas van en formato AAAA-MM-DD. Si la fila no trae año, usa el del período del documento.
 - Los datos personales vienen tapados entre corchetes, como [RUT] o [CUENTA]. Ignóralos.
@@ -330,10 +332,12 @@ def _filas(crudas, indice):
             'fecha': fecha,
             'descripcion': ' '.join(str(f.get('descripcion') or '').split())[:200],
             'monto': abs(monto),
+            'negativo': monto < 0,
             'abono': f.get('sentido') == 'abono',
             'saldo': saldo,
             'cuota_actual': a, 'cuota_total': t,
             'pago': bool(f.get('es_pago_tarjeta')),
+            'montos_compra': (),
             'impreso': _impreso(f.get('monto'), indice),
             'aviso': '',
         })
@@ -359,8 +363,9 @@ def _valor_cuota(f, lineas):
         if f['monto'] not in montos:
             continue
         for i in range(len(montos) - 1, -1, -1):
-            if montos[i] <= f['monto'] and _calza_cuota(montos[i], t, montos[:i] + montos[i + 1:]):
-                return montos[i]
+            otros = montos[:i] + montos[i + 1:]
+            if montos[i] <= f['monto'] and _calza_cuota(montos[i], t, otros):
+                return montos[i], tuple(dict.fromkeys(otros))
         return None
     return None
 
@@ -369,9 +374,9 @@ def _corregir_cuotas(filas, texto):
     lineas = (texto or '').splitlines()
     for f in filas:
         if lineas and f['cuota_total'] > 1 and not f['abono'] and not f['pago']:
-            valor = _valor_cuota(f, lineas)
-            if valor is not None:
-                f['monto'] = valor
+            hallado = _valor_cuota(f, lineas)
+            if hallado is not None:
+                f['monto'], f['montos_compra'] = hallado
 
 
 def _firmado(f):
@@ -441,7 +446,8 @@ def _total(filas, inicial, total):
         return None
     cargos = sum((f['monto'] for f in filas if not f['pago'] and not f['abono']), Decimal(0))
     abonos = sum((f['monto'] for f in filas if f['pago'] or f['abono']), Decimal(0))
-    candidatos = [cargos, cargos - abonos]
+    devoluciones = sum((f['monto'] for f in filas if f['abono'] and not f['pago']), Decimal(0))
+    candidatos = [cargos, cargos - abonos, cargos - devoluciones]
     if inicial is not None:
         candidatos.append(inicial + cargos - abonos)
     diferencia = min(abs(abs(total) - c) for c in candidatos)
@@ -472,7 +478,7 @@ def _movimiento(f, es_tarjeta, facturacion):
             desc = f'{desc} · cuota {a} de {t}'[:200]
         return MovimientoLeido(
             fecha=facturacion or f['fecha'], descripcion=desc, monto=f['monto'], tipo='EGRESO',
-            saldo=saldo, cuota_actual=a, cuota_total=t,
+            saldo=saldo, cuota_actual=a, cuota_total=t, montos_compra=f['montos_compra'],
             aviso=aviso or (f'Compra del {f["fecha"]:%d/%m/%Y} en {t} cuotas. '
                             f'Se anota en este mes porque es la cuota que pagas ahora.'),
         )
@@ -494,6 +500,9 @@ def _comprobar(respuestas, fuente, banco, contenido_original):
 
     es_tarjeta = cabeza['tipo_documento'] == 'tarjeta'
     if es_tarjeta:
+        for f in filas:
+            if f['negativo'] and not f['pago']:
+                f['abono'] = True
         _corregir_cuotas(filas, fuente['texto'])
     inicial, final = cifra(cabeza['saldo_inicial']), cifra(cabeza['saldo_final'])
     total = cifra(cabeza['total_facturado'])
@@ -573,8 +582,31 @@ def _texto_original(contenido, nombre):
         return ''
 
 
+def _lectura_propia(texto, banco):
+    if not texto:
+        return None
+    elegido = BANCOS.get(banco or '')
+    lectores = [elegido] if elegido else []
+    lectores += [c for c in BANCOS.values() if c is not elegido and c().reconoce(texto)]
+    for lector in lectores:
+        try:
+            cartola = lector().parsear(texto)
+        except ErrorCartola:
+            continue
+        except Exception:
+            log.exception('Falló el lector propio de la cartola.')
+            continue
+        if cartola.movimientos and cartola.cuadra and abs(cartola.descuadre or 0) <= DESCUADRE_PROPIO:
+            return cartola
+    return None
+
+
 def leer_con_ia(contenido, nombre, banco, usuario, respaldo):
     imagen = bool(es_imagen(contenido))
+    original = _texto_original(contenido, nombre)
+    propia = _lectura_propia(original, banco)
+    if propia is not None:
+        return propia
     cliente = ia_cliente.cliente('Lectura de cartolas con IA', timeout=120, max_retries=1)
     if cliente is None:
         return respaldo()
@@ -587,7 +619,6 @@ def leer_con_ia(contenido, nombre, banco, usuario, respaldo):
 
     fuente = _fuente(contenido, nombre, banco, usuario)
     _gastar(usuario)
-    original = _texto_original(contenido, nombre)
 
     mejor = None
     try:

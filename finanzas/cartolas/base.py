@@ -81,6 +81,7 @@ class MovimientoLeido:
     prestamo_id: int = None
     prestamo_texto: str = ''
     vinculo_seguro: bool = False
+    montos_compra: tuple = ()
 
     @property
     def es_cuota(self):

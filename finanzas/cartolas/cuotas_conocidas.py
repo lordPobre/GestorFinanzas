@@ -27,6 +27,10 @@ def calza_monto(monto, esperado):
     return abs(monto - esperado) <= max(HOLGURA_MINIMA, abs(esperado) * HOLGURA_MONTO)
 
 
+def por_la_compra(m, monto, cuotas):
+    return cuotas == m.cuota_total and any(calza_monto(x, Decimal(monto)) for x in m.montos_compra)
+
+
 def indice_de_la_cuota(periodos, actual, total, fecha):
     corrimiento = total - len(periodos)
     indice = actual - corrimiento - 1
@@ -56,7 +60,7 @@ def _opciones(m, deudas, pagos, prestamos, tomadas):
             continue
         pago = pagos[d.pk].get(periodos[indice])
         esperado = Decimal(pago.monto) if pago else d.monto_cuota_de(periodos[indice])
-        if calza_monto(m.monto, esperado):
+        if calza_monto(m.monto, esperado) or por_la_compra(m, d.monto_total, d.cuotas_totales):
             salida.append(('deuda', d, periodos[indice], parecido(m.descripcion, d.acreedor),
                            abs(m.monto - esperado)))
     for p in prestamos:
@@ -65,7 +69,7 @@ def _opciones(m, deudas, pagos, prestamos, tomadas):
         if indice is None or ('prestamo', p.pk, periodos[indice]) in tomadas:
             continue
         esperado = _cuota_prestamo(p, indice)
-        if calza_monto(m.monto, esperado):
+        if calza_monto(m.monto, esperado) or por_la_compra(m, p.monto, p.cuotas_totales):
             salida.append(('prestamo', p, periodos[indice], parecido(m.descripcion, p.descripcion),
                            abs(m.monto - esperado)))
     return salida
@@ -96,15 +100,23 @@ def reconocer_cuotas(cartola, usuario):
     if not deudas and not prestamos:
         return cartola
     pagos = {d.pk: {p.periodo: p for p in d.pagos.all()} for d in deudas}
-    tomadas = set()
 
-    for m in filas:
-        opciones = _opciones(m, deudas, pagos, prestamos, tomadas)
-        if not opciones:
+    candidatos, cuantas = [], {}
+    for n, m in enumerate(filas):
+        opciones = _opciones(m, deudas, pagos, prestamos, set())
+        cuantas[n] = len(opciones)
+        candidatos += [(nombre, -diferencia, n, clase, cosa, periodo)
+                       for clase, cosa, periodo, nombre, diferencia in opciones]
+    candidatos.sort(key=lambda c: (c[0], c[1]), reverse=True)
+
+    hechas, tomadas = set(), set()
+    for nombre, menos_diferencia, n, clase, cosa, periodo in candidatos:
+        if n in hechas or (clase, cosa.pk, periodo) in tomadas:
             continue
-        clase, cosa, periodo, nombre, diferencia = max(opciones, key=lambda o: (o[3], -o[4]))
-        seguro = nombre >= MINIMO or (len(opciones) == 1 and diferencia == 0)
+        hechas.add(n)
         tomadas.add((clase, cosa.pk, periodo))
+        m = filas[n]
+        seguro = nombre >= MINIMO or (cuantas[n] == 1 and menos_diferencia == 0)
 
         if clase == 'prestamo':
             m.prestamo_id = cosa.pk
