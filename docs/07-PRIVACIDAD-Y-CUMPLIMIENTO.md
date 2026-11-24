@@ -6,7 +6,7 @@ Fintora trata datos personales de residentes en Chile y está sujeta a la **Ley 
 | --- | --- |
 | Responsable | Carlos López Figueroa, persona natural, Valparaíso, Chile. Es también el titular de los derechos sobre la aplicación y su código |
 | Contacto y derechos | soporte@perseustechnology.dev, respuesta en 30 días corridos |
-| Política vigente | Versión y fecha en `finanzas/legal.py` (`VERSION`, `VIGENTE_DESDE`). La 1.4 (lote 52) sumó la medición de las páginas públicas. La 1.5 (lote 84) suma ElevenLabs y está vigente desde el 20 de octubre de 2026 |
+| Política vigente | Versión y fecha en `finanzas/legal.py` (`VERSION`, `VIGENTE_DESDE`). Hoy, la 1.10, vigente desde el 14 de noviembre de 2026: suma Telegram y las frases que se leen con Anthropic |
 | Edad | Pensada para mayores de 18 años |
 
 ## Principios aplicados en el diseño
@@ -14,8 +14,8 @@ Fintora trata datos personales de residentes en Chile y está sujeta a la **Ley 
 - **Minimización.** No se pide RUT ni número de tarjeta y nunca se pide la clave del banco. Nombre, teléfono, ciudad y foto son opcionales.
 - **Sin conexión bancaria.** Todo lo que la app sabe lo anotó o lo subió la persona.
 - **Sin terceros dentro de la app.** Fuentes, íconos y gráficos se sirven desde el propio servidor. Dentro de la app no hay analítica, píxeles ni publicidad. Lo prueba `test_terceros_fotos_cache.py`. Las páginas públicas pueden medir visitas, como se explica más abajo.
-- **Cartolas sin archivo.** El PDF se lee y se descarta. Ver la salvedad sobre la sesión más abajo.
-- **IA con agregados.** El análisis envía números, no textos. El chat envía solo lo que la persona escribe en él. La voz de la esfera envía la frase que se lee en pantalla (en Me deben incluye los nombres de las personas) y, al entrar, el nombre del saludo.
+- **Cartolas sin archivo.** El PDF se lee y se descarta. Si el banco tiene lector propio y la lectura cuadra, no sale del servidor. Si no, va a Anthropic con los datos personales tapados (en fotos y escaneos no se pueden tapar). Ver la salvedad sobre la sesión más abajo.
+- **IA con lo mínimo.** El análisis envía números, no textos. El chat envía solo lo que la persona escribe en él. Las preguntas a la esfera envían la pregunta y las cifras para responderla, con las deudas y metas como alias. La voz envía la frase que se lee en pantalla (en Me deben incluye los nombres de las personas) y, al entrar, el nombre del saludo. Los repetidos dudosos envían fecha, monto, categoría y descripción de cada par.
 - **Borrado real.** Eliminar la cuenta borra todo en cascada en el momento.
 
 ## Qué se trata y con qué base
@@ -27,7 +27,9 @@ Fintora trata datos personales de residentes en Chile y está sujeta a la **Ley 
 | Foto de perfil | Consentimiento (opcional) |
 | Aviso mensual por correo | Consentimiento, revocable en el perfil |
 | Recordatorios en el teléfono | Consentimiento, por aparato: el navegador pide permiso. Se apagan en el perfil o en los ajustes del teléfono |
-| Análisis con IA y voz de la esfera | Consentimiento, revocable en el perfil (`analisis_ia`). Un solo interruptor apaga las dos |
+| Análisis con IA, voz, preguntas a la esfera, repetidos dudosos y audios de Telegram | Consentimiento, revocable en el perfil (`analisis_ia`). Un solo interruptor los apaga todos |
+| Lectura de cartolas | Ejecución del servicio, a pedido del titular. No depende del interruptor de la IA y la pantalla de importar lo avisa |
+| Anotar desde Telegram y con la clave personal | Ejecución del servicio, a pedido del titular. Se conecta y se corta desde el perfil |
 | Chat de ayuda | Consentimiento: solo si la persona escribe |
 | Formulario de contacto del chat | Consentimiento: al dejar su correo |
 | Face ID o huella | Consentimiento, por dispositivo |
@@ -69,6 +71,11 @@ La descarga de datos excluye las credenciales (secreto 2FA, hashes de los códig
 | Correo nuevo sin confirmar | 48 h | El enlace vence |
 | Registro sin confirmar | 48 h | `alta.purgar` al registrarse alguien y al abrir un enlace vencido |
 | Audio de la voz | 6 h | Caché del servidor |
+| Conversación con la esfera | 30 min | Caché del servidor |
+| Grabación de una pregunta y audio de Telegram | No se guarda | Se pasa a texto en memoria |
+| Veredicto de repetidos con IA | 30 días | Caché, solo sí o no |
+| Conexión con Telegram | Hasta desconectarla o borrar la cuenta | `/desconectar`, el perfil y borrado en cascada |
+| Clave personal | Hasta revocarla o borrar la cuenta | Se guarda solo su hash |
 | Aparatos con recordatorios | Hasta apagarlos, que el servicio de avisos diga que el aparato ya no existe o se borre la cuenta | `push_quitar`, borrado ante 404 o 410 y en cascada |
 | Conversación del chat | No se guarda en el servidor | Vive en la pestaña |
 | Formulario del chat | En el buzón de soporte hasta cerrar la consulta | Manual |
@@ -84,10 +91,11 @@ Todos los proveedores están fuera de Chile. Cada transferencia se declara en la
 | Railway | Aplicación y base completa | EE. UU. | DPA firmado el 24/09/2026 |
 | Cloudflare R2 | Fotos y respaldos, en almacenamiento privado | Red global | Customer DPA v6.4 |
 | Resend | Correo y contenido del aviso mensual, de la verificación, de la recuperación y del formulario de contacto | EE. UU. | DPA prefirmado |
-| Anthropic | Agregados del análisis y texto del chat | EE. UU. | DPA en los Commercial Terms |
+| Anthropic | Agregados del análisis y montos del plan, texto del chat, cartolas que no lee el lector propio (con los datos tapados salvo en fotos y escaneos), preguntas a la esfera con sus cifras, pares de repetidos dudosos y frases de Telegram o de la clave personal que el servidor no entiende | EE. UU. | DPA en los Commercial Terms |
 | Google | Identidad, solo al entrar con Google | EE. UU. | Términos del servicio de identidad |
 | Servicio de avisos del navegador (Google, Mozilla, Apple o Microsoft, según el aparato) | El recordatorio cifrado, que no puede leer. Ve la dirección del aparato y la hora del envío | EE. UU. | Lo elige el navegador de la persona. No hay contrato con Fintora |
-| ElevenLabs | Texto que la esfera lee en voz alta: montos del mes, en Me deben los nombres de las personas y lo que deben, y al entrar el nombre del saludo. Solo con el análisis con IA activado | EE. UU. | Por documentar (ver pendientes) |
+| ElevenLabs | Texto que la esfera lee en voz alta (montos, en Me deben los nombres de las personas y lo que deben, el nombre del saludo y las respuestas a las preguntas), grabaciones de las preguntas con la voz y audios del bot de Telegram. Solo con el análisis con IA activado | EE. UU. | Por documentar (ver pendientes) |
+| Telegram (si se conecta el bot) | Los mensajes y audios que la persona le manda al bot y sus respuestas | Internacional | Términos de la plataforma de bots. Sin DPA: lo elige la persona al conectarlo |
 | Sentry (si está activo) | Errores de la aplicación, sin datos personales (`send_default_pii=False`) | EE. UU. | Por documentar |
 | Plausible (si está activo) | Visitas a las páginas públicas, sin cookies | UE | Términos del servicio |
 | Google Analytics, Meta, TikTok, X (si están activos) | Visitas a las páginas públicas y el evento de registro, solo con consentimiento | EE. UU. e internacional | Términos de cada plataforma |
@@ -102,6 +110,14 @@ Las copias de los DPA se guardan fuera del repositorio, en `legal/dpa/`, con la 
 
 **Chat de ayuda** (`chat_ayuda.py`): envía el texto de la conversación, como máximo las últimas 12 intervenciones de hasta 600 caracteres. No envía ningún dato de la cuenta, aunque la persona esté dentro. Las instrucciones le prohíben pedir claves o datos del banco y le piden advertir si alguien los escribe. No se guarda nada en el servidor.
 
+**Lectura de cartolas** (`cartolas/lector_ia.py`): primero prueba el lector propio del banco; si la lectura cuadra con los saldos o el total, no se llama a la IA. Si no, envía el texto con `tapar()` aplicado (RUT, nombre, correo, teléfono, tarjeta, cuenta y dirección), en partes de 5.000 caracteres. Las fotos y los escaneos van como imagen. Hasta 20 lecturas con IA al mes por cuenta. El servidor comprueba cada monto contra el archivo.
+
+**Preguntas a la esfera** (`ia_preguntas.py`): envía la pregunta, hasta 4 turnos de la conversación y las cifras de las herramientas de `servicios/preguntas.py`, con los nombres de deudas y metas cambiados por alias. Con la voz, la grabación se pasa a texto con ElevenLabs en memoria. La conversación dura 30 minutos en la caché. Hasta 30 preguntas al día.
+
+**Repetidos** (`ia_repetidos.py`): solo los pares dudosos, con fecha, tipo, monto, categoría y descripción. Se guarda el veredicto 30 días.
+
+**Telegram y clave personal** (`views/telegram.py`, `servicios/anotar_texto.py`): las frases se leen primero con reglas propias. Solo si no alcanzan y el análisis con IA está activado, la frase va a Anthropic. Los audios del bot se pasan a texto con ElevenLabs y no se guardan.
+
 ## Registro de seguridad
 
 `EventoSeguridad` registra 23 tipos de evento, con fecha, IP, navegador y usuario o nombre intentado: accesos y fallos, bloqueos, cambios de 2FA, Face ID, contraseña, sesiones cerradas, descarga de datos, borrado de cuenta, accesos denegados al admin, cambios de correo, accesos desde un aparato nuevo y sesiones vencidas. La persona ve los suyos en *Perfil → Actividad de la cuenta*, salvo los del admin y el borrado. Es de solo lectura en el admin. Sirve para detectar ataques y reconstruir un incidente. Al borrar una cuenta, sus eventos pierden el vínculo pero conservan el nombre de usuario hasta cumplir 12 meses: son la evidencia si el borrado lo hizo otra persona.
@@ -114,10 +130,11 @@ Ver [10 · Operación](10-OPERACION.md#incidentes-de-seguridad) y `docs/BRECHAS.
 
 C1, C2 y C3 se resolvieron en la entrega de arreglos (ver [13 · Deuda técnica](13-DEUDA-TECNICA-Y-HOJA-DE-RUTA.md)). C7 se resolvió en el lote 88: como el lote 86 había sumado los recordatorios a la 1.5 ya publicada, la política pasó a 1.6, y quien aceptó la 1.5 tiene que aceptar de nuevo. Quedan abiertos:
 
-- **C4. Aviso de la política 1.6.** Correr `avisar_politica` a más tardar el 13 de octubre de 2026, una semana antes de la vigencia (20 de octubre).
+- **C4. Aviso de la política vigente.** Revisar en `politica_avisada` que las cuentas activas recibieron el aviso de la 1.10. Si falta alguna, correr `avisar_politica`, que manda solo a las que faltan.
 - **C5. Acuerdo con ElevenLabs.** Revisar y descargar su DPA y guardarlo en `legal/dpa/`. El plan gratuito no permite uso comercial: en producción hace falta un plan de pago.
 - **C6. Acuerdos de Sentry y de los proveedores de medición**, si se activan.
 - **C8. Plazo del registro sin confirmar.** El lote 90 guarda hasta 48 horas lo que se escribe al registrarse, antes de que exista la cuenta. Sumarlo a la tabla de plazos de `/privacidad/` en la próxima versión de la política, junto con su aviso.
+- **C9. Lector propio antes que la IA (lote 282).** `/privacidad/` dice que la cartola se le pide a Anthropic. Desde el lote 282, si el banco tiene lector propio y la lectura cuadra, no sale del servidor. Es menos de lo que la política declara, así que no obliga a una versión nueva. Ajustar el texto en la próxima.
 
 ## Para un auditor
 

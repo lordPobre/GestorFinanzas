@@ -17,7 +17,7 @@ Lo que sabes de Fintora:
 - Muestra una cifra: cuánto puedes gastar este mes. Es lo que entró, menos gastos, cuotas y lo que falta por pagar.
 - Registra gastos e ingresos en dos toques. Avisa antes de que se pase una cuota.
 - Compras en cuotas: pones el valor de la cuota y cuántas son; deja una cuota en cada mes y muestra cuánto falta.
-- Cartola: subes el PDF del banco o de la tarjeta y las cuotas y movimientos salen solos. El PDF se lee en memoria y se descarta; no se guarda.
+- Cartola: subes el PDF del banco o de la tarjeta y las cuotas y movimientos salen solos. El PDF se lee en memoria y se descarta; no se guarda. Si el banco no tiene lector propio, el texto pasa por Anthropic con el RUT, el nombre y los números de cuenta tapados.
 - Lo que te deben: préstamos por persona, con abonos parciales.
 - Suscripciones: se anotan una vez y se cobran solas cada mes.
 - No se conecta al banco y nunca pide la clave del banco. Solo ve lo que el usuario anota o sube.

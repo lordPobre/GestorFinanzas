@@ -4,6 +4,17 @@ Un paso por lote. Al terminar un paso: marcarlo con [x], anotar el número de lo
 
 Los códigos (B2, F1, D12…) son los de `Revision Fintora.dc.html` y `docs/13-DEUDA-TECNICA-Y-HOJA-DE-RUTA.md`.
 
+## Paso 19 · Después del 2c (decidido el 24 de noviembre)
+
+**Modelo de negocio:** todo gratis mientras se pueda sostener. Se mantienen los topes de IA (20 cartolas al mes, 30 preguntas al día) y los lectores propios bajan el gasto, porque si cuadran no se llama a la IA (lote 282).
+
+- [x] 19a (lote 283). Ley 21.719, vigente el 1 de diciembre. `docs/REGISTRO-TRATAMIENTOS.md` (tratamientos 20 a 23) y `docs/07` con Telegram, la lectura de cartolas con Anthropic, los repetidos con IA, las preguntas a la esfera, la clave personal y el audio a texto con ElevenLabs. La landing, Importar cartola y el chat de ayuda dicen cuándo la cartola pasa por Anthropic. Queda para ti: el DPA de ElevenLabs (plan de pago) y el de Sentry en `legal/dpa/`, y revisar el aviso de la 1.10.
+- [ ] 19b. Ingreso fijo: el sueldo mensual se anota solo cada mes y el monto de un mes se puede cambiar (horas extra) sin tocar el sueldo base. Maqueta primero.
+- [ ] 19c. Lectores propios por banco, uno por lote y con una cartola real de cada uno: Santander, BCI, Scotiabank y los que se pidan. Si cuadran, se usan antes que la IA.
+- [ ] 19d. Transiciones entre pantallas en `fintora-2c.css`: se perdieron en el lote 276, porque `@view-transition` quedó solo en `tema-vidrio.css` y `transiciones.css` se borró.
+- [ ] 19e. Operación: staging en `.railway/railway.ts`, borrar `railway.json` de la raíz, primer simulacro de respaldo, DMARC a `quarantine`, DNSSEC y un monitor externo de `/salud/`.
+- [ ] 19f. Cada lote como rama con su PR (el CI ya corre en los PR) y un lote de documentación: `docs/13` y `PENDIENTES.md` quedaron en octubre.
+
 ## Para mañana (dejado el 9 de noviembre, en la noche)
 
 **Decisión del 9 de noviembre:** el 2c tiene que quedar **igual al prototipo** (`Fintora Prototipo 2c.dc.html` en el teléfono y `Fintora Escritorio 2c.dc.html` en el computador), detalle por detalle. Solo se mantienen las lógicas (vistas, contexto, formularios, URLs y scripts que hablan con el servidor). Las pieles de los lotes 241 a 246 (`tema-2c.css` sobre las hojas viejas y `tema-2c-auto.css`) no alcanzan: pelean con `finapp.css` y `tema-vidrio.css` y se ven mal.

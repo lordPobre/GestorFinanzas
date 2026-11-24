@@ -2,14 +2,14 @@
 
 Inventario de qué dato personal trata la aplicación, con qué finalidad, dónde vive y cuánto se conserva. Es el documento que pide la Ley 21.719 cuando se fiscaliza: no basta con tener los controles, hay que poder mostrar qué se trata y por qué.
 
-Última revisión: 6 de octubre de 2026.
+Última revisión: 24 de noviembre de 2026.
 
 | | |
 | --- | --- |
 | Responsable del tratamiento | Carlos López Figueroa, persona natural, Valparaíso, Chile |
 | Canal para el ejercicio de derechos | soporte@perseustechnology.dev |
 | Alcance | Servicio abierto al público, con cuentas de usuarios reales |
-| Política vigente | La indicada en `finanzas/legal.py` (`VERSION`, `VIGENTE_DESDE`). Los tratamientos 15 y 16 entran con la versión 1.3, y el 19 con la 1.6 |
+| Política vigente | La indicada en `finanzas/legal.py` (`VERSION`, `VIGENTE_DESDE`). Los tratamientos 15 y 16 entran con la versión 1.3, el 19 con la 1.6, el 21 con la 1.9 y el 23 con la 1.10 |
 
 ---
 
@@ -74,8 +74,10 @@ Inventario de qué dato personal trata la aplicación, con qué finalidad, dónd
 | Datos | Movimientos del extracto: fecha, comercio, monto, cuotas. Número de cuenta enmascarado (últimos 4 dígitos) |
 | Finalidad | Cargar movimientos sin escribirlos a mano |
 | Base de licitud | Ejecución del servicio, a pedido expreso del titular |
-| Dónde | El archivo se procesa en memoria y **no se guarda**. Lo leído queda en la sesión del titular (tabla `django_session`) mientras revisa. Los movimientos que confirma se guardan como transacciones normales. Si la lectura falla, se guarda en la sesión una muestra anonimizada de la estructura del texto (dígitos → 9, palabras → X) para mostrársela una vez |
-| Conservación | El archivo, nada. Lo leído, hasta confirmar, descartar o que venza la sesión (8 horas). Lo confirmado, mientras la cuenta exista |
+| Dónde | El archivo se procesa en memoria y **no se guarda**. Si el documento es de un banco que la app lee con su propio lector y cuadra con los saldos o con el total facturado, no sale del servidor. Si no, el texto se envía a la API de Anthropic (Estados Unidos) con el RUT, el nombre, el correo, el teléfono, los números de tarjeta y de cuenta y la dirección tapados. Las fotos y los PDF escaneados van como imagen y no se pueden tapar. Lo leído queda en la sesión del titular (tabla `django_session`) mientras revisa. Los movimientos que confirma se guardan como transacciones normales. Si la lectura falla, se guarda en la sesión una muestra anonimizada de la estructura del texto (dígitos → 9, palabras → X) para mostrársela una vez |
+| Conservación | El archivo, nada. Lo leído, hasta confirmar, descartar o que venza la sesión (8 horas). Lo confirmado, mientras la cuenta exista. En Anthropic, la que aplique el proveedor. El contador de lecturas con IA (20 al mes), en la tabla `Contador` |
+| Observación | La lectura con IA no depende del interruptor del análisis con IA: es parte del servicio que el titular pide al subir el archivo. La pantalla de importar lo avisa antes de subirlo |
+| Verificable en | `finanzas/cartolas/lector_ia.py` (`tapar`, `_lectura_propia`), `finanzas/tests/test_cartola_ia.py`, `finanzas/tests/test_cartola_lector_propio.py` |
 
 ## 7. Verificación en dos pasos
 
@@ -123,13 +125,13 @@ Inventario de qué dato personal trata la aplicación, con qué finalidad, dónd
 
 | | |
 | --- | --- |
-| Datos enviados | **Solo agregados numéricos**: ingreso y gasto mensual promedio, cuota total, deuda restante, flujo libre, ratio deuda/ingreso, meses restantes, cantidad de deudas, nivel de riesgo, tendencia y factores de riesgo |
+| Datos enviados | **Solo agregados numéricos**: ingreso y gasto mensual promedio, cuota total, deuda restante, flujo libre, ratio deuda/ingreso, meses restantes, cantidad de deudas, nivel de riesgo, tendencia y factores de riesgo. En «Explicar mi plan», los montos del plan para tu plata |
 | Datos que NO se envían | Nombre, correo, nombre de usuario, descripciones de movimientos, nombres de personas, cualquier identificador |
 | Finalidad | Traducir el diagnóstico numérico a lenguaje natural |
 | Base de licitud | Consentimiento, revocable en Perfil → Análisis con IA (`UserProfile.analisis_ia`). Apagado, `views/analisis.analisis_ia` no llama a la API |
 | Dónde | API de Anthropic, Estados Unidos |
 | Conservación | La que aplique el proveedor. La aplicación no guarda la respuesta |
-| Verificable en | `finanzas/ia.py`, función `_construir_prompt` |
+| Verificable en | `finanzas/ia.py`, función `_construir_prompt`, y `finanzas/ia_plan.py` |
 
 ## 12. Encuesta de satisfacción
 
@@ -220,6 +222,52 @@ Inventario de qué dato personal trata la aplicación, con qué finalidad, dónd
 | Conservación | Hasta que se apague en el aparato, el servicio responda que el aparato ya no existe o se elimine la cuenta. Hasta 10 aparatos por cuenta |
 | Verificable en | `finanzas/push.py`, `finanzas/servicios/recordatorios.py`, `finanzas/views/recordatorios.py`, `finanzas/tests/test_recordatorios.py` |
 
+## 20. Revisión de movimientos repetidos con IA
+
+| | |
+| --- | --- |
+| Datos enviados | De cada par dudoso (mismo monto, fechas cercanas): fecha, tipo, monto, categoría y descripción de los dos movimientos, hasta 80 caracteres por descripción |
+| Datos que NO se envían | Nombre, correo, nombre de usuario, identificadores |
+| Finalidad | Decidir si dos movimientos son el mismo anotado dos veces, al importar una cartola y en Perfil → Movimientos repetidos |
+| Base de licitud | Consentimiento, con el interruptor del análisis con IA (`UserProfile.analisis_ia`). Apagado, solo se usan las reglas propias |
+| Dónde | API de Anthropic, Estados Unidos. El veredicto, en la caché de Postgres |
+| Conservación | El veredicto (sí o no), 30 días, con una clave que es un hash del par. En Anthropic, la que aplique el proveedor |
+| Verificable en | `finanzas/ia_repetidos.py`, `finanzas/servicios/repetidos.py` |
+
+## 21. Preguntas a la esfera
+
+| | |
+| --- | --- |
+| Datos enviados | A Anthropic: la pregunta (hasta 300 caracteres), las anteriores de la misma conversación (hasta 4) y las cifras que entregan las herramientas para responderla: lo que queda del mes, el gasto de una categoría, las cuotas por mes, cuándo termina una deuda y cómo van las metas. Los nombres de las deudas y las metas van como alias (Deuda 1, Meta 1). A ElevenLabs: la grabación, si la pregunta se hace con la voz, y la respuesta para leerla en voz alta |
+| Datos que NO se envían | Correo, nombre de usuario, descripciones de movimientos, nombres de deudas o metas |
+| Finalidad | Responder preguntas sobre la plata del titular |
+| Base de licitud | Consentimiento, con el interruptor del análisis con IA y la política vigente aceptada (`ia_preguntas.puede_preguntar`) |
+| Dónde | APIs de Anthropic y ElevenLabs, Estados Unidos. La conversación y el contador diario, en Postgres |
+| Conservación | La conversación, 30 minutos en la caché. La grabación, no se guarda: se pasa a texto en memoria. El contador (30 preguntas al día), 2 días. En los proveedores, la que apliquen |
+| Verificable en | `finanzas/ia_preguntas.py`, `finanzas/servicios/preguntas.py` |
+
+## 22. Clave personal para anotar desde afuera
+
+| | |
+| --- | --- |
+| Datos | Hash de la clave (la clave se muestra una sola vez y no se guarda), sus primeros caracteres para reconocerla, fecha de creación y del último uso. Lo que se anota con ella queda como un movimiento normal |
+| Finalidad | Anotar gastos desde un atajo del teléfono o el bot de Telegram sin abrir la app |
+| Base de licitud | Ejecución del servicio, a pedido del titular |
+| Dónde | Postgres (`finanzas_claveapi`). Si el análisis con IA está activado y el servidor no entiende la frase, la frase se envía a la API de Anthropic para leer el monto, la categoría y la fecha |
+| Conservación | Hasta que el titular la revoque o elimine la cuenta |
+| Verificable en | `finanzas/models/api.py`, `finanzas/servicios/anotar_texto.py` |
+
+## 23. Anotar desde Telegram
+
+| | |
+| --- | --- |
+| Datos | Número del chat, nombre en Telegram, fecha de conexión y del último uso. Los mensajes y audios que el titular le manda al bot y las respuestas |
+| Finalidad | Anotar gastos escribiéndole o grabándole al bot |
+| Base de licitud | Ejecución del servicio, a pedido del titular: lo conecta con un enlace de un solo uso que dura 10 minutos y lo corta con /desconectar o desde el perfil. Los audios y las frases que se leen con IA, consentimiento con el interruptor del análisis con IA |
+| Dónde | Postgres (`finanzas_chattelegram`). Los mensajes pasan por los servidores de Telegram. Los audios se pasan a texto con ElevenLabs y las frases que el servidor no entiende se leen con Anthropic |
+| Conservación | La conexión, hasta desconectarla o eliminar la cuenta. Los audios, no se guardan. En Telegram y en los proveedores de IA, la que apliquen |
+| Verificable en | `finanzas/models/telegram.py`, `finanzas/views/telegram.py` |
+
 ---
 
 ## Encargados del tratamiento y transferencias internacionales
@@ -231,10 +279,11 @@ Todos los proveedores están fuera de Chile, lo que constituye transferencia int
 | Railway | Cómputo y base de datos completa | Estados Unidos | DPA firmado el 2026-09-24 (firma aparte, railway.com/legal/dpa) |
 | Cloudflare R2 | Fotos de perfil y respaldos de la base | Red global | Customer DPA v6.4, incorporado al Self-Serve Subscription Agreement, revisado y descargado el 2026-09-23 |
 | Resend | Correo del titular y contenido de los correos de la cuenta y del aviso; correo y pregunta del formulario de contacto | Estados Unidos | DPA prefirmado por Resend, vigente desde el alta de la cuenta; copia firmada descargada el 2026-09-23 |
-| Anthropic | Agregados numéricos del análisis; texto del chat de ayuda | Estados Unidos | DPA incorporado a los Commercial Terms, revisados y descargados el 2026-09-23 |
+| Anthropic | Agregados numéricos del análisis y montos del plan; texto del chat de ayuda; contenido de las cartolas que no lee el lector propio, con los datos personales tapados salvo en fotos y escaneos; preguntas a la esfera con sus cifras; pares de movimientos repetidos dudosos; frases de Telegram o de la clave personal que el servidor no entiende | Estados Unidos | DPA incorporado a los Commercial Terms, revisados y descargados el 2026-09-23 |
 | Servicio de avisos del navegador: Google (Chrome y Android), Mozilla (Firefox), Apple (Safari) o Microsoft (Edge) | El recordatorio cifrado, sin poder leerlo; la dirección del aparato y la hora del envío | Estados Unidos | Lo elige el navegador de la persona. Sin contrato con Fintora |
 | Google | Identidad al entrar con cuenta de Google | Estados Unidos | Términos del servicio de identidad |
-| ElevenLabs | Texto que lee la esfera: montos, nombres de las personas de Me deben y, al entrar, el nombre del saludo | Estados Unidos | Por documentar: descargar el DPA al contratar el plan de pago |
+| ElevenLabs | Texto que lee la esfera: montos, nombres de las personas de Me deben, el nombre del saludo y las respuestas a las preguntas. Grabaciones de las preguntas con la voz y audios del bot de Telegram, para pasarlos a texto | Estados Unidos | Por documentar: descargar el DPA al contratar el plan de pago |
+| Telegram (si el titular conecta el bot) | Los mensajes y audios que el titular le manda al bot y sus respuestas | Internacional | Términos de la plataforma de bots de Telegram. Sin DPA: lo elige el titular al conectarlo |
 | Sentry (si `SENTRY_DSN` está activo) | Errores de la aplicación, sin datos personales (`send_default_pii=False`) | Estados Unidos | Por documentar |
 | Plausible (si `PLAUSIBLE_DOMINIO` está activo) | Visitas a las páginas públicas, sin cookies | Unión Europea | Términos del servicio |
 | Google Analytics, Meta, TikTok, X (si su variable está activa) | Visitas a las páginas públicas y el evento de registro, con consentimiento | Estados Unidos e internacional | Términos de cada plataforma |
@@ -253,6 +302,11 @@ Todos los proveedores están fuera de Chile, lo que constituye transferencia int
 | Correo nuevo sin confirmar | 48 horas | Aplicado: el enlace vence |
 | Registro sin confirmar | 48 horas | Aplicado: `alta.purgar` y el enlace vence |
 | Audio de la voz de la esfera | 6 horas | Aplicado: caché |
+| Conversación con la esfera | 30 minutos | Aplicado: caché |
+| Grabación de una pregunta y audio de Telegram | No se guarda | Aplicado: se pasa a texto en memoria |
+| Veredicto de repetidos con IA | 30 días | Aplicado: caché, solo sí o no |
+| Conexión con Telegram | Hasta desconectarla o eliminar la cuenta | Aplicado: `/desconectar`, el perfil y borrado en cascada |
+| Clave personal | Hasta revocarla o eliminar la cuenta | Aplicado: se guarda solo su hash |
 | Aparatos con recordatorios | Hasta apagarlos, que el servicio los dé por vencidos o se borre la cuenta | Aplicado: `push_quitar`, borrado ante 404 o 410 y en cascada |
 | Archivo de cartola | No se guarda | Aplicado |
 | Lo leído de una cartola | Hasta 8 horas, en la sesión | Aplicado; se declara en la política 1.3 |
@@ -268,8 +322,9 @@ Todos los proveedores están fuera de Chile, lo que constituye transferencia int
 | Acceso y portabilidad | Perfil → Descargar todos mis datos (JSON), y exportación a Excel y CSV |
 | Rectificación | Cada dato se edita desde su propia pantalla |
 | Supresión | Perfil → Seguridad → Eliminar mi cuenta. Borra todo de inmediato |
-| Oposición al análisis con IA | Perfil → Análisis con IA, apagado |
+| Oposición al análisis con IA | Perfil → Análisis con IA, apagado. Apaga también la voz, las preguntas a la esfera, los repetidos con IA y los audios de Telegram. La lectura de cartolas con IA se evita subiendo el PDF o el Excel de un banco con lector propio |
 | Oposición al correo mensual | Perfil → Aviso mensual, apagado |
 | Oposición a los recordatorios | Perfil → Recordatorios en este aparato, apagado, o los ajustes del teléfono |
+| Desconectar Telegram o la clave personal | /desconectar en el bot, o Perfil → Anotar desde Telegram → Revocar |
 | Canal formal de solicitudes | soporte@perseustechnology.dev, respuesta en 30 días corridos |
 | Evidencia del consentimiento | `UserProfile.politica_version` y `politica_aceptada`, registrados en el alta y al aceptar cada versión nueva |
