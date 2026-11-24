@@ -32,14 +32,18 @@ def _dia(request):
     return dia if 0 <= dia <= 31 else 30
 
 
-def _mes_valido(request, periodo):
+def _mes_valido(request):
+    try:
+        periodo = int(request.POST.get('periodo') or 0)
+    except ValueError:
+        periodo = 0
     ingreso = ingreso_fijo.de(request.user)
     hoy = fechas.hoy()
     if ingreso is None or not 1 <= periodo % 100 <= 12:
-        return None, hoy
+        return None, periodo, hoy
     if not ingreso.inicio <= periodo <= periodo_de(hoy):
-        return None, hoy
-    return ingreso, hoy
+        return None, periodo, hoy
+    return ingreso, periodo, hoy
 
 
 @login_required(login_url='/login/')
@@ -68,8 +72,8 @@ def guardar_ingreso(request):
 
 @login_required(login_url='/login/')
 @require_POST
-def ajustar_ingreso(request, periodo):
-    ingreso, _ = _mes_valido(request, periodo)
+def ajustar_ingreso(request):
+    ingreso, periodo, _ = _mes_valido(request)
     if ingreso is None:
         messages.warning(request, 'Ese mes no se puede cambiar.')
         return _volver()
@@ -97,8 +101,8 @@ def ajustar_ingreso(request, periodo):
 
 @login_required(login_url='/login/')
 @require_POST
-def ingreso_llego(request, periodo):
-    ingreso, hoy = _mes_valido(request, periodo)
+def ingreso_llego(request):
+    ingreso, periodo, hoy = _mes_valido(request)
     if ingreso is None:
         messages.warning(request, 'Ese mes todavía no llega.')
         return _volver()
@@ -115,9 +119,11 @@ def ingreso_llego(request, periodo):
 
 @login_required(login_url='/login/')
 @require_POST
-def ingreso_deshacer(request, periodo):
-    ingreso, _ = _mes_valido(request, periodo)
-    if ingreso is not None and ingreso_fijo.deshacer(ingreso, periodo):
+def ingreso_deshacer(request):
+    ingreso, periodo, _ = _mes_valido(request)
+    if ingreso is None:
+        return _volver()
+    if ingreso_fijo.deshacer(ingreso, periodo):
         messages.success(request, f'Tu sueldo de {nombre_periodo(periodo)} vuelve a quedar por recibir.')
     return _volver(periodo)
 

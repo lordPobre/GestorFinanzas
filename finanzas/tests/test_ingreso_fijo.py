@@ -55,27 +55,39 @@ class IngresoFijoTests(TestCase):
     def test_ya_llego_anota_el_ingreso_y_deshacer_lo_borra(self):
         self._crear()
         with _hoy():
-            self.client.post(reverse('ingreso_llego', args=[202611]))
+            self.client.post(reverse('ingreso_llego'), {'periodo': '202611'})
         tx = Transaccion.objects.get(usuario=self.ana)
         self.assertEqual((tx.tipo, tx.monto, tx.categoria, tx.fecha), ('INGRESO', Decimal('1250000'), 'Sueldo', HOY))
         fila = IngresoMes.objects.get(periodo=202611)
         self.assertTrue(fila.llego and fila.anotado_aqui)
         with _hoy():
-            self.client.post(reverse('ingreso_deshacer', args=[202611]))
+            self.client.post(reverse('ingreso_deshacer'), {'periodo': '202611'})
         self.assertFalse(Transaccion.objects.filter(usuario=self.ana).exists())
         self.assertFalse(IngresoMes.objects.get(periodo=202611).llego)
 
     def test_un_mes_futuro_no_se_marca(self):
         self._crear()
         with _hoy():
-            self.client.post(reverse('ingreso_llego', args=[202612]))
+            self.client.post(reverse('ingreso_llego'), {'periodo': '202612'})
         self.assertFalse(Transaccion.objects.filter(usuario=self.ana).exists())
+
+    def test_otra_persona_no_toca_tu_sueldo(self):
+        self._crear()
+        beto = User.objects.create_user('beto', 'beto@ejemplo.cl', 'clave-larga-1')
+        self.client.force_login(beto)
+        with _hoy():
+            self.client.post(reverse('ingreso_llego'), {'periodo': '202611'})
+            self.client.post(reverse('ajustar_ingreso'), {'periodo': '202611', 'modo': 'extra', 'extra': '1000'})
+            self.client.post(reverse('quitar_ingreso'))
+        self.assertTrue(IngresoFijo.objects.filter(usuario=self.ana).exists())
+        self.assertFalse(IngresoMes.objects.exists())
+        self.assertFalse(Transaccion.objects.exists())
 
     def test_horas_extra_solo_ese_mes(self):
         self._crear()
         with _hoy():
-            self.client.post(reverse('ajustar_ingreso', args=[202611]),
-                             {'modo': 'extra', 'extra': '86400', 'nota': '12 horas'})
+            self.client.post(reverse('ajustar_ingreso'),
+                             {'periodo': '202611', 'modo': 'extra', 'extra': '86400', 'nota': '12 horas'})
             datos = ingreso_fijo.pantalla(self.ana, 202611, HOY)
         self.assertEqual(datos['detalle']['total'], Decimal('1336400'))
         self.assertEqual(datos['detalle']['nota'], '12 horas')
@@ -84,15 +96,15 @@ class IngresoFijoTests(TestCase):
     def test_horas_extra_despues_de_ya_llego_suben_el_ingreso(self):
         self._crear()
         with _hoy():
-            self.client.post(reverse('ingreso_llego', args=[202611]))
-            self.client.post(reverse('ajustar_ingreso', args=[202611]), {'modo': 'extra', 'extra': '50000'})
+            self.client.post(reverse('ingreso_llego'), {'periodo': '202611'})
+            self.client.post(reverse('ajustar_ingreso'), {'periodo': '202611', 'modo': 'extra', 'extra': '50000'})
         self.assertEqual(Transaccion.objects.get(usuario=self.ana).monto, Decimal('1300000'))
 
     def test_cambiar_monto_de_aqui_en_adelante_deja_los_meses_anteriores(self):
         self._crear(fecha=date(2026, 9, 10))
         with _hoy():
-            self.client.post(reverse('ajustar_ingreso', args=[202611]),
-                             {'modo': 'monto', 'nuevo': '1400000', 'alcance': 'adelante'})
+            self.client.post(reverse('ajustar_ingreso'),
+                             {'periodo': '202611', 'modo': 'monto', 'nuevo': '1400000', 'alcance': 'adelante'})
             datos = ingreso_fijo.pantalla(self.ana, 202611, HOY)
         self.assertEqual(IngresoFijo.objects.get(usuario=self.ana).monto, Decimal('1400000'))
         por_mes = {m['periodo']: m['sueldo'] for m in datos['meses']}
@@ -104,8 +116,8 @@ class IngresoFijoTests(TestCase):
     def test_cambiar_monto_solo_ese_mes(self):
         self._crear()
         with _hoy():
-            self.client.post(reverse('ajustar_ingreso', args=[202611]),
-                             {'modo': 'monto', 'nuevo': '1336400', 'alcance': 'mes'})
+            self.client.post(reverse('ajustar_ingreso'),
+                             {'periodo': '202611', 'modo': 'monto', 'nuevo': '1336400', 'alcance': 'mes'})
             datos = ingreso_fijo.pantalla(self.ana, 202611, HOY)
         self.assertEqual(datos['detalle']['sueldo'], Decimal('1336400'))
         self.assertTrue(datos['detalle']['cambiado'])

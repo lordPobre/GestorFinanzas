@@ -31,9 +31,9 @@
       <div class="ig2c-estado">
         <span class="ig2c-estado-txt"><b>{{ tarjeta.mes.nombre|capfirst }} · {{ tarjeta.titulo }}</b><span>{{ tarjeta.detalle }}</span></span>
         {% if tarjeta.mes.puede_llegar %}
-        <form method="post" action="{% url 'ingreso_llego' tarjeta.mes.periodo %}">{% csrf_token %}<button type="submit" class="ig2c-llego">Ya llegó</button></form>
+        <form method="post" action="{% url 'ingreso_llego' %}">{% csrf_token %}<input type="hidden" name="periodo" value="{{ tarjeta.mes.periodo }}"><button type="submit" class="ig2c-llego">Ya llegó</button></form>
         {% elif tarjeta.mes.recibido %}
-        <form method="post" action="{% url 'ingreso_deshacer' tarjeta.mes.periodo %}" data-confirm="{% if tarjeta.mes.por_cartola %}¿Volver a dejar {{ tarjeta.mes.nombre }} por recibir? El depósito de la cartola sigue en tus movimientos.{% else %}¿Volver a dejar {{ tarjeta.mes.nombre }} por recibir? Se borra el ingreso que anotó «Ya llegó».{% endif %}">{% csrf_token %}<button type="submit" class="ig2c-deshacer">Deshacer</button></form>
+        <form method="post" action="{% url 'ingreso_deshacer' %}" data-confirm="{% if tarjeta.mes.por_cartola %}¿Volver a dejar {{ tarjeta.mes.nombre }} por recibir? El depósito de la cartola sigue en tus movimientos.{% else %}¿Volver a dejar {{ tarjeta.mes.nombre }} por recibir? Se borra el ingreso que anotó «Ya llegó».{% endif %}">{% csrf_token %}<input type="hidden" name="periodo" value="{{ tarjeta.mes.periodo }}"><button type="submit" class="ig2c-deshacer">Deshacer</button></form>
         {% endif %}
       </div>
     </section>
@@ -73,9 +73,9 @@
       </div>
       {% if not detalle.es_actual %}
       {% if detalle.puede_llegar %}
-      <form method="post" action="{% url 'ingreso_llego' detalle.periodo %}" class="ig2c-form-llego">{% csrf_token %}<button type="submit" class="ig2c-boton oscuro"><i class="fas fa-check"></i>Ya llegó</button></form>
+      <form method="post" action="{% url 'ingreso_llego' %}" class="ig2c-form-llego">{% csrf_token %}<input type="hidden" name="periodo" value="{{ detalle.periodo }}"><button type="submit" class="ig2c-boton oscuro"><i class="fas fa-check"></i>Ya llegó</button></form>
       {% elif detalle.recibido %}
-      <form method="post" action="{% url 'ingreso_deshacer' detalle.periodo %}" class="ig2c-form-llego" data-confirm="¿Volver a dejar {{ detalle.nombre }} por recibir?">{% csrf_token %}<button type="submit" class="ig2c-deshacer oscuro">Deshacer «Ya llegó»</button></form>
+      <form method="post" action="{% url 'ingreso_deshacer' %}" class="ig2c-form-llego" data-confirm="¿Volver a dejar {{ detalle.nombre }} por recibir?">{% csrf_token %}<input type="hidden" name="periodo" value="{{ detalle.periodo }}"><button type="submit" class="ig2c-deshacer oscuro">Deshacer «Ya llegó»</button></form>
       {% endif %}
       {% endif %}
       {% endif %}
@@ -129,8 +129,9 @@
       </div>
       <button class="modal-close" data-close aria-label="Cerrar"><i class="fas fa-xmark"></i></button>
     </div>
-    <form method="post" action="{% url 'ajustar_ingreso' detalle.periodo %}" class="ig2c-form" data-ajustar data-mes="{{ detalle.nombre }}" data-sueldo="{{ detalle.sueldo|floatformat:'0u' }}" data-base="{{ ingreso.monto|floatformat:'0u' }}">
+    <form method="post" action="{% url 'ajustar_ingreso' %}" class="ig2c-form" data-ajustar data-mes="{{ detalle.nombre }}" data-sueldo="{{ detalle.sueldo|floatformat:'0u' }}" data-base="{{ ingreso.monto|floatformat:'0u' }}">
       {% csrf_token %}
+      <input type="hidden" name="periodo" value="{{ detalle.periodo }}">
       <div class="ig2c-seg" role="radiogroup" aria-label="Qué quieres hacer">
         <label><input type="radio" name="modo" value="extra" checked><span>Sumar horas extra</span></label>
         <label><input type="radio" name="modo" value="monto"><span>Cambiar el monto</span></label>
